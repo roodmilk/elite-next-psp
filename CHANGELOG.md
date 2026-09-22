@@ -14,6 +14,11 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 - Smoke performance reports now include minimum free heap and largest contiguous free block samples.
 - Existing frame-rate and slow-frame checks remain unchanged.
 
+## Unreleased — Selective GU acceleration
+
+- PSP GU now accelerates full-buffer menu/background clears only; the software renderer remains authoritative for all scene pixels.
+- GU state is rebuilt across suspend/resume and falls back to the existing CPU clear if initialization fails.
+
 - Loadout display and module refunds validate fitted catalog indexes before using equipment arrays.
 - Added V13 slot-value regression checks; save version and V12 migration remain unchanged.
 

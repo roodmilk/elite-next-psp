@@ -17,6 +17,7 @@
 #include "saga.h"
 #include "audio.h"
 #include "perf-metrics.h"
+#include "gu-accel.h"
 #include "radio-tests.h"
 #include "steering.h"
 #include "steering-test.h"
@@ -63,6 +64,7 @@ static void display_recover(void){
  sceDisplayWaitVblankStart();
  /* IMMEDIATE: show the recovered plane now. NEXTFRAME here left the LCD on a stale/empty buffer. */
  sceDisplaySetFrameBuf((void*)fb,STRIDE,PSP_DISPLAY_PIXEL_FORMAT_8888,PSP_DISPLAY_SETBUF_IMMEDIATE);
+ gu_accel_recover();
 }
 static void runtime_recover_from_sleep(void){
  /* Tear down audio left over from a long suspend, then restore display/input/radio. */
@@ -817,7 +819,7 @@ static void input_tests(void){
 int main(void){
  int cb=sceKernelCreateThread("Callbacks",callback_thread,0x11,4096,0,0);if(cb>=0)sceKernelStartThread(cb,0,0);
  scePowerSetClockFrequency(333,333,166);sceCtrlSetSamplingCycle(0);sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
- sceDisplaySetMode(0,W,H);pspDebugScreenInit();pspDebugScreenEnableBackColor(0);
+ sceDisplaySetMode(0,W,H);pspDebugScreenInit();pspDebugScreenEnableBackColor(0);gu_accel_init();
  game_init(&game);deck_reset();FILE *flag=fopen("smoke.flag","r");if(flag){smoke=1;fclose(flag);FILE *visual=fopen("visual.flag","r");if(visual){visual_hold=1;fclose(visual);}FILE *log=fopen("boot-check.txt","w");if(log){fprintf(log,"PSP main reached; %d meshes loaded.\n",mesh_count);fclose(log);}}
  if(smoke){radio_tests();steering_tests();game_tests("game-check.txt");input_tests();}
  else {game.voice_time=0;change_page(INTRO);}
@@ -896,7 +898,7 @@ int main(void){
   if(smoke&&!visual_hold&&frames==400){leave_planet(&game);page=FLIGHT;}
   if(smoke&&!visual_hold&&frames==410){change_page(CODEX);}
   if(smoke&&!visual_hold&&frames==420){change_page(RADIO);}if(smoke&&!visual_hold&&frames==415){game_init(&game);deck_reset();launch(&game);page=FLIGHT;game.pos=game.anomaly[0].pos;analysis_scan(&game,ANOMALY_ID_MIN);}
-  fb=(unsigned *)(0x44000000u+(unsigned)buffer*STRIDE*H*4);pspDebugScreenSetOffset(buffer*STRIDE*H*4);if(page!=FLIGHT||hud_mode==1)rect(0,0,W,H,BG);drawcount=0;
+  fb=(unsigned *)(0x44000000u+(unsigned)buffer*STRIDE*H*4);pspDebugScreenSetOffset(buffer*STRIDE*H*4);if(page!=FLIGHT||hud_mode==1)if(!gu_accel_clear(buffer,BG))rect(0,0,W,H,BG);drawcount=0;
   switch(page){case FLIGHT:space();break;case MARKET:market_screen();break;case CHART:chart();break;case YARD:yard();break;case EQUIP:equipment();break;case INVENTORY:inventory_screen();break;case STATUS:status();break;case HELP:help();break;case FACTIONS:factions();break;case LOCAL:local_system();break;case DEBUG:debug_screen();break;case COMMS:communications();break;case DETAILS:system_details();break;case MISSIONS:mission_board();break;case MISSIONLOG:mission_log();break;case TARGETING:targeting_screen();break;case GALNET:galnet_screen();break;case CODEX:codex_screen();break;case STORY:story_screen();break;case GUILD:guild_screen();break;case RADIO:radio_screen();break;case COMMS_PANEL:comms_panel();break;case INTRO:intro_screen();break;case CAMPAIGN:campaign_screen();break;case COMFORT:comfort_screen();break;case WALK:walk_screen();break;default:home();}
   if(page!=FLIGHT&&!paused&&page!=INTRO&&page!=GALNET)menu_notice();
  if(dump_native&&frames==6)dump_native_bmp("native-480x272.bmp");
@@ -908,10 +910,9 @@ int main(void){
   sceDisplayWaitVblankStart();sceDisplaySetFrameBuf((void*)fb,STRIDE,PSP_DISPLAY_PIXEL_FORMAT_8888,PSP_DISPLAY_SETBUF_IMMEDIATE);buffer^=1;frames++;
   if(smoke&&!visual_hold&&frames==425){double fps=frame_seconds>0?frame_samples/frame_seconds:0;FILE *log=fopen("boot-check.txt","a");if(log){fprintf(log,"Rendered 42 scenes in 425 frames, including landing, EVA, ship compass, Codex and anomaly scan.\n");fprintf(log,"Performance: %.2f average FPS, %.2f ms worst frame, %d frames over 25 ms.\n",fps,worst_frame*1000,slow_frames);fclose(log);}FILE *perf_file=fopen("performance-check.txt","w");if(perf_file){int planet_fail=0;for(int i=36;i<=39;i++)if(scene_frames[i]&&scene_frames[i]/scene_seconds[i]<24)planet_fail=1;int fail=fps<50||planet_fail;fprintf(perf_file,"%s average frame rate >= 50 FPS (%.2f FPS)\n",fps>=50?"PASS":"FAIL",fps);fprintf(perf_file,"%s planetary flight/EVA scenes remain >= 24 FPS\n",planet_fail?"FAIL":"PASS");fprintf(perf_file,"INFO worst frame %.2f ms; %d frames over 25 ms\n",worst_frame*1000,slow_frames);fprintf(perf_file,"INFO heap minimum free %d bytes; largest block %d bytes\n",perf.min_free_mem==0x7fffffff?0:perf.min_free_mem,perf.min_free_block==0x7fffffff?0:perf.min_free_block);for(int i=3;i<43;i++)if(scene_frames[i])fprintf(perf_file,"SCENE %02d %.2f FPS\n",i,scene_frames[i]/scene_seconds[i]);fprintf(perf_file,"RESULT %d failures\n",fail);fclose(perf_file);}running=0;}
  }
- audio_stop();
+ audio_stop();gu_accel_stop();
  sceKernelExitGame();return 0;
 }
-
 
 
 

@@ -12,6 +12,8 @@ The first expansion-roadmap milestone is also landed locally: outfitting content
 
 The second milestone adds lightweight PSP heap telemetry to `performance-check.txt`; the latest smoke measured 14.99 MB minimum free heap and 14.74 MB largest block under PPSSPP, with all groups passing.
 
+The third milestone adds a narrowly scoped GU clear path in `src/gu-accel.h`. Software drawing and manual framebuffer presentation remain unchanged; GU is rebuilt after resume and has a CPU fallback. Full smoke remains green.
+
 ## Start here
 
 This is a native PSP homebrew game inspired by Elite-A and the wider Elite lineage. It is no longer a literal port: it has a new flight/world simulation, 256 seeded systems, modern PSP interface, multi-body systems, factions, missions, planetary flight/EVA, custom radio folders and an original Kei/Ryn campaign called **The Open Channel**.
