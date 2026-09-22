@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.32**.
+Prepared 22 September 2026. Current build: **2.5.33**.
 
 ## Start here
 
@@ -10,10 +10,11 @@ Read these documents in this order:
 
 1. `CLAUDE-HANDOFF.md` — current implementation state and working rules.
 2. `docs/DESIGN-BIBLE-2.0.md` — concise product and technical direction.
-3. `docs/OPEN-CHANNEL-CAMPAIGN.md` — the 24-chapter main campaign.
-4. `docs/UI-SPEC.md` — PSP-specific layout and interaction rules.
-5. `docs/DESIGN-BIBLE.md` — exhaustive historical design record and detailed original scripts.
-6. `docs/PROGRESS.md` and `docs/FEATURE-MAP.md` — implementation history and feature inventory.
+3. `docs/ELITE-NEXT-MANUSCRIPT.md` — whole-game story & missions manuscript (Story Manager living bible).
+4. `docs/OPEN-CHANNEL-CAMPAIGN.md` — the 24-chapter main campaign (ops summary).
+5. `docs/UI-SPEC.md` — PSP-specific layout and interaction rules.
+6. `docs/DESIGN-BIBLE.md` — exhaustive historical design record and detailed original scripts.
+7. `docs/PROGRESS.md` and `docs/FEATURE-MAP.md` — implementation history and feature inventory.
 
 The newest explicit user feedback overrides older prose in the large design bible.
 
@@ -63,6 +64,10 @@ Important controls:
 - Galaxy Map: Triangle switches between nearby jumps and the full 256-system map; D-pad moves between systems; L/R zoom; X plots a multi-jump route and saves the final goal.
 
 ## Recent changes that must be preserved
+
+### 2.5.33 — whole-game story manuscript
+
+`docs/ELITE-NEXT-MANUSCRIPT.md` is the Story Manager living bible for missions + campaign + texture. Open Channel theatrical scenes remain in `OPEN-CHANNEL-SCREENPLAY.md`.
 
 ### 2.5.32 — ask-then-answer chapter conversations
 

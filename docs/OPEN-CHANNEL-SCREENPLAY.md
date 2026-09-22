@@ -2,7 +2,7 @@
 
 **Status:** Canonical story authority for ELITE: NEXT 2.5.21+ (playable prose quality pass 2.5.31)  
 **Form:** Feature-length interactive screenplay (approx. 110–130 script pages / ~10 hours critical path)  
-**Playable binding:** `src/saga.h` (six-beat PSP briefs with chapter-authored player asks) · prologue lines in `src/narrative-nav.h` · `docs/OPEN-CHANNEL-CAMPAIGN.md` (summary bible)  
+**Playable binding:** `src/saga.h` (six-beat PSP briefs with chapter-authored player asks) · prologue lines in `src/narrative-nav.h` · `docs/OPEN-CHANNEL-CAMPAIGN.md` (summary bible) · whole-game manuscript `docs/ELITE-NEXT-MANUSCRIPT.md`
 **Rule:** GalNet, novels and tourist-beacon text are **reference only** — never reproduced. All dialogue below is original.
 
 **Assembly:** Merged full Act I–IV drafts (character bible, lore ledger, branching scenes) into one shippable authority document.

@@ -1,4 +1,8 @@
-# ELITE: NEXT — development build 2.5.32
+# ELITE: NEXT — development build 2.5.33
+
+## New in 2.5.33 — whole-game story manuscript
+
+- `docs/ELITE-NEXT-MANUSCRIPT.md` begins the giant story & missions bible (Mission Network banks, Guild, Open Channel verb map, living galaxy texture).
 
 ## New in 2.5.32 — conversations that answer you
 

@@ -2,6 +2,10 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.33 - 2026-09-22
+
+- Begun the whole-game story & missions manuscript (`docs/ELITE-NEXT-MANUSCRIPT.md`): Volumes I–VII covering themes/cast, Mission Network template banks, Guild scenes, Open Channel verb sheets, living-galaxy texture, postgame seeds, and side-channel calls.
+
 ## 2.5.32 - 2026-09-22
 
 - Open Channel chapter briefs now follow true ask-then-answer: each NPC beat answers the commander's previous question, matching the prologue rhythm.
