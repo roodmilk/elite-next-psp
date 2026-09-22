@@ -2,6 +2,13 @@
 
 Prepared 22 September 2026. Current build: **2.5.46**.
 
+## PSP UI/art specialist handoff — native deck readability
+
+The integrated UI/art pass shortens command-deck helper copy to the existing 27-column
+detail pane and bounds the renderer at that width. This is presentation-only: no
+mission, economy, save, input, or audio state changed. The lead workspace completed
+the PSP build and all five smoke-test groups successfully after integration.
+
 ## Working tip — equipment modules (shipped in 2.5.46)
 
 Outfitting buys into six hardpoints (`fit[]`); Loadout sells at 50%. Bits still drive the sim; V13 persists slots. Targeting CRT fuzz from 2.5.45 retained.
