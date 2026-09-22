@@ -1,0 +1,3 @@
+[submodule "elite-a"]
+	path = elite-a
+	url = https://github.com/markmoxon/elite-a-source-code-bbc-micro.git
