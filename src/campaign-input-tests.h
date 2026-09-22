@@ -127,7 +127,7 @@
   echo.saga_flags=1;echo.saga_trust[0]=0;echo.saga_trust[3]=1;
   INPUT_CHECK(saga_galnet_mira(&echo)&&strstr(saga_galnet_mira(&echo),"chart dump")&&saga_galnet_sable(&echo)&&strstr(saga_galnet_sable(&echo),"corridor"),"script: GalNet Mira/Sable posts colour from Silence + Independent");
   echo.system=0;INPUT_CHECK(mission_type_for_offer(&echo,0)==MISSION_DELIVERY&&strstr(mission_brief(&echo,0),"Protein"),"script: mission briefs use authored Vol II Hungry Pad bank");
-  INPUT_CHECK(strstr(guild_line(&echo,0),"Borrowed hulls"),"script: Guild opening line keeps manuscript expanded dialogue");
+  INPUT_CHECK(!!strstr(guild_line(&echo,0),"Borrowed hulls"),"script: Guild opening line keeps manuscript expanded dialogue");
  }
  TEST_INIT();
 }
