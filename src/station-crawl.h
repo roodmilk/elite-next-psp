@@ -745,7 +745,7 @@ static void sc_do_npc_choice(ScNpc *p,int choice){
   int bit=p->gift_bit>=0?p->gift_bit:0;
   if(game.gift_flags&(1u<<bit)){message(&game,"Already took that gift.");return;}
   game.gift_flags|=1u<<bit;
-  if(bit==0){if(!(game.upgrades&8)){game.upgrades|=8;message(&game,"Free cargo clamp fitted (+8t).");}else {game.credits+=200;message(&game,"Clamp spare sold for 20 U.");}}
+  if(bit==0){if(game.fit[FIT_HOLD]==FIT_EMPTY){game.fit[FIT_HOLD]=23;fit_rebuild(&game);message(&game,"Free cargo clamp fitted (+8t).");}else {game.credits+=200;message(&game,"Clamp spare sold for 20 U.");}}
   else {game.energy=100;message(&game,"Medkit used — energy restored.");}
   game.cue=SFX_UI;
  }else if(p->act==SC_ACT_QUEST){
@@ -753,6 +753,7 @@ static void sc_do_npc_choice(ScNpc *p,int choice){
   {char note[64];snprintf(note,sizeof(note),"Side tip paid %.1f U.",p->quest_pay*.1f);message(&game,note);}
   game.cue=SFX_SELECT;
  }else if(p->act==SC_ACT_TAXI){
+  if(!(game.upgrades&512)){message(&game,"Need a passenger cabin fitted.");return;}
   if(game.passenger_dest>=0){message(&game,"Cabin already holds a passenger.");return;}
   if(cargo_used(&game)>=cargo_capacity(&game)){message(&game,"Need 1t free for a passenger.");return;}
   int dest=(game.system*17+sc_room*3+11)&255;if(dest==game.system)dest=(dest+5)&255;

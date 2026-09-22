@@ -1,6 +1,10 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.45**.
+Prepared 22 September 2026. Current build: **2.5.46**.
+
+## Working tip — equipment modules (shipped in 2.5.46)
+
+Outfitting buys into six hardpoints (`fit[]`); Loadout sells at 50%. Bits still drive the sim; V13 persists slots. Targeting CRT fuzz from 2.5.45 retained.
 
 ## Start here
 
