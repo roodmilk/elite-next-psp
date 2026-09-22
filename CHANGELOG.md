@@ -8,6 +8,13 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 - Menu 3D ship viewport camera orbits much slower.
 - Factions screen: X cycles Story channel lore (saga helpers only); Triangle locks nearest ship of that colour.
 
+## 2.5.43 - 2026-09-22
+
+- **Commander play-fix pack:** Art HUD/disembark quiet (`1b4e08d`) + Designer dock-only deck services / slow menu cam / live Factions (`eb4d23a`) + Story Gazette tabloid + faction lore (`9a9c45f` / `gazette-lore.h`).
+- Undocked deck hides Shipyard, Outfitting, Mission board; menu ship cam slowed; Factions lore channel + gazette voices.
+- Drop HOLD SQ lock hint and text bloom; softer space; neat GalNet tabs; station OPTIONS list.
+- Galactic Gazette tabloid jokes that still leak lore.
+
 ## 2.5.42 - 2026-09-22
 
 - **Commander playable pack:** ART quiet pass `b0a97e1` on the v2.5.41 tip — permanent meteors/station glitter removed; soft docking lights and plumes kept; MacVenture disembark UI decluttered (no PACK/EXITS overlap).
