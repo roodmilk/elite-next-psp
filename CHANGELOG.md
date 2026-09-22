@@ -2,6 +2,13 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## Unreleased — shared painted cover field
+
+- Flight, docking, and command-deck previews now share a deterministic stepped
+  sky field with an asymmetrical period-illustration mass and tiny relay cue.
+- The centre remains quiet for the reticle and HUD; no simulation or targeting
+  state is added.
+
 ## Unreleased — native deck copy guard
 
 - Shortened command-deck helper copy to fit the 27-column detail pane at 480×272.

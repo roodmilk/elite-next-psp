@@ -72,6 +72,15 @@ The family is a visual identity layer only. Existing seeded body names, gameplay
 - [ ] Proposed/current label is present in capture documentation.
 - [ ] Runtime bake records source, palette, dimensions, memory cost and frame-time result.
 
+## Shared cover-field runtime pass
+
+The flight/docking/menu-preview background now uses a deterministic three-band
+painted field with one asymmetrical side mass and a tiny relay silhouette. It is
+presentation-only, leaves the central canopy open for the reticle and HUD, and
+uses the existing palette/seed so the same system keeps one visual identity
+across flight, docking and the command-deck ship preview. High-contrast mode
+keeps the stepped field but suppresses the relay lamp.
+
 ## Coordination boundary
 
 This handoff deliberately does not edit `src/station-crawl.h`. The station implementation lane can use these targets while retaining its own geometry, input and state-machine decisions. If a target conflicts with performance, cut background decoration first and preserve the focal object, route read and interaction cue.

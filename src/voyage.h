@@ -1,12 +1,31 @@
 static void sector_background(void){
- /* Flat sector wash only — nebula / clouds / dust live in space-fx.h.
-  * Broad, saturated period-illustration fields: cobalt, violet, teal, ember
-  * and coral rather than one black void — still dark enough for cockpit text. */
+ /* Shared 1950s-cover field: broad stepped colour planes first, then the
+  * softer nebula/star passes. Keep the centre quiet for the reticle and HUD;
+  * the large side mass and tiny relay give the frame a period illustration
+  * composition without becoming gameplay geometry. */
  const unsigned colors[]={RGB(8,12,27),RGB(27,12,32),RGB(7,30,35),RGB(36,18,10),RGB(15,23,45),RGB(40,17,26),RGB(12,20,23),RGB(32,20,10)};
- unsigned seed=game.bodies[0].seed;float zone=sinf((game.pos.x+game.pos.z)*.00007f+(seed&255)*.03f);
- unsigned raw=colors[game.system%8];float level=.78f+(zone+1)*.12f;
- unsigned base=RGB((int)((raw&255)*level),(int)(((raw>>8)&255)*level),(int)(((raw>>16)&255)*level));
- rect(0,view_top(),W,view_bot()-view_top()+1,base);
+ unsigned seed=game.bodies[0].seed^(unsigned)game.system*0x9e3779b9u;
+ unsigned raw=colors[game.system%8];
+ float zone=sinf((game.pos.x+game.pos.z)*.00007f+(seed&255)*.03f);
+ unsigned base=RGB((int)((raw&255)*(.78f+(zone+1)*.12f)),(int)(((raw>>8)&255)*(.78f+(zone+1)*.12f)),(int)(((raw>>16)&255)*(.78f+(zone+1)*.12f)));
+ int top=view_top(),bot=view_bot();
+ rect(0,top,W,bot-top+1,base);
+ /* Three stepped bands create the inked sky/painted wash of a cover, while
+    staying cheap enough for the PSP framebuffer and high-contrast mode. */
+ unsigned upper=RGB((base&255)/2,((base>>8)&255)/2,((base>>16)&255)/2);
+ unsigned lower=RGB((int)((base&255)*1.12f),(int)(((base>>8)&255)*1.08f),(int)(((base>>16)&255)*.94f));
+ int horizon=top+(bot-top)*3/5;
+ for(int y=top;y<horizon;y+=4)rect(0,y,W,4,mix_rgb(upper,base,(y-top)/(float)fmaxf(1,horizon-top)));
+ for(int y=horizon;y<=bot;y+=4)rect(0,y,W,4,mix_rgb(base,lower,(y-horizon)/(float)fmaxf(1,bot-horizon)));
+ /* Seeded side composition: a quiet ochre/indigo wedge and one maintained
+    relay silhouette. These are presentation marks, never targetable actors. */
+ int side=(seed&1)?1:0;
+ int ax=side?W-112:24, ay=top+30+(int)((seed>>4)&15), aw=88+(int)((seed>>9)&31), ah=34+(int)((seed>>14)&24);
+ unsigned mass=mix_rgb(base,side?RGB(90,46,62):RGB(30,74,82),.55f);
+ for(int row=0;row<ah;row+=4){int inset=(row<ah/3)?row/2:(row>ah*2/3?(ah-row)/3:ah/6);rect(ax+inset,ay+row,aw-inset*2,4,mix_rgb(mass,base,row/(float)fmaxf(1,ah)));}
+ int rx=side?ax+14:ax+aw-18,ry=ay+ah-8;
+ line(rx,ry,rx,ry-30,RGB(90,104,112));line(rx-8,ry-14,rx+8,ry-14,RGB(90,104,112));
+ if(!high_contrast)pixel(rx,ry-30,((int)(game.time*2)&1)?RGB(240,180,91):RGB(85,212,212));
 }
 static Vec3 station_vertex(Vec3 v){return add(rotate(v,0,station_angle(&game)),(Vec3){0,0,3500});}
 static void station_model(void){
