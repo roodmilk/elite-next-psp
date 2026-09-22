@@ -77,7 +77,7 @@ Station interiors restaged from `docs/CINEMATIC-MOCKUP-TARGETS.md` + ART DIRECTO
 
 **Implementer tip under ART DIRECTOR authority (rebased on tip #18 `f003e09`):** 8×8 native prop markers; ARRIVALS cargo-loader cycle; walk/help/comfort chrome; aperture beacons kit cyan. Mission cue: ART_AMBER + 2-col header margin (Designer had restored GOLD for the old flush assert — palette stays with ART DIRECTOR; smoke uses header-margin assert). No tag.
 
-**Working tip (Commander: BIG RELEASES ONLY):** Release **v2.5.40** shipped. Living-galaxy Phase 1 on `cursor/living-galaxy-aliveness-fe9e` (PR #23): hybrid named travellers + local proc traffic (`docs/LIVING-GALAXY-ALIVENESS.md`) — fold into #18 tip; ART presentation stays ART-owned. No micro-tag.
+**Working tip (Commander: BIG RELEASES ONLY):** Release **v2.5.40** shipped. Living-galaxy Phase 2 on `cursor/living-galaxy-aliveness-fe9e` (PR #23): hybrid named travellers + local proc traffic, **save V12** route persistence, GalNet elsewhere mentions (`docs/LIVING-GALAXY-ALIVENESS.md`) — fold into #18 tip; ART presentation stays ART-owned. No micro-tag.
 
 ### 2.5.38 — soft-FB Wave A canopy FX
 

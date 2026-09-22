@@ -6,7 +6,9 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 
 - Hybrid world rule locked in `docs/LIVING-GALAXY-ALIVENESS.md`: bulk traffic stays local proc-gen; twelve named travellers hop systems and keep stable callsigns.
 - System Details hub pane shows who is here / inbound; Triangle hail uses traveller lines.
-- Session-persistent across jumps (save V12 later). Story faces stay story; station crawl cast unchanged.
+- **Save V12** persists traveller sys/dest/met across load; V11 and older keep seeded routes.
+- GalNet Traffic Control + Spacebook Spotters name travellers on remote routes (not just local sky).
+- Story faces stay story; station crawl cast unchanged.
 
 ## 2.5.40 - 2026-09-22
 

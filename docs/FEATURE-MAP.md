@@ -16,6 +16,7 @@ design bible stays ambitious without becoming an unbounded promise.
 | Feel cinematic | Warp tunnel, lens flare, speed lines, engine plume, target pulse, CRT dust and station rings | Effects stay behind warnings/telemetry and pass performance smoke |
 | Always know what to do | Story `!` marker, `STORY NEXT` breadcrumb, selected mission brief, risk/payout column and plain-language prompts | Pair symbols with words; never rely on color alone |
 | Plan a long journey | Full 256-system galaxy overview, cached multi-jump path, saved `route_goal` separate from the next hop (save V10) | Generic for every destination; no special-cased systems |
+| Feel the galaxy is occupied | Twelve named travellers hop systems (save V12); bulk traffic stays local proc-gen; GalNet names remote routes | Not a full unloaded-world ship sim |
 | Relax with a radio | Five procedural stations, layered ambience and Far Horizons alien chatter; CC0 source manifest; optional user MP3 folders | Integer mixer; hardware decoder with large stream buffer |
 
 Modern inspirations contribute loops, not wholesale feature counts. No Man’s
