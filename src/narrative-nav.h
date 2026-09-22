@@ -89,10 +89,20 @@ static void kei_speech_bubble(int y,const char *line1,const char *line2,int expr
  if(line1&&line1[0])row+=text_wrap(col,row,cap,2,WHITE,line1,&left);
  if(line2&&line2[0]&&row<=y/8+5)text_wrap(col,row,cap,y/8+6-row,WHITE,line2,0);
 }
+/* Orange right-tailed bubble: the commander speaks before the NPC answers. */
+static void player_speech_bubble(int y,const char *speech){
+ const int bx=16,bw=388,bh=62;unsigned edge=RGB(245,157,62),fill=RGB(42,24,14);
+ rect(bx,y,bw,bh,fill);rect(bx,y,bw,2,edge);rect(bx,y+bh-2,bw,2,RGB(119,71,38));rect(bx,y,2,bh,edge);
+ line(bx+bw,y+20,bx+bw+12,y+28,edge);line(bx+bw+12,y+28,bx+bw,y+36,edge);rect(bx+bw-1,y+22,4,13,fill);
+ speaker_name_tag(3,y/8+1,"YOU",edge);
+ text_wrap(3,y/8+3,46,3,WHITE,speech&&speech[0]?speech:"...",0);
+}
 static void narrative_footer(void){footer("UP/DOWN CHOOSE   X SELECT   O BACK");}
 enum { PROLOGUE_BRIEF_BEATS = 6 };
 static int saga_brief_beat=0,saga_brief_chapter=-1,prologue_brief_beat=0;
-static void saga_brief_reset(int chapter){if(saga_brief_chapter!=chapter){saga_brief_chapter=chapter;saga_brief_beat=0;}}
+/* echo=1: player just asked; next Cross reveals the NPC answer (never answer-before-ask). */
+static int prologue_brief_echo=0,saga_brief_echo=0;
+static void saga_brief_reset(int chapter){if(saga_brief_chapter!=chapter){saga_brief_chapter=chapter;saga_brief_beat=0;saga_brief_echo=0;}}
 /* Locked until the player finishes every beat and accepts the next step. */
 static int saga_brief_locked(void){return game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT&&!game.saga_step;}
 static int prologue_brief_locked(void){return tracked_mission==0&&game.campaign_stage==0&&game.system==7&&game.docked;}
@@ -109,11 +119,12 @@ static const char *saga_brief_line(const SagaBeat *b,int beat){
  }
 }
 static const char *saga_brief_reply(int beat){
- /* Reply is the commander's next ask/ack — never the answer to the line on screen. */
- static const char *r[SAGA_BRIEF_BEATS]={"What happened?","Go on","I understand","What do you need?","Confirm the next step","Accept next step"};
+ /* Acks only — never ask a question the on-screen line already answered. */
+ static const char *r[SAGA_BRIEF_BEATS]={"Continue","Go on","I understand","Understood","Confirm the next step","Accept next step"};
  return r[beat>=0&&beat<SAGA_BRIEF_BEATS?beat:SAGA_BRIEF_BEATS-1];
 }
 static const char *prologue_brief_line1(int beat){
+ /* Beat 0 = hook. Beats 1..4 answer the previous ask. Beat 5 reinforces accept. */
  static const char *a[PROLOGUE_BRIEF_BEATS]={
   "Ryn is missing. Help me find her.","The catch is simple: come back alive.","Ryn flew a ship like this one.","Analog or D-pad - pick what feels true.","Launch, clear the station, then dock again.","First flight: launch, fly, return to Lave Hub."};
  return a[beat>=0&&beat<PROLOGUE_BRIEF_BEATS?beat:PROLOGUE_BRIEF_BEATS-1];
@@ -124,7 +135,9 @@ static const char *prologue_brief_line2(int beat){
  return b[beat>=0&&beat<PROLOGUE_BRIEF_BEATS?beat:PROLOGUE_BRIEF_BEATS-1];
 }
 static const char *prologue_brief_reply(int beat){
- /* Ask first, then hear the answer on the next beat. Final beat is accept. */
+ /* Ask is chosen on this beat; NPC answer arrives only after the echo beat. */
  static const char *r[PROLOGUE_BRIEF_BEATS]={"What is the catch?","Tell me about Ryn's ship.","How do the controls work?","Confirm first flight","I'm ready to accept","Accept first flight"};
  return r[beat>=0&&beat<PROLOGUE_BRIEF_BEATS?beat:PROLOGUE_BRIEF_BEATS-1];
 }
+static int prologue_brief_needs_echo(int beat){return beat>=0&&beat<PROLOGUE_BRIEF_BEATS-1;}
+static int saga_brief_needs_echo(int beat){return beat>=0&&beat<SAGA_BRIEF_BEATS-1;}

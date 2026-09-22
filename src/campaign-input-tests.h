@@ -5,9 +5,12 @@
  INPUT_CHECK(page==CAMPAIGN&&!game.campaign_stage,"campaign UI: Circle stays locked until the conversation ends");
  input(PSP_CTRL_SELECT,0,.016f,0,0);
  INPUT_CHECK(page==CAMPAIGN&&!game.campaign_stage,"campaign UI: Select stays locked until the conversation ends");
+ /* Ask-then-answer: each non-final beat needs Cross to speak, then Cross to hear Kei. */
  for(int i=0;i<PROLOGUE_BRIEF_BEATS-1;i++){
   input(PSP_CTRL_CROSS,0,.016f,0,0);
-  INPUT_CHECK(!game.campaign_stage&&page==CAMPAIGN,"campaign UI: early Cross advances dialogue without accepting");
+  INPUT_CHECK(prologue_brief_echo==1&&prologue_brief_beat==i&&!game.campaign_stage,"campaign UI: Cross speaks the ask before Kei answers");
+  input(PSP_CTRL_CROSS,0,.016f,0,0);
+  INPUT_CHECK(prologue_brief_echo==0&&prologue_brief_beat==i+1&&!game.campaign_stage&&page==CAMPAIGN,"campaign UI: second Cross reveals Kei's answer on the next beat");
  }
  INPUT_CHECK(game.campaign_choice==2&&prologue_brief_beat==PROLOGUE_BRIEF_BEATS-1,"campaign UI: linear beats record Ryn context before accept");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
@@ -26,19 +29,24 @@
  TEST_INIT();change_page(CAMPAIGN);input(PSP_CTRL_TRIANGLE,0,.016f,0,0);
  INPUT_CHECK(!game.campaign_stage&&page==CAMPAIGN,"story: unadvertised Triangle does not accept a mission");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
- INPUT_CHECK(prologue_brief_beat==1&&!game.campaign_stage,"story: Cross advances the locked prologue beat");
+ INPUT_CHECK(prologue_brief_echo==1&&prologue_brief_beat==0&&!game.campaign_stage,"story: Cross speaks the first ask without advancing Kei's answer");
+ input(PSP_CTRL_CROSS,0,.016f,0,0);
+ INPUT_CHECK(prologue_brief_beat==1&&!prologue_brief_echo&&!game.campaign_stage,"story: second Cross advances to Kei's answer beat");
  game.campaign_stage=5;game.docked=1;row=0;cash=game.credits;
  INPUT_CHECK(narrative_action(CAMPAIGN)==NA_REWARD,"story: ready report offers a reward");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(game.campaign_stage==6&&game.credits==cash+1000&&narrative_action(CAMPAIGN)==NA_ASSIGNMENTS,"story: collecting once replaces the reward action");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(page==CAMPAIGN&&game.credits==cash+1000,"story: completed chapter has no hidden Guild-menu action or duplicate repayment");
- /* Open Channel brief: six locked beats, Select/Circle blocked, then accept reinforces objective. */
- saga_brief_beat=0;saga_brief_chapter=game.saga_chapter;row=0;
+ /* Open Channel brief: ask echo then answer for each beat, Select/Circle blocked, then accept. */
+ saga_brief_beat=0;saga_brief_echo=0;saga_brief_chapter=game.saga_chapter;row=0;
  INPUT_CHECK(saga_brief_locked()&&!game.saga_step,"saga brief: chapter opens locked before accept");
  input(PSP_CTRL_CIRCLE,0,.016f,0,0);INPUT_CHECK(page==CAMPAIGN&&!game.saga_step,"saga brief: Circle blocked mid-conversation");
  input(PSP_CTRL_SELECT,0,.016f,0,0);INPUT_CHECK(page==CAMPAIGN&&!game.saga_step,"saga brief: Select blocked mid-conversation");
- for(int i=0;i<SAGA_BRIEF_BEATS-1;i++){input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(!game.saga_step,"saga brief: Cross walks beats without starting the objective");}
+ for(int i=0;i<SAGA_BRIEF_BEATS-1;i++){
+  input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(saga_brief_echo==1&&!game.saga_step,"saga brief: Cross speaks before the next NPC line");
+  input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(saga_brief_echo==0&&saga_brief_beat==i+1&&!game.saga_step,"saga brief: second Cross walks to the next NPC beat");
+ }
  INPUT_CHECK(saga_brief_beat==SAGA_BRIEF_BEATS-1,"saga brief: final beat is the reinforce / accept step");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(game.saga_step==1&&!saga_brief_locked(),"saga brief: accept sets the next mission step and unlocks exit");
@@ -73,5 +81,12 @@
  }
  INPUT_CHECK(consistent&&variants==255,"planet sprites: all world seeds match chart identity and cover eight art families");
  INPUT_CHECK(sun_fams==255,"sun sprites: every system sun family appears across the galaxy");
+ /* Explicit ask-before-answer content check: catch question never shares the screen with its answer. */
+ TEST_INIT();change_page(CAMPAIGN);
+ INPUT_CHECK(!strstr(prologue_brief_line1(0),"catch")&&strstr(prologue_brief_reply(0),"catch"),"chat flow: beat 0 asks about the catch before Kei answers it");
+ input(PSP_CTRL_CROSS,0,.016f,0,0);
+ INPUT_CHECK(prologue_brief_echo&&strstr(prologue_brief_reply(0),"catch"),"chat flow: first Cross shows the commander ask about the catch");
+ input(PSP_CTRL_CROSS,0,.016f,0,0);
+ INPUT_CHECK(!prologue_brief_echo&&prologue_brief_beat==1&&strstr(prologue_brief_line1(1),"catch"),"chat flow: Kei's catch answer arrives only after the ask");
  TEST_INIT();
 }

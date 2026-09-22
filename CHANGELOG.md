@@ -2,6 +2,11 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.27 - 2026-09-22
+
+- Story chat is ask-then-answer: Cross speaks your line first (orange YOU bubble); the next Cross reveals Kei's reply. Saga briefs use acknowledgments instead of questions that were already answered on screen.
+- Campaign input tests lock the ask→echo→answer order so the catch question never shares a beat with its answer.
+
 ## 2.5.26 - 2026-09-22
 
 - GalNet WANTED board makes page 2 unmistakable (gold `>> PAGE 2` banner + bottom DOWN cue); five distinct poster wear styles (clean, corner rip, fray, dog-ear, bullet hole).

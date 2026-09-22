@@ -16,19 +16,31 @@ static void campaign_screen(void){
   const SagaBeat *b=&saga_beats[game.saga_chapter];unsigned ink=saga_speaker_color(b);
   saga_brief_reset(game.saga_chapter);
   text(2,5,GOLD,"CHAPTER %02d / %.31s",game.saga_chapter+2,b->title);
+  if(!game.saga_step){
+   int beat=saga_brief_beat;if(beat<0)beat=0;if(beat>=SAGA_BRIEF_BEATS)beat=SAGA_BRIEF_BEATS-1;
+   if(saga_brief_echo){
+    player_speech_bubble(54,saga_brief_reply(beat));
+    panel(16,124,448,45);text(3,16,GOLD,"YOU SPOKE");
+    text_wrap(3,18,54,1,WHITE,"X to hear the reply.",0);
+    text(3,20,AMBER,"Beat %d / %d — you speak first",beat+1,SAGA_BRIEF_BEATS);
+    narrative_reply_choice(0,22,"Hear the reply");
+   }else{
+    saga_speaker_face(16,56,48,b);
+    rect(76,54,388,62,RGB(14,29,39));rect(76,54,388,2,ink);rect(76,114,388,2,RGB(30,78,86));rect(462,54,2,62,ink);
+    line(76,74,64,82,ink);line(64,82,76,90,ink);rect(73,76,4,13,RGB(14,29,39));
+    speaker_name_tag(11,7,b->speaker,ink);
+    text_wrap(11,9,46,2,WHITE,saga_brief_line(b,beat),0);
+    panel(16,124,448,45);text(3,16,GOLD,"CONVERSATION");
+    text_wrap(3,18,54,1,WHITE,beat<SAGA_BRIEF_BEATS-1?"Listen, then reply.":b->objective,0);
+    text(3,20,AMBER,"Beat %d / %d — finish before leaving",beat+1,SAGA_BRIEF_BEATS);
+    narrative_reply_choice(0,22,saga_brief_reply(beat));
+   }
+   footer("X CONTINUE   (O/SELECT LOCKED)");return;
+  }
   saga_speaker_face(16,56,48,b);
   rect(76,54,388,62,RGB(14,29,39));rect(76,54,388,2,ink);rect(76,114,388,2,RGB(30,78,86));rect(462,54,2,62,ink);
   line(76,74,64,82,ink);line(64,82,76,90,ink);rect(73,76,4,13,RGB(14,29,39));
   speaker_name_tag(11,7,b->speaker,ink);
-  if(!game.saga_step){
-   int beat=saga_brief_beat;if(beat<0)beat=0;if(beat>=SAGA_BRIEF_BEATS)beat=SAGA_BRIEF_BEATS-1;
-   text_wrap(11,9,46,2,WHITE,saga_brief_line(b,beat),0);
-   panel(16,124,448,45);text(3,16,GOLD,"CONVERSATION");
-   text_wrap(3,18,54,1,WHITE,beat<SAGA_BRIEF_BEATS-1?"Listen, then answer.":b->objective,0);
-   text(3,20,AMBER,"Beat %d / %d — finish before leaving",beat+1,SAGA_BRIEF_BEATS);
-   narrative_reply_choice(0,22,saga_brief_reply(beat));
-   footer("X CONTINUE   (O/SELECT LOCKED)");return;
-  }
   /* After accept: reinforce the next step only — no old dialogue branches. */
   text_wrap(11,9,46,2,WHITE,b->talk6,0);
   panel(16,124,448,45);text(3,16,GOLD,"CURRENT OBJECTIVE");text_wrap(3,18,54,2,WHITE,b->objective,0);
@@ -40,10 +52,20 @@ static void campaign_screen(void){
  text(2,5,GOLD,"CHAPTER 1 / %s",game.campaign_stage==6?"COMPLETE":game.campaign_stage==5?"REPORT":"FIRST FLIGHT");
  if(prologue_brief_locked()){
   int beat=prologue_brief_beat;if(beat<0)beat=0;if(beat>=PROLOGUE_BRIEF_BEATS)beat=PROLOGUE_BRIEF_BEATS-1;
-  kei_speech_bubble(54,prologue_brief_line1(beat),prologue_brief_line2(beat),0);
-  rect(16,126,448,27,RGB(13,36,43));text(3,16,CYAN,"CURRENT OBJECTIVE");text_wrap(3,18,54,1,WHITE,beat<PROLOGUE_BRIEF_BEATS-1?"Finish this conversation with Kei.":"Accept first flight, then launch.",0);
-  text(3,19,AMBER,"YOUR REPLY — Beat %d / %d",beat+1,PROLOGUE_BRIEF_BEATS);
-  narrative_reply_choice(0,21,prologue_brief_reply(beat));
+  if(prologue_brief_echo){
+   /* Commander ask is on screen; Kei's answer waits for the next Cross. */
+   player_speech_bubble(54,prologue_brief_reply(beat));
+   rect(16,126,448,27,RGB(13,36,43));text(3,16,CYAN,"YOU ASKED");
+   text_wrap(3,18,54,1,WHITE,"X to hear Kei's answer.",0);
+   text(3,19,AMBER,"Ask first — Beat %d / %d",beat+1,PROLOGUE_BRIEF_BEATS);
+   narrative_reply_choice(0,21,"Hear Kei's answer");
+  }else{
+   kei_speech_bubble(54,prologue_brief_line1(beat),prologue_brief_line2(beat),0);
+   rect(16,126,448,27,RGB(13,36,43));text(3,16,CYAN,"CURRENT OBJECTIVE");
+   text_wrap(3,18,54,1,WHITE,beat<PROLOGUE_BRIEF_BEATS-1?"Ask Kei, then hear the answer.":"Accept first flight, then launch.",0);
+   text(3,19,AMBER,"YOUR REPLY — Beat %d / %d",beat+1,PROLOGUE_BRIEF_BEATS);
+   narrative_reply_choice(0,21,prologue_brief_reply(beat));
+  }
   footer("X CONTINUE   (O/SELECT LOCKED UNTIL ACCEPT)");return;
  }
  const char *a="Return safely to Lave Hub.";

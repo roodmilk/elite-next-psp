@@ -488,11 +488,17 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
 }
 else if(page==CAMPAIGN&&(pressed&PSP_CTRL_CROSS)){
  if(tracked_mission==0&&prologue_brief_locked()){
-  if(prologue_brief_beat<PROLOGUE_BRIEF_BEATS-1){prologue_brief_beat++;if(prologue_brief_beat==1)game.campaign_choice=1;else if(prologue_brief_beat==2)game.campaign_choice=2;row=0;game.cue=SFX_SELECT;}
-  else {narrative_do(CAMPAIGN);prologue_brief_beat=0;}
+  if(prologue_brief_beat<PROLOGUE_BRIEF_BEATS-1){
+   if(!prologue_brief_echo&&prologue_brief_needs_echo(prologue_brief_beat)){prologue_brief_echo=1;row=0;game.cue=SFX_SELECT;}
+   else {
+    prologue_brief_echo=0;prologue_brief_beat++;
+    if(prologue_brief_beat==1)game.campaign_choice=1;else if(prologue_brief_beat==2)game.campaign_choice=2;
+    row=0;game.cue=SFX_SELECT;
+   }
+  }else {narrative_do(CAMPAIGN);prologue_brief_beat=0;prologue_brief_echo=0;}
  }
  else if(tracked_mission==0&&game.campaign_stage==0)narrative_do(CAMPAIGN);
- else if(tracked_mission==0&&game.campaign_stage>=6){if(game.saga_chapter<SAGA_COUNT&&!game.saga_step){if(saga_brief_beat<SAGA_BRIEF_BEATS-1){saga_brief_beat++;row=0;game.cue=SFX_SELECT;}else saga_begin(&game);}else if(game.saga_chapter<SAGA_COUNT&&saga_beats[game.saga_chapter].kind==SAGA_CHOICE){game.saga_choice=row+1;saga_advance(&game);row=0;}else if(!saga_advance(&game)){int hops=0,hop=saga_next_hop(&game,&hops);if(hop<0){message(&game,"No route with this drive. Fit more jump range.");}else{route_clear(&game);game.destination=hop;change_page(CHART);char note[96];snprintf(note,sizeof(note),hop==game.saga_dest?"Destination selected: %s.":"Next jump: %s. Final destination: %s.",game.systems[hop].name,game.systems[game.saga_dest].name);message(&game,note);}}}
+ else if(tracked_mission==0&&game.campaign_stage>=6){if(game.saga_chapter<SAGA_COUNT&&!game.saga_step){if(saga_brief_beat<SAGA_BRIEF_BEATS-1){if(!saga_brief_echo&&saga_brief_needs_echo(saga_brief_beat)){saga_brief_echo=1;row=0;game.cue=SFX_SELECT;}else{saga_brief_echo=0;saga_brief_beat++;row=0;game.cue=SFX_SELECT;}}else{saga_begin(&game);saga_brief_echo=0;}}else if(game.saga_chapter<SAGA_COUNT&&saga_beats[game.saga_chapter].kind==SAGA_CHOICE){game.saga_choice=row+1;saga_advance(&game);row=0;}else if(!saga_advance(&game)){int hops=0,hop=saga_next_hop(&game,&hops);if(hop<0){message(&game,"No route with this drive. Fit more jump range.");}else{route_clear(&game);game.destination=hop;change_page(CHART);char note[96];snprintf(note,sizeof(note),hop==game.saga_dest?"Destination selected: %s.":"Next jump: %s. Final destination: %s.",game.systems[hop].name,game.systems[game.saga_dest].name);message(&game,note);}}}
  else if(tracked_mission==0){if(narrative_action(CAMPAIGN)==NA_REWARD)campaign_claim(&game);else game.cue=SFX_UI;}
  else if(tracked_mission==1){if(narrative_action(GUILD)==NA_REWARD)guild_claim(&game);else game.cue=SFX_UI;}
  else {int ji=tracked_mission-2;if(row==0&&ji>=0&&ji<game.job_n)navigate_job(ji);else change_page(MISSIONLOG);}
@@ -528,7 +534,7 @@ else if(page==COMMS_PANEL&&(pressed&PSP_CTRL_CROSS)){
 static void input_tests(void){
  FILE *f=fopen("input-check.txt","w");if(!f)return;int failures=0;
 #define INPUT_CHECK(c,n) do{int ok=(c);fprintf(f,"%s %s\n",ok?"PASS":"FAIL",n);failures+=!ok;}while(0)
-#define TEST_INIT() do{game_init(&game);deck_reset();story_complete(&game);paused=0;selected_target=0;autoaim=0;scan_cat=2;tracked_mission=0;prologue_brief_beat=0;saga_brief_beat=0;saga_brief_chapter=-1;}while(0)
+#define TEST_INIT() do{game_init(&game);deck_reset();story_complete(&game);paused=0;selected_target=0;autoaim=0;scan_cat=2;tracked_mission=0;prologue_brief_beat=0;prologue_brief_echo=0;saga_brief_beat=0;saga_brief_echo=0;saga_brief_chapter=-1;}while(0)
  TEST_INIT();launch(&game);page=FLIGHT;game.pos=(Vec3){0,0,-20000};game.speed=0;for(int i=0;i<NPC_COUNT;i++)game.npc[i].alive=0;
  input(PSP_CTRL_RTRIGGER,PSP_CTRL_RTRIGGER,.016f,0,0);INPUT_CHECK(!game.boost,"single R press does not boost");
  input(0,0,.1f,0,0);input(PSP_CTRL_RTRIGGER,PSP_CTRL_RTRIGGER,.016f,0,0);INPUT_CHECK(game.boost,"double R press starts boost");
