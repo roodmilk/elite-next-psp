@@ -36,6 +36,11 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 - Added an optional `content.pack` archive for bounded ASCII UI label overrides; absent or malformed packs leave built-in localization unchanged.
 - Pack loading is atomic, length-limited and smoke-tested without changing commander save formats.
 
+## Unreleased — Deterministic planet profiles
+
+- Added a save-neutral `PlanetProfile` derived from each planet seed, centralizing family, terrain style, palette, prop density and activity density.
+- Terrain amplitude and local prop density now use the profile while preserving existing system seeds and commander save layout.
+
 - Loadout display and module refunds validate fitted catalog indexes before using equipment arrays.
 - Added V13 slot-value regression checks; save version and V12 migration remain unchanged.
 

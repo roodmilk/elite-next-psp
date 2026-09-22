@@ -8,6 +8,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "equipment-fit.h"
+#include "planet-profile.h"
 const Good goods[GOODS]={
  {"Food",19,-2,6,1,'t'},{"Textiles",20,-1,10,3,'t'},
  {"Radioactives",65,-3,2,7,'t'},{"Slaves",40,-5,226,31,'t'},
@@ -168,9 +169,11 @@ float terrain_height(const Game *g,float x,float z){
   unsigned u=sector_hash(g->bodies[g->planet].seed^(unsigned)(x*3.1f)^(unsigned)(z*5.7f));
   float n=((u%1000)/1000.f)*2.f-1.f;
   float edge=1.f-100.f/sqrtf(d2+1.f);if(edge<0)edge=0;if(edge>1)edge=1;
-  int rocky=g->bodies[g->planet].type!=OCEAN;
-  unsigned art=rocky?(g->bodies[g->planet].seed%4):0;
-  h+=n*(rocky&&art==2?14.f:rocky&&art==1?6.f:10.f)*edge; /* desert/ice/other hills */
+  PlanetProfile profile=planet_profile_for_body(&g->bodies[g->planet]);
+  int rocky=profile.family!=PLANET_FAMILY_OCEAN;
+  float amplitude=profile.terrain_style==2?14.f:profile.terrain_style==1?6.f:10.f;
+  if(!rocky)amplitude=4.f;
+  h+=n*amplitude*edge; /* profile-selected terrain family */
  }
  return h;
 }
@@ -750,7 +753,7 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  game_init(&g);launch(&g);g.pos=hub_position(&g,1);CHECK(dock(&g)&&g.docked&&g.station_variant==1,"secondary relay accepts easy communicator docking");
  game_init(&g);launch(&g);g.pos=add(g.bodies[1].pos,(Vec3){0,0,-g.bodies[1].radius-800});g.yaw=g.pitch=0;CHECK(approach_planet(&g,1),"nearby facing planet can be approached");Vec3 nearPlanet=g.pos;turn_back(&g);CHECK(length(sub(g.pos,nearPlanet))==0&&dot(forward(&g),norm(sub(g.bodies[1].pos,g.pos)))<-.99f,"planet turn-back keeps position and faces away");CHECK(!approach_planet(&g,1),"planet cannot immediately re-prompt while facing away");
  game_init(&g);launch(&g);g.speed=0;for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;g.npc[2].alive=1;g.npc[2].pos=(Vec3){0,0,300};g.npc[2].dir=(Vec3){0,0,-1};g.npc[2].cooldown=0;game_tick(&g,.016f,0,0,0,0);CHECK(danger_rating(&g,7)==1&&g.npc[2].target!=-2&&g.attacked==0,"Lave is peaceful and pirates never target player");
- game_init(&g);Body original=g.bodies[1];system_bodies(&g);CHECK(original.seed==g.bodies[1].seed&&length(sub(original.pos,g.bodies[1].pos))==0,"system generation repeats deterministically");g.system=0;system_bodies(&g);CHECK(original.seed!=g.bodies[1].seed&&original.radius!=g.bodies[1].radius,"other systems have distinct planets");
+ game_init(&g);Body original=g.bodies[1];PlanetProfile profile=planet_profile_for_body(&original);system_bodies(&g);PlanetProfile profile_again=planet_profile_for_body(&g.bodies[1]);CHECK(original.seed==g.bodies[1].seed&&length(sub(original.pos,g.bodies[1].pos))==0,"system generation repeats deterministically");CHECK(planet_profile_valid(&profile)&&profile.seed==profile_again.seed&&profile.family==profile_again.family&&profile.terrain_style==profile_again.terrain_style&&profile.palette==profile_again.palette&&profile.prop_density==profile_again.prop_density&&profile.activity_density==profile_again.activity_density,"planet profile is deterministic and bounded");g.system=0;system_bodies(&g);CHECK(original.seed!=g.bodies[1].seed&&original.radius!=g.bodies[1].radius,"other systems have distinct planets");
  {Body a=g.bodies[1];g.system=19;system_bodies(&g);Body b=g.bodies[1];CHECK(a.type!=b.type||a.color!=b.color||length(sub(a.pos,b.pos))>800,"distant systems diverge in planet type, colour or orbit");}
  game_init(&g);g.system=0;game_spawn(&g);Vec3 traffic0=g.npc[0].alive?g.npc[0].pos:(Vec3){99999,0,0};g.system=15;game_spawn(&g);CHECK(g.npc[0].alive&&length(sub(traffic0,g.npc[0].pos))>400,"ship traffic occupies a different layout in another system");
  game_init(&g);launch(&g);{int dest=-1;for(int i=0;i<256;i++)if(i!=g.system&&distance_ly(&g,g.system,i)*10<=g.fuel){dest=i;break;}g.destination=dest;CHECK(jump_start(&g),"warp starts for arrival-distance check");for(int i=0;i<310;i++)game_tick(&g,1.f/60,0,0,0,0);float hub=length(sub(g.pos,(Vec3){0,0,STATION_Z}));CHECK(g.system==dest&&hub>8500.f,"hyperspace drops the ship well outside the local hub");}
@@ -830,8 +833,6 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
 #include "freight-tests.h"
  fprintf(f,"RESULT %d failures\n",fails);fclose(f);return fails;
 }
-
-
 
 
 

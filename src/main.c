@@ -11,6 +11,7 @@
 #include <string.h>
 #include <stdarg.h>
 #include "game.h"
+#include "planet-profile.h"
 #include "story.h"
 #include "guild.h"
 #include "campaign.h"

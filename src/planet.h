@@ -9,12 +9,9 @@ static unsigned mix_rgb(unsigned a,unsigned b,float t){
 /* Match orbit sprite families: ocean, desert, ice, volcanic, forest. */
 enum { BIOME_OCEAN=0, BIOME_DESERT, BIOME_ICE, BIOME_VOLCANIC, BIOME_FOREST };
 static int planet_biome(const Body *b){
- if(!b||b->type==OCEAN)return BIOME_OCEAN;
- int art=planet_sprite_index(b->seed,b->type);
- if(art==2)return BIOME_DESERT;
- if(art==3)return BIOME_ICE;
- if(art==4)return BIOME_VOLCANIC;
- return BIOME_FOREST;
+ if(!b)return BIOME_OCEAN;
+ PlanetProfile p=planet_profile_for_body(b);
+ return p.family<=PLANET_FAMILY_FOREST?(int)p.family:BIOME_FOREST;
 }
 static void planet_cliprect(int x,int y,int w,int h,unsigned c){
  int top=view_top(),bot=view_bot()+1;
@@ -220,9 +217,12 @@ static void planet_view(void){
  PlanetProp prop[96];int nprop=0;
  unsigned seed=b->seed;
  float px=pad.x,pz=pad.z;
+ PlanetProfile profile=planet_profile_for_body(b);
+ int density=profile.prop_density;
  int trees=biome==BIOME_DESERT?10:biome==BIOME_ICE?14:biome==BIOME_VOLCANIC?12:biome==BIOME_FOREST?40:28;
  int bushes=biome==BIOME_DESERT?18:biome==BIOME_FOREST?26:20;
  int rocks=biome==BIOME_DESERT||biome==BIOME_VOLCANIC?22:biome==BIOME_ICE?16:10;
+ trees=trees* density/70;bushes=bushes*density/70;rocks=rocks*density/70;
  for(int i=0;i<trees&&nprop<80;i++){
   unsigned h=planet_hash(seed+i*7919u);float a=(h%6283)*.001f,d=130.f+(h%240);
   float x=px+cosf(a)*d,z=pz+sinf(a)*d;
