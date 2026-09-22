@@ -17,7 +17,7 @@ static PlanetProfile planet_profile_for_body(const Body *body){
  PlanetProfile p={0};if(!body)return p;p.seed=body->seed;
  unsigned h=planet_profile_hash(body->seed^((unsigned)body->type*0x9e3779b9u));
  if(body->type==OCEAN)p.family=PLANET_FAMILY_OCEAN;
- else {unsigned art=(h>>3)%4;p.family=(uint8_t)(PLANET_FAMILY_DESERT+art);}
+ else p.family=(uint8_t)(PLANET_FAMILY_DESERT+(body->seed%4));
  p.terrain_style=(uint8_t)((h>>8)%4);
  p.palette=(uint8_t)((h>>12)%8);
  p.sea_level=(uint8_t)(body->type==OCEAN?42:0);

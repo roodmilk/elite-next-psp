@@ -39,7 +39,8 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 ## Unreleased — Deterministic planet profiles
 
 - Added a save-neutral `PlanetProfile` derived from each planet seed, centralizing family, terrain style, palette, prop density and activity density.
-- Terrain amplitude and local prop density now use the profile while preserving existing system seeds and commander save layout.
+- The profile contract is currently runtime-neutral while the Planetary owner validates the shared terrain/collision lattice; no existing surface geometry is changed by this checkpoint.
+- Added a dependency-free offline preview generator for all 256 systems, emitting profile JSON and a compact PPM atlas.
 
 - Loadout display and module refunds validate fitted catalog indexes before using equipment arrays.
 - Added V13 slot-value regression checks; save version and V12 migration remain unchanged.
