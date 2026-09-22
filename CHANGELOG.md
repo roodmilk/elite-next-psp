@@ -19,6 +19,11 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 - PSP GU now accelerates full-buffer menu/background clears only; the software renderer remains authoritative for all scene pixels.
 - GU state is rebuilt across suspend/resume and falls back to the existing CPU clear if initialization fails.
 
+## Unreleased — Fixed-font localization
+
+- Added ASCII-safe English, French, and German UI labels selected by `language.cfg`.
+- The existing 8×8 bitmap font remains the renderer, preserving native resolution and memory bounds.
+
 - Loadout display and module refunds validate fitted catalog indexes before using equipment arrays.
 - Added V13 slot-value regression checks; save version and V12 migration remain unchanged.
 

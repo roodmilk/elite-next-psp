@@ -4,6 +4,7 @@ $testDir=Join-Path $PSScriptRoot ('../../work/smoke-'+(Get-Date -Format 'yyyyMMd
 New-Item -ItemType Directory -Path $testDir | Out-Null
 $testDir=(Resolve-Path -LiteralPath $testDir).Path
 Copy-Item -LiteralPath "$PSScriptRoot/EBOOT.PBP" -Destination $testDir
+if(Test-Path -LiteralPath "$PSScriptRoot/language.cfg"){Copy-Item -LiteralPath "$PSScriptRoot/language.cfg" -Destination $testDir}
 Set-Content -LiteralPath (Join-Path $testDir 'smoke.flag') -Value '1'
 $eboot=Join-Path $testDir 'EBOOT.PBP'
 $process=Start-Process -FilePath (Resolve-Path -LiteralPath $Emulator).Path -ArgumentList ('"'+$eboot+'"') -WorkingDirectory $testDir -WindowStyle Hidden -PassThru

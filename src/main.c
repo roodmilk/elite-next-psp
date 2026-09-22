@@ -18,6 +18,7 @@
 #include "audio.h"
 #include "perf-metrics.h"
 #include "gu-accel.h"
+#include "localization.h"
 #include "radio-tests.h"
 #include "steering.h"
 #include "steering-test.h"
@@ -819,7 +820,7 @@ static void input_tests(void){
 int main(void){
  int cb=sceKernelCreateThread("Callbacks",callback_thread,0x11,4096,0,0);if(cb>=0)sceKernelStartThread(cb,0,0);
  scePowerSetClockFrequency(333,333,166);sceCtrlSetSamplingCycle(0);sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
- sceDisplaySetMode(0,W,H);pspDebugScreenInit();pspDebugScreenEnableBackColor(0);gu_accel_init();
+ sceDisplaySetMode(0,W,H);pspDebugScreenInit();pspDebugScreenEnableBackColor(0);locale_load("language.cfg");gu_accel_init();
  game_init(&game);deck_reset();FILE *flag=fopen("smoke.flag","r");if(flag){smoke=1;fclose(flag);FILE *visual=fopen("visual.flag","r");if(visual){visual_hold=1;fclose(visual);}FILE *log=fopen("boot-check.txt","w");if(log){fprintf(log,"PSP main reached; %d meshes loaded.\n",mesh_count);fclose(log);}}
  if(smoke){radio_tests();steering_tests();game_tests("game-check.txt");input_tests();}
  else {game.voice_time=0;change_page(INTRO);}
@@ -913,7 +914,6 @@ int main(void){
  audio_stop();gu_accel_stop();
  sceKernelExitGame();return 0;
 }
-
 
 
 

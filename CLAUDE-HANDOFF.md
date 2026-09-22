@@ -14,6 +14,8 @@ The second milestone adds lightweight PSP heap telemetry to `performance-check.t
 
 The third milestone adds a narrowly scoped GU clear path in `src/gu-accel.h`. Software drawing and manual framebuffer presentation remain unchanged; GU is rebuilt after resume and has a CPU fallback. Full smoke remains green.
 
+The fourth milestone adds `language.cfg` plus English/French/German labels for outfitting and loadout screens through `src/localization.h`; the fixed 8×8 font is retained. Full smoke remains green.
+
 ## Start here
 
 This is a native PSP homebrew game inspired by Elite-A and the wider Elite lineage. It is no longer a literal port: it has a new flight/world simulation, 256 seeded systems, modern PSP interface, multi-body systems, factions, missions, planetary flight/EVA, custom radio folders and an original Kei/Ryn campaign called **The Open Channel**.

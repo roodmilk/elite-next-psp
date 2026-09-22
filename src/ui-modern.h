@@ -271,13 +271,13 @@ static void sell_equipment_row(int i){
 }
 static int equip_row_count(void){int list[EQUIP_COUNT];return equipment_stock_list(list,EQUIP_COUNT);}
 static void equipment(void){
- header("OUTFITTING");if(!equipment_data_valid()){text(3,8,RED,"EQUIPMENT DATA INVALID");footer("O BACK");return;}if(!game.docked){text(3,8,DIM,"Dock to view equipment and fuel.");footer("O BACK");return;}
+ header(locale_text(LOC_OUTFITTING));if(!equipment_data_valid()){text(3,8,RED,"EQUIPMENT DATA INVALID");footer("O BACK");return;}if(!game.docked){text(3,8,DIM,"Dock to view equipment and fuel.");footer("O BACK");return;}
  panel(8,32,225,156);panel(241,32,231,156);
  int list[EQUIP_COUNT],n=equipment_stock_list(list,EQUIP_COUNT);
- if(n<1){text(2,8,DIM,"No stock today.");footer("O BACK");return;}
+ if(n<1){text(2,8,DIM,"%s",locale_text(LOC_NO_STOCK));footer("O BACK");return;}
  if(row<0)row=0; if(row>=n)row=n-1;
  int first=row/6*6,fuelcost=(int)ceilf(player_ships[game.ship].range-game.fuel)*2;
- text(2,5,CYAN,"IN STOCK");page_number_at(18,5,row/6+1,(n+5)/6);
+ text(2,5,CYAN,"%s",locale_text(LOC_IN_STOCK));page_number_at(18,5,row/6+1,(n+5)/6);
  for(int j=0;j<6&&first+j<n;j++){int disp=first+j,i=list[disp],y=7+j*3;if(disp==row)rect(10,y*8-3,220,15,RGB(25,65,77));text(2,y,equipment_owned(i)?CYAN:disp==row?WHITE:DIM,"%-4s %-14s%s",equip_cat_name(i),equipment_label(i),equipment_owned(i)?" *":"");}
  int i=list[row],slot=equip_slot_for(i);
  text(31,5,GOLD,"%.22s",equipment_data[i].name);
@@ -296,7 +296,7 @@ static void equipment(void){
 }
 /* Ship loadout — real fitted slots from fit[]. */
 static void inventory_screen(void){
- header("SHIP LOADOUT / HOLD");panel(8,32,232,180);panel(248,32,224,180);
+ header(locale_text(LOC_LOADOUT));panel(8,32,232,180);panel(248,32,224,180);
  text(2,5,CYAN,"EQUIP SLOTS");
  const char *slot[]={"WPN","DEF","NAV","HOLD","FUEL","UTIL"};
  for(int i=0;i<6;i++){
@@ -305,8 +305,8 @@ static void inventory_screen(void){
   const char *name=mod==FIT_EMPTY?(i==FIT_HOLD?"BASE HOLD":i==FIT_FUEL?"TANK ONLY":"NONE"):equipment_data[mod].short_name;
   if(i==row)selected(y);text(2,y,i==row?GOLD:WHITE,"%-4s %.18s",slot[i],name);
  }
- text(2,20,CYAN,"MISSILES %d",game.missiles);
- text(2,22,WHITE,"HOLD %d / %d T",cargo_used(&game),cargo_capacity(&game));
+ text(2,20,CYAN,"%s %d",locale_text(LOC_MISSILES),game.missiles);
+ text(2,22,WHITE,"%s %d / %d T",locale_text(LOC_HOLD),cargo_used(&game),cargo_capacity(&game));
  text(32,5,CYAN,"CARGO MANIFEST");
  int line=7; for(int g=0;g<GOODS&&line<18;g++)if(game.cargo[g]>0){text(32,line,WHITE,"%-12.12s %d%c",goods[g].name,game.cargo[g],goods[g].unit);line++;}
  if(game.passenger_dest>=0){text(32,line,GOLD,"PASSENGER");line++;text(32,line,CYAN,"-> %.12s",game.systems[game.passenger_dest].name);line++;}
