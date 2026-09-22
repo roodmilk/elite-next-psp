@@ -2,13 +2,16 @@ static unsigned sector_hash(unsigned x){x^=x>>16;x*=0x7feb352du;x^=x>>15;x*=0x84
 int prosperity(const Game *g,int system){const int wealth[8]={5,4,2,3,3,5,4,2};return wealth[g->systems[system].economy];}
 void system_bodies(Game *g){
  const Vec3 positions[BODY_COUNT]={{18000,7000,42000},{-5000,2500,14000},{8500,-2000,23000},{-22000,-4000,38000},{12000,5000,-24000}};
- const float radii[BODY_COUNT]={4200,1700,1100,3600,1400};const int types[BODY_COUNT]={SUN,OCEAN,ROCKY,GAS,ROCKY};
+ const float radii[BODY_COUNT]={4200,1700,1100,3600,1400};
+ /* World-type order rotates per system so neighbouring stars don't share the same skyline. */
+ const int world_cycle[4]={OCEAN,ROCKY,GAS,ROCKY};
  /* Eight stellar classes: amber, gold, red, blue-white, ice-blue, rose,
   * pale yellow and warm white. The system seed makes each sky memorable. */
  const unsigned suns[]={0x80dfff,0x66c8ff,0x526eff,0xf4f4ff,0xffc88a,0xc88cff,0x9ee8ff,0xd8e8ff};
- const unsigned worlds[]={0xc97535,0x91b45c,0x8763b5,0x7ebfc4,0xb87775,0xadc2ce};
- unsigned sys=sector_hash((g->system+1)*0x9e3779b9u);float system_scale=.78f+((sys>>8)%45)*.01f;float system_tilt=((int)((sys>>20)%2600)-1300)*.0001f;
- for(int i=0;i<BODY_COUNT;i++){Body *b=&g->bodies[i];unsigned h=sector_hash((g->system+1)*911u+i*65537u);b->seed=h;b->pos=positions[i];float angle=(h%6283)*.001f+(sys%1800)*.001f+i*.17f;float radial=system_scale*(.86f+((h>>12)%32)*.01f);b->pos.x*=radial;b->pos.z*=radial;float c=cosf(angle),s=sinf(angle);b->pos=(Vec3){b->pos.x*c+b->pos.z*s,b->pos.y*radial+(int)((h>>18)%7000)-3500+system_tilt*b->pos.z,-b->pos.x*s+b->pos.z*c};b->radius=radii[i]*(g->system==7?1:.72f+((h>>12)%68)*.01f);b->type=types[i];b->color=i==0?suns[h%8]:worlds[(h>>8)%6];b->accent=worlds[(h>>16)%6];if(g->system==7&&i==1){b->color=0xc35f23;b->accent=0x4b9137;}snprintf(b->name,sizeof(b->name),"%s %s",g->systems[g->system].name,i==0?"SUN":i==1?"I":i==2?"II":i==3?"III":"IV");}
+ const unsigned worlds[]={0xc97535,0x91b45c,0x8763b5,0x7ebfc4,0xb87775,0xadc2ce,0xd4a574,0x5a8f6a,0x6b5b95,0xc45c5c};
+ unsigned sys=sector_hash((g->system+1)*0x9e3779b9u);float system_scale=.72f+((sys>>8)%55)*.01f;float system_tilt=((int)((sys>>20)%3200)-1600)*.00012f;
+ int type_rot=(int)((sys>>4)%4);
+ for(int i=0;i<BODY_COUNT;i++){Body *b=&g->bodies[i];unsigned h=sector_hash((g->system+1)*911u+i*65537u);b->seed=h;b->pos=positions[i];float angle=(h%6283)*.001f+(sys%2400)*.001f+i*.21f+g->system*.07f;float radial=system_scale*(.82f+((h>>12)%40)*.01f);b->pos.x*=radial;b->pos.z*=radial;float c=cosf(angle),s=sinf(angle);b->pos=(Vec3){b->pos.x*c+b->pos.z*s,b->pos.y*radial+(int)((h>>18)%9000)-4500+system_tilt*b->pos.z,-b->pos.x*s+b->pos.z*c};b->radius=radii[i]*(g->system==7?1:.68f+((h>>12)%78)*.01f);b->type=i==0?SUN:world_cycle[(i-1+type_rot)&3];b->color=i==0?suns[h%8]:worlds[(h>>8)%10];b->accent=worlds[(h>>16)%10];if(g->system==7&&i==1){b->type=OCEAN;b->color=0xc35f23;b->accent=0x4b9137;}snprintf(b->name,sizeof(b->name),"%s %s",g->systems[g->system].name,i==0?"SUN":i==1?"I":i==2?"II":i==3?"III":"IV");}
 }
 int mission_destination(const Game *g,int offer){int n=0;for(int i=0;i<256;i++)if(i!=g->system&&distance_ly(g,g->system,i)<=10.0f){if(n++==offer)return i;}return -1;}
 int mission_count(const Game *g){int max=1+prosperity(g,g->system),n=0;while(n<max&&mission_destination(g,n)>=0)n++;return n;}

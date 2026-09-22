@@ -1,22 +1,43 @@
 static void radio_screen(void){
- header("RADIO / DEEP SPACE FM");panel(8,32,260,156);panel(276,32,196,156);
- text(2,5,CYAN,"STATION");
- for(int i=0;i<RADIO_STATION_COUNT;i++){int y=7+i*2;
-  if(row==i)rect(10,y*8-2,256,14,RGB(25,65,77));
-  text(2,y,i==radio_station?GOLD:WHITE,"%s %-18.18s %2d",i==radio_station?">":" ",radio_station_name(i),radio_track_count[i]);
+ header("RADIO / DEEP SPACE FM");
+ /* Radio face: dial, station notches, levels on the right. */
+ rect(8,32,304,188,RGB(18,22,28));rect(10,34,300,184,RGB(28,34,42));
+ rect(20,48,276,78,RGB(12,14,18));rect(22,50,272,74,RGB(8,10,14));
+ /* Frequency dial line with OFF + five station ticks. */
+ int dial_y=88,dial_x0=36,dial_x1=278,span=dial_x1-dial_x0;
+ line(dial_x0,dial_y,dial_x1,dial_y,RGB(90,110,120));
+ /* OFF at left, stations evenly spaced. */
+ int notches=RADIO_STATION_COUNT+1;
+ for(int i=0;i<notches;i++){
+  int x=dial_x0+(span*i)/(notches-1);
+  int active=radio_off?i==0:(!radio_off&&radio_station==i-1);
+  line(x,dial_y-10,x,dial_y+10,active?GOLD:RGB(120,140,150));
+  if(i==0)text(x/8-1,dial_y/8+2,active?GOLD:DIM,"OFF");
+  else text(x/8-1,dial_y/8+2,active?GOLD:DIM,"%d",i);
  }
- for(int i=0;i<2;i++){int y=19+i*3,volume=i?sound_volume:radio_volume;
-  if(row==RADIO_STATION_COUNT+i)rect(10,y*8-2,256,14,RGB(25,65,77));
-  text(2,y,WHITE,"%-9s %2d / 10",i?"EFFECTS":"MUSIC",volume);
-  rect(192,y*8+1,60,5,DIM);rect(192,y*8+1,volume*6,5,CYAN);
+ /* Needle */
+ {
+  int sel=radio_off?0:radio_station+1;
+  int x=dial_x0+(span*sel)/(notches-1);
+  line(x,dial_y-22,x,dial_y+4,CYAN);rect(x-3,dial_y-26,7,5,CYAN);
  }
- text(36,5,GOLD,radio_volume?"NOW PLAYING":"MUSIC MUTED");
- text(36,8,WHITE,"%.22s",radio_station_name(radio_station));
- text(36,10,CYAN,"%.22s",radio_station_genre(radio_station));
- text(36,13,DIM,radio_track_count[radio_station]?"SHUFFLED MUSIC FOLDER":"GENERATED FALLBACK");
- if(radio_file_station==radio_station)text(36,15,WHITE,"%.22s",(const char*)radio_file_title);else if(radio_file_error)text(36,15,RED,"CAN'T PLAY THIS MP3");else text(36,15,DIM,"Waiting for next track");
- text(36,17,DIM,"%d MP3%s FOUND",radio_track_count[radio_station],radio_track_count[radio_station]==1?"":"S");
- text(36,19,WHITE,"Triangle: music mute");
- text(36,21,DIM,"O saves and returns");
- footer("UP/DOWN  X TUNE  LEFT/RIGHT LEVEL  TRI MUTE  O BACK");
+ if(row==0)rect(18,46,280,82,RGB(25,65,77));
+ text(3,6,row==0?WHITE:DIM,"TUNER  LEFT/RIGHT");
+ text(3,16,radio_static_ms>0?AMBER:radio_off?DIM:CYAN,radio_static_ms>0?"-- STATIC --":radio_off?"RADIO OFF":"LOCKED");
+ text(3,18,WHITE,"%.18s",radio_off?"(silence)":radio_station_name(radio_station));
+ text(3,20,CYAN,"%.18s",radio_off?"Turn on with Right":radio_station_genre(radio_station));
+ text(3,22,DIM,radio_off?"":(radio_track_count[radio_station]?"FOLDER MP3":"GENERATED"));
+
+ panel(320,32,152,188);
+ text(41,5,GOLD,"LEVELS");
+ for(int i=0;i<2;i++){
+  int y=8+i*4,volume=i?sound_volume:radio_volume;
+  if(row==1+i)rect(326,y*8-2,140,14,RGB(25,65,77));
+  text(41,y,WHITE,"%-7s %2d",i?"FX":"MUSIC",volume);
+  rect(330,y*8+10,120,5,DIM);rect(330,y*8+10,volume*12,5,i?AMBER:CYAN);
+ }
+ text(41,18,DIM,"Stations marked 1-5");
+ text(41,20,DIM,"Left of 1 is OFF");
+ text(41,22,DIM,"Triangle: power");
+ footer("UP/DOWN  L/R TUNE OR LEVEL  TRI OFF  O BACK");
 }

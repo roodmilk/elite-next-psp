@@ -222,13 +222,15 @@ static void wreck_from_npc(Game *g,int i){
 #include "freight.h"
 static void place_civilian(Game *g,NPC *n,int i){
  Vec3 stn={0,0,3500};
+ /* Spin and stretch traffic layout per system so each star feels differently occupied. */
+ float spin=g->system*.41f,spread=0.85f+((g->system*7)%40)*.01f;
  n->target=-1;n->flash=0;n->dir=(Vec3){0,0,1};
  if(n->freighter){n->alive=0;return;}
- if(n->role==EXPLORERS){Body *b=&g->bodies[1];int wing=0;for(int j=0;j<i;j++)if(g->npc[j].alive&&g->npc[j].role==EXPLORERS)wing++;float a=.35f*wing;n->waypoint=1;n->pos=add(b->pos,(Vec3){cosf(a)*(b->radius+2400)+wing*210.f,280,sinf(a)*(b->radius+2400)});n->dir=norm((Vec3){-sinf(a),0,cosf(a)});return;}
- if(n->role==PIRATES){n->waypoint=2;if(i==2){n->pos=(Vec3){1800,180,4200};n->dir=(Vec3){0,0,-1};return;}Body *b=&g->bodies[2];n->pos=add(b->pos,(Vec3){b->radius+2100+(i%3)*180,160,300+(i%2)*220});n->dir=(Vec3){0,0,-1};return;}
- if(n->role==LAW){n->waypoint=0;n->pos=(Vec3){(i%2?1:-1)*700.f,90,2600+(i%3)*180};return;}
- if(i==0||i==4){n->waypoint=0;n->pos=(Vec3){(i?280.f:-220.f),60,1600};n->dir=(Vec3){0,0,1};return;}
- float a=i*1.31f+g->system*.19f;n->waypoint=0;n->pos=(Vec3){cosf(a)*15000.f,180.f,3500+sinf(a)*15000.f}; n->dir=norm(sub(stn,n->pos));
+ if(n->role==EXPLORERS){Body *b=&g->bodies[1+(g->system%3)];int wing=0;for(int j=0;j<i;j++)if(g->npc[j].alive&&g->npc[j].role==EXPLORERS)wing++;float a=.35f*wing+spin;n->waypoint=1;n->pos=add(b->pos,(Vec3){cosf(a)*(b->radius+2400*spread)+wing*210.f,280+((g->system+wing)%5)*40.f,sinf(a)*(b->radius+2400*spread)});n->dir=norm((Vec3){-sinf(a),0,cosf(a)});return;}
+ if(n->role==PIRATES){int world=1+(g->system+i)%3;if(world>=BODY_COUNT)world=2;n->waypoint=world;if(i==2){float a=spin+1.1f;n->pos=(Vec3){cosf(a)*2200.f,180,3500+sinf(a)*2200.f};n->dir=norm(sub(stn,n->pos));return;}Body *b=&g->bodies[world];n->pos=add(b->pos,(Vec3){b->radius+2100*spread+(i%3)*180,160+((g->system+i)%4)*50.f,300+(i%2)*220});n->dir=(Vec3){0,0,-1};return;}
+ if(n->role==LAW){float a=spin+(i%4)*.7f;n->waypoint=0;n->pos=(Vec3){cosf(a)*900.f*spread,90+(i%3)*40.f,3500+sinf(a)*900.f*spread};n->dir=norm(sub(stn,n->pos));return;}
+ if(i==0||i==4){float a=spin+(i?1.2f:-.4f);n->waypoint=0;n->pos=(Vec3){cosf(a)*1400.f,60,3500+sinf(a)*1400.f};n->dir=norm(sub(stn,n->pos));return;}
+ float a=i*1.31f+g->system*.19f;n->waypoint=0;n->pos=(Vec3){cosf(a)*15000.f*spread,180.f+((g->system+i)%6)*60.f,3500+sinf(a)*15000.f*spread}; n->dir=norm(sub(stn,n->pos));
 }
 void game_spawn(Game *g){
  jobs_from_legacy(g);
@@ -470,7 +472,10 @@ void game_tick(Game *g,float dt,float turn,float pitch,int throttle,int fire){
  }
  for(int i=0;i<DEBRIS_COUNT;i++){Debris *d=&g->debris[i];if(!d->alive)continue;d->flash=fmaxf(0,d->flash-dt);d->life-=dt;if(d->life<=0){d->alive=0;continue;}d->pos=add(d->pos,mul(d->vel,dt));Vec3 stn={0,0,3500};if(length(sub(d->pos,stn))<200)d->pos=add(stn,mul(norm(sub(d->pos,stn)),210));}
  if(g->energy<=0){g->dead=1;g->jump=0;g->cue=SFX_DEATH;message(g,"Ship destroyed. START for a new commander.");}
- if(g->jump>0){g->jump-=dt;if(g->jump<=0){float spent=distance_ly(g,g->system,g->destination)*10;g->fuel-=spent;if(g->fuel<0)g->fuel=0;g->wanted[g->system]=g->legal;g->system=g->destination;g->legal=g->wanted[g->system];g->pos=(Vec3){0,0,0};g->yaw=g->pitch=0;g->speed=100;market(g);game_spawn(g);route_refresh_destination(g);g->cue=SFX_WARP;char note[80];snprintf(note,sizeof(note),"Hyperspace complete. Fuel %.1f LY left.",g->fuel*.1f);message(g,note);speak(g,VOICE_COMP,"Hyperspace complete. Station ahead.");}}
+ if(g->jump>0){g->jump-=dt;if(g->jump<=0){float spent=distance_ly(g,g->system,g->destination)*10;g->fuel-=spent;if(g->fuel<0)g->fuel=0;g->wanted[g->system]=g->legal;g->system=g->destination;g->legal=g->wanted[g->system];
+  /* Arrive well short of the hub, from a system-unique bearing. */
+  {float ang=g->system*1.918f+0.55f;float dist=6400.f+(g->system%13)*520.f;g->pos=(Vec3){sinf(ang)*dist*.55f,((int)(g->system%9)-4)*340.f,-dist*.72f};g->yaw=atan2f(-g->pos.x,STATION_Z-g->pos.z);g->pitch=0;g->speed=100;}
+  market(g);game_spawn(g);route_refresh_destination(g);g->cue=SFX_WARP;char note[80];snprintf(note,sizeof(note),"Hyperspace complete. Fuel %.1f LY left.",g->fuel*.1f);message(g,note);speak(g,VOICE_COMP,"Hyperspace complete. Station ahead.");}}
 }
 /* Versioned commander file. Load into a temporary struct; reject before mutation. */
 typedef struct {uint32_t magic,version;int system,destination,credits,kills,legal,ship,laser,missiles;float fuel;int cargo[GOODS],stock[GOODS],price[GOODS];int contract,reward;float remaining;} Save;

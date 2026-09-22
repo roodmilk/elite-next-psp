@@ -54,12 +54,12 @@ static void debug_action(void){
  if(row==7){if(selected_target<2||selected_target>BODY_COUNT){message(&game,"Select a planet in Contacts first.");return;}Body *b=&game.bodies[selected_target-1];if(b->type==GAS||b->type==SUN){message(&game,"Gas giants and suns have no atmosphere flight.");return;}game.docked=0;game.pos=add(b->pos,(Vec3){0,0,-b->radius-800});game.yaw=game.pitch=game.roll=0;game.approach=selected_target-1;if(enter_planet(&game)){autoaim=0;change_page(FLIGHT);}else message(&game,"Could not enter atmosphere.");}
 }
 static void body_tint(int sys,int i,unsigned *col,unsigned *acc,int *type){
- const int types[5]={SUN,OCEAN,ROCKY,GAS,ROCKY};
+ const int world_cycle[4]={OCEAN,ROCKY,GAS,ROCKY};
  const unsigned suns[]={0x80dfff,0xffd8ac,0x5088ff,0xc4f4ff};
- const unsigned worlds[]={0xc97535,0x91b45c,0x8763b5,0x7ebfc4,0xb87775,0xadc2ce};
- unsigned h=art_hash((sys+1)*911u+i*65537u);
- *type=types[i];*col=i==0?suns[h%4]:worlds[(h>>8)%6];*acc=worlds[(h>>16)%6];
- if(sys==7&&i==1){*col=0xc35f23;*acc=0x4b9137;}
+ const unsigned worlds[]={0xc97535,0x91b45c,0x8763b5,0x7ebfc4,0xb87775,0xadc2ce,0xd4a574,0x5a8f6a};
+ unsigned h=art_hash((sys+1)*911u+i*65537u);int type_rot=(int)((art_hash((sys+1)*0x9e3779b9u)>>4)%4);
+ *type=i==0?SUN:world_cycle[(i-1+type_rot)&3];*col=i==0?suns[h%4]:worlds[(h>>8)%8];*acc=worlds[(h>>16)%8];
+ if(sys==7&&i==1){*type=OCEAN;*col=0xc35f23;*acc=0x4b9137;}
 }
 static void chart_system_preview(int dest){
  int xs[5]={352,394,436,373,415},ys[5]={58,52,58,92,96},rs[5]={16,12,10,14,11};
@@ -106,17 +106,23 @@ static void chart(void){
  page_number_at(37,5,row/8+1,(near_count+7)/8);footer(game.docked?"UP/DOWN X JUMP   TRI GALAXY   O BACK":"UP/DOWN X JUMP   TRI GALAXY   O BACK");
 }
 static int codex_tab=0;
-static const char *codex_tabs[]={"PLANETS","FLORA","FAUNA","MINERALS","ECHOES"};
+static const char *codex_tabs[]={"SYSTEMS","PLANETS","FLORA","FAUNA","MINERALS","ECHOES"};
 static int vis_count(void){int n=1;for(int s=0;s<256;s++)if(s!=game.system&&(game.visited[s>>3]&(1<<(s&7))))n++;return n;}
 static int vis_sys(int idx){if(idx<=0)return game.system;int n=1;for(int s=0;s<256;s++)if(s!=game.system&&(game.visited[s>>3]&(1<<(s&7)))){if(n==idx)return s;n++;}return game.system;}
-static int codex_kind_count(int tab){if(tab==0)return vis_count();if(tab==1)return game.scanned_flora;if(tab==2)return game.scanned_fauna;if(tab==3)return game.scanned_minerals;return game.scanned_anomalies;}
+/* Visiting a system discovers its four worlds (I–IV). Count is systems × 4. */
+static int planet_log_count(void){int n=systems_visited(&game);return n>0?n*4:4;}
+static void planet_log_at(int idx,int *sys_out,int *body_out){
+ int n=vis_count(),si=idx/4,bi=(idx%4)+1;if(si<0)si=0;if(si>=n)si=n-1;if(bi<1)bi=1;if(bi>4)bi=4;
+ *sys_out=vis_sys(si);*body_out=bi;
+}
+static int codex_kind_count(int tab){if(tab==0)return vis_count();if(tab==1)return planet_log_count();if(tab==2)return game.scanned_flora;if(tab==3)return game.scanned_fauna;if(tab==4)return game.scanned_minerals;return game.scanned_anomalies;}
 static int codex_rows(void){int n=codex_kind_count(codex_tab);return n>0?n:1;}
 static void codex_life_label(int tab,int i,char *name,int nn,char *where,int wn){
  const char *flora[]={"GLOW VINE","GLASS FERN","SPORE TREE","NIGHT MOSS","KELP FAN","IRON MOSS"};
  const char *fauna[]={"GLASS MOTH","DUST RUNNER","SKY RAY","BURROWER","SAND HOPPER","DRIFT EEL"};
  const char *ore[]={"RED ORE","ICE CRYSTAL","BASALT VEIN","SILICA","NICKEL SEAM","CARBON LACE"};
  const char *echo[]={"MERIDIAN ECHO","STELLAR RIFT","GHOST PING","QUASAR HUM"};
- const char **src=tab==1?flora:tab==2?fauna:tab==3?ore:echo;int names=tab==4?4:6;
+ const char **src=tab==2?flora:tab==3?fauna:tab==4?ore:echo;int names=tab==5?4:6;
  snprintf(name,nn,"%s",src[i%names]);
  int sys=vis_sys(i%vis_count());const char *rom[]={"I","II","IV"};
  snprintf(where,wn,"%s %s",game.systems[sys].name,rom[i%3]);
@@ -133,15 +139,27 @@ static void codex_screen(void){
   text(32,14,CYAN,"%.22s",game.systems[sys].name);
   text(32,16,WHITE,"Sun + 4 worlds");
   if(sys==game.system)text(32,18,GOLD,"Here: flora %d fauna %d",game.scanned_flora,game.scanned_fauna);
-  else text(32,18,DIM,"Charted system");
+  else text(32,18,DIM,"Visited system");
+ }else if(codex_tab==1){
+  for(int j=0;j<7&&first+j<count;j++){
+   int i=first+j,y=7+j*2,sys,body;planet_log_at(i,&sys,&body);const char *rom[]={"","I","II","III","IV"};
+   if(i==row)rect(10,y*8-2,220,13,RGB(25,65,77));
+   text(3,y,i==row?WHITE:DIM,"%.10s %s",game.systems[sys].name,rom[body]);
+  }
+  int sys,body;planet_log_at(row,&sys,&body);unsigned col,acc;int type;body_tint(sys,body,&col,&acc,&type);
+  draw_planet_disc(318,86,34,col,acc,art_hash((sys+1)*911u+body*65537u),type);
+  const char *rom[]={"","I","II","III","IV"};
+  text(32,16,CYAN,"%.12s %s",game.systems[sys].name,rom[body]);
+  {const char *kindname[]={"STAR","OCEAN","ROCKY","GAS"};text(32,18,WHITE,"%s world",kindname[type>=0&&type<=GAS?type:ROCKY]);}
+  text(32,20,DIM,sys==game.system?"In this system":"Discovered on visit");
  }else if(n<=0){text(3,10,DIM,"Nothing logged yet.");text(32,10,WHITE,"Scan on foot. Square.");}
  else {
   for(int j=0;j<7&&first+j<count;j++){int i=first+j,y=7+j*2;char name[24],where[24];codex_life_label(codex_tab,i,name,sizeof(name),where,sizeof(where));if(i==row)rect(10,y*8-2,220,13,RGB(25,65,77));text(3,y,i==row?WHITE:DIM,"%.22s",name);}
   char name[24],where[24];codex_life_label(codex_tab,row,name,sizeof(name),where,sizeof(where));
-  if(codex_tab==1)draw_flora_icon(270,60,row+1);else if(codex_tab==2)draw_fauna_icon(270,60,row+1);else if(codex_tab==3)draw_mineral_icon(270,60,row+1);else draw_anomaly_icon(268,58,row&1);
+  if(codex_tab==2)draw_flora_icon(270,60,row+1);else if(codex_tab==3)draw_fauna_icon(270,60,row+1);else if(codex_tab==4)draw_mineral_icon(270,60,row+1);else draw_anomaly_icon(268,58,row&1);
   text(32,14,GOLD,"%.22s",name);
   text(32,16,WHITE,"%.22s",where);
-  text(32,18,DIM,codex_tab==4?"O on an echo in space.":"Square on foot to log.");
+  text(32,18,DIM,codex_tab==5?"O on an echo in space.":"Square on foot to log.");
  }
  text(32,21,CYAN,"Logged %d",game.discoveries);
  footer("L/R TYPE   UP/DOWN   O BACK");
@@ -248,22 +266,22 @@ static void galnet_post(int i,char *author,int alen,char *body,int blen){
  else if(galnet_tab==1){snprintf(author,alen,"MARKET TIP / %s",goods[item].name);if(i==0)snprintf(body,blen,"Local stock strength: %d/5. Dock for live prices.",wealth);else if(i==1)snprintf(body,blen,"Industrial hubs favour machinery and computers.");else if(i==2)snprintf(body,blen,"Agricultural worlds often export food cheaply.");else if(i==3)snprintf(body,blen,"Restricted goods can raise your local wanted level.");else snprintf(body,blen,"Cargo space: %d/%d tonnes used.",cargo_used(&game),cargo_capacity(&game));}
  else if(galnet_tab==2){const char *a[]={"BOUNTY DESK","LOCAL LAW","PILOT WARNING","PATROL WATCH","SECURITY FEED"};snprintf(author,alen,"%s",a[i]);if(i==0)snprintf(body,blen,"Pirate contacts active: %d. Standard bounty 15.0.",active_role(PIRATES));else if(i==1)snprintf(body,blen,"Your local wanted record: [%s].",stars(wanted_level(&game)));else if(i==2)snprintf(body,blen,risk>=4?"Travel in groups. Hostile activity is elevated.":"No major raid warning at this time.");else if(i==3)snprintf(body,blen,"Law patrols active: %d.",active_role(LAW));else snprintf(body,blen,"Wanted records remain inside the offending system.");}
  else if(galnet_tab==3){const char *a[]={"Mira / Trader","Marshal Iona Renn","Dockhand_77","Kei / Explorer","Freighter Crew","DefinitelyNotAPirate","Lave Spotters"};snprintf(author,alen,"%s",a[i]);if(i==0)snprintf(body,blen,"%s market looks %s today.",game.systems[game.system].name,wealth>=4?"well stocked":"a little thin");else if(i==1)snprintf(body,blen,risk>=4?"Pirate sightings up. Keep scanners active.":"Patrol lanes are calm. Fly safely, commanders.");else if(i==2)snprintf(body,blen,"Stop boosting near %s, you maniacs.",station_name(&game));else if(i==3)snprintf(body,blen,game.story<STORY_FREE?"Ryn's last ping is still on this wire.":"The colour of %s is unreal from orbit.",game.bodies[1].name);else if(i==4)snprintf(body,blen,"Slow convoy crossing the system. Give us room.");else if(i==5)snprintf(body,blen,"Free cargo inspection behind the gas giant. Honest.");else if(game.mission_result)snprintf(body,blen,"Commander mission report: %s %s.",mission_name(game.last_mission_type),game.mission_result>0?"complete":"expired");else snprintf(body,blen,"Saw Law chasing raiders beyond the trade lane.");}
- else if(galnet_tab==4){snprintf(author,alen,"MISSION NETWORK");if(i==0&&game.job_n>0)snprintf(body,blen,"Log %d/5. Focus %s to %s; %.0fs.",game.job_n,mission_name(game.jobs[game.job_sel].type),game.systems[game.jobs[game.job_sel].dest].name,game.jobs[game.job_sel].time);else if(i==0&&game.mission_result)snprintf(body,blen,"Last job: %s %s at %s.",mission_name(game.last_mission_type),game.mission_result>0?"complete":"expired",game.systems[game.last_mission_system].name);else if(i==0)snprintf(body,blen,"No active missions. %d local offers available.",mission_count(&game));else if(i==1)snprintf(body,blen,"Five jobs. Clocks pause in menus, docking and dialogue.");else if(i==2)snprintf(body,blen,"Delivery, hunt, scan, rescue and covert jobs online.");else if(i==3)snprintf(body,blen,"Mission contacts carry white [M] scanner markers.");else snprintf(body,blen,game.job_n>=MISSION_SLOTS?"Log full. Complete a job before taking more work.":"Dock to use the board and accept a contract.");}
+ else if(galnet_tab==5){snprintf(author,alen,"MISSION NETWORK");if(i==0&&game.job_n>0)snprintf(body,blen,"Log %d/5. Focus %s to %s; %.0fs.",game.job_n,mission_name(game.jobs[game.job_sel].type),game.systems[game.jobs[game.job_sel].dest].name,game.jobs[game.job_sel].time);else if(i==0&&game.mission_result)snprintf(body,blen,"Last job: %s %s at %s.",mission_name(game.last_mission_type),game.mission_result>0?"complete":"expired",game.systems[game.last_mission_system].name);else if(i==0)snprintf(body,blen,"No active missions. %d local offers available.",mission_count(&game));else if(i==1)snprintf(body,blen,"Five jobs. Clocks pause in menus, docking and dialogue.");else if(i==2)snprintf(body,blen,"Delivery, hunt, scan, rescue and covert jobs online.");else if(i==3)snprintf(body,blen,"Mission contacts carry white [M] scanner markers.");else snprintf(body,blen,game.job_n>=MISSION_SLOTS?"Log full. Complete a job before taking more work.":"Dock to use the board and accept a contract.");}
  else {const char *a[]={"SHIP COMPUTER","GALACTICNET","NAV COMPUTER","STATION LINK","SYSTEM NOTICE"};snprintf(author,alen,"%s",a[i]);if(i==0)snprintf(body,blen,"Welcome, Commander. Network link is online.");else if(i==1)snprintf(body,blen,"%d unread local posts.",2+wealth);else if(i==2&&game.contract>=0)snprintf(body,blen,"Mission route set for %s.",game.systems[game.contract].name);else if(i==2)snprintf(body,blen,"No mission route currently assigned.");else if(i==3)snprintf(body,blen,"Docking channel: %s.",game.docked?"connected":"standby");else snprintf(body,blen,"System %s / risk [%s].",game.systems[game.system].name,stars(risk));}
 }
 static void galnet_avatar(int x,int y,int size,int i){
  int role=TRADERS,seed=100+i;
  if(galnet_tab==3){static const int roles[]={TRADERS,LAW,TRADERS,EXPLORERS,TRADERS,PIRATES,EXPLORERS};role=roles[i%7];if(i==3){draw_kei(x,y,size,0);return;}if(i==1)seed=VOICE_LAW*37;if(i==2)seed=VOICE_DOCK*37;}
  else if(galnet_tab==2)role=LAW;else if(galnet_tab==0)role=i==1?LAW:i==4?EXPLORERS:TRADERS;
- else if(galnet_tab>=4)role=EXPLORERS;
+ else if(galnet_tab==5)role=EXPLORERS;
  draw_portrait(x,y,size,size,seed,role);
 }
 #include "spacebook.h"
 static void news_screen(void){unsigned paper=RGB(194,184,145),ink=RGB(27,31,31),rule=RGB(91,80,58);rect(6,43,468,205,paper);rect(9,45,462,2,ink);text(16,6,ink,"THE GALACTIC GAZETTE");text(3,8,rule,"SYSTEM: %.15s          LOCAL EDITION",game.systems[game.system].name);rect(14,75,452,2,ink);int first=(row/2)*2;for(int j=0;j<2&&first+j<5;j++){int i=first+j,y=88+j*72;char author[40],body[96];galnet_post(i,author,sizeof(author),body,sizeof(body));if(i==row){rect(12,y-3,4,62,RGB(130,67,42));text(49,y/8,RGB(130,67,42),"SELECTED");}text(3,y/8,ink,"%.28s",author);rect(22,y+13,438,1,rule);text(3,(y+22)/8,ink,"%.53s",body);text(3,(y+38)/8,ink,"%.53s",i==0?"Pilots are advised to check routes before launch.":i==1?"Scanner reports update throughout the local day.":i==2?"Dock control asks commanders to approach at safe speed.":i==3?"Prices remain available only at a docked terminal.":"Guild observers invite verified field reports.");text(3,(y+54)/8,rule,"CONTINUED ON GALACTICNET");}text(48,29,ink,"%d/3",row/2+1);footer("L/R SECTION   UP/DOWN SCROLL   O BACK");}
 static void galnet_market(void){rect(0,42,W,206,RGB(5,16,18));text(2,6,CYAN,"MARKET EXCHANGE / DELAYED PRICES");text(2,8,DIM,"SYMBOL       LOCAL      GAL AVG      TREND");for(int i=0;i<5;i++){int item=(game.system*3+i*5)%GOODS,y=82+i*29,diff=game.price[item]-galactic_price(item);if(i==row)rect(8,y-5,464,24,RGB(15,47,47));text(2,y/8,i==row?WHITE:DIM,"%-12.12s %7.1f %10.1f",goods[item].name,game.price[item]*.1f,galactic_price(item)*.1f);unsigned c=diff>0?RED:CYAN;int x=360,base=y+8;for(int k=0;k<7;k++){int a=((item*13+k*17)%11)-5,b=((item*13+(k+1)*17)%11)-5;line(x+k*14,base-a,x+(k+1)*14,base-b,c);}text(56,y/8,c,diff>0?"UP":"DOWN");}text(2,29,GOLD,game.docked?"LIVE TERMINAL: LEFT SELL / RIGHT BUY":"DOCK FOR LIVE TRADING");footer("L/R SECTION   UP/DOWN TICKER   O BACK");}
 static void galnet_bounties(void){rect(0,42,W,206,RGB(26,19,16));int first=row/3*3;for(int j=0;j<3&&first+j<5;j++){int i=first+j,x=10+j*157;unsigned paper=i==row?RGB(215,185,125):RGB(166,147,108);rect(x,50,146,188,paper);rect(x+4,54,138,3,RGB(74,43,32));text(x/8+2,8,RGB(70,35,27),"WANTED");draw_portrait(x+38,78,70,60,game.system*31+i*19,PIRATES);char name[32],body[96];galnet_post(i,name,sizeof(name),body,sizeof(body));text(x/8+2,18,RGB(70,35,27),"RAIDER %c-%02d",'A'+(i*7+game.system)%26,(i*31+game.system)%100);text(x/8+2,20,RGB(70,35,27),"BOUNTY %d.0 U",15+i*5);text(x/8+2,22,RGB(70,35,27),"RISK %d/5",danger_rating(&game,game.system));text(x/8+2,25,RGB(55,42,32),"LAST SEEN");text(x/8+2,27,RGB(55,42,32),"%.13s",game.systems[game.system].name);}footer("L/R SECTION   UP/DOWN POSTER   O BACK");}
-static void galnet_chrome(void){header("GALACTICNET // LIVE NETWORK");rect(0,22,W,20,RGB(11,25,35));const char *shorts[]={"NEWS","MARKET","WANTED","SPACEBOOK","JOBS","MESSAGES"};for(int i=0;i<6;i++){int x=i*80;if(i==galnet_tab){rect(x,22,80,20,RGB(25,65,77));rect(x,40,80,2,GOLD);}text(x/8+1,3,i==galnet_tab?WHITE:DIM,"%.9s",shorts[i]);}text(0,3,CYAN,"L");text(59,3,CYAN,"R");}
-static void galnet_screen(void){if(galnet_tab==3||galnet_tab==5)spacebook_screen(galnet_tab==5);else if(galnet_tab==0)news_screen();else if(galnet_tab==1)galnet_market();else if(galnet_tab==2)galnet_bounties();else {int count=galnet_rows(),pages=(count+2)/3,first=row/3*3;rect(0,42,W,206,BG);text(2,6,CYAN,galnet_tab==4?"MISSION FEED":"MESSAGE FEED");page_number_at(20,6,row/3+1,pages);for(int j=0;j<3&&first+j<count;j++){int i=first+j,y=8+j*5;char author[40],body[96];galnet_post(i,author,sizeof(author),body,sizeof(body));panel(8,y*8-3,464,34);if(i==row)rect(8,y*8-3,3,34,GOLD);galnet_avatar(14,y*8-1,28,i);text(7,y,i==row?GOLD:CYAN,"%s",author);text(7,y+2,WHITE,"%.50s",body);}footer("L/R SECTION   UP/DOWN   O BACK");}galnet_chrome();}
+static void galnet_chrome(void){header("GALACTICNET // LIVE NETWORK");rect(0,22,W,20,RGB(11,25,35));const char *shorts[]={"NEWS","MARKET","WANTED","SPACEBOOK","MESSAGES","JOBS"};for(int i=0;i<6;i++){int x=i*80;if(i==galnet_tab){rect(x,22,80,20,RGB(25,65,77));rect(x,40,80,2,GOLD);}text(x/8+1,3,i==galnet_tab?WHITE:DIM,"%.9s",shorts[i]);}text(0,3,CYAN,"L");text(59,3,CYAN,"R");}
+static void galnet_screen(void){if(galnet_tab==3||galnet_tab==4)spacebook_screen(galnet_tab==4);else if(galnet_tab==0)news_screen();else if(galnet_tab==1)galnet_market();else if(galnet_tab==2)galnet_bounties();else {int count=galnet_rows(),pages=(count+2)/3,first=row/3*3;rect(0,42,W,206,BG);text(2,6,CYAN,"MISSION FEED");page_number_at(20,6,row/3+1,pages);for(int j=0;j<3&&first+j<count;j++){int i=first+j,y=8+j*5;char author[40],body[96];galnet_post(i,author,sizeof(author),body,sizeof(body));panel(8,y*8-3,464,34);if(i==row)rect(8,y*8-3,3,34,GOLD);galnet_avatar(14,y*8-1,28,i);text(7,y,i==row?GOLD:CYAN,"%s",author);text(7,y+2,WHITE,"%.50s",body);}footer("L/R SECTION   UP/DOWN   O BACK");}galnet_chrome();}
 static void story_screen(void){
  header("FLIGHT GUIDE / OPTIONAL");panel(8,32,464,190);
  draw_kei(16,40,48,0);text(10,5,CYAN,"KEI / FLIGHT COACH");
