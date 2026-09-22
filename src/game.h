@@ -76,7 +76,7 @@ typedef struct {
  int saga_trust[4];
  int passenger_dest,passenger_kind,passenger_pay,gift_flags;
  int npc_kills,shots,discoveries,scanned_flora,scanned_fauna,scanned_minerals,scanned_anomalies,ai_phase;
- uint8_t visited[32]; char message[96],voice[80],collide[40]; float voice_time;
+ uint8_t visited[32]; char message[96],voice[160],collide[40]; float voice_time;
 } Game;
 extern const Good goods[GOODS];
 extern const PlayerShip player_ships[];

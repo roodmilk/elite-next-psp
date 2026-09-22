@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.36**.
+Prepared 22 September 2026. Current build: **2.5.37**.
 
 ## Start here
 
@@ -10,10 +10,11 @@ Read these documents in this order:
 
 1. `CLAUDE-HANDOFF.md` — current implementation state and working rules.
 2. `docs/DESIGN-BIBLE-2.0.md` — concise product and technical direction.
-3. `docs/OPEN-CHANNEL-CAMPAIGN.md` — the 24-chapter main campaign.
-4. `docs/UI-SPEC.md` — PSP-specific layout and interaction rules.
-5. `docs/DESIGN-BIBLE.md` — exhaustive historical design record and detailed original scripts.
-6. `docs/PROGRESS.md` and `docs/FEATURE-MAP.md` — implementation history and feature inventory.
+3. `docs/ELITE-NEXT-MANUSCRIPT.md` — whole-game story & missions manuscript (Story Manager living bible).
+4. `docs/OPEN-CHANNEL-CAMPAIGN.md` — the 24-chapter main campaign (ops summary).
+5. `docs/UI-SPEC.md` — PSP-specific layout and interaction rules.
+6. `docs/DESIGN-BIBLE.md` — exhaustive historical design record and detailed original scripts.
+7. `docs/PROGRESS.md` and `docs/FEATURE-MAP.md` — implementation history and feature inventory.
 
 The newest explicit user feedback overrides older prose in the large design bible.
 
@@ -63,6 +64,12 @@ Important controls:
 - Galaxy Map: Triangle switches between nearby jumps and the full 256-system map; D-pad moves between systems; L/R zoom; X plots a multi-jump route and saves the final goal.
 
 ## Recent changes that must be preserved
+
+### 2.5.37 — unified playable tip
+
+One pack: MacVenture station (art-kit soft-FB, SHIP return, talk/shop/gift/taxi) + Act I eight-beat page scripts/codas. ART DIRECTOR warmer planets / settlement silhouettes / richer space folded in (`planet.h` / `voyage.h`). Post-unify A++ MacVenture polish composition targets: `docs/CINEMATIC-MOCKUP-TARGETS.md` (hero focus, fewer frames, warm staging) — do not edit story saga ownership.
+
+
 
 ### 2.5.36 — MacVenture + art kit wire
 
@@ -138,7 +145,7 @@ Combat status uses a bottom-of-canopy **RED ALERT** strip so top speech stays fr
 
 ### 2.5.14 — locked story conversations
 
-First-flight and Open Channel briefs are six-beat linear conversations. Circle and Select cannot leave Tracked Mission until the player accepts the next step. The last beat restates the objective; after accept, old dialogue options are gone and chatter only reinforces the current mission step. `src/saga.h` stores `line` plus `talk2`–`talk6` per chapter.
+First-flight and Open Channel briefs are linear locked conversations (prologue six beats; saga eight). Circle and Select cannot leave Tracked Mission until the player accepts the next step. The last beat restates the objective; after accept, old dialogue options are gone and chatter only reinforces the current mission step. `src/saga.h` stores `line` plus `talk2`–`talk8` per chapter.
 
 ### 2.5.0 — The Open Channel
 
@@ -241,25 +248,25 @@ The build compiles `game.c`, `ships.c` and `main.c`, links PSP libraries and pro
 - radio checks;
 - performance checks.
 
-The last verified 2.5.8 run passed every group under PPSSPP (game, input, steering, radio, performance). PPSSPP success does not replace physical PSP testing.
+The last verified 2.5.32 run passed every group under PPSSPP (game, input, steering, radio, performance), including ask-then-answer script checks. PPSSPP success does not replace physical PSP testing.
 
 ## Highest-priority remaining work
 
 1. **Confirm 2.5.4 sleep/resume on physical PSP.** Put the handheld to sleep mid-flight and mid-radio for several hours, then wake — screen and audio must return. Also re-check 20+ minute MP3 playback across sample rates.
-2. **Deepen the 24 chapters further.** Briefings are now six-beat locked conversations; many bible set-pieces still resolve through generic dock/scan/hunt actions.
+2. **Deepen the 24 chapters further.** Briefings now carry full spoken sentences and authored asks; many bible set-pieces still resolve through generic dock/scan/hunt actions rather than unique scenes.
 3. **Visually inspect the full galaxy map at 480×272** and the new Select-deck ship preview / radio tuner on hardware.
 4. **Physical performance and memory audit** of galaxy routing and the 64 KB MP3 buffer.
 
 ## Known limitations and honest status
 
 - The design bible describes a far larger game than the current executable. Interiors, planetary exploration and spacewalks are bounded prototypes rather than Starfield-scale simulations.
-- The campaign has 24 playable chapter records and persistent choices, but does not yet contain ten hours of unique bespoke mechanics and dialogue. Travel and ordinary play contribute to its intended duration.
+- The campaign has 24 playable chapter records with ask-then-answer briefs and voiced closers (2.5.32), but does not yet contain ten hours of unique bespoke mechanics. Travel and ordinary play contribute to its intended duration.
 - Only one galaxy seed of 256 classic Elite-style systems is active.
 - The full-galaxy chart shows all systems, a cached route and a saved manual route goal, but has not yet had user testing on a physical PSP.
 - The audio fix passed PPSSPP with the user's files; intermittent real-hardware behaviour still requires listening tests.
 - Manual route persistence is playable in 2.5.3; sleep/resume black-screen recovery is in 2.5.4 but still needs multi-hour hardware confirmation.
 - Speaker colour chips and clearer Outfitting tech copy shipped in 2.5.5.
-- Chapter deepening and bespoke dialogue pages remain design-ahead of the executable.
+- Full movie-length scenes still live in `docs/OPEN-CHANNEL-SCREENPLAY.md`; the executable binds six spoken beats per chapter.
 
 ## Safe continuation workflow
 

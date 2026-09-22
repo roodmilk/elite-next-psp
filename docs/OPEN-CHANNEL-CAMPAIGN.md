@@ -1,6 +1,6 @@
 # ELITE: NEXT — THE OPEN CHANNEL CAMPAIGN BIBLE
 
-Status: playable 24-chapter campaign (plus first-flight prologue). **Full movie-length screenplay, character bible, branching trees and lore ledger:** [`OPEN-CHANNEL-SCREENPLAY.md`](OPEN-CHANNEL-SCREENPLAY.md). This file remains the short operational summary; the screenplay is story authority for dialogue and branches.
+Status: playable 24-chapter campaign (plus first-flight prologue). **Whole-game story & missions manuscript:** [`ELITE-NEXT-MANUSCRIPT.md`](ELITE-NEXT-MANUSCRIPT.md). **Full movie-length Open Channel screenplay:** [`OPEN-CHANNEL-SCREENPLAY.md`](OPEN-CHANNEL-SCREENPLAY.md). This file remains the short operational summary.
 
 ## Promise and length
 

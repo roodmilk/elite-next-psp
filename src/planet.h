@@ -86,24 +86,26 @@ static void draw_life_billboard(const Lifeform *l){
 static void planet_view(void){
  Body *b=&game.bodies[game.planet];int biome=planet_biome(b);
  int top=view_top(),bottom=view_bot()+1;
- unsigned sky_hi=mix_rgb(b->color,RGB(78,150,220),.4f),sky_lo=mix_rgb(b->accent,RGB(186,216,240),.45f);
- if(biome==BIOME_DESERT){sky_hi=mix_rgb(b->color,RGB(230,170,90),.5f);sky_lo=mix_rgb(b->accent,RGB(240,200,130),.45f);}
- if(biome==BIOME_ICE){sky_hi=mix_rgb(b->color,RGB(160,190,230),.55f);sky_lo=mix_rgb(b->accent,RGB(210,230,245),.5f);}
- if(biome==BIOME_VOLCANIC){sky_hi=mix_rgb(b->color,RGB(90,50,40),.5f);sky_lo=mix_rgb(b->accent,RGB(160,80,50),.4f);}
- if(biome==BIOME_FOREST){sky_hi=mix_rgb(b->color,RGB(90,140,180),.45f);sky_lo=mix_rgb(b->accent,RGB(160,190,140),.4f);}
- if(biome==BIOME_OCEAN){sky_hi=mix_rgb(b->color,RGB(78,150,220),.55f);sky_lo=mix_rgb(b->accent,RGB(186,216,240),.5f);}
+ /* PROPOSED visual identity: broad, sunlit 1970s-book-cover colour blocks,
+  * kept biome-aware. Backdrop stays deterministic and cheap. */
+ unsigned sky_hi=mix_rgb(b->color,RGB(52,144,209),.45f),sky_lo=mix_rgb(b->accent,RGB(255,174,122),.5f);
+ if(biome==BIOME_DESERT){sky_hi=mix_rgb(b->color,RGB(224,119,63),.55f);sky_lo=mix_rgb(b->accent,RGB(247,177,83),.5f);}
+ if(biome==BIOME_ICE){sky_hi=mix_rgb(b->color,RGB(140,180,230),.55f);sky_lo=mix_rgb(b->accent,RGB(220,200,180),.45f);}
+ if(biome==BIOME_VOLCANIC){sky_hi=mix_rgb(b->color,RGB(110,45,35),.5f);sky_lo=mix_rgb(b->accent,RGB(200,90,45),.45f);}
+ if(biome==BIOME_FOREST){sky_hi=mix_rgb(b->color,RGB(70,130,180),.45f);sky_lo=mix_rgb(b->accent,RGB(200,170,110),.4f);}
+ if(biome==BIOME_OCEAN){sky_hi=mix_rgb(b->color,RGB(52,144,209),.55f);sky_lo=mix_rgb(b->accent,RGB(255,174,122),.55f);}
  for(int y=top;y<bottom;y++){
   float t=(y-top)/(float)fmaxf(1,bottom-top);
   unsigned c=mix_rgb(sky_hi,sky_lo,t);
   for(int x=0;x<W;x++)fb[y*STRIDE+x]=c;
  }
  int suny=top+28-(int)(game.pitch*40);if(suny<top+8)suny=top+8;if(suny>bottom-40)suny=bottom-40;
- /* Sky disc uses the same animated system sun as orbit / charts. */
- draw_sun_sprite(370,suny,14,game.bodies[0].color,game.bodies[0].seed,game.time,0,top,W,bottom);
- if(biome==BIOME_OCEAN)for(int i=0;i<3;i++){int cx=70+i*90,cy=top+18+(i%2)*10;planet_cliprect(cx,cy,50,8,RGB(230,236,242));planet_cliprect(cx+10,cy-6,34,8,RGB(242,246,250));}
- else if(biome==BIOME_ICE)for(int i=0;i<4;i++){int cx=50+i*100,cy=top+14+(i%3)*6;planet_cliprect(cx,cy,36,5,mix_rgb(b->accent,RGB(230,240,250),.4f));}
- else if(biome==BIOME_VOLCANIC)for(int i=0;i<3;i++){int cx=80+i*110,cy=top+20+i*4;planet_cliprect(cx,cy,28,3,mix_rgb(b->accent,RGB(255,120,40),.35f));}
- else for(int i=0;i<2;i++){int cx=90+i*140,cy=top+16+(i%2)*8;planet_cliprect(cx,cy,42,4,mix_rgb(b->accent,RGB(228,186,140),.35f));}
+ /* Sky disc uses the same animated system sun as orbit / charts — slightly larger warm read. */
+ draw_sun_sprite(370,suny,17,game.bodies[0].color,game.bodies[0].seed,game.time,0,top,W,bottom);
+ if(biome==BIOME_OCEAN)for(int i=0;i<3;i++){int cx=70+i*90,cy=top+18+(i%2)*10;planet_cliprect(cx,cy,50,8,RGB(255,225,213));planet_cliprect(cx+10,cy-6,34,8,RGB(255,240,227));}
+ else if(biome==BIOME_ICE)for(int i=0;i<4;i++){int cx=50+i*100,cy=top+14+(i%3)*6;planet_cliprect(cx,cy,36,5,mix_rgb(b->accent,RGB(240,230,220),.45f));}
+ else if(biome==BIOME_VOLCANIC)for(int i=0;i<3;i++){int cx=80+i*110,cy=top+20+i*4;planet_cliprect(cx,cy,28,3,mix_rgb(b->accent,RGB(255,140,60),.4f));}
+ else for(int i=0;i<2;i++){int cx=90+i*140,cy=top+16+(i%2)*8;planet_cliprect(cx,cy,42,4,RGB(250,163,113));}
  Vec3 pad=surface_site(&game,1);
  unsigned grass=mix_rgb(b->color,RGB(90,130,60),.55f);
  if(biome==BIOME_OCEAN)grass=mix_rgb(b->color,RGB(74,140,68),.5f);
@@ -115,6 +117,26 @@ static void planet_view(void){
  int horizon=110+(int)(game.pitch*150.f);
  if(horizon<top+24)horizon=top+24;
  if(horizon>bottom-36)horizon=bottom-36;
+ /* Distant, non-collidable settlement silhouettes establish scale before
+  * the playable field begins: domes, towers and a single warm window. */
+ {
+  unsigned h=planet_hash(b->seed+game.surface*37u);
+  unsigned skyline=biome==BIOME_OCEAN?RGB(71,82,91):biome==BIOME_ICE?RGB(90,100,120):biome==BIOME_VOLCANIC?RGB(70,40,38):RGB(111,58,48);
+  for(int i=0;i<5;i++){
+   int x=18+(int)((h+i*977u)%420u),w=18+(int)((h>>((i&3)*5))%38u);
+   int base=horizon+7-(int)((h>>3)&11),height=10+(int)((h>>8)%28u);
+   if((i&1)==0){
+    planet_cliprect(x,base-height/2,w,height/2,skyline);
+    /* Dome crown as stacked rects — no circle helper needed beyond soft FB. */
+    planet_cliprect(x+w/6,base-height/2-(w/4),w-w/3,w/4,skyline);
+   }else{
+    planet_cliprect(x,base-height,w,height,skyline);
+    planet_cliprect(x+w/3,base-height-10,w/3>0?w/3:1,10,skyline);
+   }
+   if(i==2)planet_cliprect(x+w/2-2,base-height/2,4,4,RGB(255,193,73));
+   h=planet_hash(h+113u);
+  }
+ }
  for(int y=horizon;y<bottom;y++){
   float t=(y-horizon)/(float)fmaxf(1,bottom-horizon);
   unsigned c=biome==BIOME_OCEAN&&t<.12f?waterc:mix_rgb(grass,mix_rgb(b->accent,RGB(48,78,40),.35f),t*.45f);

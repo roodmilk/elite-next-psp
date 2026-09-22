@@ -13,38 +13,38 @@ static inline const char *story_title(const Game *g){
 }
 static inline const char *story_line(const Game *g,int line){
  static const char *copy[][4]={
-  {"Kei. Ryn was my surveyor. My friend.","Then her last ping went quiet.","This ship's yours. Open CONTROLS.","I won't lose anyone else."},
-  {"Your ship is ready at the hub.","Hit Launch. D-pad steers you.","Hold R for speed. L to slow.","I need you on this channel."},
-  {"Don't fly blind. Ryn did, once.","Tap Square for the target list.","Hold Square, Left or Right to tab.","Find her ping, then come home."},
-  {"Bring the ship in. Not a ghost.","Face the hub and press O to dock.","Or open Comms. Venn will guide you.","He kept Ryn's berth warm."},
-  {"Learn the sky she used to fly.","Open Details, or Factions.","See who shares Lave with you.","Someone sold her route."},
-  {"This is where the rumours live.","I posted the last thing she sent.","A Meridian echo. Read it like a letter.","She wanted someone to look."},
-  {"Money won't find her.","Work will keep you flying.","Open Missions. Take one job.","Read first. Job clocks pause in menus."},
-  {"A hold is a promise to come back.","Open Cargo. I packed you food.","Eat. Stay clean if you can.","Dockhand_77 still teases a dirty bay."},
-  {"The map is a promise to a star.","Open Galaxy Map. Pick one.","You don't have to jump yet.","Her echo isn't in Lave."},
-  {"Power is how you get home.","Start pauses SYS, ENG and WEP.","I taught Ryn those three banks.","Outfitting sells the rest."},
-  {"She loved dirt more than orbit.","Tab to Planets, then press O.","O to approach, X to go in.","Land on the cyan cross, then walk."},
-  {"The Codex is how we keep her.","O on an echo. Square on foot.","Then open Codex. Log first light.","If it's hers, I'll know."},
-  {"Every door is yours now.","Ryn's still out there. So am I.","I'm still on this channel.","Fly like you mean to come home."}
+  {"Kei. Ryn was my surveyor, and my friend, until her last ping went quiet.","This ship is yours while we look. Open CONTROLS and learn it properly.","I will not lose anyone else to a silence I could have challenged sooner.","Stay on this channel — panic makes me over-explain, and today I am scared."},
+  {"Your ship is ready at the hub. Hit Launch when your hands mean it.","D-pad steers; hold R for speed and L to slow without turning courage into wreckage.","I need you on this channel for the return, not only the departure.","Clear the pad cleanly. Venn has buried enough clever pilots already."},
+  {"Do not fly blind. Ryn did that once, and the silence afterward was worse than the mistake.","Tap Square for the target list; hold Square with Left or Right to tab without turning.","Find her ping if it still answers, then come home before you invent a second silence.","Eyes open is not optional out here — it is how people keep their names on the board."},
+  {"Bring the ship in as a living hull, not a ghost story for the tower to file.","Face the hub and press O to dock, or open Comms and let Venn guide a boring approach.","He kept Ryn's berth warm through procedure, which is how he survives grief.","A clean dock is the first promise you make to everyone still waiting on the pad."},
+  {"Learn the sky she used to fly — open Details or Factions and see who shares Lave with you.","Someone sold her route as if a chart could be private weather.","Names and uniforms matter here; do not let a seed choose your friends for you.","Understanding the room is how you notice when the room starts lying."},
+  {"This is where the rumours live. I posted the last thing she sent like a letter, not a trophy.","A Meridian echo sits on the wire. Read it carefully before you decide what it means.","She wanted someone to look, not someone to own the looking.","GalacticNet is noisy; her silence is still the loudest line on it."},
+  {"Money will not find her. Work will keep you flying long enough to keep looking.","Open Missions and take one job you can finish without turning the hold into a shrine.","Read the brief first. Job clocks pause in menus so reading is not a trap.","Paid work is how independent pilots stay available when the next call goes wrong."},
+  {"A hold is a promise to come back with what you said you would carry.","Open Cargo. I packed you food because hunger makes heroes into statistics.","Eat. Stay clean if you can — Dockhand_77 still teases a dirty bay like it is a moral failing.","What you carry tells people whether your word survives a jump."},
+  {"The map is a promise to a star, not a dare written in empty fuel.","Open Galaxy Map and pick one destination you can explain to yourself.","You do not have to jump yet. Her echo is not waiting politely in Lave.","Plan the road before the road plans you."},
+  {"Power is how you get home when the sky stops being generous.","Start pauses the three banks — SYS, ENG and WEP — the same lesson I taught Ryn.","Outfitting sells the rest; judgement decides whether you needed it.","Balance the pips like someone who intends to dock again."},
+  {"She loved dirt more than orbit, which is why the quiet worlds still feel like hers.","Tab to Planets, then press O to approach and X to go in when you mean it.","Land on the cyan cross, then walk. Looking is part of the work.","Bring back what you find without pretending the ground owes you a story."},
+  {"The Codex is how we keep her — not as a relic, but as a record that can be checked.","O on an echo; Square on foot; then open Codex and log first light properly.","If it is hers, I will know. If it is not, we still owed the sky an honest entry.","Evidence without ownership. That is the Guild lesson I am still learning."},
+  {"Every door is yours now. Ryn is still out there, and so am I.","I am still on this channel when you need a voice that talks too much while caring.","Fly like you mean to come home — home is rarer than jump fuel.","The Open Channel stays open. Use it."}
  };
  int s=g->story;if(s<0)s=0;if(s>STORY_FREE)s=STORY_FREE;if(line<0||line>3)return "";
  return copy[s][line];
 }
 static const char *story_radio(int stage){
  static const char *r[]={
-  "Kei: Open Controls. I'm right here.",
-  "Kei: Launch when you're ready.",
-  "Kei: Tap Square. Don't fly blind.",
-  "Kei: Press O. Venn will bring you in.",
-  "Kei: Open Details. Learn her sky.",
-  "Kei: Her last ping is on the wire.",
-  "Kei: Take a job. Stay flying.",
-  "Kei: I packed you food. Eat.",
-  "Kei: Open the map. Pick a star.",
-  "Kei: Hit Start. Three power banks.",
-  "Kei: Walk her world. The pad's cyan.",
-  "Kei: Log the echo. That's how we keep her.",
-  "Kei: You made it. I'm still here."
+  "Kei: Open Controls. I am right here on the channel.",
+  "Kei: Launch when you are ready — and mean the return.",
+  "Kei: Tap Square. Do not fly blind the way she once did.",
+  "Kei: Press O to dock, or let Venn bring you in boring and alive.",
+  "Kei: Open Details. Learn the sky she used to share with you.",
+  "Kei: Her last ping is still on the wire. Read it like a letter.",
+  "Kei: Take a job. Stay flying long enough to keep looking.",
+  "Kei: I packed you food. Eat before heroics invent themselves.",
+  "Kei: Open the map. Pick a star you can explain to yourself.",
+  "Kei: Hit Start. Three power banks — the lesson that gets you home.",
+  "Kei: Walk her world. The pad is cyan for a reason.",
+  "Kei: Log the echo. That is how we keep her without owning her.",
+  "Kei: You made it. I am still here."
  };
  if(stage<0)stage=0;
  if(stage>STORY_FREE)stage=STORY_FREE;
@@ -85,7 +85,7 @@ static __attribute__((unused)) const char *story_hint(const Game *g){
 static void story_advance(Game *g,int to){
  if(g->story>=to||to>STORY_FREE)return;
  g->story=to;
- if(to==STORY_FREE){g->credits+=2500;speak(g,VOICE_KEI,"You made it. I'm still here.");message(g,"Ryn's channel stays open.");}
+ if(to==STORY_FREE){g->credits+=2500;speak(g,VOICE_KEI,"You made it. I am still here.");message(g,"Ryn's channel stays open.");}
  else speak(g,VOICE_KEI,story_radio(to)+5);
  g->cue=SFX_COMM;
 }
@@ -105,7 +105,7 @@ static void story_try(Game *g){
  if(g->story==STORY_ATLAS&&(g->story_flags&(STORY_EV_SCAN|(STORY_EV_PAGE<<13))))story_advance(g,STORY_FREE);
 }
 static void story_event(Game *g,int ev){g->story_flags|=ev;story_try(g);}
-static void story_skip(Game *g){g->story=STORY_FREE;g->story_flags|=0xffff;speak(g,VOICE_KEI,"I'll still be here. Go fly.");message(g,"Flight coaching skipped. Guild jobs remain.");g->cue=SFX_COMM;}
+static void story_skip(Game *g){g->story=STORY_FREE;g->story_flags|=0xffff;speak(g,VOICE_KEI,"I will still be here. Go fly — and mean the return.");message(g,"Flight coaching skipped. Guild jobs remain.");g->cue=SFX_COMM;}
 static void story_on_open(Game *g,int home_index){
  if(home_index==6)story_event(g,STORY_EV_HELP);
  if(home_index==11||home_index==7)story_event(g,STORY_EV_PAGE);

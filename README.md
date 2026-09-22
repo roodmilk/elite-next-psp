@@ -1,10 +1,20 @@
-# ELITE: NEXT — development build 2.5.36
+# ELITE: NEXT — development build 2.5.37
+
+## New in 2.5.37 — unified playable tip
+
+- **One pack:** MacVenture station (LOOK/SPEAK/GO/TAKE, art-kit soft-FB rooms, clear SHIP return) **and** Open Channel Act I eight-beat page scripts with choice blurbs and locked codas.
+- Warmer planets, settlement silhouettes and richer space from ART DIRECTOR's in-game look pass.
+- Post-unify polish targets: `docs/CINEMATIC-MOCKUP-TARGETS.md` (hero focus, fewer frames, warm staging).
 
 ## New in 2.5.36 — MacVenture station + art kit wire
 
 - Soft-FB rooms pull ART DIRECTOR palette/styles from `station-art-kit.h` (bake path PR #12).
-- Clearer hotspots, talk tips that change info/gameplay, dead-clear SHIP return.
-- Bake kits under `assets/source/station-art/` are proposed references — not full-screen runtime textures yet.
+- Clearer hotspots, talk tips, dead-clear SHIP return.
+
+## New in 2.5.35 — Act I page scripts
+
+- Open Channel Act I briefs (Ch.02–07) deepen to eight ask-then-answer page-script beats.
+- Permanent decisions show consequence blurbs; Act I completions open a locked coda before the next brief.
 
 ## New in 2.5.34 — MacVenture station deck
 

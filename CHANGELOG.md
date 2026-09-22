@@ -2,20 +2,32 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.37 - 2026-09-22
+
+- **Unified playable tip:** MacVenture station deck (art-kit soft-FB rooms, clear SHIP return, talk/shop/gift/taxi) plus Open Channel Act I eight-beat page scripts with choice blurbs and locked codas.
+- ART DIRECTOR in-game look pass folded in: warmer planets, settlement silhouettes, richer space presentation (`planet.h` / `voyage.h`).
+- Composition targets for post-unify MacVenture/station polish land in `docs/CINEMATIC-MOCKUP-TARGETS.md` (hero focus, fewer frames, warm staging).
+- Single downloadable pack — story + station together.
+
 ## 2.5.36 - 2026-09-22
 
-- MacVenture station polish: ART DIRECTOR bake kit palette/styles wired through `station-art-kit.h` (PR #12) into soft-FB room draw — wall/lamp/accent per room, cream hotspot ticks, talk tips that lead somewhere (traffic/rumour/warrant/Kei next-step).
-- Focal anchors trimmed to readable interactables + people/doors/ship; GO/SPEAK/TAKE snap to matching hotspots; TRI / >>SHIP / EXITS stay dead-clear.
-- Merged bake path assets (`assets/source/station-art/`, preview crops, bake tools). **Playable now:** full point-and-click station. **Still planned:** per-system look kits as runtime textures, celestial identity in crawl (kit boards remain proposed).
+- MacVenture station polish: ART DIRECTOR bake kit palette/styles wired through `station-art-kit.h` (PR #12) into soft-FB room draw.
+- Focal anchors, talk tips, TRI / >>SHIP / EXITS ship return. Bake kits remain proposed references for full-screen textures.
+
+## 2.5.35 - 2026-09-22
+
+- Act I Open Channel briefs (Ch.02–07) deepen to eight ask-then-answer page-script beats with screenplay texture.
+- Permanent decisions show consequence blurbs; Act I chapter completes open a locked coda page before the next brief.
+- Manuscript Volume IV documents the Act I page-script binding (`docs/ELITE-NEXT-MANUSCRIPT.md`).
 
 ## 2.5.34 - 2026-09-22
 
 - Station interior rebuilt as a MacVenture-style point-and-click: Command / Main / Exits / Pack / Text windows, LOOK SPEAK GO TAKE verbs, illustrated hotspots.
-- Seven lush rooms on a small graph (Arrivals, Chandlery, Canteen, Cargo, Guild, Clinic, Customs). Dense clickables in every room; EXITS lists doors by name; YOUR SHIP / TRI boards the ship from any deck. Talk, shop, gifts and taxis kept. Grid maze crawl removed.
+- Seven lush rooms on a small graph. Talk, shop, gifts and taxis kept. Grid maze crawl removed.
 
 ## 2.5.33 - 2026-09-22
 
-- Whole-game story and missions manuscript begun (tagged release).
+- Whole-game story and missions manuscript begun (`docs/ELITE-NEXT-MANUSCRIPT.md`).
 
 ## 2.5.32 - 2026-09-22
 

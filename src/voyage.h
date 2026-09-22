@@ -1,6 +1,8 @@
 static void sector_background(void){
- /* Flat sector wash only — nebula / clouds / dust live in space-fx.h. */
- const unsigned colors[]={RGB(8,12,27),RGB(18,7,26),RGB(5,20,24),RGB(24,12,8),RGB(9,17,32),RGB(16,10,30),RGB(7,13,18),RGB(20,8,18)};
+ /* Flat sector wash only — nebula / clouds / dust live in space-fx.h.
+  * Broad, saturated period-illustration fields: cobalt, violet, teal, ember
+  * and coral rather than one black void — still dark enough for cockpit text. */
+ const unsigned colors[]={RGB(8,12,27),RGB(27,12,32),RGB(7,30,35),RGB(36,18,10),RGB(15,23,45),RGB(40,17,26),RGB(12,20,23),RGB(32,20,10)};
  unsigned seed=game.bodies[0].seed;float zone=sinf((game.pos.x+game.pos.z)*.00007f+(seed&255)*.03f);
  unsigned raw=colors[game.system%8];float level=.78f+(zone+1)*.12f;
  unsigned base=RGB((int)((raw&255)*level),(int)(((raw>>8)&255)*level),(int)(((raw>>16)&255)*level));
