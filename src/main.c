@@ -359,7 +359,7 @@ static void space(void){
    Vec3 corner=station_port_corner(i);corner.z-=2;
    Vec3 v=camera(&game,add(rotate(corner,0,station_angle(&game)),(Vec3){0,0,STATION_Z}));
    if(v.z<20)continue;Point p=project(v);
-   space_anim_draw(SPACE_ANIM_BEACON,(int)p.x,(int)p.y,frame,CYAN);
+   space_anim_draw(SPACE_ANIM_BEACON,(int)p.x,(int)p.y,frame,RGB(85,212,212));
   }
  }
  station_entrance();speed_lines();engine_flare();sfx_engine_plume_player();
@@ -399,21 +399,21 @@ static void space(void){
 static void walk_screen(void){
  if(walk_kind==0){sc_draw_ui();return;}
  /* Ship deck / derelict keep the open walk prototype. */
- int horizon=96+(int)(sinf(preview_time*.45f+walk_yaw)*.5f);rect(0,0,W,H,walk_kind==2?RGB(3,8,16):RGB(10,16,24));
- for(int y=horizon;y<H;y++){unsigned c=mix_rgb(RGB(28,40,52),RGB(12,18,26),(y-horizon)/(float)fmaxf(1,H-horizon));for(int x=0;x<W;x++)fb[y*STRIDE+x]=c;}
- for(int i=0;i<14;i++){int y=horizon+i*12;int inset=i*9;line(0,y,W/2-inset,horizon,RGB(36+i,52+i,66+i));line(W,y,W/2+inset,horizon,RGB(36+i,52+i,66+i));}
- line(0,horizon,W,horizon,CYAN);
- rect(0,0,W,28,RGB(8,19,28));rect(0,26,W,2,GOLD);
+ int horizon=96+(int)(sinf(preview_time*.45f+walk_yaw)*.5f);rect(0,0,W,H,walk_kind==2?RGB(8,13,24):RGB(21,28,39));
+ for(int y=horizon;y<H;y++){unsigned c=mix_rgb(RGB(41,54,70),RGB(21,28,39),(y-horizon)/(float)fmaxf(1,H-horizon));for(int x=0;x<W;x++)fb[y*STRIDE+x]=c;}
+ for(int i=0;i<14;i++){int y=horizon+i*12;int inset=i*9;line(0,y,W/2-inset,horizon,RGB(41+i,54+i,70+i));line(W,y,W/2+inset,horizon,RGB(41+i,54+i,70+i));}
+ line(0,horizon,W,horizon,RGB(193,139,77));
+ rect(0,0,W,28,RGB(21,28,39));rect(0,26,W,2,RGB(193,139,77));
  const char *place=walk_kind==1?"SHIP / PERSONAL DECK":"DERELICT / AIRLOCK";
- text(1,0,GOLD,"ON FOOT / %.18s",place);text(1,2,DIM,walk_kind==2?"NUB LOOK  D-PAD MOVE  X SALVAGE  O EXIT":"NUB LOOK  D-PAD MOVE  X INSPECT  O EXIT");
+ text(1,0,RGB(229,210,163),"ON FOOT / %.18s",place);text(1,2,RGB(155,154,165),walk_kind==2?"NUB LOOK  D-PAD MOVE  X SALVAGE  O EXIT":"NUB LOOK  D-PAD MOVE  X INSPECT  O EXIT");
  int sway=(int)(sinf(walk_x*.04f)*2);
- rect(188+sway,horizon-8,104,78,RGB(24,43,52));rect(198+sway,horizon,84,62,RGB(10,24,34));
- rect(220+sway,horizon+18,40,24,walk_kind==2?RGB(88,56,45):RGB(90,64,40));
- text(6,(horizon+28)/8,walk_kind==2?GOLD:CYAN,walk_kind==2?"SALVAGE":"AIRLOCK");
- text(40,(horizon+28)/8,WHITE,"%s",walk_kind==2?"TETHER":"DECK");
- rect(0,248,W,24,RGB(8,19,28));rect(0,248,W,2,CYAN);
- if(walk_kind==2){rect(8,252,180,8,RGB(22,28,36));rect(8,252,(int)(1.8f*walk_oxygen),8,CYAN);rect(8,262,180,8,RGB(36,22,26));rect(8,262,(int)(1.8f*walk_integrity),8,RED);text(25,32,WHITE,"O2 %d  SUIT %d",(int)walk_oxygen,(int)walk_integrity);}
- else text(1,32,DIM,"Workshop. Triangle returns to the concourse.");
+ rect(188+sway,horizon-8,104,78,RGB(41,54,70));rect(198+sway,horizon,84,62,RGB(21,28,39));
+ rect(220+sway,horizon+18,40,24,walk_kind==2?RGB(139,75,55):RGB(193,139,77));
+ text(6,(horizon+28)/8,walk_kind==2?RGB(240,180,91):RGB(85,212,212),walk_kind==2?"SALVAGE":"AIRLOCK");
+ text(40,(horizon+28)/8,RGB(229,210,163),"%s",walk_kind==2?"TETHER":"DECK");
+ rect(0,248,W,24,RGB(21,28,39));rect(0,248,W,2,RGB(193,139,77));
+ if(walk_kind==2){rect(8,252,180,8,RGB(41,54,70));rect(8,252,(int)(1.8f*walk_oxygen),8,RGB(85,212,212));rect(8,262,180,8,RGB(70,40,38));rect(8,262,(int)(1.8f*walk_integrity),8,RGB(200,90,75));text(25,32,RGB(229,210,163),"O2 %d  SUIT %d",(int)walk_oxygen,(int)walk_integrity);}
+ else text(1,32,RGB(155,154,165),"Workshop. Triangle returns to the concourse.");
 }
 static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
  static unsigned in_held=0;static int sq_arm=0;

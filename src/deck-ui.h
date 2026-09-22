@@ -40,19 +40,19 @@ static void help(void){
  {"Comms and docking request","Request guided docking","Ask to approach","Enter / turn away","Land or leave the ship","Take off / return to orbit"},
  {"Open the paused deck","Change service category","Open / return","Chatter and comms options","Full / minimal / scenic HUD","Toggle analog steering"}};
  header("COMMANDER / CONTROLS");panel(8,32,464,190);
- text(3,5,GOLD,"%d / 4   %s",help_tab+1,titles[help_tab]);
- for(int i=0;i<6;i++){int y=8+i*3;text(3,y,CYAN,"%s",keys[help_tab][i]);text(29,y,WHITE,"%s",actions[help_tab][i]);}
- text(3,29,DIM,"Analog %s. Centre the nub after enabling.",analog_enabled?"ON":"OFF");
+ text(3,5,RGB(240,180,91),"%d / 4   %s",help_tab+1,titles[help_tab]);
+ for(int i=0;i<6;i++){int y=8+i*3;text(3,y,RGB(85,212,212),"%s",keys[help_tab][i]);text(29,y,RGB(229,210,163),"%s",actions[help_tab][i]);}
+ text(3,29,RGB(155,154,165),"Analog %s. Centre the nub after enabling.",analog_enabled?"ON":"OFF");
  footer("LEFT/RIGHT PAGE   L ANALOG ON/OFF   O BACK");
 }
 static void comfort_screen(void){
  header("COMMANDER / DISPLAY & CHATTER");panel(8,32,464,156);
  const char *labels[]={"HUD layout","Text chatter","High contrast focus","Radio and audio","Controls"};
- for(int i=0;i<5;i++){int y=6+i*3;if(row==i)selected(y);text(3,y,WHITE,"%s",labels[i]);}
- text(34,6,CYAN,"%s",hud_mode==0?"FULL":hud_mode==1?"MINIMAL":"SCENIC");
- text(34,9,CYAN,"%s",quiet_comms?"QUIET":"ON");
- text(34,12,CYAN,"%s",high_contrast?"ON":"OFF");
- text(3,23,DIM,"Safety prompts stay visible. HUD lasts this session.");
+ for(int i=0;i<5;i++){int y=6+i*3;if(row==i)selected(y);text(3,y,RGB(229,210,163),"%s",labels[i]);}
+ text(34,6,RGB(85,212,212),"%s",hud_mode==0?"FULL":hud_mode==1?"MINIMAL":"SCENIC");
+ text(34,9,RGB(85,212,212),"%s",quiet_comms?"QUIET":"ON");
+ text(34,12,RGB(85,212,212),"%s",high_contrast?"ON":"OFF");
+ text(3,23,RGB(155,154,165),"Safety prompts stay visible. HUD lasts this session.");
  footer("UP/DOWN   X CHANGE / OPEN   O BACK");
 }
 /* Action feedback gets its own reserved band, not a talking-character card. */

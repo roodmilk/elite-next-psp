@@ -14,7 +14,7 @@ static void station_model(void){
  Vec3 outer[4]={{0,-160,-160},{160,0,-160},{0,160,-160},{-160,0,-160}};
  Vec3 inner[4];for(int i=0;i<4;i++)inner[i]=station_port_corner(i);
  for(int i=0;i<4;i++){int j=(i+1)%4;Vec3 a=camera(&game,station_vertex(outer[i])),b=camera(&game,station_vertex(outer[j])),c=camera(&game,station_vertex(inner[j])),d=camera(&game,station_vertex(inner[i]));queue_triangle(a,b,c,RGB(109,140,151));queue_triangle(a,c,d,RGB(109,140,151));Vec3 backi=inner[i],backj=inner[j];backi.z=0;backj.z=0;queue_triangle(d,c,camera(&game,station_vertex(backj)),RGB(8,19,24));queue_triangle(d,camera(&game,station_vertex(backj)),camera(&game,station_vertex(backi)),RGB(8,19,24));}
- if(prosperity(&game,game.system)>=4){for(int ring=0;ring<2;ring++){float radius=230+ring*65;for(int i=0;i<24;i++){float a=station_angle(&game)+i*6.2831853f/24,b=station_angle(&game)+(i+1)*6.2831853f/24;Vec3 u=camera(&game,(Vec3){cosf(a)*radius,sinf(a)*radius,3500+(ring?100:-80)}),v=camera(&game,(Vec3){cosf(b)*radius,sinf(b)*radius,3500+(ring?100:-80)});if(u.z>15&&v.z>15){Point p=project(u),q=project(v);line((int)p.x,(int)p.y,(int)q.x,(int)q.y,ring?CYAN:DIM);}}}}
+  if(prosperity(&game,game.system)>=4){for(int ring=0;ring<2;ring++){float radius=230+ring*65;for(int i=0;i<24;i++){float a=station_angle(&game)+i*6.2831853f/24,b=station_angle(&game)+(i+1)*6.2831853f/24;Vec3 u=camera(&game,(Vec3){cosf(a)*radius,sinf(a)*radius,3500+(ring?100:-80)}),v=camera(&game,(Vec3){cosf(b)*radius,sinf(b)*radius,3500+(ring?100:-80)});if(u.z>15&&v.z>15){Point p=project(u),q=project(v);line((int)p.x,(int)p.y,(int)q.x,(int)q.y,ring?RGB(85,212,212):RGB(155,154,165));}}}}
 }
 /* Small practical windows make the exterior read as a lived-in miniature.
  * Procedural beacon masks; no station crawl geometry or interaction state. */
@@ -55,11 +55,11 @@ static void menu_space_view(int x,int y,int w,int h){
    Vec3 bp=camera(&game,b->pos);if(bp.z>80){Point p=project(bp);int r=(int)fminf(28,b->radius*240.f/bp.z);if(r>3&&p.x>x&&p.x<x+w&&p.y>y&&p.y<y+h)circle((int)p.x,(int)p.y,r,b->color);}
   }
   float yaw=game.docked?station_angle(&game)*.15f+phase*.2f:oldyaw;
-  shipmesh(mesh_id(player_ships[game.ship].name),ship,yaw,oldroll*.25f,1.85f,GOLD,0);
+  shipmesh(mesh_id(player_ships[game.ship].name),ship,yaw,oldroll*.25f,1.85f,RGB(193,139,77),0);
   flush_meshes();
  }
  preview_reset();game.pos=oldpos;game.yaw=oldyaw;game.pitch=oldpitch;game.roll=oldroll;
- text((x+6)/8,(y+h-10)/8,DIM,"3RD / %.10s",player_ships[game.ship].name);
+ text((x+6)/8,(y+h-10)/8,RGB(155,154,165),"3RD / %.10s",player_ships[game.ship].name);
 }
 static void ambient_space(void){
  if(system_whales(game.system)){Body *b=&game.bodies[3];for(int i=0;i<3;i++){float a=game.time*.028f+i*.62f;Vec3 pos=add(b->pos,(Vec3){cosf(a)*(b->radius+5600),700+sinf(a+i)*.5f*480,sinf(a)*(b->radius+5600)});if(length(sub(pos,game.pos))<14000)shipmesh(mesh_id("WORM"),pos,a+1.57f,sinf(game.time*.35f+i)*.16f,7.2f+i*1.3f,RGB(96,186,198),0);}}

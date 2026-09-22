@@ -147,8 +147,8 @@ static void station_entrance(void){
    Point a=project(p[i]),b=project(p[(i+1)%4]);
    /* Warm structural rim + cyan aperture signal (nav only on the cut). */
    line((int)a.x,(int)a.y,(int)b.x,(int)b.y,RGB(193,139,77));
-   line((int)a.x+1,(int)a.y,(int)b.x+1,(int)b.y,CYAN);
-   if(!high_contrast)space_anim_draw(SPACE_ANIM_BEACON,(int)((a.x+b.x)*.5f),(int)((a.y+b.y)*.5f),frame+i,CYAN);
+   line((int)a.x+1,(int)a.y,(int)b.x+1,(int)b.y,RGB(85,212,212));
+   if(!high_contrast)space_anim_draw(SPACE_ANIM_BEACON,(int)((a.x+b.x)*.5f),(int)((a.y+b.y)*.5f),frame+i,RGB(85,212,212));
   }
  }
 }

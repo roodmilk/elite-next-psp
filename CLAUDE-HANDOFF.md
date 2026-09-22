@@ -75,6 +75,8 @@ Station interiors restaged from `docs/CINEMATIC-MOCKUP-TARGETS.md` + ART DIRECTO
 
 **Next visual gap (same PR #11, untagged):** remaining room prop markers (tool rack, steam, loader, mission pin, clinic screen, customs REST); planet skyline blinks + haze + ochre pad apron/corner beacons; charcoal/ochre cockpit, speech, menu notice, minimal HUD, approach/police plates; warmer warp streaks. Still presentation-only.
 
+**Implementer tip under ART DIRECTOR authority (`cd82990`+):** 8×8 native prop markers on FEATURE/PROP hotspots; ARRIVALS cargo-loader cycle; walk/help/comfort chrome aligned to kit; station aperture beacons + prosperity rings use `#55D4D4` nav cyan only. Status handed to ART DIRECTOR — no second art direction, no tag.
+
 **Working tip (Commander: BIG RELEASES ONLY):** Unify tip shipped (`v2.5.37`+; working tip **2.5.40** with MacVenture + Act I–IV). Story deepens in **larger PR batches** into `cursor/macventure-cinematic-polish-fe9e` — do not drip-fold every small pass. **2.5.40** is that combined drop — Systems Guy tags `v2.5.40` after smoke green.
 
 ### 2.5.38 — soft-FB Wave A canopy FX

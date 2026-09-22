@@ -279,6 +279,28 @@ static void sc_anchor_tick(int x,int y,int w,int h,unsigned c){
  rect(x,y+h-1,6,1,c);rect(x,y+h-6,1,6,c);
  rect(x+w-6,y+h-1,6,1,c);rect(x+w-1,y+h-6,1,6,c);
 }
+/* Native 8×8 prop markers — authored at 1×, no resample (ART-KIT handoff). */
+static void sc_prop8(int x,int y,int id,unsigned ink){
+ unsigned fill=mix_rgb(SC_CHAR,ink,.35f),hi=mix_rgb(ink,SC_CREAM,.4f);
+ rect(x,y,8,8,SC_VOID);
+ if(id==0||id==1||id==3||id==17){ /* crate / stock / tip / manifest */
+  rect(x+1,y+2,6,5,fill);rect(x+1,y+2,6,1,hi);pixel(x+4,y+4,hi);
+ }else if(id==2||id==13){ /* bar / booth */
+  rect(x+1,y+5,6,2,fill);rect(x+2,y+2,4,3,hi);
+ }else if(id==4||id==8){ /* medkit / bay */
+  rect(x+2,y+1,4,6,fill);rect(x+3,y+3,2,1,hi);rect(x+3,y+2,1,3,hi);
+ }else if(id==7||id==23){ /* desk */
+  rect(x+1,y+4,6,3,fill);rect(x+2,y+2,4,2,hi);
+ }else if(id==5){ /* lift/hoist */
+  rect(x+3,y+1,2,6,fill);rect(x+1,y+2,6,1,hi);
+ }else if(id==6){ /* scanner gate */
+  rect(x+1,y+1,2,6,fill);rect(x+5,y+1,2,6,fill);rect(x+3,y+3,2,2,hi);
+ }else if(id==12){ /* diag panel */
+  rect(x+1,y+1,6,6,fill);pixel(x+3,y+3,hi);pixel(x+5,y+4,ink);
+ }else{ /* board / window / ledger / glass */
+  rect(x+1,y+1,6,6,fill);rect(x+2,y+2,4,3,hi);pixel(x+6,y+1,ink);
+ }
+}
 static void sc_draw_person_sprite(int x,int y,const ScNpc *p,int selected){
  unsigned ink=faction_colors[p->role%FACTION_COUNT];
  /* Contact shadow — keep silhouette friendly, two-tone accents only. */
@@ -337,6 +359,14 @@ static void sc_illust_arrivals(int x,int y,int w,int h){
   if(on&&(i&1)==0)pixel(x+206+i*13,y+106,SC_CREAM);
  }
  rect(x+200,y+116,40,4,sc_lamp_on(0,3.f)<2?st->lamp:mix_rgb(st->lamp,SC_VOID,.4f));
+ /* Cargo-loader cycle under the board — ART DIRECTOR HUB production target. */
+ {
+  int bob=(int)(sinf(game.time*2.2f)*3);
+  rect(x+248,y+100+bob,18,28,mix_rgb(st->wall,SC_OLIVE,.4f));
+  rect(x+252,y+92+bob,10,10,st->trim);
+  rect(x+250,y+128+bob,14,4,SC_RUST);
+  if(sc_lamp_on(2,3.f)<2)pixel(x+256,y+96+bob,SC_CREAM);
+ }
  /* Fore: rail + contact shadow */
  rect(x+72,y+118,160,4,st->trim);
  rect(x+72,y+122,160,3,SC_OLIVE);
@@ -575,13 +605,18 @@ static void sc_draw_main_scene(void){
   if(px==0&&py==0)continue;
   sc_draw_person_sprite(VX+px,VY+py,&people[i],sc_hot<hn&&hot[sc_hot].kind==SC_H_PERSON&&hot[sc_hot].id==i);
  }
- /* Cue ticks on props/features; full gold on selection. */
+ /* Cue ticks + 8×8 prop markers on features; amber frame on selection. */
  for(int i=0;i<hn;i++){
   if(hot[i].kind==SC_H_PERSON||hot[i].kind==SC_H_EXIT)continue;
   if(sc_hot==i){
    rect(hot[i].x-2,hot[i].y-2,hot[i].w+4,1,SC_AMBER);rect(hot[i].x-2,hot[i].y+hot[i].h+1,hot[i].w+4,1,SC_AMBER);
    rect(hot[i].x-2,hot[i].y-2,1,hot[i].h+4,SC_AMBER);rect(hot[i].x+hot[i].w+1,hot[i].y-2,1,hot[i].h+4,SC_AMBER);
   }else sc_anchor_tick(hot[i].x,hot[i].y,hot[i].w,hot[i].h,SC_CREAM);
+  /* Marker sits outside the prop box so the silhouette stays clear. */
+  if(hot[i].w>=16&&hot[i].h>=12){
+   unsigned ink=sc_hot==i?SC_AMBER:(hot[i].kind==SC_H_FEATURE?SC_CYAN:SC_OCHRE);
+   sc_prop8(hot[i].x+hot[i].w-10,hot[i].y+2,hot[i].id,ink);
+  }
  }
  for(int i=0;i<hn;i++)if(hot[i].kind==SC_H_EXIT&&hot[i].id==SC_EXIT_SHIP){
   unsigned c=(sc_hot==i)?SC_AMBER:SC_AMBER;
