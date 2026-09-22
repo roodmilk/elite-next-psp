@@ -23,6 +23,8 @@ Chapter 02 now requires the authored sealed receiver pickup at Mara's bound port
 
 Manager integration passed the PSP build and all five PPSSPP smoke groups: game, input, steering, radio and performance.
 
+The Chapter 05 slice on `specialist/gameplay-story-ch05` adds the authored early-filing timestamp comparison at Lave, then exposes inspection/protest evidence choices. It reuses `saga_flags` bits `0x400`–`0x2000`, preserves the sealed records, and requires the records before comparison can begin. Wrong-system docking, missing evidence, and repeated comparison actions are covered by campaign tests.
+
 Prepared 22 September 2026. Current build: **2.5.46**.
 
 ## PSP UI/art specialist handoff — native deck readability

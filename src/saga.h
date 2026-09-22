@@ -11,7 +11,9 @@ enum { SAGA_TRUST_PUBLIC=0, SAGA_TRUST_GUILD=1, SAGA_TRUST_LAW=2, SAGA_TRUST_IND
 enum {
  SAGA_CASE_HELD=0x10, SAGA_DETOUR_TAKEN=0x20,
  SAGA_OBSERVATION_DONE=0x40, SAGA_STAMP_FOUND=0x80,
- SAGA_PODS_FOUND=0x100, SAGA_OBSERVATION_RESET=0x200
+ SAGA_PODS_FOUND=0x100, SAGA_OBSERVATION_RESET=0x200,
+ SAGA_TIMESTAMP_FOUND=0x400, SAGA_EVIDENCE_COMPARED=0x800,
+ SAGA_CH5_PROTEST=0x1000, SAGA_CH5_RESOLVED=0x2000
 };
 typedef struct {
  const char *title,*speaker;
@@ -96,7 +98,7 @@ static const SagaBeat saga_beats[]={
   "What if they offer a quiet deal?",
   "I will keep the records clean.",
   "Return the records to Iona.",
-  "Bring the records to Iona",SAGA_HOME,3},
+  "Bring the records to Iona",SAGA_CHOICE,3},
  /* Act I Ch.06 — Voss tape + Pip key */
  {"The Last Useful Thing","NADI",
   "That wreck still has a recorder worth saving, and scavengers are already arguing about the shiny bits.",
@@ -492,9 +494,11 @@ static const char *saga_choice_label(int chapter,int option){
  static const char *silence[3]={"Publish the ledger now","Give ledger to the Guild","Lodge ledger with Iona"};
  static const char *carry[3]={"Broadcast evidence now","Verify evidence first","Alert only active hazards"};
  static const char *flag[3]={"Public convoy network","Guild survey teams","Lawful supervised force"};
+ static const char *evidence[3]={"Inspect against the public clock","Protest under the sealed record","Keep the case open with Iona"};
  static const char *light[3]={"Public custody + inspection","Explorers Guild custody","Lawful independent archive"};
  const char **table=light;
- if(chapter==5)table=silence;
+ if(chapter==3)table=evidence;
+ else if(chapter==5)table=silence;
  else if(chapter==11)table=carry;
  else if(chapter==17)table=flag;
  else if(chapter==22)table=light;
@@ -515,12 +519,17 @@ static const char *saga_choice_blurb(int chapter,int option){
   "Civilian tenders on the clock. Ideals do not hold a lane alone.",
   "Guild survey markers — help without an ownership claim.",
   "Lawful force under inspection. Watchers get watched."};
+ static const char *evidence[3]={
+  "Compare the early filing to the public bulletin; the clock becomes evidence.",
+  "Protest under seal. Iona keeps the record open and the receiver intact.",
+  "Keep the case open. No quiet settlement can erase the timestamps."};
  static const char *light[3]={
   "Public keys with mandatory inspection days — not decorative.",
   "Guild holds method and maintenance; Law audits on a fixed calendar.",
   "Lawful archive wears the keys. Distrust them in public — that is the design."};
  const char **table=light;
- if(chapter==5)table=silence;
+ if(chapter==3)table=evidence;
+ else if(chapter==5)table=silence;
  else if(chapter==11)table=carry;
  else if(chapter==17)table=flag;
  else if(chapter==22)table=light;
@@ -541,12 +550,17 @@ static const char *saga_choice_reaction(int chapter,int option){
   "Tamsin: Convoy network it is. Working pilots show up when the fuel is real.",
   "Kei: Guild survey teams. Markers, not owners. That is the deal.",
   "Iona: Lawful force under inspection. I will watch the watchers."};
+ static const char *evidence[3]={
+  "Iona: The public clock agrees. A badge is not evidence; the delta is.",
+  "Iona: Protest logged. The seal stays intact, and the case stays open.",
+  "Kei: Good. No tidy settlement gets to turn an early filing into truth."};
  static const char *light[3]={
   "Kei: Public custody with teeth. Inspection days are mandatory, not decorative.",
   "Kei: Guild custody. We hold method — kick me if I start sounding like a gate.",
   "Iona: Lawful archive. Keep distrusting me in public. It is part of the design."};
  const char **table=light;
- if(chapter==5)table=silence;
+ if(chapter==3)table=evidence;
+ else if(chapter==5)table=silence;
  else if(chapter==11)table=carry;
  else if(chapter==17)table=flag;
  else if(chapter==22)table=light;
@@ -780,7 +794,7 @@ static int saga_next_hop(const Game *g,int *jumps){
 }
 static void saga_begin(Game *g){
  if(g->campaign_stage<6||g->saga_chapter>=SAGA_COUNT||g->saga_step)return;
- const SagaBeat *b=&saga_beats[g->saga_chapter];g->saga_dest=(b->kind==SAGA_HOME)?7:saga_system(g,g->saga_chapter);
+ const SagaBeat *b=&saga_beats[g->saga_chapter];g->saga_dest=(b->kind==SAGA_HOME||g->saga_chapter==3)?7:saga_system(g,g->saga_chapter);
  /* Dock chapters 02/04 begin at the commander's current port, then bind
   * their authored evidence destination. Scan chapters retain discovery
   * baselines for the generic Codex while using a separate story bit. */
@@ -799,6 +813,12 @@ static void saga_dock_event(Game *g){
   g->saga_flags|=SAGA_STAMP_FOUND;
   message(g,"Outbound stamp recovered. Timestamp preserved before the archive is scrubbed.");
   speak(g,VOICE_CONTACT,"Stamp copied. The pods are optional; the record is not.");
+ }else if(g->saga_chapter==3&&g->docked&&g->system==7&&!(g->saga_flags&SAGA_TIMESTAMP_FOUND)){
+  if(g->saga_flags&(SAGA_CASE_HELD|SAGA_STAMP_FOUND)){
+   g->saga_flags|=SAGA_TIMESTAMP_FOUND;
+   message(g,"Records received. The filing is eleven minutes early; compare it before you answer.");
+   speak(g,VOICE_LAW,"A badge is not evidence. Mine included. Put both clocks on the desk.");
+  }
  }
 }
 static void saga_observation_interrupt(Game *g){
@@ -829,6 +849,7 @@ static void saga_story_scan(Game *g,int id){
 static int saga_ready(const Game *g){
  if(!g->saga_step||g->saga_chapter>=SAGA_COUNT)return 0;
  const SagaBeat *b=&saga_beats[g->saga_chapter];
+ if(g->saga_chapter==3)return (g->saga_flags&SAGA_TIMESTAMP_FOUND)&&g->saga_choice>0;
  if(b->kind==SAGA_CHOICE)return g->saga_choice>0;
  if(b->kind==SAGA_HOME)return g->docked&&g->system==7;
  if(g->saga_chapter==0)return (g->saga_flags&SAGA_CASE_HELD)&&g->docked&&g->system==7;
@@ -843,11 +864,15 @@ static int saga_advance(Game *g){
  const SagaBeat *b=&saga_beats[g->saga_chapter];
  int finished=g->saga_chapter,choice=g->saga_choice-1;
  if(b->kind==SAGA_CHOICE){
+  if(g->saga_chapter==3){
+   g->saga_flags|=SAGA_EVIDENCE_COMPARED|SAGA_CH5_RESOLVED;
+   if(choice==1)g->saga_flags|=SAGA_CH5_PROTEST;
+  }
   /* Map each choice chapter onto a trust bucket: Public / Guild / Law.
    * Carry-Home option 2 (limited alert) also nudges Independent trust. */
   if(g->saga_chapter==11&&choice==2)g->saga_trust[SAGA_TRUST_INDEPENDENT]++;
-  else if(choice>=0&&choice<3)g->saga_trust[choice]++;
-  g->saga_flags|=1u<<(g->saga_chapter==5?0:g->saga_chapter==11?1:g->saga_chapter==17?2:3);
+  else if(g->saga_chapter!=3&&choice>=0&&choice<3)g->saga_trust[choice]++;
+  if(g->saga_chapter!=3)g->saga_flags|=1u<<(g->saga_chapter==5?0:g->saga_chapter==11?1:g->saga_chapter==17?2:3);
  }
  /* Prior trust softens later payouts into tangible coalition support. */
  int reward=1800+g->saga_chapter*120+saga_trust_total(g)*80;

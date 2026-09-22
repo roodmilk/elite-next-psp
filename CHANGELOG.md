@@ -9,6 +9,11 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 - Approach text and actions stay inside the safety panel in Full, Minimal and Scenic HUD modes.
 - Added non-sun boundary, sun damage, turn-away, orbit return, PSP-input and native framebuffer regressions. Save V13 and mission rewards unchanged.
 
+## Unreleased — authored Chapter 05 evidence loop
+
+- Added the timestamp comparison at Lave and inspection/protest/open-case choices for the early Meridian filing.
+- Missing records, wrong-system returns, and repeated comparison actions cannot advance the chapter; state reuses existing `saga_flags` without a save-version or `Game` layout change.
+
 ## Unreleased — authored Open Channel Chapters 02–04
 
 - Added sealed-receiver pickup and home delivery, quiet-signal observation with fire/heat reset and re-entry recovery, a required convoy port stamp, and an optional lifeboat scan that grants Independent trust once.

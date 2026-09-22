@@ -70,6 +70,18 @@ static void campaign_tests(FILE *f,int *failures){
  CHECK((bespoke.saga_flags&SAGA_STAMP_FOUND)&&saga_ready(&bespoke),"saga: Ch.04 stamp is the required evidence");
  int ind=bespoke.saga_trust[SAGA_TRUST_INDEPENDENT];bespoke.docked=0;game_spawn(&bespoke);bespoke.anomaly[0].alive=1;bespoke.pos=bespoke.anomaly[0].pos;analysis_scan(&bespoke,ANOMALY_ID_MIN);
  CHECK((bespoke.saga_flags&SAGA_PODS_FOUND)&&bespoke.saga_trust[SAGA_TRUST_INDEPENDENT]==ind+1,"saga: optional pod rescue adds Independent trust once");
+ /* Ch.05 compares the authored early filing, then preserves the evidence
+  * through an inspection/protest choice with a recoverable dock action. */
+ Game lawful;game_init(&lawful);lawful.campaign_stage=6;lawful.saga_chapter=3;saga_begin(&lawful);lawful.docked=1;
+ saga_dock_event(&lawful);
+ CHECK(!(lawful.saga_flags&SAGA_TIMESTAMP_FOUND)&&!saga_ready(&lawful),"saga: Ch.05 cannot start from a dock without the records");
+ lawful.saga_flags|=SAGA_CASE_HELD|SAGA_STAMP_FOUND;lawful.system=6;saga_dock_event(&lawful);
+ CHECK(!(lawful.saga_flags&SAGA_TIMESTAMP_FOUND),"saga: wrong system cannot compare the evidence");
+ lawful.system=7;saga_dock_event(&lawful);char timestamp_note[96];snprintf(timestamp_note,sizeof(timestamp_note),"%s",lawful.message);saga_dock_event(&lawful);
+ CHECK((lawful.saga_flags&SAGA_TIMESTAMP_FOUND)&&!strcmp(timestamp_note,lawful.message),"saga: timestamp comparison is recoverable and idempotent");
+ lawful.saga_choice=2;
+ CHECK(saga_ready(&lawful),"saga: Ch.05 opens inspection/protest choices only after comparison");
+ CHECK(saga_advance(&lawful)&&lawful.saga_chapter==4&&(lawful.saga_flags&SAGA_EVIDENCE_COMPARED)&&(lawful.saga_flags&SAGA_CH5_PROTEST)&&!saga_advance(&lawful),"saga: protest resolves once while preserving the evidence decision");
  CHECK(!strcmp(saga_choice_label(5,0),"Publish the ledger now")&&!strcmp(saga_choice_label(11,1),"Verify evidence first")&&!strcmp(saga_choice_label(17,2),"Lawful supervised force"),"saga: choice labels match each permanent decision");
  CHECK(SAGA_BRIEF_BEATS==8&&saga_beats[0].talk8&&saga_beats[0].ask8,"saga: briefs are eight-beat page scripts");
  CHECK(strstr(saga_beats[4].talk6,"spreadsheet")&&strstr(saga_beats[7].line,"tourists"),"saga: Nadi Voss-tape and Venn archive open from screenplay");
