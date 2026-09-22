@@ -232,7 +232,7 @@ static void cockpit(void){
   const char *cue=tracked_hud_cue();
   int cols=W/8,inset=1,left=34,clen=(int)strlen(cue),max=cols-inset-left;
   if(max<8)max=8;if(clen>max)clen=max;
-  text(cols-inset-clen,0,RGB(240,180,91),"%.*s",clen,cue);
+  text(cols-inset-clen,0,GOLD,"%.*s",clen,cue);
  }
  if(game.dock_stage==1){rect(8,24,464,16,RGB(21,28,39));rect(8,24,464,1,RGB(193,139,77));text(2,4,RGB(85,212,212),"DOCKING GUIDANCE ACTIVE");}
  else if(square_held){rect(8,24,464,32,RGB(21,28,39));rect(8,24,464,1,RGB(193,139,77));for(int i=0;i<5;i++)text(1+i*11,4,i==scan_cat?RGB(240,180,91):RGB(155,154,165),"%s",scan_cat_names[i]);text(2,6,RGB(85,212,212),"D-PAD BANDS   L CYCLE VIEW");text(35,6,RGB(240,180,91),"R LOCK");}
