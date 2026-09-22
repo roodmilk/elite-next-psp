@@ -31,11 +31,29 @@ static int target_matches(int id){if(target_filter==0)return 1;if(target_filter=
 static void target_refresh(void){target_count=0;for(int id=0;id<=ANOMALY_ID_MAX;id++)if(valid_target(id)&&target_matches(id))target_ids[target_count++]=id;if(row>=target_count)row=0;}
 static unsigned contact_color(int id){if(is_mission_target(&game,id))return WHITE;if(IS_NPC_ID(id))return faction_colors[game.npc[id-BODY_COUNT-1].role];if(IS_ANOMALY_ID(id))return GOLD;if(IS_DEBRIS_ID(id))return DIM;return id==0?CYAN:GOLD;}
 static const char *target_status(int id){if(is_mission_target(&game,id))return "MISSION TARGET";if(IS_ANOMALY_ID(id))return game.anomaly[id-ANOMALY_ID_MIN].scanned?"CODEX ENTRY":"UNSCANNED ANOMALY";if(IS_DEBRIS_ID(id))return game.debris[id-DEBRIS_ID_MIN].rock?"LASER-MINEABLE ROCK":game.debris[id-DEBRIS_ID_MIN].wreck?"SALVAGE WRECK":"COLLECTABLE CARGO";if(id==0)return "DOCKABLE";if(id<=BODY_COUNT){Body *b=&game.bodies[id-1];return b->type==SUN?"STAR / NO LANDING":b->type==GAS?"NO LANDING":"APPROACHABLE";}NPC *n=&game.npc[id-BODY_COUNT-1];if(n->target==-2)return "HOSTILE";if(n->role==PIRATES)return "WANTED";if(n->role==LAW)return "LAW";if(n->role==TRADERS)return n->freighter?freight_status(n):"TRADER";return "NEUTRAL";}
+/* Faint CRT glass under targeting list — scanlines + sparse fuzz. Drawn before glyphs so text stays sharp. */
+static void targeting_crt_glass(int x,int y,int w,int h){
+ unsigned base=RGB(21,28,39),scan=RGB(17,23,31),fleck_lo=RGB(14,19,26),fleck_hi=RGB(28,36,48);
+ unsigned seed=((unsigned)(game.time*29.f)^0xA71Cu)*1664525u+1013904223u;
+ for(int yy=y+2;yy<y+h-2;yy+=2){
+  for(int xx=x+2;xx<x+w-2;xx++)if(fb[yy*STRIDE+xx]==base)fb[yy*STRIDE+xx]=scan;
+ }
+ int flecks=22;
+ for(int i=0;i<flecks;i++){
+  seed=seed*1664525u+1013904223u;int px=x+2+(int)((seed>>8)%(unsigned)(w-4));
+  seed=seed*1664525u+1013904223u;int py=y+2+(int)((seed>>8)%(unsigned)(h-4));
+  unsigned cur=fb[py*STRIDE+px];
+  if(cur!=base&&cur!=scan)continue;
+  fb[py*STRIDE+px]=(seed&7)==0?fleck_hi:fleck_lo;
+ }
+}
 static void targeting_screen(void){
  target_count=collect_scan_ids(target_ids,scan_cat);if(row>=target_count)row=0;
  header("TARGETING COMPUTER");page_number_at(52,4,target_count?row/7+1:1,target_count?(target_count+6)/7:1);
  for(int i=0;i<5;i++){int col=1+i*11;if(i==scan_cat)rect(col*8-2,30,84,14,RGB(25,65,77));text(col,4,i==scan_cat?GOLD:DIM,"%s",scan_cat_names[i]);}
- panel(8,47,464,140);int first=row/7*7;for(int j=0;j<7&&first+j<target_count;j++){int i=first+j,id=target_ids[i],y=7+j*2;Vec3 p=camera(&game,target_position(id));if(i==row)selected(y);text(3,y,contact_color(id),"%s%-20.20s %6d M %-6s",is_mission_target(&game,id)?"[M] ":"    ",scanner_known(id)?target_name(id):"UNKNOWN CONTACT",(int)length(sub(target_position(id),game.pos)),p.z>=0?"AHEAD":"BEHIND");}if(!target_count)text(3,10,DIM,"Nothing in this band. L/R changes category.");
+ panel(8,47,464,140);
+ targeting_crt_glass(8,47,464,140);
+ int first=row/7*7;for(int j=0;j<7&&first+j<target_count;j++){int i=first+j,id=target_ids[i],y=7+j*2;Vec3 p=camera(&game,target_position(id));if(i==row)selected(y);text(3,y,contact_color(id),"%s%-20.20s %6d M %-6s",is_mission_target(&game,id)?"[M] ":"    ",scanner_known(id)?target_name(id):"UNKNOWN CONTACT",(int)length(sub(target_position(id),game.pos)),p.z>=0?"AHEAD":"BEHIND");}if(!target_count)text(3,10,DIM,"Nothing in this band. L/R changes category.");
  if(target_count){int id=target_ids[row];text(3,21,GOLD,"%s",target_status(id));if(target_details){if(IS_NPC_ID(id)){NPC *n=&game.npc[id-BODY_COUNT-1];if(scanner_known(id))text(3,22,WHITE,"%s  hull %d  %d m",faction_names[n->role],(int)n->health,(int)length(sub(n->pos,game.pos)));else text(3,22,WHITE,"Close in, or fit a long-range scanner.");}else if(IS_ANOMALY_ID(id))text(3,22,WHITE,"%s",game.anomaly[id-ANOMALY_ID_MIN].scanned?"Logged in Codex":"Close in. Press O.");else if(IS_DEBRIS_ID(id))text(3,22,WHITE,"%s",game.debris[id-DEBRIS_ID_MIN].rock?"Fire to fracture; Circle collects loose ore.":"Circle: collect within 500 m");else text(3,22,WHITE,"%s",id==0?station_name(&game):game.bodies[id-1].name);}else text(3,22,DIM,"Triangle for details.");}
  footer("L/R CATEGORY   X LOCK   TRI DETAILS   O BACK");}
 static void local_system(void){

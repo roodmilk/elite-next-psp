@@ -85,6 +85,8 @@ Station interiors restaged from `docs/CINEMATIC-MOCKUP-TARGETS.md` + ART DIRECTO
 
 Gameplay Designer PR #29 on v2.5.43 tip. Smoke-green Commander pack.
 
+**ART tip (untagged, PR #11):** targeting computer CRT glass — faint scanlines/static under list glyphs (no text bloom, no meteors). Systems owns smoke/pack.
+
 ### 2.5.43 — Play-fix pack (art + Designer + Story)
 
 Art HUD/disembark, Designer dock-menu/cam/Factions, Story gazette lore. Smoke-green Commander download.
