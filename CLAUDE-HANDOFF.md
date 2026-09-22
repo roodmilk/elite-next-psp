@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.21**.
+Prepared 22 September 2026. Current build: **2.5.22**.
 
 ## Start here
 
@@ -63,6 +63,10 @@ Important controls:
 - Galaxy Map: Triangle switches between nearby jumps and the full 256-system map; D-pad moves between systems; L/R zoom; X plots a multi-jump route and saves the final goal.
 
 ## Recent changes that must be preserved
+
+### 2.5.22 — station crawl + stocked outfitting
+
+Disembark opens a first-person room-grid station (minimap, shops, gifts, taxis). Outfitting lists only local stock; `inventory_screen` shows equip slots. Passengers occupy 1t with route chatter (save V11).
 
 ### 2.5.21 — full screenplay assembly
 

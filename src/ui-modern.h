@@ -178,36 +178,162 @@ static void yard(void){
  text(31,21,GOLD,"%.1f units",(p->price-player_ships[game.ship].price*3/4)*.1f);
  footer("UP/DOWN   X EXCHANGE   O BACK");
 }
-static const char *equipment_names[]={"REFUEL TANK","BEAM LASER","DOCKING COMPUTER","SHIELD BOOSTER","LASER COOLING","EXPANDED CARGO BAY","LONG-RANGE SCANNER","FUEL SCOOP","MISSILE RESTOCK"};
-static const char *equipment_list_names[]={"REFUEL TANK","BEAM LASER","DOCK COMPUTER","SHIELD BOOST","LASER COOLING","CARGO BAY +8T","LONG SCANNER","FUEL SCOOP","MISSILE +1"};
-static const char *equipment_details[]={"Fill hyperspace tank.","Twice laser damage.","Docking from 8,000 m.","Twice shield recharge.","Laser cools faster.","Adds eight tonnes.","IDs distant contacts.","Skim fuel near a sun.","Load one missile."};
-static const char *equipment_effects[]={"Tank: now -> ship max","Laser 18 -> 36","Dock 2500 -> 8000 m","Shield 1.5 -> 3.0 /s","Cool 22 -> 38 /s","Hold +8 tonnes","Scan 3 -> 6 fields","Fuel +0.5 /s at sun","Missiles +1"};
-static const int equipment_costs[]={0,4000,2500,6000,4500,3500,3000,7500,1000};
-static const int equipment_tech[]={0,4,5,7,6,4,5,9,3};
-static const int equip_show[]={0,7,1,8,3,4,2,6,5};
-static const char *equip_cat[]={"FUEL","FUEL","WPN","WPN","DEF","DEF","NAV","NAV","HOLD"};
-static int equipment_owned(int i){if(i==0)return game.fuel>=player_ships[game.ship].range;if(i==1)return game.laser;if(i==8)return game.missiles>=4;return (game.upgrades&(1<<(i-2)))!=0;}
-static void buy_equipment(int i){if(!game.docked){message(&game,"Dock to buy equipment.");return;}if(i<0||i>=9)return;if(i==0){int cost=(int)ceilf(player_ships[game.ship].range-game.fuel)*2;if(cost<=0){message(&game,"Tank is already full.");return;}if(game.credits<cost){message(&game,"Not enough units.");return;}game.credits-=cost;game.fuel=player_ships[game.ship].range;game.cue=SFX_UI;message(&game,"Tank full.");return;}if(equipment_owned(i)){message(&game,i==8?"Missile rack full.":"Already installed.");return;}if(game.systems[game.system].tech+1<equipment_tech[i]){message(&game,"This hub does not have the required technology.");return;}if(game.credits<equipment_costs[i]){message(&game,"Not enough units.");return;}game.credits-=equipment_costs[i];game.cue=SFX_UI;if(i==1)game.laser=1;else if(i==8){game.missiles++;message(&game,"Missile loaded.");return;}else game.upgrades|=1<<(i-2);message(&game,i==6?"Long-range scanner online.":"Upgrade installed.");}
+/* Expanded outfitting: only list items this hub actually stocks. */
+enum { EQUIP_COUNT = 24 };
+static const char *equipment_names[EQUIP_COUNT]={
+ "REFUEL TANK","PULSE LASER","BEAM LASER","MISSILE RESTOCK","DOCKING COMPUTER","NAV BEACON",
+ "SHIELD BOOSTER","MILITARY SHIELD","LASER COOLING","HEAT SINK","CARGO BAY +8T","FREIGHT RACK +16T",
+ "LONG-RANGE SCANNER","PLANET SCANNER","FUEL SCOOP","AGRI SCOOP","ECM SUITE","CHAFF DISPENSER",
+ "ESCAPE POD","AUTO-REPAIR KIT","MINING LASER","REFINERY UNIT","PASSENGER CABIN","EXCLUSIVE CLAMP"
+};
+static const char *equipment_list_names[EQUIP_COUNT]={
+ "REFUEL","PULSE LASER","BEAM LASER","MISSILE +1","DOCK COMP","NAV BEACON",
+ "SHIELD BOOST","MIL SHIELD","LASER COOL","HEAT SINK","CARGO +8T","FREIGHT +16T",
+ "LONG SCAN","PLANET SCAN","FUEL SCOOP","AGRI SCOOP","ECM SUITE","CHAFF",
+ "ESCAPE POD","AUTO-REPAIR","MINING LASER","REFINERY","PAX CABIN","EXCL CLAMP"
+};
+static const char *equipment_details[EQUIP_COUNT]={
+ "Fill hyperspace tank.","Solid starter pulse.","Twice laser damage.","Load one missile.","Dock from 8,000 m.","Clearer next-hop marks.",
+ "Twice shield recharge.","Even faster shields.","Laser cools faster.","Dump heat in a hurry.","Adds eight tonnes.","Adds sixteen tonnes.",
+ "IDs distant contacts.","Surface scan assist.","Skim fuel near a sun.","Scoop near agri belts.","Break missile locks.","Decoy flare burst.",
+ "One free emergency tow.","Slow hull patching.","Faster rock mining.","Ore→alloys onboard.","+1 passenger berth.","Chandler deck clamp."
+};
+static const char *equipment_effects[EQUIP_COUNT]={
+ "Tank: now -> ship max","Laser fitted","Laser 18 -> 36","Missiles +1","Dock 2500 -> 8000 m","Chart clarity+",
+ "Shield 1.5 -> 3.0 /s","Shield 3.0 -> 4.5 /s","Cool 22 -> 38 /s","Heat dump ready","Hold +8 tonnes","Hold +16 tonnes",
+ "Scan 3 -> 6 fields","Planet scan boost","Fuel +0.5 /s at sun","Scoop near agri","ECM online","Chaff ready",
+ "Rescue once free","Repair tick","Mine faster","Refine minerals","Passenger OK","Cargo clamp+"
+};
+static const int equipment_costs[EQUIP_COUNT]={0,2200,4000,1000,2500,1800,6000,9000,4500,3200,3500,7000,3000,2800,7500,5000,5500,2000,4000,3600,4200,4800,2500,1500};
+/* Minimum displayed tech (systems[].tech+1). 0 = always if economy allows. */
+static const int equipment_tech[EQUIP_COUNT]={0,2,4,2,5,3,6,8,5,4,3,6,4,3,7,4,6,3,4,5,4,5,3,2};
+/* Economy bands that stock the item: bit0 poor ind … bit7 poor agri. 0xff = all. */
+static const unsigned equipment_econ[EQUIP_COUNT]={
+ 0xff,0xff,0x0f,0xff,0xff,0xf0,0x1f,0x07,0x0f,0x1f,0xff,0x0e,0xff,0xf0,0x0f,0xf0,0x0f,0xff,0xff,0x1f,0x0e,0x0e,0xff,0x00
+};
+static const char *equip_cat_name(int i){
+ static const char *c[]={"FUEL","WPN","WPN","WPN","NAV","NAV","DEF","DEF","DEF","DEF","HOLD","HOLD","NAV","NAV","FUEL","FUEL","DEF","DEF","UTIL","UTIL","UTIL","UTIL","HOLD","HOLD"};
+ return i>=0&&i<EQUIP_COUNT?c[i]:"UTIL";
+}
+static int equipment_owned(int i){
+ if(i<=0)return game.fuel>=player_ships[game.ship].range;
+ if(i==1||i==2)return game.laser;
+ if(i==3)return game.missiles>=4;
+ if(i==4)return (game.upgrades&1)!=0;      /* dock */
+ if(i==5)return (game.upgrades&1024)!=0;   /* nav beacon */
+ if(i==6)return (game.upgrades&2)!=0&&!(game.upgrades&128);
+ if(i==7)return (game.upgrades&128)!=0;    /* mil shield */
+ if(i==8)return (game.upgrades&4)!=0;      /* cooling */
+ if(i==9)return (game.upgrades&2048)!=0;   /* heat sink */
+ if(i==10)return (game.upgrades&8)!=0&&!(game.upgrades&64);
+ if(i==11)return (game.upgrades&64)!=0;    /* +16 */
+ if(i==12)return (game.upgrades&16)!=0;    /* long scan */
+ if(i==13)return (game.upgrades&4096)!=0;
+ if(i==14)return (game.upgrades&32)!=0&&!(game.upgrades&8192);
+ if(i==15)return (game.upgrades&8192)!=0;
+ if(i==16||i==17)return (game.upgrades&256)!=0;
+ if(i==18)return (game.upgrades&16384)!=0;
+ if(i==19)return (game.upgrades&32768)!=0;
+ if(i==20)return (game.upgrades&65536)!=0;
+ if(i==21)return (game.upgrades&131072)!=0;
+ if(i==22)return (game.upgrades&512)!=0;   /* pax cabin */
+ if(i==23)return (game.upgrades&8)!=0;
+ return 0;
+}
+static int equipment_in_stock(int i){
+ if(i<0||i>=EQUIP_COUNT)return 0;
+ if(i==0)return 1;
+ if(equipment_econ[i]==0)return 0; /* exclusive — chandler only */
+ int have=game.systems[game.system].tech+1;
+ if(have<equipment_tech[i])return 0;
+ unsigned mask=1u<<(game.systems[game.system].economy&7);
+ return (equipment_econ[i]&mask)!=0;
+}
+static int equipment_stock_list(int *out,int maxn){
+ int n=0; for(int i=0;i<EQUIP_COUNT&&n<maxn;i++)if(equipment_in_stock(i))out[n++]=i;
+ return n;
+}
+static int sc_exclusive_catalog(int *out,int maxn){
+ int n=0; unsigned h=game.system*17u;
+ for(int i=0;i<EQUIP_COUNT&&n<maxn;i++)if(equipment_econ[i]==0&&!equipment_owned(i))out[n++]=i;
+ int extras[]={7,11,16,19,22}; for(int k=0;k<5&&n<maxn;k++){int i=extras[(h+k)%5];if(!equipment_owned(i)&&game.systems[game.system].tech+1>=equipment_tech[i]){int dupe=0;for(int j=0;j<n;j++)if(out[j]==i)dupe=1;if(!dupe)out[n++]=i;}}
+ return n;
+}
+static void buy_equipment(int i){
+ if(!game.docked){message(&game,"Dock to buy equipment.");return;}
+ if(i<0||i>=EQUIP_COUNT)return;
+ if(i==0){int cost=(int)ceilf(player_ships[game.ship].range-game.fuel)*2;if(cost<=0){message(&game,"Tank is already full.");return;}if(game.credits<cost){message(&game,"Not enough units.");return;}game.credits-=cost;game.fuel=player_ships[game.ship].range;game.cue=SFX_UI;message(&game,"Tank full.");return;}
+ if(equipment_owned(i)){message(&game,i==3?"Missile rack full.":"Already installed.");return;}
+ if(!equipment_in_stock(i)&&equipment_econ[i]!=0){message(&game,"Not stocked at this hub.");return;}
+ if(game.credits<equipment_costs[i]){message(&game,"Not enough units.");return;}
+ game.credits-=equipment_costs[i];game.cue=SFX_UI;
+ if(i==1||i==2){game.laser=1;message(&game,"Laser fitted.");return;}
+ if(i==3){game.missiles++;message(&game,"Missile loaded.");return;}
+ if(i==4)game.upgrades|=1;
+ else if(i==5)game.upgrades|=1024;
+ else if(i==6)game.upgrades|=2;
+ else if(i==7)game.upgrades|=2|128;
+ else if(i==8)game.upgrades|=4;
+ else if(i==9)game.upgrades|=2048;
+ else if(i==10)game.upgrades|=8;
+ else if(i==11)game.upgrades|=8|64;
+ else if(i==12)game.upgrades|=16;
+ else if(i==13)game.upgrades|=4096;
+ else if(i==14)game.upgrades|=32;
+ else if(i==15)game.upgrades|=32|8192;
+ else if(i==16||i==17)game.upgrades|=256;
+ else if(i==18)game.upgrades|=16384;
+ else if(i==19)game.upgrades|=32768;
+ else if(i==20)game.upgrades|=65536;
+ else if(i==21)game.upgrades|=131072;
+ else if(i==22)game.upgrades|=512;
+ else if(i==23)game.upgrades|=8;
+ message(&game,"Upgrade installed.");
+}
+static int equip_row_count(void){int list[EQUIP_COUNT];return equipment_stock_list(list,EQUIP_COUNT);}
 static void equipment(void){
  header("OUTFITTING");if(!game.docked){text(3,8,DIM,"Dock to view equipment and fuel.");footer("O BACK");return;}
  panel(8,32,225,156);panel(241,32,231,156);
+ int list[EQUIP_COUNT],n=equipment_stock_list(list,EQUIP_COUNT);
+ if(n<1){text(2,8,DIM,"No stock today.");footer("O BACK");return;}
+ if(row<0)row=0; if(row>=n)row=n-1;
  int first=row/6*6,fuelcost=(int)ceilf(player_ships[game.ship].range-game.fuel)*2;
- text(2,5,CYAN,"CATALOG");page_number_at(18,5,row/6+1,2);for(int j=0;j<6&&first+j<9;j++){int disp=first+j,i=equip_show[disp],y=7+j*3;if(disp==row)rect(10,y*8-3,220,15,RGB(25,65,77));text(2,y,equipment_owned(i)?CYAN:disp==row?WHITE:DIM,"%-4s %-14s%s",equip_cat[disp],equipment_list_names[i],equipment_owned(i)?" *":"");}
- int i=equip_show[row];const int art_item[]={19,10,18,17,19,9,18,19,10};draw_next_art(next_items[art_item[i]],32,32,430,55,32,32);
+ text(2,5,CYAN,"IN STOCK");page_number_at(18,5,row/6+1,(n+5)/6);
+ for(int j=0;j<6&&first+j<n;j++){int disp=first+j,i=list[disp],y=7+j*3;if(disp==row)rect(10,y*8-3,220,15,RGB(25,65,77));text(2,y,equipment_owned(i)?CYAN:disp==row?WHITE:DIM,"%-4s %-14s%s",equip_cat_name(i),equipment_list_names[i],equipment_owned(i)?" *":"");}
+ int i=list[row];
  text(31,5,GOLD,"%.22s",equipment_names[i]);
- text(31,7,CYAN,"%.22s",equip_cat[row]);
- text(31,9,WHITE,"%.21s",equipment_details[i]);
- text(31,12,CYAN,"%.27s",equipment_effects[i]);
- {
-  int need=equipment_tech[i],have=game.systems[game.system].tech+1,ok=i==0||have>=need;
-  if(equipment_owned(i))text(31,15,CYAN,i==8?"Missile rack full":i==0?"Fuel tank full":"Already fitted");
-  else if(ok){text(31,15,CYAN,"In stock at this hub");text(31,16,DIM,"Hub tech %d  (needs %d)",have,need);}
-  else{text(31,15,AMBER,"Hub tech too low");text(31,16,DIM,"Needs tech %d  (here %d)",need,have);text(31,17,DIM,"Warp to a richer system");}
- }
- text(31,19,equipment_owned(i)?DIM:WHITE,equipment_owned(i)?"--":"%.1f units",row>=0&&i==0?fuelcost*.1f:equipment_costs[i]*.1f);
+ text(31,7,CYAN,"%.22s",equip_cat_name(i));
+ text(31,9,WHITE,"%.28s",equipment_details[i]);
+ text(31,12,CYAN,"%.28s",equipment_effects[i]);
+ if(equipment_owned(i))text(31,15,CYAN,i==3?"Missile rack full":i==0?"Fuel tank full":"Already fitted");
+ else text(31,15,CYAN,"In stock at this hub");
+ text(31,17,DIM,"Hub tech %d",game.systems[game.system].tech+1);
+ text(31,19,equipment_owned(i)?DIM:WHITE,equipment_owned(i)?"--":"%.1f units",i==0?fuelcost*.1f:equipment_costs[i]*.1f);
  text(31,21,DIM,"Balance %.1f",game.credits*.1f);
  footer("UP/DOWN   X BUY / REFUEL   O BACK");
 }
+/* Ship loadout / inventory slots — what is fitted right now. */
+static void inventory_screen(void){
+ header("SHIP LOADOUT / HOLD");panel(8,32,232,180);panel(248,32,224,180);
+ text(2,5,CYAN,"EQUIP SLOTS");
+ const char *slot[]={"WPN","DEF","NAV","HOLD","FUEL","UTIL"};
+ const char *fit[6];
+ fit[0]=game.laser?"BEAM/PULSE LASER":"NONE";
+ fit[1]=(game.upgrades&128)?"MILITARY SHIELD":(game.upgrades&2)?"SHIELD BOOST":"NONE";
+ fit[2]=(game.upgrades&16)?"LONG SCANNER":(game.upgrades&1)?"DOCK COMPUTER":"NONE";
+ fit[3]=(game.upgrades&64)?"FREIGHT +16T":(game.upgrades&8)?"CARGO +8T":"BASE HOLD";
+ fit[4]=(game.upgrades&32)?"FUEL SCOOP":"TANK ONLY";
+ fit[5]=(game.upgrades&512)?"PAX CABIN":(game.upgrades&256)?"ECM/CHAFF":"NONE";
+ for(int i=0;i<6;i++){int y=7+i*2;if(i==row)selected(y);text(2,y,i==row?GOLD:WHITE,"%-4s %.18s",slot[i],fit[i]);}
+ text(2,20,CYAN,"MISSILES %d",game.missiles);
+ text(2,22,WHITE,"HOLD %d / %d T",cargo_used(&game),cargo_capacity(&game));
+ text(32,5,CYAN,"CARGO MANIFEST");
+ int line=7; for(int g=0;g<GOODS&&line<20;g++)if(game.cargo[g]>0){text(32,line,WHITE,"%-12.12s %d%c",goods[g].name,game.cargo[g],goods[g].unit);line++;}
+ if(game.passenger_dest>=0){text(32,line,GOLD,"PASSENGER");line++;text(32,line,CYAN,"-> %.12s",game.systems[game.passenger_dest].name);}
+ if(line==7)text(32,7,DIM,"Hold empty.");
+ footer("UP/DOWN   O BACK");
+}
+
 static void status(void){header("COMMANDER");panel(8,32,464,156);draw_portrait(14,40,92,78,game.system,EXPLORERS);draw_world_card(118,40,92,78,&game.bodies[1],game.bodies[1].seed);text(29,5,CYAN,"%.18s",player_ships[game.ship].name);text(29,8,WHITE,"%.1f units  Kills %d  Ms %d",game.credits*.1f,game.kills,game.missiles);text(29,11,game.legal?RED:CYAN,"Wanted [%s] %.10s",stars(wanted_level(&game)),game.systems[game.system].name);text(29,13,GOLD,"SYS %d  ENG %d  WEP %d",game.pip_sys,game.pip_eng,game.pip_wep);text(3,17,WHITE,"Codex %d    Charted %d",game.discoveries,systems_visited(&game));if(game.job_n>0)text(3,19,GOLD,"Jobs %d/5  %s -> %s",game.job_n,mission_name(game.jobs[game.job_sel].type),game.systems[game.jobs[game.job_sel].dest].name);else text(3,19,DIM,"No active missions.");text(3,21,WHITE,game.docked?"X save     Triangle load":"Dock to save or load.");footer("O BACK");}
 static void communications(void){
  header("COMMS / STATION CHANNEL");panel(8,32,232,156);panel(248,32,224,156);

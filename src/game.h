@@ -74,6 +74,7 @@ typedef struct {
  float campaign_distance,campaign_fuel;
  int saga_chapter,saga_step,saga_flags,saga_choice,saga_dest,saga_start;
  int saga_trust[4];
+ int passenger_dest,passenger_kind,passenger_pay,gift_flags;
  int npc_kills,shots,discoveries,scanned_flora,scanned_fauna,scanned_minerals,scanned_anomalies,ai_phase;
  uint8_t visited[32]; char message[96],voice[80],collide[40]; float voice_time;
 } Game;

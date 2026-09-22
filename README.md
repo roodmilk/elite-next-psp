@@ -1,4 +1,9 @@
-# ELITE: NEXT — development build 2.5.21
+# ELITE: NEXT — development build 2.5.22
+
+## New in 2.5.22 — station crawl, shops, loadout
+
+- First-person station map with characters, exclusive shops, free gifts, taxi passengers and quest tips.
+- Outfitting shows only in-stock gear; Ship Loadout tracks fitted slots and hold.
 
 ## New in 2.5.21 — full Act I–IV screenplay authority
 

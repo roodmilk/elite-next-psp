@@ -64,8 +64,8 @@ static void campaign_tests(FILE *f,int *failures){
  }
  CHECK(mutations_ok,"save V8: header, valid-range payload and campaign bit flips rejected");
  /* Strip V8+ extension/checksum to produce a real legacy V7 fixture.
-  * V10 payload after V7 is campaign(20)+saga(40)+route_goal(4)+CRC(4)=68. */
- if(n>68){bytes[4]=7;FILE *v7=fopen("test-cp-v7.sav","wb");if(v7){fwrite(bytes,1,n-68,v7);fclose(v7);}}
+  * V10 payload after V7 is campaign(20)+saga(40)+route_goal(4)+pax(16)+CRC(4)=84. */
+ if(n>84){bytes[4]=7;FILE *v7=fopen("test-cp-v7.sav","wb");if(v7){fwrite(bytes,1,n-84,v7);fclose(v7);}}
  CHECK(load_game_file(&loaded,"test-cp-v7.sav")&&loaded.guild_chapter==2&&loaded.campaign_stage==0,"save migration: V7 commander retains old rewards and starts authored campaign fresh");
  src=fopen("test-campaign.sav","ab");if(src){fputc(0,src);fclose(src);}
  CHECK(!load_game_file(NULL,"test-campaign.sav"),"save V8: trailing data rejected");
