@@ -743,7 +743,7 @@ int main(void){
  FILE *lflag=fopen("open-log.flag","r");if(lflag){fclose(lflag);game.credits=20000;accept_mission(&game,0);accept_mission(&game,2);change_page(MISSIONLOG);}
  int dump_native=0,audit_all=0;FILE *dflag=fopen("dump-native.flag","r");if(dflag){fclose(dflag);dump_native=1;}FILE *aflag=fopen("audit-all.flag","r");if(aflag){fclose(aflag);audit_all=1;}
  FILE *radioflag=fopen("open-radio.flag","r");if(radioflag){fclose(radioflag);game.voice_time=0;story_complete(&game);change_page(RADIO);}audio_init();
- FILE *walkflag=fopen("open-walk.flag","r");if(walkflag){fclose(walkflag);game.docked=1;walk_kind=0;walk_x=walk_z=walk_yaw=0;sc_built_for=-1;page=WALK;game.voice_time=0;}
+ FILE *walkflag=fopen("open-walk.flag","r");if(walkflag){int wx=1,wy=0,wf=SC_S;fscanf(walkflag,"%d %d %d",&wx,&wy,&wf);fclose(walkflag);game.docked=1;walk_kind=0;walk_x=walk_z=walk_yaw=0;sc_built_for=-1;sc_build_map();if(wx>=0&&wx<SC_W&&wy>=0&&wy<SC_H){sc_x=wx;sc_y=wy;}sc_face=wf&3;sc_menu=0;page=WALK;game.voice_time=0;}
  unsigned previous=0;int frames=0,frame_samples=0,slow_frames=0,scene_frames[43]={0};double frame_seconds=0,scene_seconds[43]={0};float worst_frame=0;uint64_t last,now;sceRtcGetCurrentTick(&last);float frequency=(float)sceRtcGetTickResolution();
  while(running){
   if(suspend_requested){suspend_requested=0;audio_prepare_suspend();}

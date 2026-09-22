@@ -18,7 +18,7 @@ static int sc_fill_npcs(int x,int y,ScNpc *out,int maxn){
   SC_PUSH("CHANDLER",TRADERS,SC_ACT_SHOP,-1,-1,0,0,"I stock what the main board won't list.","Browse exclusive stock");
   if((h&3)==0)SC_PUSH("MECHANIC",TRADERS,SC_ACT_GIFT,-1,0,0,0,"Take a spare clamp. Once. Don't ask twice.","Accept free clamp");
  }else if(room==SC_ROOM_BAR){
-  SC_PUSH("BARTENDER",TRADERS,SC_ACT_TALK,-1,-1,0,0,"Meridian tips well. Truth tips better.","Ask for rumours");
+  SC_PUSH("BARTEND",TRADERS,SC_ACT_TALK,-1,-1,0,0,"Meridian tips well. Truth tips better.","Ask for rumours");
   SC_PUSH("TRAVELER",EXPLORERS,SC_ACT_TAXI,-1,-1,0,1800,"Need a lift to another hub. One tonne seat.","Offer taxi berth");
  }else if(room==SC_ROOM_BAY){
   SC_PUSH("LOADER",TRADERS,SC_ACT_QUEST,-1,-1,400,0,"Haul a crate mark to the board for me.","Take 40 U tip job");
@@ -134,10 +134,12 @@ static const char *sc_room_short(int t){
 }
 static void sc_door_label(int x,int y,int w,unsigned ink,const char *label){
  /* Pixel-backed strip so side labels stay crisp and never fight the far door text. */
- if(w<20||y<30||y>230)return;
- int len=0;while(label[len]&&len<6)len++;
- int tw=len*8;if(tw>w-4){len=(w-4)/8;if(len<1)return;tw=len*8;}
- int lx=x+(w-tw)/2;if(lx<2)lx=2;if(lx+tw>W-2)lx=W-2-tw;
+ if(w<20||y<32||y>220)return;
+ int len=0;while(label[len]&&len<5)len++;
+ int tw=len*8;if(tw>w-6){len=(w-6)/8;if(len<1)return;tw=len*8;}
+ int lx=x+(w-tw)/2;
+ /* Keep text columns inside the safe 1..54 band so right alcoves never clip. */
+ if(lx<8)lx=8;if(lx+tw>W-16)lx=W-16-tw;if(lx<x+2)lx=x+2;
  rect(lx-2,y,tw+4,10,RGB(4,10,16));
  rect(lx-2,y,tw+4,1,ink);
  text(lx/8,y/8,CYAN,"%.*s",len,label);
@@ -280,11 +282,11 @@ static void sc_draw_npc(int i,const ScNpc *p,int selected){
   rect(hx,hy+hs-1,hs,1,ink);
  }
  /* Name plate under feet */
- {int nw=(int)strlen(p->name);if(nw>8)nw=8;int px=cx-(nw*4);if(px<4)px=4;if(px+nw*8>W-4)px=W-4-nw*8;
+ {int nw=(int)strlen(p->name);if(nw>9)nw=9;int px=cx-(nw*4);if(px<4)px=4;if(px+nw*8>W-4)px=W-4-nw*8;
   int py=feet+3;if(py>236)py=236;
   rect(px-2,py,nw*8+4,10,RGB(6,12,20));
   rect(px-2,py,nw*8+4,1,ink);
-  text(px/8,py/8,selected?GOLD:WHITE,"%.8s",p->name);}
+  text(px/8,py/8,selected?GOLD:WHITE,"%.9s",p->name);}
 }
 static void sc_draw_fp(void){
  rect(0,0,W,H,RGB(4,8,14));
@@ -411,7 +413,7 @@ static void sc_draw_ui(void){
   text(1,31,GOLD,"%.10s",p->name); text_wrap(14,31,44,1,WHITE,p->line,0);
   text(1,32,AMBER,">"); text_wrap(3,32,55,1,AMBER,p->offer,0);
  }else if(pn>0){
-  text(1,31,GOLD,"%d here",pn); text_wrap(12,31,46,1,WHITE,people[0].line,0);
+  text(1,31,GOLD,"%d HERE",pn); text_wrap(12,31,46,1,WHITE,people[0].line,0);
   text(1,32,DIM,"X talk/trade   face DOOR + UP to walk");
  }else text(1,31,DIM,"Empty deck. Face a DOOR and press UP.");
  if(game.passenger_dest>=0)text(50,2,CYAN,"PAX");
