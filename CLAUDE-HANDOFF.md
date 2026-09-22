@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.37**.
+Prepared 22 September 2026. Current build: **2.5.38**.
 
 ## Start here
 
@@ -64,6 +64,10 @@ Important controls:
 - Galaxy Map: Triangle switches between nearby jumps and the full 256-system map; D-pad moves between systems; L/R zoom; X plots a multi-jump route and saves the final goal.
 
 ## Recent changes that must be preserved
+
+### 2.5.38 — soft-FB Wave A canopy FX
+
+Denser NPC/player engine plumes, boost heat shimmer, hit sparks and explosion embers in `space-fx.h`. Fixed pools, canopy-clipped; high contrast / warp / dock mute decorative sparks. Station art kit re-baked. No crawl or story ownership changes.
 
 ### 2.5.37 — unified playable tip
 

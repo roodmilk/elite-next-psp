@@ -2,6 +2,12 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.38 - 2026-09-22
+
+- Soft-FB Wave A canopy FX on the unified tip: denser engine plumes, boost heat shimmer, hit sparks and explosion embers (`space-fx.h`).
+- Cheap fixed pools, canopy-clipped; high contrast / warp / dock mute decorative sparks.
+- Station art kit re-baked against the unify tip. No crawl or story rewrites.
+
 ## 2.5.37 - 2026-09-22
 
 - **Unified playable tip:** MacVenture station deck (art-kit soft-FB rooms, clear SHIP return, talk/shop/gift/taxi) plus Open Channel Act I–II eight-beat page scripts with choice blurbs and locked codas (Ch.02–13 through Carry Home).

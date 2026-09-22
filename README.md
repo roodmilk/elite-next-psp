@@ -1,4 +1,9 @@
-# ELITE: NEXT — development build 2.5.37
+# ELITE: NEXT — development build 2.5.38
+
+## New in 2.5.38 — soft-FB Wave A canopy FX
+
+- Denser engine plumes, boost heat shimmer, hit sparks and explosion embers on the unified tip.
+- Soft-framebuffer only (fixed pools, canopy-clipped); high contrast skips decorative sparks.
 
 ## New in 2.5.37 — unified playable tip
 
