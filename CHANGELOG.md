@@ -2,14 +2,6 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
-## Unreleased — living galaxy aliveness (tip; no micro-tag)
-
-- Hybrid world rule locked in `docs/LIVING-GALAXY-ALIVENESS.md`: bulk traffic stays local proc-gen; twelve named travellers hop systems and keep stable callsigns.
-- System Details hub pane shows who is here / inbound; Triangle hail uses traveller lines.
-- **Save V12** persists traveller sys/dest/met across load; V11 and older keep seeded routes.
-- GalNet Traffic Control + Spacebook Spotters name travellers on remote routes (not just local sky).
-- Story faces stay story; station crawl cast unchanged.
-
 ## 2.5.41 - 2026-09-22
 
 - **Commander playable pack:** ART tip `3f0dc20` (ART_AMBER cue freeze, no GOLD) + living-galaxy PR #23 `bc56842` (hybrid travellers, save V12).
