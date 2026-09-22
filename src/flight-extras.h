@@ -219,7 +219,14 @@ static void celestial_rims(void){
 }
 static void station_glow(void){
  if(game.pos.z>=STATION_ENTRY_Z||occluded((Vec3){0,0,STATION_ENTRY_Z}))return;
- for(int i=0;i<4;i++){Vec3 corner=station_port_corner(i);corner.z-=2;Vec3 v=camera(&game,add(rotate(corner,0,station_angle(&game)),(Vec3){0,0,STATION_Z}));if(v.z<20)continue;Point p=project(v);world_spark((int)p.x,(int)p.y,3,CYAN);}
+ int frame=((int)(game.time*5))&3;
+ for(int i=0;i<4;i++){
+  Vec3 corner=station_port_corner(i);corner.z-=2;
+  Vec3 v=camera(&game,add(rotate(corner,0,station_angle(&game)),(Vec3){0,0,STATION_Z}));
+  if(v.z<20)continue;Point p=project(v);
+  world_spark((int)p.x,(int)p.y,3,CYAN);
+  if(!high_contrast)space_anim_draw(SPACE_ANIM_BEACON,(int)p.x,(int)p.y,frame,CYAN);
+ }
 }
 /* Mesh ships are drawn with yaw only; freighters follow full dir. Match that here. */
 static Vec3 npc_draw_facing(const NPC *n){
