@@ -2,6 +2,13 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.3 - 2026-09-22
+
+- Saved the final galaxy-map route goal separately from the immediate hyperspace hop (save format 10; older commanders still import).
+- After each jump, the next hop toward that saved goal is refreshed automatically until arrival clears it.
+- Nearby/galaxy UI shows `FINAL` / route-goal labels for manual multi-jump plans as well as tracked story destinations.
+- Added journey/input regressions for plot, save/load, intermediate advance and arrival clear.
+
 ## 2.5.2 - 2026-09-22
 
 - Added user-supplied radio station folders and shuffled MP3 playback on PSP.

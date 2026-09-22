@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.2**.
+Prepared 22 September 2026. Current build: **2.5.3**.
 
 ## Start here
 
@@ -56,7 +56,7 @@ Important controls:
 - Hold Square + R: lock highlighted target and engage auto-turn.
 - L + Left/Right: roll.
 - Double-tap and hold R: high boost.
-- Galaxy Map: Triangle switches between nearby jumps and the full 256-system map; D-pad moves between systems; L/R zoom; X plots a multi-jump route.
+- Galaxy Map: Triangle switches between nearby jumps and the full 256-system map; D-pad moves between systems; L/R zoom; X plots a multi-jump route and saves the final goal.
 
 ## Recent changes that must be preserved
 
@@ -75,6 +75,10 @@ The currently playable chapter actions are deliberately compact: dock, scan, def
 The nearby list only shows local candidates. Triangle opens a spatial overview of all 256 systems. It marks the current system in cyan, the tracked mission destination in gold, and caches/draws every intermediate jump. L/R zoom from 1× to 4×. X converts the selected long route into its first reachable jump. This logic is generic; **Quator has no special code or significance** and was only the system that exposed the old UI flaw.
 
 Story navigation plans against the fitted drive even if the tank is empty, then marks the next hop as low-fuel until the player refuels. The story screen distinguishes `NEXT` from `FINAL`, and the cockpit names the next reachable hop.
+
+### 2.5.3 — manual route persistence
+
+`Game.route_goal` stores the final destination of a manually plotted multi-jump route separately from `destination` (the immediate hop). Save format 10 appends that goal and still imports V1–V9 commanders. After hyperspace, `route_refresh_destination` advances the next hop toward the saved goal, or clears the goal on arrival. The galaxy overview labels a saved manual goal in amber when no story destination is tracked. Contract “next step” navigation also sets `route_goal`.
 
 ## Architecture
 
@@ -105,6 +109,8 @@ Windows PowerShell:
 ./smoke-test.ps1
 ```
 
+Linux helpers in this cloud environment: `./build.sh` and `./smoke-test.sh` (PSPDEV + PPSSPP SDL).
+
 `build.ps1` expects the PSP toolchain at `../../work/toolchain` unless `-Toolchain` is supplied. `smoke-test.ps1` expects PPSSPP at `../../work/ppsspp/PPSSPPWindows64.exe` unless `-Emulator` is supplied.
 
 The build compiles `game.c`, `ships.c` and `main.c`, links PSP libraries and produces `EBOOT.PBP`. Smoke mode creates a disposable folder and must report zero failures for:
@@ -115,39 +121,37 @@ The build compiles `game.c`, `ships.c` and `main.c`, links PSP libraries and pro
 - radio checks;
 - performance checks.
 
-The last verified 2.5.2 run passed every group. The custom-radio path also received a separate PPSSPP run using four real MP3s. PPSSPP success does not replace physical PSP testing.
+The last verified 2.5.3 run passed every group under PPSSPP. PPSSPP success does not replace physical PSP testing.
 
 ## Highest-priority remaining work
 
-1. **Test 2.5.2 on physical PSP hardware.** Verify MP3 playback for at least 20 minutes across 32, 44.1 and 48 kHz files, suspend/resume, station changes, combat SFX and track boundaries.
-2. **Visually inspect the full galaxy map at 480×272.** Confirm labels, route lines, 1× density, 2–4× cursor behaviour and mission destination visibility. Add panning polish only if it remains readable.
+1. **Test 2.5.3 on physical PSP hardware.** Verify MP3 playback for at least 20 minutes across 32, 44.1 and 48 kHz files, suspend/resume, station changes, combat SFX and track boundaries.
+2. **Visually inspect the full galaxy map at 480×272.** Confirm labels, route lines, saved amber route goals, 1× density, 2–4× cursor behaviour and mission destination visibility. Add panning polish only if it remains readable.
 3. **Deepen the 24 chapters.** The state machine and chapter spine are playable, but many design-bible scenes currently resolve through generic dock/scan/hunt actions. Implement bespoke convoy rescue, evidence comparison, shelter repair, quiet migration observation, non-lethal blockade paths, relay nodes and epilogues incrementally.
 4. **Add chapter-specific dialogue pages.** Preserve the short flight HUD while making conversations, player replies and consequences available in the Mission Log transcript.
-5. **Improve route persistence.** The final story destination is saved. A manually chosen non-story route currently resolves dynamically; consider saving the final route goal separately from the immediate jump.
-6. **Physical performance and memory audit.** The new galaxy path is cached, but profile its first route calculation and the 64 KB MP3 buffer on real PSP hardware.
+5. **Physical performance and memory audit.** The new galaxy path is cached, but profile its first route calculation and the 64 KB MP3 buffer on real PSP hardware.
 
 ## Known limitations and honest status
 
 - The design bible describes a far larger game than the current executable. Interiors, planetary exploration and spacewalks are bounded prototypes rather than Starfield-scale simulations.
 - The campaign has 24 playable chapter records and persistent choices, but does not yet contain ten hours of unique bespoke mechanics and dialogue. Travel and ordinary play contribute to its intended duration.
 - Only one galaxy seed of 256 classic Elite-style systems is active.
-- The full-galaxy chart shows all systems and a cached route, but has not yet had user testing on a physical PSP.
+- The full-galaxy chart shows all systems, a cached route and a saved manual route goal, but has not yet had user testing on a physical PSP.
 - The audio fix passed PPSSPP with the user's files; intermittent real-hardware behaviour still requires listening tests.
-- No Git metadata exists in this workspace. Establish version control before broad refactoring.
+- Manual route persistence is playable in 2.5.3; chapter deepening and bespoke dialogue pages remain design-ahead of the executable.
 
 ## Safe continuation workflow
 
-1. Copy the project and initialise Git.
+1. Pull and rebase before starting.
 2. Run the unchanged build and smoke test to establish a baseline.
 3. Make one coherent feature change.
 4. Add a meaningful regression for its state transition or input path.
 5. Rebuild without compiler warnings and run every check.
 6. Inspect affected screens at native 480×272.
-7. Increment the version in `build.ps1`, update `README.md`, and package a fresh release without overwriting prior releases.
+7. Increment `VERSION`, `build.ps1`, `CHANGELOG.md` and `CLAUDE-HANDOFF.md` together, copy `EBOOT.PBP` to `dist/ELITE-NEXT-PSP/`, commit and push.
 
 Do not delete older-save handling, audio resume logic, campaign idempotency checks, mission availability checks or route-planning tests to make a new feature easier.
 
 ## Rights and source boundary
 
 The project uses Elite-A/reference material and established Elite concepts. The new campaign, dialogue, UI and most new implementation are original. Do not copy dialogue, art, music or proprietary assets from Elite Dangerous, No Man's Sky, Starfield, novels or fan sites. Use lore facts as background and write original expression. Keep source/provenance notes and review redistribution rights before any public release.
-

@@ -63,7 +63,7 @@ typedef struct {
  Vec3 orbit_pos,ship_pos; float orbit_yaw,orbit_pitch,orbit_roll,orbit_speed;
  Vec3 missile_pos; float missile_time; int missile_target;
  Vec3 pos; float yaw,pitch,speed,energy,heat,fuel,time,jump,shot,message_time,hazard,jetpack;
- int system,destination,credits,kills,legal,ship,docked,dead,laser,missiles,cue;
+ int system,destination,route_goal,credits,kills,legal,ship,docked,dead,laser,missiles,cue;
  int cargo[GOODS],stock[GOODS],price[GOODS],contract,contract_reward;
  float contract_time; int mission_type,mission_stage,mission_target,mission_item,mission_origin,mission_result,last_mission_type,last_mission_system;
  Job jobs[MISSION_SLOTS]; int job_n,job_sel;
@@ -98,6 +98,9 @@ int campaign_retry(Game *g);
 void campaign_event(Game *g,int event);
 int emergency_rescue(Game *g);
 int route_next_hop(const Game *g,int destination,int *jumps);
+void route_clear(Game *g);
+void route_set_goal(Game *g,int goal);
+void route_refresh_destination(Game *g);
 int wanted_level(const Game *g);
 void add_crime(Game *g,int points);
 int police_fine(const Game *g);

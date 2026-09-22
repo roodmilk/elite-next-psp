@@ -6,6 +6,20 @@ static void journey_tests(FILE *f,int *failures){
  CHECK(route_next_hop(&g,g.jobs[0].dest,&hops)<0,"journey: empty tank cannot produce a false ready route");g.fuel=original_fuel;
  int multi=0;for(int i=0;i<256;i++)if(distance_ly(&g,g.system,i)*10>g.fuel){int hop=route_next_hop(&g,i,&hops);if(hop>=0&&hops>1){multi=1;break;}}
  CHECK(multi,"journey: route planner finds connected multi-jump destinations");
+ /* Manual route goal survives the next hop and commander reload. */
+ {
+  Game route;game_init(&route);int far=-1,hops=0,hop=-1;for(int i=0;i<256;i++){hop=route_next_hop(&route,i,&hops);if(hop>=0&&hops>1){far=i;break;}}
+  CHECK(far>=0,"journey: multi-jump sample destination exists for route goal");
+  route_set_goal(&route,far);route.destination=hop;route.docked=1;
+  CHECK(route.route_goal==far&&route.destination!=far,"journey: route goal stays distinct from immediate jump");
+  remove("test-route.sav");remove("test-route.sav.bak");
+  CHECK(save_game(&route,"test-route.sav")&&load_game(&loaded,"test-route.sav")&&loaded.route_goal==far&&loaded.destination==hop,"journey: save V10 keeps final route goal and next hop");
+  remove("test-route.sav");remove("test-route.sav.bak");
+  route.system=hop;route.fuel=(float)player_ships[route.ship].range;route_refresh_destination(&route);
+  CHECK(route.route_goal==far&&route.destination!=route.system&&route.destination!=far,"journey: after an intermediate jump the next hop advances toward the saved goal");
+  route.system=far;route_refresh_destination(&route);
+  CHECK(route.route_goal<0,"journey: arriving at the goal clears the saved route");
+ }
  float time=g.jobs[0].time;mission_timers(&g,30);
  CHECK(g.jobs[0].time==time,"journey: docked job clocks are paused");
  g.docked=0;g.approach=1;mission_timers(&g,30);

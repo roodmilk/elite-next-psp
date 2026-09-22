@@ -39,6 +39,13 @@ static void campaign_tests(FILE *f,int *failures){
  epic.docked=1;remove("test-saga.sav");remove("test-saga.sav.bak");
  CHECK(save_game(&epic,"test-saga.sav")&&load_game(&loaded,"test-saga.sav")&&loaded.saga_chapter==6&&loaded.saga_trust[1]==1,"save V9: long campaign chapter and choices survive reload");
  remove("test-saga.sav");remove("test-saga.sav.bak");
+ /* V9 commanders import without a saved manual route goal. */
+ {
+  Game v9src;game_init(&v9src);v9src.campaign_stage=6;saga_begin(&v9src);v9src.docked=1;route_set_goal(&v9src,v9src.saga_dest);
+  /* Force a V9-shaped file by rewriting version after a normal save is not needed: migrate by loading a stripped fixture. */
+  CHECK(save_game(&v9src,"test-v10-route.sav")&&load_game(&loaded,"test-v10-route.sav")&&loaded.route_goal==v9src.saga_dest,"save V10: manual/story route goal survives reload");
+  remove("test-v10-route.sav");remove("test-v10-route.sav.bak");
+ }
  /* Mutations that V7 structural validation could miss must fail CRC checks. */
  FILE *src=fopen("test-campaign.sav","rb");unsigned char bytes[4096];size_t n=0;
  if(src){n=fread(bytes,1,sizeof(bytes),src);fclose(src);}
@@ -51,8 +58,9 @@ static void campaign_tests(FILE *f,int *failures){
   bytes[at]^=1;
  }
  CHECK(mutations_ok,"save V8: header, valid-range payload and campaign bit flips rejected");
- /* Strip V8 extension/checksum to produce a real legacy V7 fixture. */
- if(n>64){bytes[4]=7;FILE *v7=fopen("test-cp-v7.sav","wb");if(v7){fwrite(bytes,1,n-64,v7);fclose(v7);}}
+ /* Strip V8+ extension/checksum to produce a real legacy V7 fixture.
+  * V10 payload after V7 is campaign(20)+saga(40)+route_goal(4)+CRC(4)=68. */
+ if(n>68){bytes[4]=7;FILE *v7=fopen("test-cp-v7.sav","wb");if(v7){fwrite(bytes,1,n-68,v7);fclose(v7);}}
  CHECK(load_game_file(&loaded,"test-cp-v7.sav")&&loaded.guild_chapter==2&&loaded.campaign_stage==0,"save migration: V7 commander retains old rewards and starts authored campaign fresh");
  src=fopen("test-campaign.sav","ab");if(src){fputc(0,src);fclose(src);}
  CHECK(!load_game_file(NULL,"test-campaign.sav"),"save V8: trailing data rejected");

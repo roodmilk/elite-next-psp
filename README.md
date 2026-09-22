@@ -1,4 +1,11 @@
-# ELITE: NEXT — development build 2.5.2
+# ELITE: NEXT — development build 2.5.3
+
+## New in 2.5.3 — persistent multi-jump route goals
+
+- Plotting a route on the full galaxy map now saves the final destination separately from the next hyperspace hop.
+- After each jump the next hop toward that goal is refreshed until you arrive (then the goal clears).
+- Nearby jump list and galaxy overview show `FINAL` / route-goal labels for manual routes as well as tracked story destinations.
+- Save format 10 stores the route goal; older commanders still import.
 
 ## New in 2.5.2 — full galaxy route planner
 
