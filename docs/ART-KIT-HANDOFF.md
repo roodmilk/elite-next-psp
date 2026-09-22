@@ -1,6 +1,6 @@
 # ELITE: NEXT — native art kit handoff
 
-**Status:** proposed, bake-ready reference  
+**Status:** proposed reference; style bake shipped in `v2.5.37`  
 **Resolution:** 480×272 exact  
 **Runtime status:** not integrated; do not treat these boards as current game screens
 
@@ -12,6 +12,17 @@ The companion media folder contains:
 - `celestial-identity-kit-proposed.svg` / `.png` — six planet identity families plus the star-depth key.
 
 Both PNGs are already rendered at exact 480×272. SVGs remain the editable source boards. The boards are intentionally presentation references, not runtime textures.
+
+## v2.5.37 release status
+
+The tagged unified release now carries the station preview crops, provenance record, `station-art-kit.h` style table and the ART DIRECTOR bake path. This is the correct handoff boundary:
+
+- the station lane owns room geometry, navigation and interaction;
+- the bake lane owns palette/style-table conversion and small preview assets;
+- the visual lane owns composition, palette roles and future authored pixel scenes;
+- `src/station-crawl.h` remains outside this art lane.
+
+The release uses styles and small props rather than embedding eight 480×272 bitmaps. The full boards remain `PROPOSED` references for future composition polish.
 
 ## Bake targets
 

@@ -171,3 +171,7 @@ When the two disagree, preserve gameplay clarity and the focal silhouette first.
 5. Review each proposed sheet with the station implementation lane before runtime integration.
 
 Execution artifacts and bake notes are in `docs/ART-KIT-HANDOFF.md`. The next implementation-facing artifact should be three compact station exterior silhouettes with docking apertures—not a large asset dump.
+
+## v2.5.37 unification checkpoint
+
+The art branch is now unified with tagged `v2.5.37`, which contains the story + MacVenture station tip and the station style-table bake. The release baseline was merged without taking ownership of `src/station-crawl.h`; the only merge resolutions were in the already-art-directed celestial presentation files, using the tagged release versions. The remaining visual work is authored pixel-scene composition and native screenshot review, not a second station runtime rewrite.
