@@ -316,3 +316,7 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 ## 2.5.1 and earlier
 
 The detailed development history, controls, implemented feature list, validation notes, and future design plan are retained in `README.md`, `docs/`, and the Git commit history.
+# Unreleased — specialist/gameplay-story
+
+- Added bounded bespoke gameplay for Open Channel Chapters 02–04 without changing the save schema: sealed receiver pickup and home delivery, authored quiet-signal observation with fire reset, required convoy port stamp, and optional lifeboat-pod scan that grants Independent trust once.
+- Reused reserved `saga_flags` bits in the existing V9 payload; unrelated scans, kills, cargo and generic docking cannot advance these objectives.

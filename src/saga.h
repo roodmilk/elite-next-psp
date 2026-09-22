@@ -6,6 +6,13 @@
 enum { SAGA_DOCK, SAGA_SCAN, SAGA_HUNT, SAGA_HOME, SAGA_CHOICE };
 enum { SAGA_BRIEF_BEATS = 8 };
 enum { SAGA_TRUST_PUBLIC=0, SAGA_TRUST_GUILD=1, SAGA_TRUST_LAW=2, SAGA_TRUST_INDEPENDENT=3 };
+/* Chapter 02–04 authored evidence state. These bits live in the existing
+ * version-9 saga_flags word, so older saves keep their original layout. */
+enum {
+ SAGA_CASE_HELD=0x10, SAGA_DETOUR_TAKEN=0x20,
+ SAGA_OBSERVATION_DONE=0x40, SAGA_STAMP_FOUND=0x80,
+ SAGA_PODS_FOUND=0x100, SAGA_OBSERVATION_RESET=0x200
+};
 typedef struct {
  const char *title,*speaker;
  /* Eight NPC beats (line..talk8), then eight commander replies (ask1..ask8). */
@@ -774,15 +781,52 @@ static int saga_next_hop(const Game *g,int *jumps){
 static void saga_begin(Game *g){
  if(g->campaign_stage<6||g->saga_chapter>=SAGA_COUNT||g->saga_step)return;
  const SagaBeat *b=&saga_beats[g->saga_chapter];g->saga_dest=(b->kind==SAGA_HOME)?7:saga_system(g,g->saga_chapter);
- g->saga_start=(b->kind==SAGA_HUNT)?g->npc_kills:g->discoveries;g->saga_step=1;
+ /* Dock chapters 02/04 begin at the commander's current port, then bind
+  * their authored evidence destination. Scan chapters retain discovery
+  * baselines for the generic Codex while using a separate story bit. */
+ g->saga_start=(g->saga_chapter==0||g->saga_chapter==2)?g->saga_dest:(b->kind==SAGA_HUNT)?g->npc_kills:g->discoveries;
+ g->saga_step=1;
  message(g,b->objective);speak(g,saga_voice_who(b),b->talk8);
  if(g->saga_chapter>=17)message(g,saga_trust_helper(g));
+}
+static void saga_dock_event(Game *g){
+ if(!g||!g->saga_step||g->saga_chapter>=SAGA_COUNT)return;
+ if(g->saga_chapter==0&&!(g->saga_flags&SAGA_CASE_HELD)&&g->system==g->saga_start){
+  g->saga_flags|=SAGA_CASE_HELD;g->saga_dest=7;
+  message(g,"Sealed receiver collected. Keep it closed; return to Lave.");
+  speak(g,VOICE_CONTACT,"Seal intact. Mara's duplicate stays here if you need it.");
+ }else if(g->saga_chapter==2&&g->system==g->saga_dest&&!(g->saga_flags&SAGA_STAMP_FOUND)){
+  g->saga_flags|=SAGA_STAMP_FOUND;
+  message(g,"Outbound stamp recovered. Timestamp preserved before the archive is scrubbed.");
+  speak(g,VOICE_CONTACT,"Stamp copied. The pods are optional; the record is not.");
+ }
+}
+static void saga_observation_interrupt(Game *g){
+ if(g&&g->saga_chapter==1&&g->saga_step&&g->system==g->saga_dest&&!(g->saga_flags&SAGA_OBSERVATION_DONE)){
+  g->saga_flags|=SAGA_OBSERVATION_RESET;
+  message(g,"Migration scattered. Cool off, re-enter the system, and listen again.");
+ }
+}
+static void saga_story_scan(Game *g,int id){
+ if(!g||!g->saga_step||id!=ANOMALY_ID_MIN||g->system!=g->saga_dest)return;
+ if(g->saga_chapter==1&&!(g->saga_flags&SAGA_OBSERVATION_DONE)){
+  g->saga_flags|=SAGA_OBSERVATION_DONE;
+  message(g,"Quiet pattern matched. Leave the migration route clear.");
+  speak(g,VOICE_CONTACT,"There — the pause is a road-song, not a weapon.");
+ }else if(g->saga_chapter==2&&(g->saga_flags&SAGA_STAMP_FOUND)&&!(g->saga_flags&SAGA_PODS_FOUND)){
+  g->saga_flags|=SAGA_PODS_FOUND;g->saga_trust[SAGA_TRUST_INDEPENDENT]++;
+  message(g,"Lifeboat beacon marked. Independent crews have a count now.");
+  speak(g,VOICE_CONTACT,"Four alive. One quiet. Quiet is not always dead.");
+ }
 }
 static int saga_ready(const Game *g){
  if(!g->saga_step||g->saga_chapter>=SAGA_COUNT)return 0;
  const SagaBeat *b=&saga_beats[g->saga_chapter];
  if(b->kind==SAGA_CHOICE)return g->saga_choice>0;
  if(b->kind==SAGA_HOME)return g->docked&&g->system==7;
+ if(g->saga_chapter==0)return (g->saga_flags&SAGA_CASE_HELD)&&g->docked&&g->system==7;
+ if(g->saga_chapter==2)return (g->saga_flags&SAGA_STAMP_FOUND)&&g->docked&&g->system==g->saga_dest;
+ if(g->saga_chapter==1)return (g->saga_flags&SAGA_OBSERVATION_DONE)&&g->system==g->saga_dest;
  if(b->kind==SAGA_DOCK)return g->docked&&g->system==g->saga_dest;
  if(b->kind==SAGA_SCAN)return g->system==g->saga_dest&&g->discoveries>g->saga_start;
  return g->system==g->saga_dest&&g->npc_kills>g->saga_start;

@@ -31,8 +31,10 @@ static void campaign_tests(FILE *f,int *failures){
  epic.fuel=0;int story_jumps=0,story_hop=saga_next_hop(&epic,&story_jumps);
  CHECK(story_hop>=0&&story_hop!=epic.system&&distance_ly(&epic,epic.system,story_hop)<=player_ships[epic.ship].range*.1f+.001f,"saga: an empty tank still plots a visible next hop for refuelling");
  epic.fuel=60;
- epic.system=bound;epic.docked=1;int saga_credits=epic.credits;
- CHECK(saga_ready(&epic)&&saga_advance(&epic)&&epic.saga_chapter==1&&epic.credits>saga_credits,"saga: arrival advances and rewards exactly one chapter");
+ epic.system=bound;epic.docked=1;saga_dock_event(&epic);
+ CHECK((epic.saga_flags&SAGA_CASE_HELD)&&epic.saga_dest==7&&!saga_ready(&epic),"saga: sealed receiver pickup is authored and routes home");
+ epic.docked=0;epic.system=7;epic.docked=1;int saga_credits=epic.credits;
+ CHECK(saga_ready(&epic)&&saga_advance(&epic)&&epic.saga_chapter==1&&epic.credits>saga_credits,"saga: sealed delivery advances only after return to Lave");
  CHECK(saga_coda_pending==0&&saga_has_coda(0),"saga: Act I completion queues a locked coda");
  saga_coda_pending=-1;
  CHECK(!saga_advance(&epic),"saga: completed chapter cannot pay twice");
@@ -45,6 +47,17 @@ static void campaign_tests(FILE *f,int *failures){
  CHECK(saga_has_coda(17)&&strstr(saga_coda_line1(12),"Packets")&&strstr(saga_beats[12].line,"Three copies")&&strstr(saga_beats[17].talk6,"Ideals"),"saga: Act III page scripts and codas reach map / No Easy Flag");
  CHECK(saga_has_coda(23)&&strstr(saga_coda_line1(18),"Lane ugly")&&strstr(saga_beats[18].talk2,"Pale Meridian")&&strstr(saga_beats[20].talk6,"answerable"),"saga: Act IV page scripts and codas reach Black Flight / relay");
  CHECK(strstr(saga_choice_blurb(17,0),"Ideals")&&strstr(saga_beats[15].talk7,"throat")&&strstr(saga_beats[16].talk4,"unresolved"),"saga: Act III Alliance / Coldest / Flag blurbs from screenplay");
+ /* Ch.03 observes only the authored signal; firing resets the observation. */
+ Game bespoke;game_init(&bespoke);bespoke.campaign_stage=6;bespoke.saga_chapter=1;saga_begin(&bespoke);bespoke.system=bespoke.saga_dest;bespoke.docked=0;game_spawn(&bespoke);
+ int quiet_dest=bespoke.saga_dest;bespoke.anomaly[0].alive=1;bespoke.pos=bespoke.anomaly[0].pos;analysis_scan(&bespoke,ANOMALY_ID_MIN);
+ CHECK(bespoke.saga_chapter==1&&quiet_dest==bespoke.system&&(bespoke.saga_flags&SAGA_OBSERVATION_DONE)&&saga_ready(&bespoke),"saga: Ch.03 authored signal scan advances the quiet observation");
+ bespoke.saga_flags&=~SAGA_OBSERVATION_DONE;saga_observation_interrupt(&bespoke);
+ CHECK((bespoke.saga_flags&SAGA_OBSERVATION_RESET)&&!saga_ready(&bespoke),"saga: firing or hot approach resets the observation without losing the chapter");
+ /* Ch.04 requires the port stamp; the pod scan is optional but trust is once-only. */
+ bespoke.saga_chapter=2;bespoke.saga_step=0;bespoke.saga_flags=0;saga_begin(&bespoke);bespoke.system=bespoke.saga_dest;bespoke.docked=1;saga_dock_event(&bespoke);
+ CHECK((bespoke.saga_flags&SAGA_STAMP_FOUND)&&saga_ready(&bespoke),"saga: Ch.04 stamp is the required evidence");
+ int ind=bespoke.saga_trust[SAGA_TRUST_INDEPENDENT];bespoke.docked=0;game_spawn(&bespoke);bespoke.anomaly[0].alive=1;bespoke.pos=bespoke.anomaly[0].pos;analysis_scan(&bespoke,ANOMALY_ID_MIN);
+ CHECK((bespoke.saga_flags&SAGA_PODS_FOUND)&&bespoke.saga_trust[SAGA_TRUST_INDEPENDENT]==ind+1,"saga: optional pod rescue adds Independent trust once");
  CHECK(!strcmp(saga_choice_label(5,0),"Publish the ledger now")&&!strcmp(saga_choice_label(11,1),"Verify evidence first")&&!strcmp(saga_choice_label(17,2),"Lawful supervised force"),"saga: choice labels match each permanent decision");
  CHECK(SAGA_BRIEF_BEATS==8&&saga_beats[0].talk8&&saga_beats[0].ask8,"saga: briefs are eight-beat page scripts");
  CHECK(strstr(saga_beats[4].talk6,"spreadsheet")&&strstr(saga_beats[7].line,"tourists"),"saga: Nadi Voss-tape and Venn archive open from screenplay");

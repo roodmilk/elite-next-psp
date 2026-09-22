@@ -55,7 +55,7 @@
  input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(game.saga_step==1&&page==CHART,"saga brief: after accept, Cross sets course instead of replaying dialogue");
  /* Act I completion coda locks Story until dismissed. */
- change_page(CAMPAIGN);game.docked=1;game.system=game.saga_dest;row=0;
+ change_page(CAMPAIGN);game.docked=1;int saga_port=game.saga_dest;game.system=saga_port;saga_dock_event(&game);game.system=7;game.saga_dest=7;row=0;
  INPUT_CHECK(saga_ready(&game),"saga coda: delivery chapter is ready at destination");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(saga_coda_pending==0&&game.saga_chapter==1&&saga_coda_locked(),"saga coda: Act I chapter complete opens a locked coda page");

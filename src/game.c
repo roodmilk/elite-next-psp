@@ -440,8 +440,8 @@ int analysis_scan(Game *g,int id){
  if(g->dead||g->docked||!IS_ANOMALY_ID(id))return 0;
  int i=id-ANOMALY_ID_MIN;Anomaly *a=&g->anomaly[i];if(!a->alive)return 0;
  if(length(sub(a->pos,g->pos))>1100){message(g,"Move within 1,100 m to analyse the anomaly.");return 0;}
- if(a->scanned){message(g,"Anomaly already logged in the Codex.");return 0;}
- a->scanned=1;g->scanned_anomalies++;g->discoveries++;g->credits+=280;g->cue=SFX_SCAN;
+ if(a->scanned){saga_story_scan(g,id);message(g,"Anomaly already logged in the Codex.");return 0;}
+ saga_story_scan(g,id);a->scanned=1;g->scanned_anomalies++;g->discoveries++;g->credits+=280;g->cue=SFX_SCAN;
  message(g,a->kind?"Meridian echo logged. Research units awarded.":"Stellar anomaly catalogued. Research units awarded.");story_event(g,STORY_EV_SCAN);guild_event(g,GUILD_SCAN);return 1;
 }
 int survey_scan(Game *g){
@@ -489,6 +489,7 @@ static void world_collision(Game *g,Vec3 previous){
 void game_tick(Game *g,float dt,float turn,float pitch,int throttle,int fire){
  if(dt<=0||dt>.1f)dt=1.0f/60;
  mission_timers(g,dt);
+ if(fire||g->heat>=80)saga_observation_interrupt(g);
  if(g->police_grace>0)g->police_grace=fmaxf(0,g->police_grace-dt);
  if(g->police_stop)return;
  g->wanted[g->system]=g->legal;if(g->dead)g->explosion+=dt;
@@ -830,7 +831,6 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
 #include "freight-tests.h"
  fprintf(f,"RESULT %d failures\n",fails);fclose(f);return fails;
 }
-
 
 
 
