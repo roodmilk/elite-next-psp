@@ -1,0 +1,45 @@
+{
+  "contract_version": 1,
+  "profile_version": 1,
+  "native_resolution": [480, 272],
+  "families": [
+    {"id": 0, "name": "ocean", "orbit_art": "ocean", "ground_palette": "island-water"},
+    {"id": 1, "name": "desert", "orbit_art": "desert", "ground_palette": "ochre-dune"},
+    {"id": 2, "name": "ice", "orbit_art": "ice", "ground_palette": "pale-shelf"},
+    {"id": 3, "name": "volcanic", "orbit_art": "volcanic", "ground_palette": "copper-scrub"},
+    {"id": 4, "name": "forest", "orbit_art": "forest", "ground_palette": "fungal-rise"}
+  ],
+  "seed_channels": {
+    "profile": "body.seed",
+    "terrain": "body.seed ^ terrain-layer",
+    "props": "body.seed ^ prop-layer",
+    "activity": "system ^ station-or-site-id ^ activity-layer",
+    "art": "body.seed ^ art-layer"
+  },
+  "rules": {
+    "rocky_family": "1 + (body.seed % 4)",
+    "ocean_family": 0,
+    "gameplay_rng": false,
+    "stable_revisit_identity": true,
+    "runtime_allocations": 0,
+    "collision_from_art": false,
+    "scannable_props_need_stable_ids": true
+  },
+  "budgets": {
+    "terrain_region_width": 40,
+    "surface_viewport": [28, 239],
+    "max_surface_props": 24,
+    "max_scannables": 6,
+    "max_dynamic_activity": 8,
+    "required_capture_fps": 30
+  },
+  "capture_matrix": [
+    "orbit-family-parity",
+    "atmosphere-entry",
+    "landed-pad",
+    "eva-near-ship",
+    "eva-scan-readable",
+    "ocean-shore-boundary",
+    "revisit-same-seed"
+  ]
+}

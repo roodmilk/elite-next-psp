@@ -25,3 +25,9 @@ The validator is an offline release gate. It checks 256-system/768-body
 coverage, bounded profile ranges, and parity with the existing orbit art family.
 A future runtime adapter must pass the same checks before it can influence
 traversal, collision, or save data.
+
+`planet-art-contract.json` is the versioned handoff for offline art tools. It
+defines the independent seed channels, family mapping, stable scannable rule,
+native PSP budgets, and representative capture matrix. Blender, Aseprite, or
+heightfield exporters should consume this contract rather than inventing new
+runtime-facing IDs.
