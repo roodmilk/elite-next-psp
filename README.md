@@ -1,4 +1,9 @@
-# ELITE: NEXT — development build 2.5.25
+# ELITE: NEXT — development build 2.5.26
+
+## New in 2.5.26 — clearer GalNet WANTED board
+
+- Page 2 is obvious (gold banner + DOWN cue); posters show five wear styles including rips and holes.
+- Larger `<L` / `R>` sit farther from the tab names.
 
 ## New in 2.5.25 — animated pixel-art suns and bloom
 

@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.25**.
+Prepared 22 September 2026. Current build: **2.5.26**.
 
 ## Start here
 
@@ -63,6 +63,10 @@ Important controls:
 - Galaxy Map: Triangle switches between nearby jumps and the full 256-system map; D-pad moves between systems; L/R zoom; X plots a multi-jump route and saves the final goal.
 
 ## Recent changes that must be preserved
+
+### 2.5.26 — GalNet WANTED page cue + chrome
+
+WANTED board gold page-2 banner and five poster wear styles; larger `<L`/`R>` pads clear of NEWS/JOBS.
 
 ### 2.5.25 — pixel-art suns + bloom
 

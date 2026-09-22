@@ -408,42 +408,56 @@ static void news_screen(void){unsigned paper=RGB(194,184,145),ink=RGB(27,31,31),
 static void galnet_market(void){rect(0,42,W,206,RGB(5,16,18));text(2,6,CYAN,"MARKET EXCHANGE / DELAYED PRICES");text(2,8,DIM,"SYMBOL       LOCAL      GAL AVG      TREND");for(int i=0;i<5;i++){int item=(game.system*3+i*5)%GOODS,y=82+i*29,diff=game.price[item]-galactic_price(item);if(i==row)rect(8,y-5,464,24,RGB(15,47,47));text(2,y/8,i==row?WHITE:DIM,"%-12.12s %7.1f %10.1f",goods[item].name,game.price[item]*.1f,galactic_price(item)*.1f);unsigned c=diff>0?RED:CYAN;int x=360,base=y+8;for(int k=0;k<7;k++){int a=((item*13+k*17)%11)-5,b=((item*13+(k+1)*17)%11)-5;line(x+k*14,base-a,x+(k+1)*14,base-b,c);}text(56,y/8,c,diff>0?"UP":"DOWN");}text(2,29,GOLD,game.docked?"LIVE TERMINAL: LEFT SELL / RIGHT BUY":"DOCK FOR LIVE TRADING");footer("L/R SECTION   UP/DOWN TICKER   O BACK");}
 static void galnet_bounties(void){
  rect(0,42,W,206,RGB(26,19,16));
- int posters=5,pages=(posters+2)/3,page=row/3,first=page*3;
- text(2,6,GOLD,"WANTED BOARD");page_number_at(18,6,page+1,pages);
- text(28,6,DIM,page+1<pages?"UP/DOWN for more posters":"End of board");
+ int posters=5,pages=(posters+2)/3,page=row/3,first=page*3,more=posters-first-3;if(more<0)more=0;
+ /* Unmistakable page cue: gold banner on page 1, board-complete on page 2. */
+ if(pages>1){
+  if(page==0){rect(6,44,468,14,RGB(92,52,18));rect(6,44,468,2,GOLD);text(2,6,GOLD,"WANTED  PAGE 1/%d",pages);text(22,6,WHITE,">> PAGE 2: %d MORE  DOWN",more>0?more:2);}
+  else {rect(6,44,468,14,RGB(40,28,22));rect(6,44,468,2,CYAN);text(2,6,CYAN,"WANTED  PAGE %d/%d",page+1,pages);text(24,6,DIM,"<< UP FOR PAGE 1");}
+ }else text(2,6,GOLD,"WANTED BOARD");
  for(int j=0;j<3&&first+j<posters;j++){
-  int i=first+j,x=10+j*157;
+  int i=first+j,x=10+j*157,y0=62;
   unsigned paper=i==row?RGB(215,185,125):RGB(166,147,108);
-  int rip=i%3; /* 0 clean, 1 corner tear, 2 edge fray */
-  if(rip==1){rect(x,54,146,184,paper);rect(x+120,50,26,12,RGB(26,19,16));rect(x+4,58,138,3,RGB(74,43,32));}
-  else if(rip==2){rect(x+2,50,142,188,paper);rect(x,50,4,40,RGB(26,19,16));rect(x+140,160,8,50,RGB(26,19,16));rect(x+6,54,134,3,RGB(74,43,32));}
-  else {rect(x,50,146,188,paper);rect(x+4,54,138,3,RGB(74,43,32));}
-  /* Tape / staple accents so posters don't look identical. */
-  if(i&1){rect(x+8,52,10,4,RGB(120,90,50));rect(x+128,52,10,4,RGB(120,90,50));}
-  else {rect(x+70,48,6,6,RGB(90,90,90));}
-  text(x/8+2,8,RGB(70,35,27),rip?"WANTED!":"WANTED");
-  draw_portrait(x+38,78,70,60,game.system*31+i*19+(rip*97),PIRATES);
-  char name[32],body[96];galnet_post(i,name,sizeof(name),body,sizeof(body));
-  text(x/8+2,18,RGB(70,35,27),"RAIDER %c-%02d",'A'+(i*7+game.system)%26,(i*31+game.system)%100);
-  text(x/8+2,20,RGB(70,35,27),"BOUNTY %d.0 U",15+i*5);
-  text(x/8+2,22,RGB(70,35,27),"RISK %d/5",danger_rating(&game,game.system));
-  text(x/8+2,25,RGB(55,42,32),rip==1?"TORN COPY":rip==2?"WEATHERED":"LAST SEEN");
-  text(x/8+2,27,RGB(55,42,32),"%.13s",game.systems[game.system].name);
+  unsigned bg=RGB(26,19,16),ink=RGB(70,35,27),mute=RGB(55,42,32);
+  int style=i%5; /* 0 clean 1 corner rip 2 left fray 3 bottom bite 4 hole+crease */
+  if(style==0){rect(x,y0,146,168,paper);rect(x+4,y0+4,138,3,RGB(74,43,32));rect(x+70,y0-2,6,6,RGB(90,90,90));}
+  else if(style==1){ /* top-right corner ripped off */
+   rect(x,y0+4,146,164,paper);rect(x+118,y0,28,18,bg);rect(x+110,y0+14,16,8,bg);rect(x+4,y0+8,130,3,RGB(74,43,32));
+   rect(x+8,y0+2,10,4,RGB(120,90,50));rect(x+100,y0+2,10,4,RGB(120,90,50));
+  }else if(style==2){ /* left edge frayed + peel */
+   rect(x+4,y0,142,168,paper);rect(x,y0,6,48,bg);rect(x,y0+90,8,40,bg);rect(x+138,y0+120,10,48,bg);
+   rect(x+8,y0+4,132,3,RGB(74,43,32));rect(x+12,y0+2,10,4,RGB(120,90,50));rect(x+128,y0+2,10,4,RGB(120,90,50));
+  }else if(style==3){ /* bottom-left bite + dog-ear */
+   rect(x,y0,146,160,paper);rect(x,y0+148,36,20,bg);rect(x+28,y0+156,18,12,bg);rect(x+130,y0,16,14,bg);
+   rect(x+4,y0+4,138,3,RGB(74,43,32));rect(x+70,y0-2,6,6,RGB(90,90,90));
+  }else{ /* bullet hole + crease streak */
+   rect(x,y0,146,168,paper);rect(x+4,y0+4,138,3,RGB(74,43,32));
+   rect(x+64,y0+70,14,12,bg);rect(x+66,y0+72,10,8,RGB(40,28,22));
+   rect(x+20,y0+40,100,2,RGB(120,95,70));rect(x+8,y0+2,10,4,RGB(120,90,50));rect(x+128,y0+2,10,4,RGB(120,90,50));
+  }
+  text(x/8+2,9,ink,style?"WANTED!":"WANTED");
+  draw_portrait(x+38,y0+28,70,56,game.system*31+i*19+(style*97),PIRATES);
+  text(x/8+2,19,ink,"RAIDER %c-%02d",'A'+(i*7+game.system)%26,(i*31+game.system)%100);
+  text(x/8+2,21,ink,"BOUNTY %d.0 U",15+i*5);
+  text(x/8+2,23,ink,"RISK %d/5",danger_rating(&game,game.system));
+  static const char *wear[]={"LAST SEEN","TORN COPY","WEATHERED","DOG-EARED","HOLED"};
+  text(x/8+2,26,mute,"%s",wear[style]);
+  text(x/8+2,28,mute,"%.13s",game.systems[game.system].name);
  }
- if(pages>1){rect(8,232,464,12,RGB(40,28,22));text(2,29,page+1<pages?GOLD:DIM,"PAGE %d/%d  %s",page+1,pages,page+1<pages?"more posters below":"board complete");}
+ if(pages>1&&page==0){rect(8,234,464,10,RGB(92,52,18));text(8,29,GOLD,"DOWN  >>  PAGE 2 OF %d",pages);}
+ else if(pages>1){rect(8,234,464,10,RGB(40,28,22));text(8,29,CYAN,"PAGE %d/%d  BOARD COMPLETE",page+1,pages);}
  footer("L/R SECTION   UP/DOWN POSTER   O BACK");
 }
 static void galnet_chrome(void){
  header("GALACTICNET // LIVE NETWORK");rect(0,22,W,20,RGB(11,25,35));
- /* L/R sit outside the tab strip so they never crowd NEWS / JOBS. */
- rect(0,22,22,20,RGB(8,18,28));rect(458,22,22,20,RGB(8,18,28));
- rect(2,24,18,16,RGB(25,65,77));rect(460,24,18,16,RGB(25,65,77));
- text(1,3,CYAN,"L");text(58,3,CYAN,"R");
+ /* Larger L/R pads clear of the tab names (L was crowding NEWS). */
+ rect(0,22,32,20,RGB(8,18,28));rect(448,22,32,20,RGB(8,18,28));
+ rect(4,24,24,16,RGB(25,65,77));rect(452,24,24,16,RGB(25,65,77));
+ text(1,3,CYAN,"<L");text(57,3,CYAN,"R>");
  const char *shorts[]={"NEWS","MARKET","WANTED","SPACEBOOK","MESSAGES","JOBS"};
  for(int i=0;i<6;i++){
-  int x=24+i*72;
-  if(i==galnet_tab){rect(x,22,70,20,RGB(25,65,77));rect(x,40,70,2,GOLD);}
-  text((x+6)/8,3,i==galnet_tab?WHITE:DIM,"%.9s",shorts[i]);
+  int x=36+i*68;
+  if(i==galnet_tab){rect(x,22,66,20,RGB(25,65,77));rect(x,40,66,2,GOLD);}
+  text((x+4)/8,3,i==galnet_tab?WHITE:DIM,"%.9s",shorts[i]);
  }
 }
 static void galnet_screen(void){if(galnet_tab==3||galnet_tab==4)spacebook_screen(galnet_tab==4);else if(galnet_tab==0)news_screen();else if(galnet_tab==1)galnet_market();else if(galnet_tab==2)galnet_bounties();else {int count=galnet_rows(),pages=(count+2)/3,first=row/3*3;rect(0,42,W,206,BG);text(2,6,CYAN,"MISSION FEED");page_number_at(20,6,row/3+1,pages);for(int j=0;j<3&&first+j<count;j++){int i=first+j,y=8+j*5;char author[40],body[96];galnet_post(i,author,sizeof(author),body,sizeof(body));panel(8,y*8-3,464,34);if(i==row)rect(8,y*8-3,3,34,GOLD);galnet_avatar(14,y*8-1,28,i);text(7,y,i==row?GOLD:CYAN,"%s",author);text(7,y+2,WHITE,"%.50s",body);}footer("L/R SECTION   UP/DOWN   O BACK");}galnet_chrome();}
