@@ -126,7 +126,7 @@ static void cockpit(void){
  /* Top 24px: system, heading, route. Bottom 80px: all instruments. */
  rect(0,0,W,24,RGB(6,15,24));rect(0,23,W,1,RGB(43,77,89));
  text(1,0,CYAN,"System: %.11s",game.systems[game.system].name);
- {int wl=wanted_level(&game);text(1,1,wl?RED:DIM,wl?"Wanted [%s]":"Wanted clear",stars(wl));}
+ {int wl=wanted_level(&game);text(1,1,wl?RED:DIM,wl?"Wanted %d/5":"Wanted 0/5",wl);}
  int heading=(int)(game.yaw*57.29578f)%360;if(heading<0)heading+=360;
  text(24,0,DIM,"%03d",heading);danger_badge(224,4,danger_rating(&game,game.system));
  /* Mission cue flush to the top-right (1-col inset). Keep past the danger badge. */

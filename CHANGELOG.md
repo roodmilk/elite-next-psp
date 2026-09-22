@@ -2,6 +2,10 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.12 - 2026-09-22
+
+- Local wanted level under the system name reads as `Wanted n/5` (red when active, dim when clear) so police pressure is obvious at a glance.
+
 ## 2.5.11 - 2026-09-22
 
 - Tracked mission cue sits flush on the top-right header (1-column inset), past the danger badge, with enough room to show the full short guide.
