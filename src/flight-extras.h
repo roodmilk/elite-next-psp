@@ -168,7 +168,29 @@ static void minimal_overlay(void){
  combat_alert_banner();
 }
 static void missile_effects(void){int top=view_top(),bot=view_bot();if(game.missile_time>0){Vec3 p=camera(&game,game.missile_pos);if(p.z>15){Point q=project(p);int x=(int)q.x,y=(int)q.y;if(x>2&&x<478&&y>top&&y<bot){circle(x,y,3,GOLD);line(x,y,x-6,y+8,RED);}}}if(game.incoming_missile>0&&game.incoming_source>=0&&game.incoming_source<NPC_COUNT&&game.npc[game.incoming_source].alive){Vec3 p=camera(&game,game.npc[game.incoming_source].pos);if(p.z>15){Point q=project(p);if(q.x>4&&q.x<476&&q.y>top+4&&q.y<bot-4)circle((int)q.x,(int)q.y,8,RED);}}}
-static void warp_effect(void){if(game.jump<=0)return;int top=view_top(),bot=view_bot();rect(0,top,W,bot-top+1,RGB(4,8,24));float progress=(5-game.jump)/5;for(int i=0;i<85;i++){float angle=i*2.39996f;float radius=15+fmodf(i*19+progress*450,230);float end=radius+20+progress*90;int y0=(int)fmaxf(top,fminf(bot,110+sinf(angle)*radius*.5f)),y1=(int)fmaxf(top,fminf(bot,110+sinf(angle)*end*.5f));line(240+(int)(cosf(angle)*radius),y0,240+(int)(cosf(angle)*end),y1,i%3?CYAN:WHITE);}rect(80,88,320,28,DASH);rect(80,88,320,2,AMBER);text(15,12,AMBER,"WARP TO %.12s  %.1f",game.systems[game.destination].name,game.jump);}
+static void warp_effect(void){
+ if(game.jump<=0)return;
+ int top=view_top(),bot=view_bot();
+ rect(0,top,W,bot-top+1,RGB(4,8,24));
+ float progress=(5-game.jump)/5;
+ /* Dense hyperspace tunnel — multi-colour soft streaks (still soft-FB lines). */
+ for(int i=0;i<110;i++){
+  float angle=i*2.39996f+progress*.7f;
+  float radius=12+fmodf(i*17+progress*520,250);
+  float end=radius+18+progress*110;
+  int y0=(int)fmaxf(top,fminf(bot,110+sinf(angle)*radius*.5f));
+  int y1=(int)fmaxf(top,fminf(bot,110+sinf(angle)*end*.5f));
+  unsigned ink=i%5==0?WHITE:i%5==1?CYAN:i%5==2?RGB(180,120,255):i%5==3?RGB(80,160,220):RGB(40,90,140);
+  line(240+(int)(cosf(angle)*radius),y0,240+(int)(cosf(angle)*end),y1,ink);
+  if((i&3)==0)sfx_add(240+(int)(cosf(angle)*end),y1,ink,top,bot);
+ }
+ for(int k=0;k<16;k++){
+  float a=k*.4f+game.time*2.f;
+  space_anim_draw(SPACE_ANIM_SPARK,240+(int)(cosf(a)*30),110+(int)(sinf(a)*18),((int)(game.time*10)+k)&3,CYAN);
+ }
+ rect(80,88,320,28,DASH);rect(80,88,320,2,AMBER);
+ text(15,12,AMBER,"WARP TO %.12s  %.1f",game.systems[game.destination].name,game.jump);
+}
 static void planet_prompt(void){if(game.approach<0)return;int y0=hud_mode==0?88:view_top()+8;rect(20,y0,440,84,DASH);rect(20,y0,440,2,AMBER);text(7,12,AMBER,"APPROACH: %s",game.bodies[game.approach].name);button_icon(58,y0+38,'X',CYAN);text(10,(y0+39)/8,WHITE,"fly the surface");button_icon(210,y0+38,'O',RED);text(29,(y0+39)/8,WHITE,"turn back");text(7,19,AMBDIM,game.bodies[game.approach].type==GAS?"Gas giant: scan it, then reverse away.":"Land on the cyan pad, then O to walk.");}
 static void celestial_rims(void){
  int top=view_top(),bot=view_bot();
@@ -180,11 +202,18 @@ static void celestial_rims(void){
   for(int k=3;k>=1;k--){unsigned ink=RGB((tint&255)/(k+2),((tint>>8)&255)/(k+2),((tint>>16)&255)/(k+2));
    for(int s=0;s<96;s++){float angle=s*6.2831853f/96;int x=(int)p.x+(int)(cosf(angle)*(r+k)),y=(int)p.y+(int)(sinf(angle)*(r+k));if(y>=top&&y<=bot)pixel(x,y,ink);}
   }
-  if(b->type==GAS&&r>7&&r<180)for(int s=0;s<64;s++){
-   float a=s*6.2831853f/64,bb=(s+1)*6.2831853f/64,rx=r*1.5f,ry=r*.36f;
-   int x0=(int)(p.x+cosf(a)*rx),y0=(int)(p.y+sinf(a)*ry+cosf(a)*r*.14f);
-   int x1=(int)(p.x+cosf(bb)*rx),y1=(int)(p.y+sinf(bb)*ry+cosf(bb)*r*.14f);
-   if(y0>=top&&y0<=bot&&y1>=top&&y1<=bot)line(x0,y0,x1,y1,RGB(100,109,133));
+  if(b->type==GAS&&r>7&&r<180){
+   for(int s=0;s<64;s++){
+    float a=s*6.2831853f/64,bb=(s+1)*6.2831853f/64,rx=r*1.5f,ry=r*.36f;
+    int x0=(int)(p.x+cosf(a)*rx),y0=(int)(p.y+sinf(a)*ry+cosf(a)*r*.14f);
+    int x1=(int)(p.x+cosf(bb)*rx),y1=(int)(p.y+sinf(bb)*ry+cosf(bb)*r*.14f);
+    if(y0>=top&&y0<=bot&&y1>=top&&y1<=bot)line(x0,y0,x1,y1,RGB(100,109,133));
+   }
+   /* Soft ring sparkle — cheap glitter along the outer ellipse. */
+   if(!high_contrast)for(int s=0;s<20;s++){
+    float a=s*.314f+game.time*.3f;int x=(int)(p.x+cosf(a)*r*1.55f),y=(int)(p.y+sinf(a)*r*.38f);
+    if(y>=top&&y<=bot){sun_bloom_dot(x,y,RGB(90,95,120),0,top,W,bot);if((s&3)==0)pixel(x,y,RGB(180,190,210));}
+   }
   }
  }
 }

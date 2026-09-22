@@ -103,6 +103,7 @@ static void line(int x,int y,int xx,int yy,unsigned c){
 }
 #include "font8.h"
 #include "art-runtime.h"
+#include "space-animation-kit.h"
 static void text(int x,int y,unsigned c,const char *fmt,...){
  char buf[128];va_list args;va_start(args,fmt);vsnprintf(buf,sizeof(buf),fmt,args);va_end(args);
  int px=x*8,py=y*8;
@@ -298,7 +299,6 @@ static void draw_bodies(void){
  }
 }
 static void draw_portrait(int x,int y,int w,int h,int system,int role);
-#include "space-animation-kit.h"
 #include "space-fx.h"
 #include "flight-extras.h"
 #include "planet.h"
@@ -324,7 +324,7 @@ static void space(void){
  if(game.police_stop){if(hud_mode==0)cockpit();police_dialog();return;}
  if(game.dead){death_effect();sfx_maybe_death_embers();sfx_explosion_embers_draw(1.f/60);if(hud_mode==0)cockpit();return;}
  if(game.dock_stage>=2){docking_view();if(hud_mode==0)cockpit();return;}
- sector_background();space_fx_nebula();starfield();space_fx_meteors();celestial_rims();draw_bodies();lens_flares();station_model();station_window_animation();secondary_hubs();ambient_space();
+ sector_background();space_fx_nebula();starfield();space_fx_meteors();celestial_rims();draw_bodies();sfx_planet_beauty();lens_flares();sfx_sun_canopy_wash();station_model();station_window_animation();secondary_hubs();ambient_space();sfx_travel_beauty();sfx_travel_fun();
  int npc_detailed[NPC_COUNT]={0};
  for(int i=0;i<NPC_COUNT;i++){NPC *n=&game.npc[i];if(!n->alive||occluded(n->pos))continue;float distance=length(sub(n->pos,game.pos)),limit=n->freighter?12000.f:5200.f;if(distance>limit)continue;npc_detailed[i]=n->freighter?2:1;unsigned c=n->flash>0?WHITE:faction_colors[n->role];float yaw=atan2f(n->dir.x,n->dir.z);if(npc_detailed[i]==2){capital_model(n,c);continue;}shipmesh(n->mesh,n->pos,yaw,0,n->scale,c,0);}
  for(int i=0;i<DEBRIS_COUNT;i++){Debris *d=&game.debris[i];if(!d->alive||occluded(d->pos))continue;float distance=length(sub(d->pos,game.pos));if(distance>11000)continue;
@@ -346,10 +346,24 @@ static void space(void){
     float offset=n->freighter?(plume?1:-1)*lateral:0;
     Vec3 rear=npc_engine_root(n,offset);Vec3 rv=camera(&game,rear);if(rv.z<25)continue;Point root=project(rv);
     sfx_engine_plume_at((int)root.x,(int)root.y,n->freighter?0:(n->cruise>80),top,bot);
+    sfx_engine_plume_mask((int)root.x,(int)root.y,n->freighter?0:(n->cruise>80));
    }
   }
  }
- station_glow();station_entrance();speed_lines();engine_flare();sfx_engine_plume_player();missile_effects();
+ station_glow();
+ /* ART DIRECTOR beacon masks on the docking aperture. */
+ if(!sfx_fx_muted()&&game.pos.z<STATION_ENTRY_Z&&!occluded((Vec3){0,0,STATION_ENTRY_Z})){
+  int frame=((int)(game.time*5))&3;
+  for(int i=0;i<4;i++){
+   Vec3 corner=station_port_corner(i);corner.z-=2;
+   Vec3 v=camera(&game,add(rotate(corner,0,station_angle(&game)),(Vec3){0,0,STATION_Z}));
+   if(v.z<20)continue;Point p=project(v);
+   space_anim_draw(SPACE_ANIM_BEACON,(int)p.x,(int)p.y,frame,CYAN);
+  }
+ }
+ station_entrance();speed_lines();engine_flare();sfx_engine_plume_player();
+ if(game.boost&&!sfx_fx_muted())sfx_engine_plume_mask(240,view_bot()-8,1);
+ missile_effects();
  for(int i=0;i<ANOMALY_COUNT;i++)if(game.anomaly[i].alive&&length(sub(game.anomaly[i].pos,game.pos))<=180){unsigned c=game.anomaly[i].kind?CYAN:GOLD;circle(240,110,18+(int)(sinf(game.time*4)*4),c);circle(240,110,7,c);}
  for(int i=0;i<NPC_COUNT;i++){NPC *n=&game.npc[i];if(!n->alive||npc_detailed[i]||occluded(n->pos))continue;Vec3 v=camera(&game,n->pos);if(v.z<30)continue;Point p=project(v);if(p.x<2||p.x>477||p.y<view_top()+2||p.y>view_bot()-2)continue;unsigned c=faction_colors[n->role];rect((int)p.x-1,(int)p.y-1,n->freighter?5:3,n->freighter?3:2,c);}
  freight_effects();mining_effects();
@@ -742,6 +756,18 @@ static void input_tests(void){
     int muted=0;for(int y=view_top();y<=view_bot();y++)for(int x=0;x<W;x++)if(pixels[y*STRIDE+x])muted++;
     INPUT_CHECK(muted==0,"graphics: high contrast mutes Wave A hit sparks");
     high_contrast=0;sfx_fx_reset();
+    /* Wave B: planet bloom / specular paints soft dots around a nearby world. */
+    {
+     game.system=0;system_bodies(&game);launch(&game);page=FLIGHT;game.jump=0;game.boost=0;
+     game.pos=add(game.bodies[1].pos,(Vec3){0,0,-game.bodies[1].radius*3.5f});
+     memset(pixels,0,STRIDE*H*sizeof(unsigned));sector_background();draw_bodies();sfx_planet_beauty();
+     int bloom=0;for(int y=view_top();y<=view_bot();y++)for(int x=0;x<W;x++)if(pixels[y*STRIDE+x])bloom++;
+     INPUT_CHECK(bloom>400,"graphics: Wave B planet bloom/specular paints soft-FB atmosphere");
+     high_contrast=1;memset(pixels,0,STRIDE*H*sizeof(unsigned));sfx_planet_beauty();sfx_travel_beauty();
+     int mute=0;for(int y=view_top();y<=view_bot();y++)for(int x=0;x<W;x++)if(pixels[y*STRIDE+x])mute++;
+     INPUT_CHECK(mute==0,"graphics: high contrast mutes Wave B planet/travel beauty");
+     high_contrast=0;sfx_fx_reset();
+    }
    }
    preview_reset();quiet_comms=old_quiet;fb=saved_fb;free(pixels);TEST_INIT();
   }

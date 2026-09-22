@@ -102,6 +102,11 @@ static void planet_view(void){
  int suny=top+28-(int)(game.pitch*40);if(suny<top+8)suny=top+8;if(suny>bottom-40)suny=bottom-40;
  /* Sky disc uses the same animated system sun as orbit / charts — slightly larger warm read. */
  draw_sun_sprite(370,suny,17,game.bodies[0].color,game.bodies[0].seed,game.time,0,top,W,bottom);
+ /* Soft-FB atmosphere beauty: sun streak + biome specular / embers. */
+ if(!high_contrast){
+  for(int dx=-28;dx<=28;dx+=2){int fall=28-abs(dx);sfx_add(370+dx,suny,RGB(fall/3,fall/4,fall/5),top,bottom-1);}
+  for(int i=0;i<10;i++){float a=i*.7f+game.time*.5f;sfx_add(370+(int)(cosf(a)*14),suny+(int)(sinf(a)*10),RGB(50,60,40),top,bottom-1);}
+ }
  if(biome==BIOME_OCEAN)for(int i=0;i<3;i++){int cx=70+i*90,cy=top+18+(i%2)*10;planet_cliprect(cx,cy,50,8,RGB(255,225,213));planet_cliprect(cx+10,cy-6,34,8,RGB(255,240,227));}
  else if(biome==BIOME_ICE)for(int i=0;i<4;i++){int cx=50+i*100,cy=top+14+(i%3)*6;planet_cliprect(cx,cy,36,5,mix_rgb(b->accent,RGB(240,230,220),.45f));}
  else if(biome==BIOME_VOLCANIC)for(int i=0;i<3;i++){int cx=80+i*110,cy=top+20+i*4;planet_cliprect(cx,cy,28,3,mix_rgb(b->accent,RGB(255,140,60),.4f));}
@@ -117,6 +122,24 @@ static void planet_view(void){
  int horizon=110+(int)(game.pitch*150.f);
  if(horizon<top+24)horizon=top+24;
  if(horizon>bottom-36)horizon=bottom-36;
+ /* Specular glitter on water / ice near the horizon band. */
+ if(!high_contrast&&(biome==BIOME_OCEAN||biome==BIOME_ICE)){
+  for(int i=0;i<28;i++){
+   int x=16+(i*17+(int)(game.time*55))%(W-32);
+   int y=horizon+8+(int)(sinf(game.time*5+i)*4)+(i&3);
+   if(y>=bottom-4)y=bottom-5;
+   unsigned ink=biome==BIOME_ICE?RGB(200,220,240):mix_rgb(waterc,RGB(220,240,255),.4f);
+   sfx_add(x,y,ink,top,bottom-1);
+   if((i&3)==0)pixel(x,y,WHITE);
+  }
+ }
+ if(!high_contrast&&biome==BIOME_VOLCANIC){
+  for(int i=0;i<12;i++){
+   int x=50+i*32+(int)(sinf(game.time*2+i)*8);
+   int y=bottom-48-(int)fmodf(game.time*40+i*19,36);
+   sfx_add(x,y,RGB(200,70,25),top,bottom-1);
+  }
+ }
  /* Distant, non-collidable settlement silhouettes establish scale before
   * the playable field begins: domes, towers and a single warm window. */
  {
