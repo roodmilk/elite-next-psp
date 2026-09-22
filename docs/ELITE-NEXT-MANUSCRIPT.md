@@ -341,7 +341,7 @@ Optional track (`src/guild.h`). Parallel to Open Channel; teaches verbs without 
 # VOLUME IV — THE OPEN CHANNEL (MAIN CAMPAIGN)
 
 **Authority scenes:** `docs/OPEN-CHANNEL-SCREENPLAY.md`  
-**Playable binding:** `src/saga.h` (24 chapters × 8 ask-then-answer beats; Act I–III codas + choice blurbs)  
+**Playable binding:** `src/saga.h` (24 chapters × 8 ask-then-answer beats; Act I–IV codas + choice blurbs)  
 **Ops summary:** `docs/OPEN-CHANNEL-CAMPAIGN.md`
 
 This volume is the **mission & verb manuscript** for the campaign. Full theatrical scenes live in the screenplay; here we bind story → playable action → recovery → trust.
@@ -634,6 +634,7 @@ If fled / testified / stood down: rare GalNet sightings; no revenge fetch quest 
 | 2026-09-22 | 2.5.35 | Act I (Ch.02–07) expanded to 8-beat playable page scripts + locked codas + choice blurbs |
 | 2026-09-22 | (pending unify tip) | Act II (Ch.08–13) raised to matching page-script authority; Act II codas; Sable/Nadi polish from screenplay |
 | 2026-09-22 | 2.5.37 tip | Act III (Ch.14–19) page scripts + Act III codas through No Easy Flag; Flag blurbs from screenplay |
+| 2026-09-22 | 2.5.39 tip (untagged pack) | Dialogue chrome fix (no YOU:/YOU SPOKE); Act IV Ch.20–25 page scripts + codas through berth; ask→answer realigned |
 | (next) | — | Author 3 systemic mission novella chains in board data |
 | (next) | — | GalNet reactive post table wired to `saga_flags` |
 
@@ -760,9 +761,9 @@ If a brief cannot answer those three, rewrite it.
 
 Bridge scripts connect playable eight-beat briefs to full screenplay scenes.
 
-## IV.4 Act I–III playable page scripts (shipped 2.5.35+)
+## IV.4 Act I–IV playable page scripts (shipped 2.5.35+; Act III–IV pending tip pack)
 
-Each Act I–III chapter (saga 0–17 / UI 02–19) is eight ask-then-answer Story beats. Beat N+1 answers the commander's ask on beat N. Beat 7 restates the objective and accepts. After completion, a locked **coda** page plays (runtime only — no save field) before the next brief unlocks. Choice chapters show consequence blurbs under the highlighted option.
+Each Act I–IV chapter (saga 0–23 / UI 02–25) is eight ask-then-answer Story beats. Beat N+1 answers the commander's ask on beat N. Beat 7 restates the objective and accepts. After completion, a locked **coda** page plays (runtime only — no save field) before the next brief unlocks. Choice chapters show consequence blurbs under the highlighted option. Story chat shows the spoken line only — no `YOU:` prefix; waiting panel replaces needless `YOU SPOKE` / `YOU ASKED` headers.
 
 | Beat | Role |
 |---|---|
@@ -783,7 +784,7 @@ Each Act I–III chapter (saga 0–17 / UI 02–19) is eight ask-then-answer Sto
 - **Ch.09 Ghosts of GalCop** — old ink; seal as unfinished apologies; Meridian leased history's sin.
 - **Ch.10 The Mycoid Ledger** — confession with footnotes; never craftable; stamp DENIED.
 - **Ch.11 Where the Giants Turn** — visitors do not rearrange furniture; pause is grammar; making room.
-- **Ch.12 The Person on the Other End** — alive / cold / furious; ghost chase; not a mission-complete screen.
+- **Ch.12 The Person on the Other End** — alive → why silent → rough coords → amplifier; Kei message.
 - **Ch.13 What We Carry Home** — volume choice; any shape of truth, not a myth; blurbs name stakes.
 
 **Act III**
@@ -793,6 +794,14 @@ Each Act I–III chapter (saga 0–17 / UI 02–19) is eight ask-then-answer Sto
 - **Ch.17 Alliance of Necessity** — three mirrors; show your work; continuity without a single throat to choke.
 - **Ch.18 The Coldest Signal** — curiosity without munitions; unresolved return; uncertainty kept honest.
 - **Ch.19 No Easy Flag** — allies not owners; tenders / markers / lawful force; blurbs name the lane help.
+
+**Act IV**
+- **Ch.20 The Black Flight** — Meridian paint on a public ribbon; lives over wreckage; draw-off preferred.
+- **Ch.21 Aegis Echo** — shared science; safer shutdown sequence; partial buoy beats wreckage sermons.
+- **Ch.22 The Open Channel** — disable not destroy; Voss answerable, not required dead; crews first.
+- **Ch.23 The Answering Dark** — record only; no pursuit; making room without filling it with war.
+- **Ch.24 Who Keeps the Light** — keys + inspection; losers keep the map; trust changes tone not fuel.
+- **Ch.25 A Berth Kept Warm** — berth six permanent; home without a leash; come home when ready.
 
 ## IV.5 Bridge — Ch.02 Mara handoff (excerpt)
 **MARA:** Guild, or just the person Kei trusts with sealed things?  

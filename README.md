@@ -5,7 +5,7 @@
 - Station rooms restaged: one hero focus, three depth planes, warm ochre/cream staging.
 - Side hatch doors; thinner cream/cyan MacVenture chrome so MAIN owns the eye.
 - Composition from `docs/CINEMATIC-MOCKUP-TARGETS.md` + ART DIRECTOR kit grammar.
-- Working tip also carries Act III page scripts (Ch.14–19) — next GitHub Release only with a bigger combined drop.
+- Working tip also carries Act III–IV page scripts + dialogue flow polish — next GitHub Release only with a bigger combined drop.
 
 ## New in 2.5.38 — soft-FB Wave A canopy FX
 

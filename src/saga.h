@@ -1,6 +1,6 @@
 /* The Open Channel: data-driven main campaign.
  * Briefings follow ask-then-answer (same rhythm as the prologue): beat N+1
- * answers the commander's ask on beat N. Acts I–III (chs 02–19 / indices 0–17)
+ * answers the commander's ask on beat N. Acts I–IV (chs 02–25 / indices 0–23)
  * ship eight page-script beats with locked codas. Feature screenplay:
  * docs/OPEN-CHANNEL-SCREENPLAY.md */
 enum { SAGA_DOCK, SAGA_SCAN, SAGA_HUNT, SAGA_HOME, SAGA_CHOICE };
@@ -215,17 +215,17 @@ static const SagaBeat saga_beats[]={
   "I am alive. The clever explanation can wait until you are close enough that Kei can shout at me without a relay.",
   "Yes. Also cold. Also furious. Also slightly proud of my handwriting in whale-song. Come anyway — tools, not speeches.",
   "Because the noise is selling our silence as a product. I vanished so Meridian would chase a ghost instead of a migration.",
-  "Good. She is allowed to be furious. You do not get to decide alone who I endanger by coming home loud — nor she alone.",
+  "The coords are rough on purpose. Geometry that stays precise gets leased. I will tighten them when you are close enough to matter.",
   "The local amplifier. Disable it when you arrive so we can talk in air that is not full of someone else's profit.",
   "If that dish keeps shouting, the giants turn into traffic hazards and Meridian sells the detour. Rude first. Then tea.",
-  "Thank you for not turning me into a mission-complete screen. Kill the noise. Then we decide what we carry home.",
+  "Tell her she is allowed to be furious. You do not get to decide alone who I endanger by coming home loud — nor she alone.",
   "Next step: reach Ryn's shelter and shut the local amplifier down.",
   "You are really alive?",
-  "How rough are those coords?",
   "Why did you go silent?",
+  "How rough are those coords?",
   "What do I shut down there?",
   "Amplifier before repairs?",
-  "Any advice for Kei?",
+  "Any message for Kei?",
   "I am on my way.",
   "Accept the shelter run.",
   "Reach Ryn's shelter",SAGA_DOCK,0},
@@ -297,7 +297,7 @@ static const SagaBeat saga_beats[]={
   "Yes. Courtesy is a contract. First refusal is a soft monopoly wearing perfume. Smile if you must; do not marry it.",
   "Whoever smiles while counting what you will owe when the map becomes inconvenient. That person is the real brief.",
   "Correct. Leave with information and your hands free. She says walk-away ends the underwriting — no chase. Rare and true.",
-  "Named houses collect favours the way stations collect dust. Preference reshapes every contract around the preference.",
+  "Walk-away is real. The lie by omission is preference: it reshapes every later contract around the named house.",
   "Hear her. Do not marry her. Continuity with a face still needs a charter that survives the funeral.",
   "Next step: hear the Imperial envoy without accepting a debt.",
   "What does their courtesy cost?",
@@ -335,7 +335,7 @@ static const SagaBeat saga_beats[]={
   "Signal structure: nonhuman. Confidence interval: troubling. Recommendation: curiosity without munitions.",
   "High enough to refuse a hunt. Low enough to refuse a sermon. Record. Leave a polite wake.",
   "Correct. It will not paint like ordinary target traffic. Turning it into a hunt teaches every later pilot the wrong first verb.",
-  "Oru calls it unresolved return. News will invent worse labels. I prefer a recorder and restraint to a war.",
+  "It may paint like a contact. Treat the paint as a question, not a hunting licence. Oru calls it unresolved return.",
   "A clean sample, then home, before someone invents doctrine out of a waveform.",
   "Contact geometry unstable. Not debris. Not a filed beacon. Incomplete on purpose — or because we lack the sense it was made for.",
   "Firing solution was available. I deleted it from the helpful tips. Uncertainty is not a failure state. It is the only honest one.",
@@ -371,12 +371,12 @@ static const SagaBeat saga_beats[]={
   "Choose the relay coalition",SAGA_CHOICE,0},
 
  {"The Black Flight","VENN",
-  "Meridian interceptors crossed the public lane like the lane belonged to their shareholders.",
-  "Break the blockade. Prefer lives over wreckage. Disable, outmanoeuvre, or draw them off.",
-  "Destruction counts — and it is never the only verb. I have buried enough grief under procedure for one career.",
-  "Packets stop. Independents become collateral for a private chart. Do not make me file another quiet report that sounds like weather.",
-  "Open the road. Then we argue about custody with people who are still breathing.",
-  "If you can draw them off the public vector, do that first. Spectacle is cheaper than funerals.",
+  "Meridian paint just crossed a public lane. That is not a security envelope. That is theft with thrusters.",
+  "Pale Meridian interceptors — private hulls on a public ribbon, selling panic as procedure.",
+  "Disable, outmanoeuvre, or draw them off while Tamsin's convoy clears the gate. Destruction counts; it is never the only verb.",
+  "Confirmed. Progress saves if you have to breathe. Prefer lives over wreckage — I have buried enough grief under procedure.",
+  "Then regroup on the far mark. The convoy still clears if you leave a road instead of a funeral. Fail-forward is allowed.",
+  "Yes. If you can pull them off the public vector, do that first. Spectacle is cheaper than funerals — and harder to invoice.",
   "I will hold the tower channel. Prefer the living kind of argument when you come back.",
   "Next step: break the Meridian blockade on the public lane.",
   "Who crossed the public lane?",
@@ -389,13 +389,13 @@ static const SagaBeat saga_beats[]={
   "Engage the blockade.",
   "Break their blockade",SAGA_HUNT,2},
  {"Aegis Echo","ORU",
-  "Aegis learned — slowly, expensively — that knowledge needs rescue ships too, not only sealed rooms.",
-  "That shared science saves lives, and secrecy magnifies risk until risk looks like destiny.",
+  "This buoy remembers when three powers tried to share a nightmare without sharing a single throat to choke.",
+  "That shared science saves lives, and secrecy magnifies risk until risk looks like destiny. Rescue ships, not only sealed rooms.",
   "Because the alternative is owning a song until it kills someone. Observation first. Ownership never.",
-  "A safer amplifier shutdown sequence than the one Meridian would sell you. Recover it intact.",
-  "By treating the buoy as research, not a prize fight. Bring it home without declaring a war over understanding.",
-  "If hostiles arrive, leave with the sample you have. A partial buoy beats a sermon written in wreckage.",
-  "Shared science over sealed rooms. Say it aloud if you need the reminder under fire.",
+  "A safer amplifier shutdown sequence than the one Meridian would sell you — triage and off-switches, not funerals.",
+  "Treat the buoy as research, not a prize fight. Bring the packet home without declaring a war over understanding.",
+  "Leave with the sample you have. A partial buoy beats a sermon written in wreckage. Shame is a start; upload before scrap.",
+  "Shared science over sealed rooms. Say it aloud if you need the reminder under fire. Restraint is also research.",
   "Next step: recover the research buoy intact.",
   "What did Aegis learn the hard way?",
   "Why share the science?",
@@ -412,7 +412,7 @@ static const SagaBeat saga_beats[]={
   "That control created dependable routes. Answer with evidence and an open channel — dependence is not consent.",
   "With the truth on the wire and people still breathing. Not with a body count he can wave as proof he was necessary.",
   "Then get them clear. I am learning not to turn care into control — do not let me fail that lesson through you.",
-  "Voss does not need to die. He needs to be answerable. Precision over revenge — say it until your hands believe it.",
+  "No. He needs to be answerable. Stand-down, evacuate, or flee — never a required death. Precision over revenge.",
   "If crews are in the way, peel them free first. An open channel built on graves is just another cage.",
   "Next step: reach and clear the primary relay.",
   "Disable — not destroy?",
@@ -427,11 +427,11 @@ static const SagaBeat saga_beats[]={
  {"The Answering Dark","RYN",
   "Something answered the empty space we left when the amplifiers died — and it may never have meant us at all.",
   "Maybe. Record the echo. Do not chase it into myth, doctrine, or a career made of pointing guns at uncertainty.",
-  "Yes. Curiosity without restraint is how people invent wars out of waveforms.",
-  "She says our first useful act was making room. I hate how often she is right while sounding gentle about it.",
-  "Log the contact and come home. If it meant us, we will know later. If not, we still owed the sky a quieter night.",
-  "No pursuit. No sermons. A clean log and a warm berth — that is the whole victory condition tonight.",
-  "Come home before myth invents itself. I will be on channel, allergic to being anyone's prize.",
+  "Yes. Curiosity without restraint is how people invent wars out of waveforms. Log it. Hold still.",
+  "No pursuit. No salvage. No defensive residue nonsense. Oru says our first useful act was making room — she is right.",
+  "She means: we met them first by stopping a lie. Second useful act — not filling the dark with our need to be protagonists.",
+  "A clean log and a warm berth. No sermons. That is the whole victory condition tonight.",
+  "I will be on channel, allergic to being anyone's prize. Come home before myth invents itself.",
   "Next step: record the distant Thargoid echo and return.",
   "It answered us?",
   "So we only record?",
@@ -446,9 +446,9 @@ static const SagaBeat saga_beats[]={
   "Someone must hold the keys and accept inspection, or the open channel becomes private weather with better branding.",
   "Because unwatched power is how we got forged hazard notices. Custody without a charter is just a quieter Meridian.",
   "Public custody, Guild custody, or a lawful independent archive. Losers keep access to the public route data either way.",
-  "No. Access stays. Trust changes tone, prices, and who answers when you call — never whether fuel and repair remain.",
-  "I will enforce the inspection charter. You choose who wears the keys without pretending the choice is free of consequence.",
-  "Whoever wins accepts inspection on day one. No honeymoon for power. That is the charter.",
+  "No. Access stays. Fuel and repair stay. Trust changes tone, prices, and who answers when you call — never whether you have a home.",
+  "Tone, prices, and the voice on the radio. Not the map. Not the berth. Choose who wears the keys with that in mind.",
+  "Day one. No honeymoon for power. Whoever wins accepts inspection the moment you stop talking — that is the charter.",
   "Choose like someone who still wants a berth when the speeches end. I will watch the watchers.",
   "Next step: choose public, Guild, or lawful custody of the relay.",
   "Why does someone hold the keys?",
@@ -462,10 +462,10 @@ static const SagaBeat saga_beats[]={
   "Choose public, Guild, or lawful custody",SAGA_CHOICE,3},
  {"A Berth Kept Warm","KEI",
   "You brought Ryn home. Venn is holding berth six permanently — his way of saying thank you without risking a feeling in public.",
-  "Yes. Permanently. Procedure is how he survives gratitude.",
+  "Yes. Permanently. Procedure is how he survives gratitude. Boring allocation is the dream.",
   "A place to return to. I am still learning how to offer that without turning it into a leash.",
   "Yes. Free flight stays. The channel stays open. Another horizon is allowed — alone is optional.",
-  "I will be on this frequency, talking too much when I am scared and precisely when I am not. Come home when you are ready.",
+  "I will be on this frequency, talking too much when I am scared and precisely when I am not.",
   "Home is rarer than jump fuel. Take the berth. Refuse the leash. That is the whole lesson I have.",
   "When you are ready — not when I am lonely. I am practising that sentence until it sticks.",
   "Next step: return to Lave System Hub and claim the berth that stayed warm.",
@@ -578,12 +578,12 @@ static const char *saga_close_line(int chapter){
  if(chapter>=SAGA_COUNT)chapter=SAGA_COUNT-1;
  return c[chapter];
 }
-/* Act I locked completion codas (chs 02-07 / indices 0-5) — Story UI page before next brief. */
-enum { SAGA_ACT1_END = 5, SAGA_ACT2_END = 11, SAGA_ACT3_END = 17 };
+/* Locked completion codas through Act IV berth (chs 02-25 / indices 0-23). */
+enum { SAGA_ACT1_END = 5, SAGA_ACT2_END = 11, SAGA_ACT3_END = 17, SAGA_ACT4_END = 23 };
 static int saga_coda_pending=-1;
-static int saga_has_coda(int chapter){return chapter>=0&&chapter<=SAGA_ACT3_END;}
+static int saga_has_coda(int chapter){return chapter>=0&&chapter<=SAGA_ACT4_END;}
 static const char *saga_coda_speaker(int chapter){
- static const char *s[]={"KEI","ORU","TAMSIN","IONA","NADI","SABLE","MARA","VENN","IONA","ORU","RYN","KEI","RYN","TAMSIN","SABLE","IONA","PIP","RYN"};
+ static const char *s[]={"KEI","ORU","TAMSIN","IONA","NADI","SABLE","MARA","VENN","IONA","ORU","RYN","KEI","RYN","TAMSIN","SABLE","IONA","PIP","RYN","VENN","ORU","KEI","RYN","IONA","KEI"};
  if(!saga_has_coda(chapter))return "KEI";
  return s[chapter];
 }
@@ -607,6 +607,12 @@ static const char *saga_coda_line1(int chapter){
   "Alliance hashes tested. Delay notices required. Continuity without a single throat to choke.",
   "Unresolved return filed. No shots. Uncertainty kept honest — the only ending that is not a war.",
   "Coalition set. Allies, not owners. Hold that line when the cameras leave.",
+  "Lane ugly but open. Convoy through the gate. Prefer the living kind of argument.",
+  "Packet home. Shared science over sealed rooms — off-switches before funerals.",
+  "Amplifiers dark. Crews breathing. Dependence is not consent — and Voss knows we said it aloud.",
+  "Echo logged. Unresolved on purpose. We made room and did not fill it with a war.",
+  "Custodian chosen. Inspection starts the moment you stop talking. Losers keep the map.",
+  "Berth six is warm. Home without a leash. Come back when you are ready — not when I am lonely.",
  };
  if(!saga_has_coda(chapter))return "";
  return a[chapter];
@@ -631,6 +637,12 @@ static const char *saga_coda_line2(int chapter){
   "Listen to all three. Then choose who stands with you — not who owns you.",
   "If they heard the scream we made, leave a silence clearer than the lie.",
   "Prior trust brings tenders, markers, or ceasefires. Use them. Do not sell the callsign.",
+  "Next problem wears a nicer suit. Precision over revenge starts with an open road.",
+  "Bring the checklist to the Crown. Tools that prefer off-switches to funerals.",
+  "Broadcast what you can prove. Hold the quiet you made — do not chase glory into capital guns.",
+  "Come home before myth invents itself. File unknown and mean it.",
+  "Wear the keys without pretending the choice was free of consequence.",
+  "Free flight stays. The channel stays open. Alone is optional.",
  };
  if(!saga_has_coda(chapter))return "";
  return b[chapter];

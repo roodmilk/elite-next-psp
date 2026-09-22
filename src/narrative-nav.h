@@ -56,7 +56,8 @@ static void narrative_reply_choice(int index,int y,const char *label){
  rect(16,py,448,14,fill);rect(16,py,448,1,edge);rect(16,py+13,448,1,edge);rect(16,py,2,14,edge);rect(462,py,2,14,edge);
  /* The right-hand tail marks this as the commander's side of the exchange. */
  line(464,py+4,470,py+7,edge);line(470,py+7,464,py+10,edge);
- text(3,y,active?GOLD:AMBDIM,"%s YOU: %s",active?">":" ",label);
+ /* Commander line only — no "YOU:" chrome (reads like broken English on PSP). */
+ text(3,y,active?GOLD:AMBDIM,"%s %s",active?">":" ",label);
 }
 static int saga_speaker_role(const SagaBeat *b){
  if(!b)return EXPLORERS;
@@ -94,7 +95,7 @@ static void player_speech_bubble(int y,const char *speech){
  const int bx=16,bw=388,bh=68;unsigned edge=RGB(245,157,62),fill=RGB(42,24,14);
  rect(bx,y,bw,bh,fill);rect(bx,y,bw,2,edge);rect(bx,y+bh-2,bw,2,RGB(119,71,38));rect(bx,y,2,bh,edge);
  line(bx+bw,y+20,bx+bw+12,y+28,edge);line(bx+bw+12,y+28,bx+bw,y+36,edge);rect(bx+bw-1,y+22,4,13,fill);
- speaker_name_tag(3,y/8+1,"YOU",edge);
+ speaker_name_tag(3,y/8+1,"COMMANDER",edge);
  text_wrap(3,y/8+3,46,3,WHITE,speech&&speech[0]?speech:"...",0);
 }
 static void narrative_footer(void){footer("UP/DOWN CHOOSE   X SELECT   O BACK");}

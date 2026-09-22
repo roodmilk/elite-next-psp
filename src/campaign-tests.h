@@ -42,6 +42,7 @@ static void campaign_tests(FILE *f,int *failures){
  saga_coda_pending=-1;
  CHECK(saga_has_coda(11)&&strstr(saga_coda_line1(10),"Amplifier")&&strstr(saga_beats[9].talk6,"grammar"),"saga: Act II page scripts and codas reach reunion / giants");
  CHECK(saga_has_coda(17)&&strstr(saga_coda_line1(12),"Packets")&&strstr(saga_beats[12].line,"Three copies")&&strstr(saga_beats[17].talk6,"Ideals"),"saga: Act III page scripts and codas reach map / No Easy Flag");
+ CHECK(saga_has_coda(23)&&strstr(saga_coda_line1(18),"Lane ugly")&&strstr(saga_beats[18].talk2,"Pale Meridian")&&strstr(saga_beats[20].talk6,"answerable"),"saga: Act IV page scripts and codas reach Black Flight / relay");
  CHECK(strstr(saga_choice_blurb(17,0),"Ideals")&&strstr(saga_beats[15].talk7,"throat")&&strstr(saga_beats[16].talk4,"unresolved"),"saga: Act III Alliance / Coldest / Flag blurbs from screenplay");
  CHECK(!strcmp(saga_choice_label(5,0),"Publish the ledger now")&&!strcmp(saga_choice_label(11,1),"Verify evidence first")&&!strcmp(saga_choice_label(17,2),"Lawful supervised force"),"saga: choice labels match each permanent decision");
  CHECK(SAGA_BRIEF_BEATS==8&&saga_beats[0].talk8&&saga_beats[0].ask8,"saga: briefs are eight-beat page scripts");
