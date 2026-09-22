@@ -2,6 +2,11 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.16 - 2026-09-22
+
+- SHIPS band lists every ship, including hostiles; locking a hostile no longer flips you off SHIPS.
+- ENEMIES lists only ships currently going after the player.
+
 ## 2.5.15 - 2026-09-22
 
 - Bottom canopy **RED ALERT** stays clear of top speech during combat (status no longer hijacks the speech box); scenic HUD still shows the banner.

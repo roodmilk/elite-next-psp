@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.15**.
+Prepared 22 September 2026. Current build: **2.5.16**.
 
 ## Start here
 
@@ -62,9 +62,13 @@ Important controls:
 
 ## Recent changes that must be preserved
 
+### 2.5.16 — SHIPS vs ENEMIES
+
+SHIPS lists all alive ships (hostiles included). ENEMIES lists only contacts currently engaging the player (`target == -2`). Browsing SHIPS stays on SHIPS when you highlight a hostile.
+
 ### 2.5.15 — RED ALERT bottom banner and ENEMIES band
 
-Combat status uses a bottom-of-canopy **RED ALERT** strip so top speech stays free. Hold Square + Left/Right cycles PLANETS / SHIPS / STATIONS / OTHER / **ENEMIES**; ENEMIES lists pirates and anyone currently targeting the player.
+Combat status uses a bottom-of-canopy **RED ALERT** strip so top speech stays free. Hold Square + Left/Right cycles PLANETS / SHIPS / STATIONS / OTHER / **ENEMIES**. From 2.5.16, ENEMIES is engage-only (`target == -2`); SHIPS lists every alive ship.
 
 ### 2.5.14 — locked story conversations
 
@@ -112,11 +116,11 @@ Orbital templates, world-type permutations and seeded traffic make each system l
 
 ### 2.5.7 — radio chassis and audible static
 
-Radio UI is a dial chassis (OFF + 1–5). Retune injects audible static; OFF is silence. SHIPS lists all contacts; ENEMIES stays hostiles-only.
+Radio UI is a dial chassis (OFF + 1–5). Retune injects audible static; OFF is silence. SHIPS lists all ships; ENEMIES lists only contacts currently engaging the player.
 
 ### 2.5.6 — red alert and enemies band
 
-Combat cues use a bottom-of-canopy RED ALERT strip. Square+D-pad scanner bands include ENEMIES (hostiles only). Galacticnet Spacebook/Messages and Codex Systems/Planets remain as shipped in 2.5.5.
+Combat cues use a bottom-of-canopy RED ALERT strip. Square+D-pad scanner bands include ENEMIES (engage-only). Galacticnet Spacebook/Messages and Codex Systems/Planets remain as shipped in 2.5.5.
 
 ### 2.5.5 — speaker chips, menus, radio, system variety
 

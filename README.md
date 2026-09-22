@@ -1,9 +1,14 @@
-# ELITE: NEXT — development build 2.5.15
+# ELITE: NEXT — development build 2.5.16
+
+## New in 2.5.16 — SHIPS includes hostiles; ENEMIES is engage-only
+
+- SHIPS lists every contact, including ships attacking you.
+- ENEMIES lists only ships currently going after the player.
 
 ## New in 2.5.15 — clearer RED ALERT and ENEMIES band
 
 - Under attack: compact **RED ALERT** at the bottom of the canopy; character speech stays at the top.
-- Hold Square + Left/Right always includes **ENEMIES** (anyone hostile to you).
+- Hold Square + Left/Right always includes **ENEMIES** (ships currently attacking you).
 
 ## New in 2.5.14 — locked, expanded story conversations
 

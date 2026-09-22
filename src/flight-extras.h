@@ -2,7 +2,8 @@
 static int selected_target=0,look_target=-1,autoaim=0,scan_cat=2,square_held=0,police_choice=0;
 static float r_tap=10,l_tap=10,hard_brake=0;
 static const char *scan_cat_names[]={"PLANETS","SHIPS","STATIONS","OTHER","ENEMIES"};
-static int npc_is_hostile(const NPC *n){return n->role==PIRATES||n->target==-2;}
+/* ENEMIES = ships currently going after the player. SHIPS lists every alive contact. */
+static int npc_is_hostile(const NPC *n){return n&&n->target==-2;}
 static int target_category(int id){
  if(id==0)return 2;
  if(id>0&&id<=BODY_COUNT)return 0;
@@ -16,22 +17,32 @@ static int scanner_known(int id){if(!IS_NPC_ID(id)||(game.upgrades&16))return 1;
 static int nearest_hostile_target(void){int best=-1;float range=1e9f;for(int i=0;i<NPC_COUNT;i++)if(game.npc[i].alive&&npc_is_hostile(&game.npc[i])){float d=length(sub(game.npc[i].pos,game.pos));if(d<range){range=d;best=BODY_COUNT+1+i;}}return best;}
 static void pick_look_target(void);
 static int occluded(Vec3 pos);
-static void lock_local_target(int id,const char *kind){
- selected_target=id;scan_cat=target_category(id);nav_body=id>0&&id<=BODY_COUNT?id-1:-1;autoaim=0;
- snprintf(game.message,sizeof(game.message),"%s: %s / HOLD SQUARE + R TO LOCK",kind,target_name(id));game.message_time=2.4f;game.cue=SFX_UI;
- story_event(&game,STORY_EV_TARGET);
-}
 static int collect_scan_ids(int *ids,int cat){
  int n=0;
  if(cat==0){for(int i=1;i<BODY_COUNT;i++)ids[n++]=i+1;}
- else if(cat==1){for(int i=0;i<NPC_COUNT;i++)if(game.npc[i].alive)ids[n++]=BODY_COUNT+1+i;}
+ else if(cat==1){for(int i=0;i<NPC_COUNT;i++)if(game.npc[i].alive)ids[n++]=BODY_COUNT+1+i;} /* all ships, hostiles included */
  else if(cat==2)ids[n++]=0;
- else if(cat==4){for(int i=0;i<NPC_COUNT;i++)if(game.npc[i].alive&&npc_is_hostile(&game.npc[i]))ids[n++]=BODY_COUNT+1+i;}
+ else if(cat==4){for(int i=0;i<NPC_COUNT;i++)if(game.npc[i].alive&&npc_is_hostile(&game.npc[i]))ids[n++]=BODY_COUNT+1+i;} /* engaging player only */
  else {
   for(int i=0;i<ANOMALY_COUNT;i++)if(game.anomaly[i].alive)ids[n++]=ANOMALY_ID_MIN+i;
   for(int i=0;i<DEBRIS_COUNT;i++)if(game.debris[i].alive)ids[n++]=DEBRIS_ID_MIN+i;
  }
  return n;
+}
+static void ensure_scan_cat_for_target(int id){
+ if(!valid_target(id))return;
+ int ids[BODY_COUNT+NPC_COUNT+DEBRIS_COUNT+ANOMALY_COUNT],n=collect_scan_ids(ids,scan_cat);
+ for(int i=0;i<n;i++)if(ids[i]==id)return;
+ scan_cat=target_category(id);
+}
+static void lock_local_target(int id,const char *kind){
+ selected_target=id;
+ /* Stay on SHIPS when browsing all traffic — hostiles live there too. */
+ if(!(IS_NPC_ID(id)&&(scan_cat==1||scan_cat==4)))scan_cat=target_category(id);
+ else ensure_scan_cat_for_target(id);
+ nav_body=id>0&&id<=BODY_COUNT?id-1:-1;autoaim=0;
+ snprintf(game.message,sizeof(game.message),"%s: %s / HOLD SQUARE + R TO LOCK",kind,target_name(id));game.message_time=2.4f;game.cue=SFX_UI;
+ story_event(&game,STORY_EV_TARGET);
 }
 static void step_scan_cat(int dir){
  /* Always visit every band, including empty ENEMIES, so Square+Left/Right is predictable. */
