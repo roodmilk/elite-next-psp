@@ -10,7 +10,7 @@ static void home(void){
  {"Change cash or world state.","Debug changes affect saves."},{"Hail the station or get help.","Request guided docking."},{"Economy, risk and planets.","Know where you are flying."},
  {"Find work at this station.","Dock to accept a contract."},{"Review jobs and set a route.","Reading pauses job clocks."},{"News and local SpaceBook.","Take a break from flying."},
  {"Review your discoveries.","Keep a record of your travels."},{"Five offline music stations.","Set music and effects levels."},{"Guide for the tracked mission.","Choose tracking in Mission Log."},
- {"Optional Guild assignments.","Also listed in Mission Log."},{"Choose HUD and text chatter.","Keep the view comfortable."},{"First-person station crawl.","Map, shops, taxis, talk."},{"Fitted slots and cargo list.","See what your ship carries."}};
+ {"Optional Guild assignments.","Also listed in Mission Log."},{"Choose HUD and text chatter.","Keep the view comfortable."},{"Illustrated station rooms.","LOOK SPEAK GO TAKE on hotspots."},{"Fitted slots and cargo list.","See what your ship carries."}};
  panel(8,58,222,132);panel(238,58,234,132);
  for(int i=0;i<deck_sizes[group];i++){int id=deck_rows[group][i],y=8+i*2;int locked=!game.docked&&(id==3||id==4||id==12||id==20);
   if(id==row){rect(10,y*8-2,218,15,RGB(25,65,77));rect(10,y*8-2,3,15,GOLD);}

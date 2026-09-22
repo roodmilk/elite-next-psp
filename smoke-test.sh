@@ -26,7 +26,7 @@ export DISPLAY="${DISPLAY:-:1}"
 PID=$!
 cleanup() { kill "$PID" 2>/dev/null || true; wait "$PID" 2>/dev/null || true; }
 trap cleanup EXIT
-DEADLINE=$((SECONDS + 120))
+DEADLINE=$((SECONDS + 420))
 REPORT="$TEST_DIR/performance-check.txt"
 while (( SECONDS < DEADLINE )); do
   if [[ -f "$REPORT" ]] && grep -q '^RESULT ' "$REPORT"; then

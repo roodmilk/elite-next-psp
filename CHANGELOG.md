@@ -2,6 +2,15 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.32 - 2026-09-22
+
+- Station interior rebuilt as a MacVenture-style point-and-click: Command / Main / Exits / Pack / Text windows, LOOK SPEAK GO TAKE verbs, illustrated hotspots.
+- Seven lush rooms on a small graph (Arrivals, Chandlery, Canteen, Cargo, Guild, Clinic, Customs). Dense clickables in every room; EXITS lists doors by name; YOUR SHIP / TRI boards the ship from any deck. Talk, shop, gifts and taxis kept. Grid maze crawl removed.
+
+## 2.5.31 - 2026-09-22
+
+- Open Channel dialogue quality raised to full spoken character voice (see tagged release notes).
+
 ## 2.5.30 - 2026-09-22
 
 - Station crawl FP view rebuilt as a crisp MM6-style space dungeon: riveted wall panels, high-contrast checker floor, hanging lamp glow, labeled side/front doors showing destination room names, denser room props, and portrait NPC sprites with name plates.
