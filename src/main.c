@@ -230,15 +230,6 @@ static void button_icon(int x,int y,char b,unsigned c){
  else {rect(x+1,y+1,7,7,c);rect(x+3,y+3,3,3,DASH);}
 }
 #include "hud-pixels.h"
-static void ship_sprite_detail(const NPC *n,unsigned color){
- /* Engine/cockpit glints are bounded to the world viewport. */
- float d=length(sub(n->pos,game.pos));if(d>3000)return;
- Vec3 c=camera(&game,n->pos);if(c.z<25)return;
- Vec3 back=camera(&game,add(n->pos,mul(n->dir,-n->radius*.65f)));
- if(back.z<25)return;
- Point p=project(back);int s=(int)fmaxf(1,fminf(3,700.f/c.z));
- world_spark((int)p.x,(int)p.y,s,color);
-}
 static int footer_token(const char *s,int n,char *icon){
  struct {const char *word;char icon;} keys[]={{"X",'X'},{"O",'O'},{"TRI",'T'},{"TRIANGLE",'T'},{"SQ",'S'},{"SQUARE",'S'}};
  for(unsigned i=0;i<sizeof(keys)/sizeof(keys[0]);i++)if((int)strlen(keys[i].word)==n&&!strncmp(s,keys[i].word,n)){*icon=keys[i].icon;return 1;}
@@ -689,6 +680,21 @@ static void input_tests(void){
    {
     int gold=0;for(int y=65;y<150;y++)for(int x=247;x<460;x++)if(pixels[y*STRIDE+x]==GOLD||((pixels[y*STRIDE+x]&255)>180&&((pixels[y*STRIDE+x]>>8)&255)>140))gold=1;
     INPUT_CHECK(gold,"graphics: Select deck top-right shows a third-person ship silhouette");
+   }
+   {
+    /* Engine roots must sit on the mesh aft tip — radius-scaled glow floated past wide ships. */
+    int ok=1;
+    for(int mesh=0;mesh<mesh_count;mesh++){
+     float aft=0,rad=1;const Mesh *m=&meshes[mesh];
+     for(int v=0;v<m->vertices;v++){float L=length(m->v[v]);if(L>rad)rad=L;aft=fmaxf(aft,-m->v[v].z);}
+     if(aft<1)continue;
+     NPC sample={0};sample.mesh=mesh;sample.scale=1;sample.radius=rad;sample.dir=(Vec3){0,0,1};
+     if(npc_engine_aft(&sample)>aft+0.01f)ok=0;
+    }
+    NPC tip={0};tip.mesh=mesh_id("VIPER");tip.scale=1;tip.radius=80;tip.dir=(Vec3){0,0,1};
+    float viperaft=0;for(int v=0;v<meshes[tip.mesh].vertices;v++)viperaft=fmaxf(viperaft,-meshes[tip.mesh].v[v].z);
+    Vec3 root=npc_engine_root(&tip,0);
+    INPUT_CHECK(ok&&fabsf(root.z+viperaft)<0.05f&&viperaft<tip.radius*.65f,"graphics: engine glow roots at the mesh aft tip (not past the silhouette)");
    }
    memset(pixels,0,STRIDE*H*sizeof(unsigned));preview_clip(240,110,20,20,25,25);
    DrawTri t={{{20,20,30},{30,20,30},{20,30,30}},WHITE,30};triangle(&t);

@@ -1,4 +1,8 @@
-# ELITE: NEXT — development build 2.5.16
+# ELITE: NEXT — development build 2.5.17
+
+## New in 2.5.17 — engine trails sit on the stern
+
+- NPC exhaust plumes and aft glints start at the mesh stern (freighter nozzles), so the flame no longer floats behind the ship.
 
 ## New in 2.5.16 — SHIPS includes hostiles; ENEMIES is engage-only
 

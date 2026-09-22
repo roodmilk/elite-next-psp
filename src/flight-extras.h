@@ -183,21 +183,45 @@ static void station_glow(void){
  if(game.pos.z>=STATION_ENTRY_Z||occluded((Vec3){0,0,STATION_ENTRY_Z}))return;
  for(int i=0;i<4;i++){Vec3 corner=station_port_corner(i);corner.z-=2;Vec3 v=camera(&game,add(rotate(corner,0,station_angle(&game)),(Vec3){0,0,STATION_Z}));if(v.z<20)continue;Point p=project(v);world_spark((int)p.x,(int)p.y,3,CYAN);}
 }
+/* Mesh ships are drawn with yaw only; freighters follow full dir. Match that here. */
+static Vec3 npc_draw_facing(const NPC *n){
+ if(n->freighter)return n->dir;
+ Vec3 f={n->dir.x,0,n->dir.z};float L=length(f);return L>.001f?mul(f,1.f/L):(Vec3){0,0,1};
+}
+static float npc_engine_aft(const NPC *n){
+ if(n->freighter)return freight_extent(n).z*.998f; /* capital stern nozzles */
+ float aft=0;const Mesh *m=&meshes[n->mesh];
+ for(int v=0;v<m->vertices;v++)aft=fmaxf(aft,-m->v[v].z*n->scale);
+ if(aft<1)aft=n->radius*.45f;
+ return aft;
+}
+static Vec3 npc_engine_root(const NPC *n,float lateral){
+ Vec3 facing=npc_draw_facing(n),side=norm((Vec3){facing.z,0,-facing.x});
+ /* Flush to the aft face — not radius-behind, which floated past the silhouette. */
+ return add(add(n->pos,mul(facing,-npc_engine_aft(n))),mul(side,lateral));
+}
+static void ship_sprite_detail(const NPC *n,unsigned color){
+ /* Cockpit/engine glint on the mesh aft tip (same anchor as the plume). */
+ float d=length(sub(n->pos,game.pos));if(d>3000)return;
+ Vec3 c=camera(&game,n->pos);if(c.z<25)return;
+ Vec3 back=camera(&game,npc_engine_root(n,0));
+ if(back.z<25)return;
+ Point p=project(back);int s=(int)fmaxf(1,fminf(3,700.f/c.z));
+ world_spark((int)p.x,(int)p.y,s,color);
+}
 static void npc_engine_glow(void){
  int top=view_top(),bot=view_bot();
  for(int i=0;i<NPC_COUNT;i++){NPC *n=&game.npc[i];if(!n->alive||occluded(n->pos))continue;float d=length(sub(n->pos,game.pos));if(d>9000)continue;
-  Vec3 extent=n->freighter?freight_extent(n):(Vec3){n->radius,n->radius,n->radius};
-  float aft=n->freighter?extent.z:0;if(!n->freighter){const Mesh *m=&meshes[n->mesh];for(int v=0;v<m->vertices;v++)aft=fmaxf(aft,-m->v[v].z*n->scale);if(aft<1)aft=n->radius*.55f;}
-  Vec3 side=norm((Vec3){n->dir.z,0,-n->dir.x});int plumes=n->freighter?2:1;
+  Vec3 facing=npc_draw_facing(n),side=norm((Vec3){facing.z,0,-facing.x});
+  float lateral=n->freighter?freight_extent(n).x*.38f:0;int plumes=n->freighter?2:1;
   for(int plume=0;plume<plumes;plume++){
-   float offset=n->freighter?(plume?1:-1)*extent.x*.38f:0;
-   /* Anchor at the mesh aft tip so the flame starts on the hull, not floating behind it. */
-   Vec3 rear=add(add(n->pos,mul(n->dir,-aft*.92f)),mul(side,offset));Vec3 rv=camera(&game,rear);if(rv.z<25)continue;Point root=project(rv);if(root.x<3||root.x>477||root.y<top+3||root.y>bot-3)continue;
+   float offset=n->freighter?(plume?1:-1)*lateral:0;
+   Vec3 rear=npc_engine_root(n,offset);Vec3 rv=camera(&game,rear);if(rv.z<25)continue;Point root=project(rv);if(root.x<3||root.x>477||root.y<top+3||root.y>bot-3)continue;
    int pulse=1+(int)(fabsf(sinf(game.time*(n->freighter?2.2f:5.5f)+i+plume))*2);world_spark((int)root.x,(int)root.y,n->freighter?2+pulse:1+pulse,RGB(255,218,125));pixel((int)root.x,(int)root.y,WHITE);
-   Point last=root;int segments=n->freighter?6:4;float step=n->freighter?30.f:13.f;
+   Point last=root;int segments=n->freighter?6:4;float step=n->freighter?22.f:9.f;
    for(int k=1;k<=segments;k++){
-    float flicker=sinf(game.time*7+i*1.9f+plume*2.3f+k)*(.8f+k*.35f);
-    Vec3 tail=add(add(rear,mul(n->dir,-step*k)),mul(side,flicker));tail.y+=cosf(game.time*5+i+k)*k*.28f;
+    float flicker=sinf(game.time*7+i*1.9f+plume*2.3f+k)*(.55f+k*.28f);
+    Vec3 tail=add(add(rear,mul(facing,-step*k)),mul(side,flicker));tail.y+=cosf(game.time*5+i+k)*k*.22f;
     Vec3 tv=camera(&game,tail);if(tv.z<25)break;Point q=project(tv);if(q.x<2||q.x>478||q.y<top+2||q.y>bot-2)break;
     unsigned flame=k==1?RGB(255,185,70):k<=3?RGB(224,76,28):k<segments?RGB(105,45,30):RGB(47,50,55);
     line((int)last.x,(int)last.y,(int)q.x,(int)q.y,flame);if(k<3)pixel((int)q.x+(plume?1:-1),(int)q.y,GOLD);last=q;

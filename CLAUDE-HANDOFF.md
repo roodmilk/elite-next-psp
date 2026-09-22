@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.16**.
+Prepared 22 September 2026. Current build: **2.5.17**.
 
 ## Start here
 
@@ -61,6 +61,10 @@ Important controls:
 - Galaxy Map: Triangle switches between nearby jumps and the full 256-system map; D-pad moves between systems; L/R zoom; X plots a multi-jump route and saves the final goal.
 
 ## Recent changes that must be preserved
+
+### 2.5.17 — engine trails on the stern
+
+Exhaust plumes and aft glints use the mesh rear tip (and freighter capital nozzles), matching the drawn silhouette. Do not reintroduce a radius-scaled glow behind the ship — that floated past wide hulls such as VIPER and COBRA MK 3.
 
 ### 2.5.16 — SHIPS vs ENEMIES
 
