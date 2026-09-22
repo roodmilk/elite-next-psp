@@ -81,6 +81,7 @@ static void engine_flare(void){
  unsigned core=game.boost?CYAN:AMBER,edge=game.boost?RGB(45,120,170):RGB(150,92,28);int y=bottom-6;
  for(int i=0;i<length;i++){int w=game.boost?2+(i%3):1+(i%2),yy=y+i,spread=(i*2)/3+1;rect(240-w-spread,yy,w,1,edge);rect(240+spread,yy,w,1,edge);if((i&1)==0)pixel(240,yy,core);}line(240-length/2,y-1,240+length/2,y-1,edge);
  space_anim_draw(SPACE_ANIM_PLUME,240,y+length/2,(int)(game.time*12.f),core);
+ pixel_sheet_draw(pixel_plume[(int)(game.time*12.f)&3],PIXEL_PLUME_W,PIXEL_PLUME_H,232,y-2);
 }
 static void secondary_hubs(void){
  for(int i=1;i<HUB_COUNT;i++){
