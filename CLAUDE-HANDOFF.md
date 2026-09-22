@@ -76,9 +76,9 @@ The nearby list only shows local candidates. Triangle opens a spatial overview o
 
 Story navigation plans against the fitted drive even if the tank is empty, then marks the next hop as low-fuel until the player refuels. The story screen distinguishes `NEXT` from `FINAL`, and the cockpit names the next reachable hop.
 
-### 2.5.5 — speaker chips and outfitting clarity
+### 2.5.5 — speaker chips, menus, radio, system variety
 
-Dialogue name plates use `speaker_name_tag` so `NAME SAYS` sits on a faction-coloured chip. Tracked Mission (saga + Guild) draws the speaker portrait next to the briefing bubble. Outfitting no longer shows opaque `Tech N / hub M` — it states whether the item is in stock, already fitted, or blocked by hub tech, and tells the player to warp to a richer system when needed.
+Dialogue name plates use `speaker_name_tag` so `NAME SAYS` sits on a faction-coloured chip. Tracked Mission draws speaker portraits. Outfitting explains tech gates in plain language. Galacticnet order is Spacebook then Messages with a parody logo. Codex lists Systems and Planets discovered by visiting. Radio is a tuner with OFF, static on retune, and Triangle power. Planet types/traffic layout vary per system; hyperspace arrival is farther from the hub.
 
 ### 2.5.4 — sleep/resume recovery
 

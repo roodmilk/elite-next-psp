@@ -1,10 +1,12 @@
 # ELITE: NEXT — development build 2.5.5
 
-## New in 2.5.5 — speaker chips and clearer outfitting
+## New in 2.5.5 — speaker chips, clearer menus, radio tuner, system variety
 
-- `NAME SAYS` labels sit on a colour chip so Kei, Law, Guild and saga contacts read at a glance.
-- Tracked Mission shows the active speaker's face beside the briefing bubble.
-- Outfitting explains tech gates in plain language (in stock / already fitted / hub tech too low — warp to a richer system).
+- `NAME SAYS` labels sit on a colour chip; Tracked Mission shows speaker faces.
+- Outfitting explains tech gates (in stock / fitted / hub tech too low).
+- Galacticnet: Messages sits beside Spacebook; Spacebook logo; Codex Systems + Planets.
+- Radio tuner dial with OFF, station notches, retune static, and power off.
+- Systems look and place traffic differently; warp arrives farther from the hub.
 
 ## New in 2.5.4 — wake from long sleep without a black screen
 

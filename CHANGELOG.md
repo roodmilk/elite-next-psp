@@ -7,6 +7,10 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 - Speaker labels (`KEI SAYS`, `IONA SAYS`, flight chatter, Law stops) now sit on a colour chip matching the speaker.
 - Tracked Mission briefings show the active speaker's face beside the dialogue bubble for saga chapters and Guild assignments.
 - Outfitting detail pane explains tech gates in plain language: in stock, already fitted, or hub tech too low with the needed level and “warp to a richer system.”
+- Galacticnet tab order is News / Market / Wanted / Spacebook / Messages / Jobs; Spacebook and Messages show a Facebook-parody logo.
+- Discovery Codex adds Systems (visited) and Planets (worlds discovered by visiting a system).
+- Radio page is a tuner dial with OFF + stations 1–5, static while retuning, and Triangle power off.
+- Each system rotates planet types/colours and traffic layout; hyperspace drops you farther from the hub on a system-unique bearing.
 
 ## 2.5.4 - 2026-09-22
 
