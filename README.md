@@ -78,7 +78,7 @@
 ## New in 2.5.22 — station crawl, shops, loadout
 
 - First-person station map with characters, exclusive shops, free gifts, taxi passengers and quest tips.
-- Outfitting shows only in-stock gear; Ship Loadout tracks fitted slots and hold.
+- Outfitting shows only in-stock gear; Ship Loadout tracks **real** fitted slots (buy / replace / sell 50%) and hold.
 
 ## New in 2.5.21 — full Act I–IV screenplay authority
 
@@ -576,7 +576,7 @@ Retro space trading and combat with a redesigned command interface. This is a pa
 
 ## Install and saves
 
-Replace EBOOT.PBP in PSP/GAME/ELITEA/ on a PSP configured for homebrew, or open it in PPSSPP. Keep commander.sav. This build imports version 1–6 commander files. Newly saved version 7 files store the Guild campaign, power pips, five independent missions, Codex discoveries and visited systems as well as local warrants and upgrades; older builds cannot read them. Do not copy smoke.flag from test directories.
+Replace EBOOT.PBP in PSP/GAME/ELITEA/ on a PSP configured for homebrew, or open it in PPSSPP. Keep commander.sav. This build imports version 1–12 commander files and writes version 13 (fitted module slots). Newly saved version 7+ files store the Guild campaign, power pips, five independent missions, Codex discoveries and visited systems as well as local warrants and upgrades; older builds cannot read newer saves. Do not copy smoke.flag from test directories.
 
 ## Getting started
 

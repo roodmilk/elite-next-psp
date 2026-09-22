@@ -59,6 +59,8 @@ typedef struct {
  Body bodies[BODY_COUNT];
  int dock_stage,dock_phase,station_variant; float dock_timer,dock_duration; Vec3 dock_from,dock_to;
  int wanted[256],police_stop,police_phase,upgrades; float roll,explosion;
+ uint8_t fit[6]; /* WPN DEF NAV HOLD FUEL UTIL — catalog index or 0xFF empty (save V13) */
+ float heat_sink_cd;
  float freight_next,freight_gap;
  float attacked,collision,encounter,incoming_missile,police_grace; int boost,approach,planet,surface,incoming_source;
  Vec3 orbit_pos,ship_pos; float orbit_yaw,orbit_pitch,orbit_roll,orbit_speed;

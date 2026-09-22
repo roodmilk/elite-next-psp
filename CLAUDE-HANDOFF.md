@@ -1,6 +1,10 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.44**.
+Prepared 22 September 2026. Current build: **2.5.44** tip + equipment modules (save V13 fit slots; no micro-tag).
+
+## Working tip — equipment modules (untagged)
+
+Outfitting buys into six hardpoints (`fit[]`); Loadout sells at 50%. Bits still drive the sim; V13 persists slots. Do not restyle Outfitting art. No tag — Systems packs EBOOT after smoke.
 
 ## Start here
 
