@@ -176,12 +176,18 @@ static int sc_find_hot(int kind,int id){
  return -1;
 }
 static void sc_snap_verb_hot(void){
- if(sc_verb==SC_V_GO){int i=sc_find_hot(SC_H_EXIT,-1);if(i>=0)sc_hot=i;}
- else if(sc_verb==SC_V_SPEAK){int i=sc_find_hot(SC_H_PERSON,-1);if(i>=0)sc_hot=i;}
+ if(sc_verb==SC_V_GO){
+  /* Prefer a room hatch first; fall back to YOUR SHIP so GO always lands on travel. */
+  int i=sc_find_hot(SC_H_EXIT,-1);
+  ScHot hot[24]; int hn=sc_hotspots(hot,24);
+  int ship=-1,door=-1;
+  for(int h=0;h<hn;h++)if(hot[h].kind==SC_H_EXIT){if(hot[h].id==SC_EXIT_SHIP)ship=h;else if(door<0)door=h;}
+  if(door>=0)sc_hot=door;else if(ship>=0)sc_hot=ship;else if(i>=0)sc_hot=i;
+ }else if(sc_verb==SC_V_SPEAK){int i=sc_find_hot(SC_H_PERSON,-1);if(i>=0)sc_hot=i;}
  else if(sc_verb==SC_V_TAKE){
   int i=sc_find_hot(SC_H_PERSON,-1);
   ScNpc people[3]; int pn=sc_fill_npcs(sc_room,people,3);
-  for(int p=0;p<pn;p++)if(people[p].act==SC_ACT_GIFT||people[p].act==SC_ACT_SHOP){int j=sc_find_hot(SC_H_PERSON,p);if(j>=0){i=j;break;}}
+  for(int p=0;p<pn;p++)if(people[p].act==SC_ACT_GIFT||people[p].act==SC_ACT_SHOP||people[p].act==SC_ACT_QUEST||people[p].act==SC_ACT_TAXI){int j=sc_find_hot(SC_H_PERSON,p);if(j>=0){i=j;break;}}
   if(i>=0)sc_hot=i;
  }
 }
@@ -648,8 +654,22 @@ static void sc_apply(void){
     sc_menu=SC_MENU_TALK;sc_talk_who=h->id;sc_talk_row=1;game.cue=SFX_UI;return;
    }
    if(h->id>=0&&h->id<pn&&people[h->id].act==SC_ACT_SHOP){sc_menu=SC_MENU_SHOP;sc_shop_row=0;return;}
+   if(h->id>=0&&h->id<pn&&(people[h->id].act==SC_ACT_QUEST||people[h->id].act==SC_ACT_TAXI)){
+    sc_menu=SC_MENU_TALK;sc_talk_who=h->id;sc_talk_row=1;message(&game,"Offer sits in SPEAK — pick the deal.");game.cue=SFX_UI;return;
+   }
   }
-  if(h->kind==SC_H_PROP){message(&game,"Bolted down. SPEAK to whoever owns it.");game.cue=SFX_UI;return;}
+  /* Props with an owner: route TAKE into the fun SPEAK deal instead of a dead end. */
+  if(h->kind==SC_H_PROP||h->kind==SC_H_FEATURE){
+   int owner=sc_find_hot(SC_H_PERSON,-1);
+   if(owner>=0&&(!strcmp(h->label,"TIP CRATE")||!strcmp(h->label,"STOCK CRATE")||!strcmp(h->label,"MEDKIT LOCKER")||!strcmp(h->label,"COUNTER")||!strcmp(h->label,"BAR TOP")||!strcmp(h->label,"GUILD DESK"))){
+    ScHot hot2[24]; int hn2=sc_hotspots(hot2,24);
+    if(owner<hn2&&hot2[owner].kind==SC_H_PERSON){
+     sc_hot=owner;sc_verb=SC_V_SPEAK;sc_menu=SC_MENU_TALK;sc_talk_who=hot2[owner].id;sc_talk_row=1;
+     message(&game,"Ask them — TAKE opens their deal.");game.cue=SFX_UI;return;
+    }
+   }
+   if(h->kind==SC_H_PROP){message(&game,"Bolted down. SPEAK to whoever owns it.");game.cue=SFX_UI;return;}
+  }
   message(&game,"You cannot take that.");game.cue=SFX_UI;
  }
 }

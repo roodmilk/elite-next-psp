@@ -8,6 +8,7 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 - Side hatch doors replace top chrome door strips so the focal object stays clear; UI chrome thins to cream/cyan hairlines.
 - Fewer decorative frames (no checker floors / lamp rows); SHIP return and talk/shop/gift/taxi unchanged.
 - **Working tip (no new tag):** Act III page scripts (Ch.14–19 through No Easy Flag) folded onto this line for the next big combined release.
+- Station TAKE on owned props opens the NPC deal; GO snaps to a hatch first — verb payoffs tightened for fun.
 
 ## 2.5.38 - 2026-09-22
 
