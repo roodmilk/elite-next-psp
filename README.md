@@ -1,10 +1,15 @@
-# ELITE: NEXT — development build 2.5.34
+# ELITE: NEXT — development build 2.5.36
+
+## New in 2.5.36 — MacVenture station + art kit wire
+
+- Soft-FB rooms pull ART DIRECTOR palette/styles from `station-art-kit.h` (bake path PR #12).
+- Clearer hotspots, talk tips that change info/gameplay, dead-clear SHIP return.
+- Bake kits under `assets/source/station-art/` are proposed references — not full-screen runtime textures yet.
 
 ## New in 2.5.34 — MacVenture station deck
 
 - Illustrated station rooms with LOOK / SPEAK / GO / TAKE (Shadowgate-style windows).
-- Dense hotspots in every room; EXITS names doors; TRI or YOUR SHIP returns to the command deck.
-- Small room graph; shops, talk, gifts and taxis unchanged.
+- Dense hotspots; EXITS names doors; TRI or YOUR SHIP returns to the command deck.
 
 ## New in 2.5.30 — MM6-style station crawl
 

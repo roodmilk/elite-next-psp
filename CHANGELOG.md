@@ -2,6 +2,12 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.36 - 2026-09-22
+
+- MacVenture station polish: ART DIRECTOR bake kit palette/styles wired through `station-art-kit.h` (PR #12) into soft-FB room draw — wall/lamp/accent per room, cream hotspot ticks, talk tips that lead somewhere (traffic/rumour/warrant/Kei next-step).
+- Focal anchors trimmed to readable interactables + people/doors/ship; GO/SPEAK/TAKE snap to matching hotspots; TRI / >>SHIP / EXITS stay dead-clear.
+- Merged bake path assets (`assets/source/station-art/`, preview crops, bake tools). **Playable now:** full point-and-click station. **Still planned:** per-system look kits as runtime textures, celestial identity in crawl (kit boards remain proposed).
+
 ## 2.5.34 - 2026-09-22
 
 - Station interior rebuilt as a MacVenture-style point-and-click: Command / Main / Exits / Pack / Text windows, LOOK SPEAK GO TAKE verbs, illustrated hotspots.

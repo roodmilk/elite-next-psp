@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.34**.
+Prepared 22 September 2026. Current build: **2.5.36**.
 
 ## Start here
 
@@ -63,6 +63,10 @@ Important controls:
 - Galaxy Map: Triangle switches between nearby jumps and the full 256-system map; D-pad moves between systems; L/R zoom; X plots a multi-jump route and saves the final goal.
 
 ## Recent changes that must be preserved
+
+### 2.5.36 — MacVenture + art kit wire
+
+Soft-FB rooms use `station-art-kit.h` styles (PR #12 bake). Talk tips lead somewhere; ship return remains TRI / >>SHIP / EXITS. Kit boards are proposed — not claimed as baked runtime textures.
 
 ### 2.5.34 — MacVenture station deck
 
