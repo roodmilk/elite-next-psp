@@ -30,6 +30,10 @@ void system_bodies(Game *g){
   if(g->system==7&&i==1){b->type=OCEAN;b->color=0xc35f23;b->accent=0x4b9137;}
   snprintf(b->name,sizeof(b->name),"%s %s",g->systems[g->system].name,i==0?"SUN":i==1?"I":i==2?"II":i==3?"III":"IV");
  }
+ /* Lave keeps the familiar sun / ocean / rocky / gas / rocky set for the opening chapter. */
+ if(g->system==7){g->bodies[1].type=OCEAN;g->bodies[1].color=0xc35f23;g->bodies[1].accent=0x4b9137;g->bodies[2].type=ROCKY;g->bodies[3].type=GAS;g->bodies[4].type=ROCKY;}
+ /* Keep the hub corridor clear so traffic and station approaches stay readable. */
+ {Vec3 hub={0,0,STATION_Z};for(int i=1;i<BODY_COUNT;i++){Body *b=&g->bodies[i];float d=length(sub(b->pos,hub)),need=b->radius+9000.f;if(d<1)b->pos=(Vec3){need,0,STATION_Z};else if(d<need)b->pos=add(hub,mul(norm(sub(b->pos,hub)),need));}}
 }
 int mission_destination(const Game *g,int offer){int n=0;for(int i=0;i<256;i++)if(i!=g->system&&distance_ly(g,g->system,i)<=10.0f){if(n++==offer)return i;}return -1;}
 int mission_count(const Game *g){int max=1+prosperity(g,g->system),n=0;while(n<max&&mission_destination(g,n)>=0)n++;return n;}

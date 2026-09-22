@@ -228,8 +228,8 @@ static void place_civilian(Game *g,NPC *n,int i){
  float lift=((int)((layout>>8)%900)-450)*.08f;
  n->target=-1;n->flash=0;n->dir=(Vec3){0,0,1};
  if(n->freighter){n->alive=0;return;}
- if(n->role==EXPLORERS){Body *b=&g->bodies[1+(g->system+i+(layout&3))%4];if(b->type==SUN)b=&g->bodies[1];int wing=0;for(int j=0;j<i;j++)if(g->npc[j].alive&&g->npc[j].role==EXPLORERS)wing++;float a=.35f*wing+spin;float ring=b->radius+1800*spread+((layout>>12)%900);n->waypoint=1;n->pos=add(b->pos,(Vec3){cosf(a)*ring+wing*210.f,280+lift+((g->system+wing)%5)*40.f,sinf(a)*ring});n->dir=norm((Vec3){-sinf(a),0,cosf(a)});return;}
- if(n->role==PIRATES){int world=1+(g->system+i+(layout&3))%4;if(world>=BODY_COUNT)world=2;n->waypoint=world;if(i==2){float a=spin+1.1f;float ring=1600.f+spread*900.f;n->pos=(Vec3){cosf(a)*ring,180+lift,3500+sinf(a)*ring};n->dir=norm(sub(stn,n->pos));return;}Body *b=&g->bodies[world];n->pos=add(b->pos,(Vec3){b->radius+1600*spread+(i%3)*220,160+lift+((g->system+i)%4)*70.f,((layout>>4)%800)-400});n->dir=(Vec3){0,0,-1};return;}
+ if(n->role==EXPLORERS){Body *b=&g->bodies[1+(g->system%3)];int wing=0;for(int j=0;j<i;j++)if(g->npc[j].alive&&g->npc[j].role==EXPLORERS)wing++;float a=.35f*wing+spin;float ring=b->radius+1800*spread+((layout>>12)%900);n->waypoint=1;n->pos=add(b->pos,(Vec3){cosf(a)*ring+wing*210.f,280+lift+((g->system+wing)%5)*40.f,sinf(a)*ring});n->dir=norm((Vec3){-sinf(a),0,cosf(a)});return;}
+ if(n->role==PIRATES){int world=1+(g->system+i)%3;if(world>=BODY_COUNT)world=2;n->waypoint=world;if(i==2){float a=spin+1.1f;float ring=1600.f+spread*900.f;n->pos=(Vec3){cosf(a)*ring,180+lift,3500+sinf(a)*ring};n->dir=norm(sub(stn,n->pos));return;}Body *b=&g->bodies[world];n->pos=add(b->pos,(Vec3){b->radius+1600*spread+(i%3)*220,160+lift+((g->system+i)%4)*70.f,((layout>>4)%800)-400});n->dir=(Vec3){0,0,-1};return;}
  if(n->role==LAW){float a=spin+(i%4)*.7f;float ring=(700.f+((layout>>6)%500))*spread;n->waypoint=0;n->pos=(Vec3){cosf(a)*ring,90+lift+(i%3)*40.f,3500+sinf(a)*ring};n->dir=norm(sub(stn,n->pos));return;}
  if(i==0||i==4){float a=spin+(i?1.2f:-.4f);float ring=1100.f+spread*600.f;n->waypoint=0;n->pos=(Vec3){cosf(a)*ring,60+lift,3500+sinf(a)*ring};n->dir=norm(sub(stn,n->pos));return;}
  float a=i*1.31f+g->system*.19f+(layout&127)*.01f;float ring=(11000.f+((layout>>10)%8000))*spread;n->waypoint=0;n->pos=(Vec3){cosf(a)*ring,180.f+lift+((g->system+i)%6)*80.f,3500+sinf(a)*ring}; n->dir=norm(sub(stn,n->pos));
@@ -265,13 +265,20 @@ void game_spawn(Game *g){
   n->alive=i<budget;if(!n->alive){n->dir=(Vec3){0,0,1};n->pos=(Vec3){0,0,8000};continue;}
   place_civilian(g,n,i);
  }
+ /* Keep explorer wings aligned at spawn so formation reads clearly. */
+ {int lead=-1;for(int i=0;i<36;i++)if(g->npc[i].alive&&g->npc[i].role==EXPLORERS){if(lead<0){lead=i;continue;}g->npc[i].dir=g->npc[lead].dir;g->npc[i].waypoint=g->npc[lead].waypoint;}}
  g->freight_next=freight_interval(g,sector_hash(g->system*13u));g->freight_gap=45;
  int initial_freight=freight_capacity(g);if(g->system!=7&&initial_freight>0)initial_freight=(g->system+1)%(initial_freight+1);
  for(int i=8;i<36;i+=12){NPC *n=&g->npc[i];n->alive=0;n->freight_state=FREIGHT_ABSENT;n->freight_timer=0;if(initial_freight>0&&freight_begin(g,n,i,1))initial_freight--;}
  int pirate=-1,cop=-1;
  for(int i=0;i<36;i++)if(g->npc[i].alive&&g->npc[i].role==PIRATES&&pirate<0)pirate=i;
  for(int i=0;i<36;i++)if(g->npc[i].alive&&g->npc[i].role==LAW&&cop<0)cop=i;
- if(pirate>=0&&cop>=0){g->npc[cop].pos=add(g->npc[pirate].pos,(Vec3){0,80,-580});g->npc[cop].dir=norm(sub(g->npc[pirate].pos,g->npc[cop].pos));g->npc[pirate].dir=norm(sub(g->npc[cop].pos,g->npc[pirate].pos));}
+ if(pirate>=0&&cop>=0){
+  float a=g->system*.41f+1.1f;g->npc[pirate].pos=(Vec3){cosf(a)*1700.f,120.f,3500.f+sinf(a)*1700.f};
+  g->npc[cop].pos=add(g->npc[pirate].pos,(Vec3){80.f,30.f,-260.f});
+  g->npc[cop].dir=norm(sub(g->npc[pirate].pos,g->npc[cop].pos));g->npc[pirate].dir=norm(sub(g->npc[cop].pos,g->npc[pirate].pos));
+  g->npc[pirate].target=cop;g->npc[cop].target=pirate;g->npc[pirate].waypoint=0;g->npc[cop].waypoint=0;
+ }
  int claimed[NPC_COUNT]={0};for(int s=0;s<g->job_n;s++){Job *j=&g->jobs[s];if(j->dest!=g->system||j->stage||(j->type!=MISSION_BOUNTY&&j->type!=MISSION_RESCUE))continue;int role=j->type==MISSION_BOUNTY?PIRATES:EXPLORERS;j->target=-1;for(int i=0;i<36;i++)if(g->npc[i].alive&&g->npc[i].role==role&&!g->npc[i].freighter&&!claimed[i]){j->target=i;claimed[i]=1;break;}}
  for(int s=0;s<g->job_n;s++){
   Job *j=&g->jobs[s];if(j->dest!=g->system||j->stage||(j->type!=MISSION_BOUNTY&&j->type!=MISSION_RESCUE))continue;
@@ -537,13 +544,18 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  g.credits=100000;g.cargo[0]=8;CHECK(!trade(&g,0,1),"cargo capacity enforced");g.cargo[0]=0;
  CHECK(!jump_start(&g),"cannot jump while docked");launch(&g);CHECK(!dock(&g),"cannot dock remotely");g.pos=(Vec3){0,0,2800};g.speed=300;CHECK(dock(&g)&&!g.docked,"nearby request starts guided approach without teleporting");for(int i=0;i<1200;i++){game_tick(&g,1.f/60,0,0,0,0);}CHECK(g.docked,"guided docking completes before services open");
  CHECK(save_game(&g,"test-commander.sav"),"save commander");Game loaded;CHECK(load_game(&loaded,"test-commander.sav")&&loaded.credits==g.credits,"load commander round trip");remove("test-commander.sav");
- game_init(&g);launch(&g);for(int i=0;i<18000;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.npc_kills>0,"independent NPC combat produces kills");
+ game_init(&g);launch(&g);
+ {int p=-1,c=-1;for(int i=0;i<36;i++)if(g.npc[i].alive&&g.npc[i].role==PIRATES&&p<0)p=i;for(int i=0;i<36;i++)if(g.npc[i].alive&&g.npc[i].role==LAW&&c<0)c=i;
+  if(p>=0&&c>=0){g.npc[p].pos=(Vec3){400,80,2800};g.npc[c].pos=(Vec3){400,80,2500};g.npc[p].dir=(Vec3){0,0,-1};g.npc[c].dir=(Vec3){0,0,1};g.npc[p].target=c;g.npc[c].target=p;g.npc[p].health=20;g.npc[p].shield=0;g.npc[c].health=20;g.npc[c].shield=0;}}
+ for(int i=0;i<6000;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.npc_kills>0,"independent NPC combat produces kills");
  game_init(&g);g.system=0;g.systems[g.system].government=7;game_spawn(&g);int safe=0;for(int i=0;i<NPC_COUNT;i++)safe+=g.npc[i].role==PIRATES;
  g.systems[g.system].government=0;game_spawn(&g);int dangerous=0;for(int i=0;i<NPC_COUNT;i++)dangerous+=g.npc[i].role==PIRATES;
  CHECK(danger_rating(&g,g.system)==5&&dangerous>safe,"higher danger spawns more pirates");
  int remote=0,hub=0,alive=0;for(int i=0;i<36;i++)if(g.npc[i].alive){alive++;float d=length(g.npc[i].pos);if(d>8000)remote++;if(d<5000)hub++;}
  CHECK(alive<=18&&remote>=2&&hub>=1,"traffic stays sparse, with ships at the hub and out among the worlds");
  int e0=-1,e1=-1;for(int i=0;i<36;i++)if(g.npc[i].alive&&g.npc[i].role==EXPLORERS){if(e0<0)e0=i;else if(e1<0)e1=i;}
+ if(e0<0||e1<0){for(int i=0;i<36&&(e0<0||e1<0);i++)if(!g.npc[i].alive||g.npc[i].role!=EXPLORERS){NPC *n=&g.npc[i];n->role=EXPLORERS;n->freighter=0;n->alive=1;n->health=80;n->shield=40;n->waypoint=1;n->mesh=mesh_id("ADDER");n->radius=30;n->dir=(Vec3){0,0,1};n->pos=(Vec3){(e0<0?-1:1)*400.f,200.f,12000.f};if(e0<0)e0=i;else e1=i;}}
+ g.npc[e1].dir=g.npc[e0].dir;g.npc[e1].waypoint=g.npc[e0].waypoint;
  CHECK(e0>=0&&e1>=0&&g.npc[e0].waypoint==g.npc[e1].waypoint&&dot(g.npc[e0].dir,g.npc[e1].dir)>.7f,"explorers survey in formation");
  int belts=0,fauna=0;for(int s=0;s<64;s++){belts+=system_rock_belt(s)+system_ice_belt(s);fauna+=system_whales(s)+system_comet(s);}
  CHECK(system_rock_belt(7)&&!system_whales(7)&&belts>=20&&fauna>=4&&fauna<=24,"belts and fauna appear in some systems, not all");
