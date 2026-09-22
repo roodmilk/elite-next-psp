@@ -13,6 +13,13 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 - Menu 3D ship viewport camera orbits much slower.
 - Factions screen: X cycles Story channel lore (saga helpers only); Triangle locks nearest ship of that colour.
 
+## 2.5.44 - 2026-09-22
+
+- **Law rewrite pack:** scan → settle → clear loop from PR #29 (`4fea6f2`) on the v2.5.43 tip.
+- Illegal cargo (Slaves/Narcotics/Firearms) is not a warrant until Law scans; assault/kill still files heat.
+- Cargo scan stop (submit / refuse / run); settle pay/custody/run; docked Status Square fine desk + CUSTOMS tip; leave system keeps warrant.
+- Mission accept no longer auto-warrants smuggling. Save wanted[] / V12 kept.
+
 ## 2.5.43 - 2026-09-22
 
 - **Commander play-fix pack:** Art HUD/disembark quiet (`1b4e08d`) + Designer dock-only deck services / slow menu cam / live Factions (`eb4d23a`) + Story Gazette tabloid + faction lore (`9a9c45f` / `gazette-lore.h`).
