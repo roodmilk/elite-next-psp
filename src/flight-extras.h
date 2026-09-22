@@ -233,18 +233,24 @@ static void lens_flares(void){
  if(high_contrast||occluded(game.bodies[0].pos))return;
  Vec3 p=camera(&game,game.bodies[0].pos);if(p.z<=100)return;Point q=project(p);
  int top=clipy0>=0?clipy0:view_top(),bot=clipy1>=0?clipy1-1:view_bot();
- if(q.x<-40||q.x>=W+40||q.y<top-40||q.y>bot+40)return;
- float power=fmaxf(0,1-length((Vec3){q.x-proj_ox,q.y-proj_oy,0})/300.f);
+ if(q.x<-60||q.x>=W+60||q.y<top-60||q.y>bot+60)return;
+ float power=fmaxf(0,1-length((Vec3){q.x-proj_ox,q.y-proj_oy,0})/320.f);
  if(power<=0)return;
- unsigned tint=game.bodies[0].color;
- /* Anamorphic streaks + soft ghost orbs — bloom without a full-frame pass. */
- int span=(int)(28*power);for(int dx=-span;dx<=span;dx+=2){
+ unsigned tint=game.bodies[0].color;int fam=sun_family(game.bodies[0].seed);
+ /* Horizontal anamorphic streak */
+ int span=(int)((30+fam*2)*power);
+ for(int dx=-span;dx<=span;dx+=2){
   int x=(int)q.x+dx,y=(int)q.y;if(x<0||x>=W||y<top||y>bot)continue;
-  unsigned c=RGB(((tint&255)*power)/2,(((tint>>8)&255)*power)/2,(((tint>>16)&255)*power)/2);
-  pixel(x,y,c);if((dx&3)==0&&y+1<=bot)pixel(x,y+1,c);
+  int fall=span?span-abs(dx):1;unsigned c=RGB(((tint&255)*fall*power)/(span*3),(((tint>>8)&255)*fall*power)/(span*3),(((tint>>16)&255)*fall*power)/(span*3));
+  sun_bloom_dot(x,y,c,0,top,W,bot);
+  if((dx&3)==0&&y+1<=bot)sun_bloom_dot(x,y+1,c,0,top,W,bot);
  }
- for(int i=0;i<5;i++){float t=.35f+i*.38f;int x=(int)(q.x+(proj_ox-q.x)*t),y=(int)(q.y+(proj_oy-q.y)*t);
-  if(x>2&&x<W-2&&y>top&&y<bot)world_spark(x,y,2+i/2,i&1?RGB(62,101,139):RGB(119,86,48));
+ /* Ghost orbs along the optical axis */
+ for(int i=0;i<5;i++){float t=.3f+i*.4f;int x=(int)(q.x+(proj_ox-q.x)*t),y=(int)(q.y+(proj_oy-q.y)*t);
+  if(x>3&&x<W-3&&y>top+2&&y<bot-2){
+   unsigned ghost=i&1?RGB(40,70,100):RGB(90,60,30);
+   for(int dy=-1;dy<=1;dy++)for(int dx=-1;dx<=1;dx++)sun_bloom_dot(x+dx,y+dy,ghost,0,top,W,bot);
+  }
  }
 }
 static void police_dialog(void){if(!game.police_stop)return;const int bx=76,by=38,bw=388,bh=65;unsigned edge=faction_colors[LAW];draw_portrait(16,45,48,48,VOICE_LAW*37,LAW);rect(bx,by,bw,bh,RGB(14,29,39));rect(bx,by,bw,2,edge);rect(bx,by+bh-2,bw,2,RGB(30,78,86));rect(bx+bw-2,by,2,bh,edge);line(bx,by+20,bx-12,by+28,edge);line(bx-12,by+28,bx,by+36,edge);rect(bx-3,by+22,4,13,RGB(14,29,39));speaker_name_tag(11,6,"LOCAL LAW",edge);text(11,8,WHITE,"Commander, your vessel is under local arrest.");text(11,10,WHITE,"Warrant %d/5 in %s. Choose now.",wanted_level(&game),game.systems[game.system].name);text(2,14,DIM,"YOUR RESPONSE");const char *opts[]={"PAY FINE AND LEAVE","ACCEPT STATION CUSTODY","RUN FROM LAW"};for(int i=0;i<3;i++){int y=16+i*3;if(i==police_choice)selected(y);text(3,y,i==police_choice?WHITE:DIM,"%s %s",i==police_choice?">":" ",opts[i]);if(i==0)text(32,y,i==police_choice?CYAN:DIM,"%.1f U",police_fine(&game)*.1f);if(i==1)text(32,y,i==police_choice?GOLD:DIM,"UP TO %.1f U",police_fine(&game)*.05f);if(i==2)text(32,y,i==police_choice?RED:DIM,"WARRANT + PURSUIT");}text(2,26,DIM,"UP/DOWN CHOOSE   X CONFIRM   FLIGHT PAUSED");}

@@ -93,8 +93,8 @@ static unsigned dim_rgb(unsigned c,int num,int den){
  if(b>255)b=255;
  return RGB(r,g,b);
 }
-/* Applied to the world before any UI. Keep pixel art and text crisp:
- * edge vignette plus a sparse bright-pixel bloom (no second framebuffer). */
+/* Applied to the world before any UI. Vignette + threshold bloom that never
+ * reallocates and only samples a sparse grid — stays glitch-free on PSP. */
 static void hud_postfx(void){
  if(high_contrast)return;
  int top=view_top(),bot=view_bot();
@@ -102,16 +102,21 @@ static void hud_postfx(void){
   fb[y*STRIDE+x]=dim_rgb(fb[y*STRIDE+x],24+x,32);
   fb[y*STRIDE+W-1-x]=dim_rgb(fb[y*STRIDE+W-1-x],24+x,32);
  }
- /* Sparse bloom: every 4th scanline, lift neighbours of very bright pixels. */
- for(int y=top+2;y<=bot-2;y+=4)for(int x=2;x<W-2;x+=4){
-  unsigned c=fb[y*STRIDE+x];int r=c&255,g=(c>>8)&255,b=(c>>16)&255;
-  if(r+g+b<520)continue;
-  for(int dy=-1;dy<=1;dy++)for(int dx=-1;dx<=1;dx++){
-   if(!dx&&!dy)continue;
+ /* Two-pass sparse bloom: gather bright samples, then soft-add to neighbours. */
+ for(int y=top+3;y<=bot-3;y+=3)for(int x=3;x<W-3;x+=3){
+  unsigned c=fb[y*STRIDE+x];int r=c&255,g=(c>>8)&255,b=(c>>16)&255,lum=r+g+b;
+  if(lum<540)continue;
+  int boost=(lum-540)/24;if(boost>6)boost=6;
+  for(int dy=-2;dy<=2;dy++)for(int dx=-2;dx<=2;dx++){
+   int dist=dx*dx+dy*dy;if(dist==0||dist>8)continue;
    int yy=y+dy,xx=x+dx;unsigned d=fb[yy*STRIDE+xx];
-   int nr=((d&255)*5+r)/6,ng=(((d>>8)&255)*5+g)/6,nb=(((d>>16)&255)*5+b)/6;
-   fb[yy*STRIDE+xx]=RGB(nr>255?255:nr,ng>255?255:ng,nb>255?255:nb);
+   int fall=5-dist/2;if(fall<1)fall=1;
+   int nr=((d&255)*6+(r*fall)/5)/6,ng=(((d>>8)&255)*6+(g*fall)/5)/6,nb=(((d>>16)&255)*6+(b*fall)/5)/6;
+   if(nr>255)nr=255;if(ng>255)ng=255;if(nb>255)nb=255;
+   /* Never write the sample pixel itself — avoids strobing the source. */
+   fb[yy*STRIDE+xx]=RGB(nr,ng,nb);
   }
+  (void)boost;
  }
 }
 static void danger_badge(int x,int y,int level){

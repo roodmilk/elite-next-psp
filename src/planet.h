@@ -98,7 +98,8 @@ static void planet_view(void){
   for(int x=0;x<W;x++)fb[y*STRIDE+x]=c;
  }
  int suny=top+28-(int)(game.pitch*40);if(suny<top+8)suny=top+8;if(suny>bottom-40)suny=bottom-40;
- circle(370,suny,14,mix_rgb(b->color,RGB(255,230,120),.25f));circle(370,suny,8,RGB(255,255,200));
+ /* Sky disc uses the same animated system sun as orbit / charts. */
+ draw_sun_sprite(370,suny,14,game.bodies[0].color,game.bodies[0].seed,game.time,0,top,W,bottom);
  if(biome==BIOME_OCEAN)for(int i=0;i<3;i++){int cx=70+i*90,cy=top+18+(i%2)*10;planet_cliprect(cx,cy,50,8,RGB(230,236,242));planet_cliprect(cx+10,cy-6,34,8,RGB(242,246,250));}
  else if(biome==BIOME_ICE)for(int i=0;i<4;i++){int cx=50+i*100,cy=top+14+(i%3)*6;planet_cliprect(cx,cy,36,5,mix_rgb(b->accent,RGB(230,240,250),.4f));}
  else if(biome==BIOME_VOLCANIC)for(int i=0;i<3;i++){int cx=80+i*110,cy=top+20+i*4;planet_cliprect(cx,cy,28,3,mix_rgb(b->accent,RGB(255,120,40),.35f));}

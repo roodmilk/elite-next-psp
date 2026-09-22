@@ -1,4 +1,9 @@
-# ELITE: NEXT — development build 2.5.24
+# ELITE: NEXT — development build 2.5.25
+
+## New in 2.5.25 — animated pixel-art suns and bloom
+
+- Eight system sun looks with looping pixel frames in every view.
+- Soft corona bloom and lens streaks without a second framebuffer.
 
 ## New in 2.5.24 — chat flow, WANTED board, suns, richer station crawl
 

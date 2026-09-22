@@ -55,15 +55,16 @@ static void debug_action(void){
 }
 static void body_tint(int sys,int i,unsigned *col,unsigned *acc,int *type){
  const int world_perm[6][4]={{OCEAN,ROCKY,GAS,ROCKY},{ROCKY,GAS,OCEAN,ROCKY},{GAS,OCEAN,ROCKY,ROCKY},{ROCKY,OCEAN,ROCKY,GAS},{OCEAN,GAS,ROCKY,ROCKY},{ROCKY,ROCKY,OCEAN,GAS}};
- const unsigned suns[]={0x80dfff,0xffd8ac,0x5088ff,0xc4f4ff,0xffc88a,0xc88cff};
- const unsigned worlds[]={0xc97535,0x91b45c,0x8763b5,0x7ebfc4,0xb87775,0xadc2ce,0xd4a574,0x5a8f6a,0x6b5b95,0xc45c5c};
- unsigned h=art_hash((sys+1)*911u+i*65537u);int perm=(int)((art_hash((sys+1)*0x9e3779b9u)>>6)%6);
- *type=i==0?SUN:world_perm[perm][(i-1)&3];*col=i==0?suns[h%6]:worlds[(h>>8)%10];*acc=worlds[(h>>16)%10];
+ /* Keep in lockstep with sectors.h sun/world palettes so every view matches flight. */
+ const unsigned suns[]={0x80dfff,0x66c8ff,0x526eff,0xf4f4ff,0xffc88a,0xc88cff,0x9ee8ff,0xd8e8ff,0xffa060,0xb0ffe0};
+ const unsigned worlds[]={0xc97535,0x91b45c,0x8763b5,0x7ebfc4,0xb87775,0xadc2ce,0xd4a574,0x5a8f6a,0x6b5b95,0xc45c5c,0x3d7a5a,0xd0a040,0x5a90c0,0xa05070,0x708050};
+ unsigned h=body_art_seed(sys,i);int perm=(int)((sun_hash((unsigned)(sys+1)*0x9e3779b9u)>>6)%6);
+ *type=i==0?SUN:world_perm[perm][(i-1)&3];*col=i==0?suns[h%10]:worlds[(h>>8)%15];*acc=worlds[(h>>16)%15];
  if(sys==7&&i==1){*type=OCEAN;*col=0xc35f23;*acc=0x4b9137;}
 }
 static void chart_system_preview(int dest){
  int xs[5]={352,394,436,373,415},ys[5]={58,52,58,92,96},rs[5]={16,12,10,14,11};
- for(int i=0;i<BODY_COUNT;i++){unsigned col,acc;int type;body_tint(dest,i,&col,&acc,&type);draw_planet_disc(xs[i],ys[i],rs[i],col,acc,art_hash((dest+1)*911u+i*65537u),type);}
+ for(int i=0;i<BODY_COUNT;i++){unsigned col,acc;int type;body_tint(dest,i,&col,&acc,&type);draw_planet_disc(xs[i],ys[i],rs[i],col,acc,body_art_seed(dest,i),type);}
 }
 static void galaxy_xy(int id,int *x,int *y){
  int cx=chart_zoom==1?128:game.systems[chart_cursor].x,cy=chart_zoom==1?128:game.systems[chart_cursor].y;
@@ -135,7 +136,7 @@ static void codex_screen(void){
  if(codex_tab==0){
   for(int j=0;j<7&&first+j<count;j++){int i=first+j,y=7+j*2,sys=vis_sys(i);if(i==row)rect(10,y*8-2,220,13,RGB(25,65,77));text(3,y,i==row?WHITE:DIM,"%s%-12s",sys==game.system?"* ":"  ",game.systems[sys].name);}
   int sys=vis_sys(row);unsigned col,acc;int type;
-  for(int b=0;b<BODY_COUNT;b++){body_tint(sys,b,&col,&acc,&type);draw_planet_disc(270+b*38,78,b==0?16:12,col,acc,art_hash((sys+1)*911u+b*65537u),type);}
+  for(int b=0;b<BODY_COUNT;b++){body_tint(sys,b,&col,&acc,&type);draw_planet_disc(270+b*38,78,b==0?16:12,col,acc,body_art_seed(sys,b),type);}
   text(32,14,CYAN,"%.22s",game.systems[sys].name);
   text(32,16,WHITE,"Sun + 4 worlds");
   if(sys==game.system)text(32,18,GOLD,"Here: flora %d fauna %d",game.scanned_flora,game.scanned_fauna);
@@ -147,7 +148,7 @@ static void codex_screen(void){
    text(3,y,i==row?WHITE:DIM,"%.10s %s",game.systems[sys].name,rom[body]);
   }
   int sys,body;planet_log_at(row,&sys,&body);unsigned col,acc;int type;body_tint(sys,body,&col,&acc,&type);
-  draw_planet_disc(318,86,34,col,acc,art_hash((sys+1)*911u+body*65537u),type);
+  draw_planet_disc(318,86,34,col,acc,body_art_seed(sys,body),type);
   const char *rom[]={"","I","II","III","IV"};
   text(32,16,CYAN,"%.12s %s",game.systems[sys].name,rom[body]);
   {const char *kindname[]={"STAR","OCEAN","ROCKY","GAS"};text(32,18,WHITE,"%s world",kindname[type>=0&&type<=GAS?type:ROCKY]);}

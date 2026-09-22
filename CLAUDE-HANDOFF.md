@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.24**.
+Prepared 22 September 2026. Current build: **2.5.25**.
 
 ## Start here
 
@@ -63,6 +63,10 @@ Important controls:
 - Galaxy Map: Triangle switches between nearby jumps and the full 256-system map; D-pad moves between systems; L/R zoom; X plots a multi-jump route and saves the final goal.
 
 ## Recent changes that must be preserved
+
+### 2.5.25 — pixel-art suns + bloom
+
+Eight animated sun sprite families shared across flight/UI; additive corona and sparse canopy bloom. Chart tints match live bodies.
 
 ### 2.5.24 — chat flow, GalNet wanted, sun bloom, station FP
 

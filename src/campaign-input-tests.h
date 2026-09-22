@@ -64,12 +64,14 @@
  TEST_INIT();change_page(STORY);int lesson=story_home_row(&game);input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(page==HOME&&row==lesson,"guide: next lesson focuses the correct visible service");
  char icon=0;INPUT_CHECK(!footer_token("NEXT",4,&icon)&&!footer_token("STORY",5,&icon)&&footer_token("X",1,&icon)&&icon=='X'&&footer_token("SQ",2,&icon)&&icon=='S',"footer: complete button tokens only, including Square abbreviation");
- int variants=0,consistent=1;
+ int variants=0,consistent=1,sun_fams=0;
  for(int sys=0;sys<256;sys++){game.system=sys;system_bodies(&game);
+  {unsigned seed=body_art_seed(sys,0);if(seed!=game.bodies[0].seed)consistent=0;sun_fams|=1<<sun_family(seed);}
   for(int b=1;b<BODY_COUNT;b++){unsigned seed=art_hash((sys+1)*911u+b*65537u);if(seed!=game.bodies[b].seed)consistent=0;
    int id=planet_sprite_index(seed,game.bodies[b].type);if(id<0||id>=8)consistent=0;else variants|=1<<id;
   }
  }
  INPUT_CHECK(consistent&&variants==255,"planet sprites: all world seeds match chart identity and cover eight art families");
+ INPUT_CHECK(sun_fams==255,"sun sprites: every system sun family appears across the galaxy");
  TEST_INIT();
 }
