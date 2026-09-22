@@ -24,16 +24,17 @@ static void home(void){
  if(!game.docked&&(row==3||row==4||row==12))text(31,21,AMBER,"Dock first to open this.");
  if(is_story){rect(246,178,218,2,GOLD);text(31,23,GOLD,"Open to see your next step.");}
  text(2,25,CYAN,"System: %.12s",game.systems[game.system].name);
+ {int wl=wanted_level(&game);text(2,26,wl?RED:DIM,wl?"Wanted [%s]":"Clear warrant",stars(wl));}
  text(31,25,WHITE,"%.1f units   %s",game.credits*.1f,game.docked?"DOCKED":"PAUSED");
  footer("LEFT/RIGHT TAB   UP/DOWN   X OPEN   O BACK");
 }
 static void help(void){
  static const char *titles[]={"FLIGHT","TARGETS / TRAVEL","STATIONS / SURFACES","MENUS / COMFORT"};
- static const char *keys[][6]={{"D-pad / analog","R / L","Double-tap + hold R","L + Left / Right","X / L + X","Start"},
+ static const char *keys[][6]={{"D-pad / analog","R / L","2xR boost / 2xL brake","L + Left / Right","X / L + X","Start + D-pad"},
  {"Tap Square","Square + Left/Right","Square + Up/Down","Square + R","Steer manually","Circle"},
  {"Hold Triangle","Circle near a hub","Circle near a world","X / Circle prompt","Circle on surface","Triangle on surface"},
  {"Select in flight","Left / Right on deck","X / Circle","Hold Triangle","L + Select in flight","L on this screen"}};
- static const char *actions[][6]={{"Steer the ship","Accelerate / slow down","Fast boost (uses fuel)","Roll the ship","Laser / locked missile","Pause and adjust power"},
+ static const char *actions[][6]={{"Steer the ship","Accelerate / slow down","Boost or hard brake","Roll the ship","Laser / locked missile","Power banks SYS/ENG/WEP"},
  {"Open target list","Change target category","Choose target","Lock + auto-turn","Cancel auto-turn","Use the object ahead"},
  {"Comms and docking request","Request guided docking","Ask to approach","Enter / turn away","Land or leave the ship","Take off / return to orbit"},
  {"Open the paused deck","Change service category","Open / return","Chatter and comms options","Full / minimal / scenic HUD","Toggle analog steering"}};

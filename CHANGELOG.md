@@ -11,6 +11,8 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 - Discovery Codex adds Systems (visited) and Planets (worlds discovered by visiting a system).
 - Radio page is a tuner dial with OFF + stations 1–5, static while retuning, and Triangle power off.
 - Each system rotates planet types/colours and traffic layout; hyperspace drops you farther from the hub on a system-unique bearing.
+- Double-tap L hard-brakes when fast; heat rises from speed, boost and sun proximity — critical heat locks boost, max heat destroys the ship.
+- Hold Start adjusts SYS/ENG/WEP on the existing cockpit meters (no separate overlay). Mission cue is right-aligned; wanted level shows under the system name; Select deck preview is a third-person ship view.
 
 ## 2.5.4 - 2026-09-22
 

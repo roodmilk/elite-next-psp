@@ -20,13 +20,15 @@ static void menu_space_view(int x,int y,int w,int h){
  rect(x,y,w,h,RGB(8,12,28));
  Vec3 oldpos=game.pos;float oldyaw=game.yaw,oldpitch=game.pitch,oldroll=game.roll;
  preview_clip(x+w/2,y+h/2+4,x+1,y+1,x+w-1,y+h-1);
- if(game.docked){
-  game.pos=(Vec3){600,140,2780};Vec3 aim=norm(sub((Vec3){0,0,3500},game.pos));game.yaw=atan2f(aim.x,aim.z);
-  float py=aim.y;if(py>1)py=1;if(py<-1)py=-1;game.pitch=asinf(py);game.roll=0;
-  starfield();station_model();flush_meshes();
- }else{
-  int body=nav_body;if(body<1||body>=BODY_COUNT)body=game.approach>=0?game.approach:1;Body *focus=&game.bodies[body];float phase=preview_time*.24f,dist=focus->radius*4.2f+1800.f;Vec3 offset={sinf(phase)*dist*.55f,sinf(phase*.7f)*dist*.18f,-cosf(phase)*dist};game.pos=add(focus->pos,offset);Vec3 aim=norm(sub(focus->pos,game.pos));game.yaw=atan2f(aim.x,aim.z);game.pitch=asinf(fmaxf(-1,fminf(1,aim.y)));game.roll=0;
-  starfield();draw_bodies();lens_flares();secondary_hubs();station_model();flush_meshes();
+ /* Third-person orbit of the commander's ship against local space. */
+ {
+  float phase=preview_time*.35f;Vec3 ship=game.docked?(Vec3){0,0,3200}:game.pos;
+  Vec3 cam=add(ship,(Vec3){sinf(phase)*420.f,140.f+sinf(phase*.6f)*60.f,cosf(phase)*420.f});
+  game.pos=cam;Vec3 aim=norm(sub(ship,cam));game.yaw=atan2f(aim.x,aim.z);game.pitch=asinf(fmaxf(-1,fminf(1,aim.y)));game.roll=0;
+  starfield();
+  if(length(sub(ship,(Vec3){0,0,3500}))<12000)station_model();
+  shipmesh(mesh_id(player_ships[game.ship].name),ship,game.docked?station_angle(&game)*.2f:oldyaw,oldroll*.4f,1.15f,GOLD,0);
+  flush_meshes();
  }
  preview_reset();game.pos=oldpos;game.yaw=oldyaw;game.pitch=oldpitch;game.roll=oldroll;
 }
@@ -123,10 +125,11 @@ static void cockpit(void){
  if(hud_hidden||hud_mode==2)return;
  /* Top 24px: system, heading, route. Bottom 80px: all instruments. */
  rect(0,0,W,24,RGB(6,15,24));rect(0,23,W,1,RGB(43,77,89));
- text(1,1,CYAN,"System: %.11s",game.systems[game.system].name);
+ text(1,0,CYAN,"System: %.11s",game.systems[game.system].name);
+ {int wl=wanted_level(&game);text(1,1,wl?RED:DIM,wl?"Wanted [%s]":"Wanted clear",stars(wl));}
  int heading=(int)(game.yaw*57.29578f)%360;if(heading<0)heading+=360;
- text(24,1,DIM,"%03d",heading);danger_badge(224,8,danger_rating(&game,game.system));
- text(35,1,GOLD,"%.24s",tracked_hud_cue());
+ text(24,0,DIM,"%03d",heading);danger_badge(224,4,danger_rating(&game,game.system));
+ {const char *cue=tracked_hud_cue();int clen=(int)strlen(cue);if(clen>24)clen=24;text(60-clen,0,GOLD,"%.*s",clen,cue);}
  if(game.incoming_missile>0||game.attacked>0||game.collision>0){
   rect(8,24,464,16,RGB(70,15,22));text(2,4,WHITE,game.incoming_missile>0?"MISSILE INBOUND - BOOST TO EVADE":game.attacked>0?"UNDER ATTACK":"COLLISION - SLOW DOWN");
  }else if(game.dock_stage==1){rect(8,24,464,16,RGB(8,24,32));text(2,4,CYAN,"DOCKING GUIDANCE ACTIVE");}
@@ -161,7 +164,7 @@ static void cockpit(void){
   for(int hub=1;hub<HUB_COUNT;hub++)if(hub!=nearest_hub(&game))radar_dot(camera(&game,hub_position(&game,hub)),CYAN,2,0);
  }
  hud_pixel_icon(237,227,2,WHITE);
- for(int i=0;i<3;i++){int x=336+i*46;int n=i==0?game.pip_sys:i==1?game.pip_eng:game.pip_wep;text(x/8,25,DIM,"%s",i==0?"SYS":i==1?"ENG":"WEP");for(int k=0;k<4;k++)rect(x+k*5,210,3,2,k<n?CYAN:RGB(29,46,57));}
+ for(int i=0;i<3;i++){int x=336+i*46;int n=i==0?game.pip_sys:i==1?game.pip_eng:game.pip_wep;unsigned ink=paused&&i==pip_sel?GOLD:DIM;if(paused&&i==pip_sel)rect(x-3,206,24,12,RGB(28,48,40));text(x/8,25,ink,"%s",i==0?"SYS":i==1?"ENG":"WEP");for(int k=0;k<4;k++)rect(x+k*5,210,3,2,k<n?(i==0?CYAN:i==1?AMBER:RED):RGB(29,46,57));}
  const char *labels[]={"SHLD","SPD","HEAT","FUEL"};
  int vmax=player_ships[game.ship].speed;if(vmax<1)vmax=1;
  int values[]={(int)game.energy,(int)(100*game.speed/vmax),(int)game.heat,(int)(100*game.fuel/fmaxf(1,player_ships[game.ship].range))};
@@ -170,6 +173,7 @@ static void cockpit(void){
  rect(0,262,W,10,RGB(10,24,33));
  button_icon(8,263,'T',CYAN);text(3,33,DIM,"HOLD: COMMS");
  if(game.dead)text(20,33,RED,"START: RECOVER");
+ else if(paused)text(20,33,GOLD,"START+LR BANK  UD POWER");
  else if(game.police_stop)text(20,33,GOLD,"X PAY   O CUSTODY");
  else if(game.approach>=0)text(20,33,GOLD,"X ENTER   O TURN BACK");
  else if(game.surface==2)text(20,33,DIM,"O BOARD   SQUARE SCAN   2xR JET");

@@ -1,6 +1,6 @@
 /* Flight presentation and target selection. Target IDs: station, bodies, NPCs, debris. */
 static int selected_target=0,look_target=-1,autoaim=0,scan_cat=2,square_held=0,police_choice=0;
-static float r_tap=10;
+static float r_tap=10,l_tap=10,hard_brake=0;
 static const char *scan_cat_names[]={"PLANETS","SHIPS","STATIONS","OTHER"};
 static int target_category(int id){
  if(id==0)return 2;

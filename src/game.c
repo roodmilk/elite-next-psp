@@ -402,8 +402,20 @@ void game_tick(Game *g,float dt,float turn,float pitch,int throttle,int fire){
  if(g->boost&&g->planet<0&&g->jump<=0){g->fuel=fmaxf(0,g->fuel-dt*.35f);if(g->fuel<=0){g->fuel=0;g->boost=0;if(g->message_time<=0)message(g,"Fuel empty. Boost cut.");}}
  Vec3 previous_pos=g->pos;g->pos=add(g->pos,mul(forward(g),g->speed*dt));world_collision(g,previous_pos);if(g->dead||g->dock_stage)return;campaign_flight(g,previous_pos);
  if(g->missile_time>0){g->missile_time-=dt;int i=g->missile_target;if(i<0||i>=NPC_COUNT||!g->npc[i].alive)g->missile_time=0;else {Vec3 d=norm(sub(g->npc[i].pos,g->missile_pos));g->missile_pos=add(g->missile_pos,mul(d,dt*2600));if(length(sub(g->npc[i].pos,g->missile_pos))<g->npc[i].radius+80){int mission_hit=0;for(int s=0;s<g->job_n;s++)if(g->jobs[s].dest==g->system&&g->jobs[s].type==MISSION_BOUNTY&&g->jobs[s].target==i)mission_hit=1;hit(g,i,140,1);g->missile_time=0;if(!mission_hit)message(g,"Missile hit confirmed.");}}}
- g->heat=fmaxf(0,g->heat-dt*((g->upgrades&4)?38:22));g->shot=fmaxf(0,g->shot-dt);g->energy=fminf(100,g->energy+dt*((g->upgrades&2)?3.0f:1.5f)*(0.50f+0.25f*g->pip_sys));
- if((g->upgrades&32)&&length(sub(g->pos,g->bodies[0].pos))<g->bodies[0].radius+4000){g->fuel=fminf((float)player_ships[g->ship].range,g->fuel+dt*.5f);g->heat=fminf(100,g->heat+dt*5);if(g->message_time<=0)message(g,g->heat>80?"Fuel scoop overheating. Break off.":"Fuel scoop filling the tank.");}
+ /* Heat builds from speed, boost and sun; cools when not boosting and clear of the star. */
+ {
+  float sun_d=length(sub(g->pos,g->bodies[0].pos)),safe=g->bodies[0].radius+5200.f;
+  int near_sun=sun_d<safe;float speed_ratio=g->speed/fmaxf(1.f,player_ships[g->ship].speed);
+  if(speed_ratio>1.15f)g->heat=fminf(100,g->heat+dt*(speed_ratio-1.f)*10.f);
+  if(g->boost)g->heat=fminf(100,g->heat+dt*14.f);
+  if(near_sun)g->heat=fminf(100,g->heat+dt*(6.f+(safe-sun_d)/safe*10.f));
+  if(!g->boost&&!near_sun)g->heat=fmaxf(0,g->heat-dt*((g->upgrades&4)?38:22));
+  else if(!near_sun)g->heat=fmaxf(0,g->heat-dt*4.f);
+  if(g->heat>=100){g->heat=100;g->energy=0;g->dead=1;g->jump=0;g->boost=0;g->explosion=0;g->cue=SFX_DEATH;message(g,"Hull overheat. Ship destroyed. START to recover.");}
+  else if(g->heat>=90){g->boost=0;if(g->message_time<=0)message(g,"CRITICAL HEAT — boost locked. Break off and cool.");}
+ }
+ g->shot=fmaxf(0,g->shot-dt);g->energy=fminf(100,g->energy+dt*((g->upgrades&2)?3.0f:1.5f)*(0.50f+0.25f*g->pip_sys));
+ if((g->upgrades&32)&&length(sub(g->pos,g->bodies[0].pos))<g->bodies[0].radius+4000){g->fuel=fminf((float)player_ships[g->ship].range,g->fuel+dt*.5f);if(g->message_time<=0)message(g,g->heat>80?"Fuel scoop overheating. Break off.":"Fuel scoop filling the tank.");}
  if(fire&&g->heat>=80&&g->shot<=.001f&&g->message_time<=0)message(g,"Lasers overheated. Wait for the HEAT bar.");
  if(fire&&g->shot<=.001f&&g->heat<80){g->shot=.18f;g->heat+=12;g->shots++;g->cue=SFX_LASER;float closest=2200;int target=-1;
   Vec3 beam_end=add(g->pos,mul(forward(g),2200));
