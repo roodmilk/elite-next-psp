@@ -647,6 +647,13 @@ static void input_tests(void){
     for(int y=56;y<192;y++)for(int x=0;x<W;x++)if(pixels[y*STRIDE+x])clean=0;
    }
    INPUT_CHECK(clean,"graphics: routine cockpit text never paints central viewing area");
+   memset(pixels,0,STRIDE*H*sizeof(unsigned));launch(&game);page=FLIGHT;tracked_mission=0;hud_mode=hud_hidden=0;quiet_comms=1;game.voice_time=0;game.message_time=0;cockpit();
+   {
+    const char *cue=tracked_hud_cue();int clen=(int)strlen(cue);int cols=W/8,inset=1,left=34,max=cols-inset-left;if(clen>max)clen=max;
+    int start=cols-inset-clen,right_px=(start+clen)*8,gold=0,far=0;
+    for(int y=0;y<8;y++)for(int x=start*8;x<right_px&&x<W;x++)if(pixels[y*STRIDE+x]==GOLD){gold=1;if(x>=W-16)far=1;}
+    INPUT_CHECK(gold&&far&&start>=left,"graphics: mission cue sits flush on the top-right header");
+   }
    memset(pixels,0,STRIDE*H*sizeof(unsigned));preview_clip(240,110,20,20,25,25);
    DrawTri t={{{20,20,30},{30,20,30},{20,30,30}},WHITE,30};triangle(&t);
    int clipped=1;for(int y=0;y<H;y++)for(int x=0;x<W;x++)if(pixels[y*STRIDE+x]&&(x<20||x>=25||y<20||y>=25))clipped=0;

@@ -116,7 +116,7 @@ static void radar_dot(Vec3 p,unsigned ink,int kind,int focus){
  else rect(q.x-1,q.y-1,3,3,ink);
 }
 static const char *tracked_hud_cue(void){
- static char out[28];
+ static char out[40];
  if(tracked_mission==0){if(game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT){if(!game.saga_step)snprintf(out,sizeof(out),"OPEN: STORY BRIEF");else if(saga_ready(&game))snprintf(out,sizeof(out),"OPEN: TRACKED MISSION");else if(game.system!=game.saga_dest){int jumps=0,hop=saga_next_hop(&game,&jumps);snprintf(out,sizeof(out),hop>=0?"JUMP: %.18s":"OPEN: GALAXY MAP",hop>=0?game.systems[hop].name:"");}else if(saga_beats[game.saga_chapter].kind==SAGA_SCAN)snprintf(out,sizeof(out),"SCAN: LOCAL SIGNAL");else if(saga_beats[game.saga_chapter].kind==SAGA_HUNT)snprintf(out,sizeof(out),"CLEAR: HOSTILE SHIPS");else snprintf(out,sizeof(out),"DOCK: LOCAL HUB");return out;}if(game.system!=7)snprintf(out,sizeof(out),"JUMP: LAVE");else snprintf(out,sizeof(out),"DOCK: LAVE HUB");return out;}
  if(tracked_mission==1){int ji=-1,type=guild_required_contract(&game);for(int i=0;i<game.job_n;i++)if(game.jobs[i].type==type){ji=i;break;}if(guild_ready(&game)){snprintf(out,sizeof(out),"DOCK: %.14s HUB",game.systems[game.system].name);return out;}if(ji>=0){Job *j=&game.jobs[ji];if(game.system!=j->dest)snprintf(out,sizeof(out),"JUMP: %.18s",game.systems[j->dest].name);else snprintf(out,sizeof(out),j->type==MISSION_RESCUE&&!j->stage?"FIND: RESCUE SIGNAL":"DOCK: %.14s HUB",game.systems[game.system].name);return out;}if(game.guild_chapter==2){snprintf(out,sizeof(out),"SCAN: LOCAL SIGNAL");return out;}if(type>=0){int station=guild_contract_station(&game);if(game.system!=station)snprintf(out,sizeof(out),"JUMP: %.18s",game.systems[station].name);else if(!game.docked)snprintf(out,sizeof(out),"DOCK: %.14s HUB",game.systems[station].name);else snprintf(out,sizeof(out),"OPEN: MISSION BOARD");return out;}snprintf(out,sizeof(out),game.docked?"LAUNCH: TEST FLIGHT":"DOCK: LOCAL HUB");return out;}
  int ji=tracked_mission-2;if(ji<0||ji>=game.job_n){snprintf(out,sizeof(out),"OPEN: MISSION LOG");return out;}Job *j=&game.jobs[ji];if(game.system!=j->dest)snprintf(out,sizeof(out),"JUMP: %.18s",game.systems[j->dest].name);else if(j->type==MISSION_DELIVERY||j->type==MISSION_SMUGGLING||(j->type==MISSION_RESCUE&&j->stage))snprintf(out,sizeof(out),"DOCK: %.14s HUB",game.systems[game.system].name);else if(j->type==MISSION_EXPLORATION&&j->item>=1&&j->item<BODY_COUNT)snprintf(out,sizeof(out),"FLY TO: %.18s",game.bodies[j->item].name);else if(j->type==MISSION_BOUNTY)snprintf(out,sizeof(out),"HUNT: MISSION TARGET");else if(j->type==MISSION_RESCUE)snprintf(out,sizeof(out),"FIND: RESCUE SIGNAL");else snprintf(out,sizeof(out),"FIND: MISSION CONTACT");return out;
@@ -129,7 +129,13 @@ static void cockpit(void){
  {int wl=wanted_level(&game);text(1,1,wl?RED:DIM,wl?"Wanted [%s]":"Wanted clear",stars(wl));}
  int heading=(int)(game.yaw*57.29578f)%360;if(heading<0)heading+=360;
  text(24,0,DIM,"%03d",heading);danger_badge(224,4,danger_rating(&game,game.system));
- {const char *cue=tracked_hud_cue();int clen=(int)strlen(cue);if(clen>24)clen=24;text(60-clen,0,GOLD,"%.*s",clen,cue);}
+ /* Mission cue flush to the top-right (1-col inset). Keep past the danger badge. */
+ {
+  const char *cue=tracked_hud_cue();
+  int cols=W/8,inset=1,left=34,clen=(int)strlen(cue),max=cols-inset-left;
+  if(max<8)max=8;if(clen>max)clen=max;
+  text(cols-inset-clen,0,GOLD,"%.*s",clen,cue);
+ }
  if(game.dock_stage==1){rect(8,24,464,16,RGB(8,24,32));text(2,4,CYAN,"DOCKING GUIDANCE ACTIVE");}
  else if(square_held){rect(8,24,464,32,RGB(8,24,32));for(int i=0;i<5;i++)text(1+i*11,4,i==scan_cat?GOLD:DIM,"%s",scan_cat_names[i]);text(2,6,CYAN,"D-PAD BANDS   L CYCLE VIEW");text(35,6,GOLD,"R LOCK");}
  else if(game.approach<0&&!game.police_stop&&!game.dead&&!game.dock_stage&&game.jump<=0)speech_box(8,24,464);

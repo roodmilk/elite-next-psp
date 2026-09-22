@@ -2,6 +2,10 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.11 - 2026-09-22
+
+- Tracked mission cue sits flush on the top-right header (1-column inset), past the danger badge, with enough room to show the full short guide.
+
 ## 2.5.10 - 2026-09-22
 
 - Hold Start redistributes SYS/ENG/WEP on the existing cockpit meters only (L/R select bank, U/D move power) — no separate bottom-right panel; input regressions cover the chord.
