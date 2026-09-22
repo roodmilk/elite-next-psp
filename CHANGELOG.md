@@ -2,6 +2,12 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## Unreleased — living galaxy aliveness (tip; no micro-tag)
+
+- Hybrid world rule locked in `docs/LIVING-GALAXY-ALIVENESS.md`: bulk traffic stays local proc-gen; twelve named travellers hop systems and keep stable callsigns.
+- System Details hub pane shows who is here / inbound; Triangle hail uses traveller lines.
+- Session-persistent across jumps (save V12 later). Story faces stay story; station crawl cast unchanged.
+
 ## 2.5.40 - 2026-09-22
 
 - **Big combined tip:** ART DIRECTOR McQuarrie visual style + Systems soft-FB Wave B/C beauty + Story tip-batches on MacVenture polish.

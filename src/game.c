@@ -255,6 +255,25 @@ static void place_civilian(Game *g,NPC *n,int i){
  if(i==0||i==4){float a=spin+(i?1.2f:-.4f);float ring=1100.f+spread*600.f;n->waypoint=0;n->pos=(Vec3){cosf(a)*ring,60+lift,3500+sinf(a)*ring};n->dir=norm(sub(stn,n->pos));return;}
  float a=i*1.31f+g->system*.19f+(layout&127)*.01f;float ring=(11000.f+((layout>>10)%8000))*spread;n->waypoint=0;n->pos=(Vec3){cosf(a)*ring,180.f+lift+((g->system+i)%6)*80.f,3500+sinf(a)*ring}; n->dir=norm(sub(stn,n->pos));
 }
+#include "travellers.h"
+static void travellers_promote(Game *g){
+ travellers_clear_slots(g);
+ int promoted=0;
+ for(int i=0;i<TRAVELLER_COUNT&&promoted<3;i++){
+  if(g->travellers[i].sys!=g->system)continue;
+  const TravellerDef *d=&traveller_defs[i];
+  int slot=travellers_find_slot(g,d->role);if(slot<0)continue;
+  NPC *n=&g->npc[slot];
+  n->role=d->role;n->freighter=0;n->alive=1;n->traveller=(int8_t)i;n->target=-1;n->cooldown=0;n->flash=0;
+  n->scale=1;n->cruise=d->role==LAW?700:650;
+  n->mesh=mesh_id(d->role==LAW?"VIPER":d->role==PIRATES?"MAMBA":d->role==EXPLORERS?"ADDER":"COBRA MK 3");
+  n->radius=30;for(int v=0;v<meshes[n->mesh].vertices;v++)n->radius=fmaxf(n->radius,length(meshes[n->mesh].v[v])*n->scale);
+  n->health=d->role==LAW?110:80;n->shield=d->role==LAW?60:40;
+  place_civilian(g,n,slot);
+  n->pos=add(n->pos,(Vec3){(i%3-1)*120.f,40.f+(i%2)*30.f,(i&1)?-80.f:90.f});
+  g->travellers[i].slot=(int8_t)slot;promoted++;
+ }
+}
 void game_spawn(Game *g){
  jobs_from_legacy(g);
  system_bodies(g);g->dock_stage=0;g->station_variant=0;g->approach=-1;g->planet=-1;g->surface=0;g->boost=0;g->attacked=0;g->encounter=0;g->police_stop=0;g->missile_time=0;g->missile_target=-1;g->incoming_missile=0;g->incoming_source=-1;
@@ -279,7 +298,7 @@ void game_spawn(Game *g){
  mark_visited(g);
  int budget=traffic_budget(g);
  for(int i=0;i<NPC_COUNT;i++){
-  NPC *n=&g->npc[i];memset(n,0,sizeof(*n));
+  NPC *n=&g->npc[i];memset(n,0,sizeof(*n));n->traveller=-1;
   n->role=i>=36?LAW:npc_role_for(g,i);n->alive=0;n->waypoint=0;n->target=-1;n->cooldown=0;n->flash=0;
   npc_blueprint(g,n,i);n->health=n->freighter?900:n->role==LAW?110:80;n->shield=n->freighter?100:n->role==LAW?60:40;
   if(i>=36){n->role=LAW;n->mesh=mesh_id("VIPER");n->alive=0;n->radius=80;n->scale=1;n->cruise=650;n->freighter=0;n->dir=(Vec3){0,0,1};continue;}
@@ -315,9 +334,10 @@ void game_spawn(Game *g){
   else {Body *b=&g->bodies[1];n->pos=add(b->pos,(Vec3){b->radius+900.f,80,0});n->dir=norm(sub((Vec3){0,0,3500},n->pos));}
   j->target=slot;
  }
+ travellers_promote(g);
  jobs_sync(g);
 }
-void game_init(Game *g){memset(g,0,sizeof(*g));g->rng=0x19841991;g->ai_phase=-1;galaxy(g->systems);g->system=7;g->destination=129;g->route_goal=-1;g->passenger_dest=-1;g->credits=1000;g->fuel=60;g->energy=100;g->docked=1;g->contract=-1;g->mission_target=-1;g->missile_target=-1;g->incoming_source=-1;g->approach=-1;g->planet=-1;g->missiles=1;g->pip_sys=2;g->pip_eng=2;g->pip_wep=4;market(g);game_spawn(g);g->cargo[0]=2;message(g,"X opens the deck.");speak(g,VOICE_KEI,"Kei Aven. Ryn is missing — and this berth is yours until we find her.");}
+void game_init(Game *g){memset(g,0,sizeof(*g));g->rng=0x19841991;g->ai_phase=-1;galaxy(g->systems);g->system=7;g->destination=129;g->route_goal=-1;g->passenger_dest=-1;g->credits=1000;g->fuel=60;g->energy=100;g->docked=1;g->contract=-1;g->mission_target=-1;g->missile_target=-1;g->incoming_source=-1;g->approach=-1;g->planet=-1;g->missiles=1;g->pip_sys=2;g->pip_eng=2;g->pip_wep=4;travellers_seed(g);market(g);game_spawn(g);g->cargo[0]=2;message(g,"X opens the deck.");speak(g,VOICE_KEI,"Kei Aven. Ryn is missing — and this berth is yours until we find her.");}
 void launch(Game *g){if(!g->docked)return;guild_event(g,GUILD_LAUNCH);g->docked=0;g->pos=(Vec3){0,0,0};g->yaw=g->pitch=0;g->speed=100;game_spawn(g);int before=g->story;story_event(g,STORY_EV_LAUNCH);if(g->story==before)message(g,"Station ahead. Select opens the deck.");if(g->story==STORY_SIGHT||g->story==STORY_RETURN)speak(g,VOICE_VENN,"Tower. Cleared. Soft launch — come home in one piece.");if(!g->cue)g->cue=SFX_DOCK;campaign_event(g,CP_LAUNCH);}
 #include "docking.h"
 #include "journey.h"
@@ -527,6 +547,7 @@ void game_tick(Game *g,float dt,float turn,float pitch,int throttle,int fire){
   /* Arrive well short of the hub, from a system-unique bearing — always farther than a normal launch. */
   {unsigned h=sector_hash((g->system+1)*0xc2b2ae35u);float ang=g->system*1.918f+0.55f+((h&1023)*.001f);float dist=11000.f+(g->system%17)*780.f+((h>>10)%900);
    g->pos=(Vec3){sinf(ang)*dist*.62f,((int)((h>>18)%11)-5)*420.f,-dist*.78f};g->yaw=atan2f(-g->pos.x,STATION_Z-g->pos.z);g->pitch=0;g->speed=100;}
+  travellers_advance(g,g->system);
   market(g);game_spawn(g);route_refresh_destination(g);g->cue=SFX_WARP;char note[80];snprintf(note,sizeof(note),"Hyperspace complete. Fuel %.1f LY left.",g->fuel*.1f);message(g,note);speak(g,VOICE_COMP,"Hyperspace complete. Station ahead.");}}
 }
 /* Versioned commander file. Load into a temporary struct; reject before mutation. */
@@ -559,6 +580,13 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  int factions[FACTION_COUNT]={0};for(int i=0;i<NPC_COUNT;i++)factions[g.npc[i].role]++;
  CHECK(factions[0]&&factions[1]&&factions[2]&&factions[3],"all four factions spawn");
  CHECK(g.bodies[0].type==SUN&&g.bodies[3].type==GAS&&g.bodies[1].type==OCEAN,"system includes sun, gas giant and ocean world");
+ {int mira=-1;for(int i=0;i<NPC_COUNT;i++)if(g.npc[i].alive&&g.npc[i].traveller==0)mira=i;
+  CHECK(g.travellers[0].sys==7&&mira>=0&&!strcmp(traveller_name(g.npc[mira].traveller),"MIRA VANE"),"Lave hosts named traveller Mira Vane");
+  g.travellers[0].sys=7;g.travellers[0].dest=129;g.system=129;game_spawn(&g);
+  int mira_away=-1;for(int i=0;i<NPC_COUNT;i++)if(g.npc[i].alive&&g.npc[i].traveller==0)mira_away=i;
+  CHECK(mira_away<0,"Mira stays abstract at Lave while commander is elsewhere");
+  g.system=7;game_spawn(&g);mira=-1;for(int i=0;i<NPC_COUNT;i++)if(g.npc[i].alive&&g.npc[i].traveller==0)mira=i;
+  CHECK(mira>=0&&!strcmp(traveller_name(0),"MIRA VANE"),"returning to Lave restores the same Mira callsign");}
  launch(&g);g.speed=0;g.pos=(Vec3){0,0,-10000};for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;
  g.npc[0].alive=g.npc[1].alive=g.npc[2].alive=g.npc[3].alive=1;
  for(int i=0;i<4;i++)g.npc[i].pos=(Vec3){i*100.f,0,2000};

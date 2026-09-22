@@ -45,6 +45,7 @@ enum { FREIGHT_ABSENT, FREIGHT_ARRIVING, FREIGHT_INBOUND, FREIGHT_SERVICE, FREIG
 typedef struct {
  Vec3 pos,dir; float health,shield,cooldown,flash,scale,radius,cruise;
  int role,mesh,target,alive,waypoint,freighter;
+ int8_t traveller; /* >=0 indexes TravellerLive; -1 = anonymous traffic */
  Vec3 freight_gate,freight_berth;
  float freight_timer;
  int freight_state,freight_style,freight_hub,freight_peer,freight_good,freight_qty,freight_trip;
@@ -77,6 +78,8 @@ typedef struct {
  int passenger_dest,passenger_kind,passenger_pay,gift_flags;
  int npc_kills,shots,discoveries,scanned_flora,scanned_fauna,scanned_minerals,scanned_anomalies,ai_phase;
  uint8_t visited[32]; char message[96],voice[160],collide[40]; float voice_time;
+ /* Living-galaxy named travellers (session; save V12 later). See travellers.h */
+ struct { uint8_t sys,dest; int8_t slot; uint8_t flags; } travellers[12];
 } Game;
 extern const Good goods[GOODS];
 extern const PlayerShip player_ships[];

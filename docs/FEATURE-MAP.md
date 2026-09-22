@@ -6,7 +6,7 @@ design bible stays ambitious without becoming an unbounded promise.
 | Player fantasy | ELITE: NEXT implementation | PSP rule |
 |---|---|---|
 | Explore an enormous galaxy | Deterministic 256-system chart with seeded bodies, economies, traffic, danger, fauna and anomalies | Stable seeds; rendering never changes gameplay RNG |
-| Feel a living space lane | Faction AI, convoys, freighters, distant battles, police responses and local warrants | Bounded NPC/debris pools; no unloaded-world simulation |
+| Feel a living space lane | Faction AI, convoys, freighters, distant battles, police responses and local warrants; **12 named travellers** hop systems with stable callsigns (`docs/LIVING-GALAXY-ALIVENESS.md`) | Bounded NPC/debris pools; no unloaded-world simulation of all ships |
 | Notice a living system | Rate-limited scanner incidents plus a live System Details traffic briefing for trader, law, pirate and explorer activity | Events reuse the existing message/alert band; no permanent HUD clutter |
 | Build a personal ship | Shipyard hull exchange, outfitting, power pips, cargo, missiles, laser and docking upgrades | One active hull; upgrades persist in commander V8 |
 | Choose a life | Trade, bounty, exploration, rescue, covert work, story and Guild jobs | Five-slot mission log with deterministic risk/reward |
