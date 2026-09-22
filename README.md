@@ -311,7 +311,7 @@ Validation: PSP cross-compile, game/input/steering regression suites and the PPS
 ## New in 1.3.7
 
 - Triangle is OK on the speech box, then hail: talk to ships, Venn at the hub, and pick up a rescue by talking to them. It is no longer the warp button. Jump from the Galaxy map.
-- Hold Square and Left/Right to tab Planets, Ships, Stations and Other (rocks, wrecks, echoes). Square+Up/Down are free. The targeting computer uses the same four headers.
+- Hold Square and Left/Right to tab Planets, Ships, Stations, Other and Enemies. Square+Up/Down are free. The targeting computer uses the same five headers.
 
 ## New in 1.3.6
 
@@ -477,7 +477,7 @@ A new commander starts on Handler Kei's Guild brief. X opens the command deck on
 - Double-tap R within 0.32 seconds, holding the second press: boost up to 20 times normal speed. Release R to brake.
 - Hold L + D-pad left/right: roll the ship without changing throttle. Camera, steering and compass respond to roll.
 - X: fire laser.
-- Square: open the targeting computer. The list is grouped under Planets, Ships, Stations and Other. L/R tabs those headers, Up/Down selects, Triangle shows details, X locks and auto-aligns, and Circle returns to flight. Hold Square and Left/Right in flight to tab the same four bands. Hold Square and Up/Down to cycle contacts inside the highlighted band. Hold R and press Square to lock the nearest hostile immediately.
+- Square: open the targeting computer. The list is grouped under Planets, Ships, Stations, Other and Enemies. L/R tabs those headers, Up/Down selects, Triangle shows details, X locks and auto-aligns, and Circle returns to flight. Hold Square and Left/Right in flight to tab the same five bands. Hold Square and Up/Down to cycle contacts inside the highlighted band. Hold R and press Square to lock the nearest hostile immediately.
 - Hold L and press X: launch a missile at a locked hostile within 12,000 metres. Ordinary X fire remains the laser. Boost above four times normal speed to evade an incoming missile before its countdown expires.
 - Circle while looking at or targeting a nearby solid planet: approach from within 1,000 metres of its surface. Proximity alone does not open the approach screen. X enters atmosphere flight; Circle turns back to space from that prompt. On the surface, Circle lands or walks; Triangle takes off or returns to orbit.
 - Circle near the station opens guided docking. For manual docking, match the cyan rotating entrance, keep speed at or below 200, and fly through the slot. Flying into the surrounding hull destroys your ship and triggers a 3D wireframe debris explosion. Press Start for a new commander after destruction.
