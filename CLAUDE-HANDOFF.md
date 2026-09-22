@@ -77,6 +77,8 @@ Station interiors restaged from `docs/CINEMATIC-MOCKUP-TARGETS.md` + ART DIRECTO
 
 **Implementer tip under ART DIRECTOR authority (rebased on tip #18 `f003e09`):** 8×8 native prop markers; ARRIVALS cargo-loader cycle; walk/help/comfort chrome; aperture beacons kit cyan. Mission cue: ART_AMBER + 2-col header margin (Designer had restored GOLD for the old flush assert — palette stays with ART DIRECTOR; smoke uses header-margin assert). No tag.
 
+**ART LOOK FREEZE (Commander: one bug-fixed EBOOT):** PR #11 @ `64977ba` is frozen for Systems combine + tag. No new look passes. Mission cue remains ART_AMBER — do not restore GOLD.
+
 **Working tip (Commander: BIG RELEASES ONLY):** Unify tip shipped (`v2.5.37`+; working tip **2.5.40** with MacVenture + Act I–IV). Story deepens in **larger PR batches** into `cursor/macventure-cinematic-polish-fe9e` — do not drip-fold every small pass. **2.5.40** is that combined drop — Systems Guy tags `v2.5.40` after smoke green.
 
 ### 2.5.38 — soft-FB Wave A canopy FX
