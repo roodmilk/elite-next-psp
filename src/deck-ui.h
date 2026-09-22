@@ -2,7 +2,7 @@ static void home(void){
  int group=deck_group(row);
  header(game.docked?"STATION / COMMAND DECK":"COCKPIT / PAUSED");
  for(int i=0;i<5;i++){int x=8+i*94;rect(x,30,90,20,i==group?RGB(25,65,77):RGB(10,23,33));if(i==group)rect(x,48,90,2,GOLD);text((x+8)/8,4,i==group?WHITE:DIM,"%s",deck_groups[i]);}
- const char *labels[]={game.docked?"Launch":"Resume flight","Cargo & market","Galaxy map","Shipyard","Outfitting","Save / status","Controls","Factions","Targeting computer","Debug tools","Comms / docking","System details","Mission board","Mission log","GalacticNet","Discovery Codex","Radio & audio","Tracked mission","Explorers Guild","Display & chatter","Walk station deck"};
+ const char *labels[]={game.docked?"Launch":"Resume flight","Cargo & market","Galaxy map","Shipyard","Outfitting","Save / status","Controls","Factions","Targeting computer","Debug tools","Comms / docking","System details","Mission board","Mission log","GalacticNet","Discovery Codex","Radio & audio","Tracked mission","Explorers Guild","Display & chatter","Disembark / walk station"};
  static const char *hints[][2]={
  {"Return to your cockpit.","Fly at your own pace."},{"Your hold and local goods.","Station prices while docked."},{"Choose your next system.","Check range before jumping."},
  {"Compare and exchange hulls.","Requires station services."},{"Refuel and improve the ship.","Requires station services."},{"Save, load and view records.","Save at a station."},

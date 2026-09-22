@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.17**.
+Prepared 22 September 2026. Current build: **2.5.18**.
 
 ## Start here
 
@@ -61,6 +61,10 @@ Important controls:
 - Galaxy Map: Triangle switches between nearby jumps and the full 256-system map; D-pad moves between systems; L/R zoom; X plots a multi-jump route and saves the final goal.
 
 ## Recent changes that must be preserved
+
+### 2.5.18 — varied planet landings + on-foot chrome
+
+Surfaces pick a biome from the orbit sprite family and tint ground/flora/fauna from `Body.color`/`accent`. Planet EVA uses dedicated ON FOOT chrome (nub look, D-pad move). Station disembark remains on the docked Fly menu with talkable concourse NPCs.
 
 ### 2.5.17 — engine trails on the stern
 

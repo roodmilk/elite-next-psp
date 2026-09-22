@@ -1,4 +1,9 @@
-# ELITE: NEXT — development build 2.5.17
+# ELITE: NEXT — development build 2.5.18
+
+## New in 2.5.18 — varied landings and clearer on-foot play
+
+- Surfaces follow each planet’s orbit-sprite biome and body colours for ground, flora and fauna.
+- Planet walking uses the same ON FOOT chrome as the station; docked Fly → Disembark / walk station talks to concourse locals.
 
 ## New in 2.5.17 — engine trails sit on the stern
 
@@ -531,7 +536,7 @@ Each system contains a sun, ocean world, gas giant and two rocky planets. Rock b
 
 ## Planet exploration
 
-Circle opens the approach choice near an ocean or rocky planet. X enters a flat surface: grass, trees, bushes and a cyan pad with a cross. Descend onto the pad and press Circle to land, Circle again to walk. Ocean worlds keep a grassy island around the pad and water beyond it. Square on foot surveys flora, fauna and minerals. Board the parked ship, Triangle to take off, Triangle again for orbit. Double-tap R while walking uses the jetpack. Walking too far from the pad still builds environmental hazard.
+Circle opens the approach choice near an ocean or rocky planet. X enters a biome surface tinted from that world’s orbit sprite and colours (ocean island, arid, ice, volcanic or forest) with a cyan pad. Descend onto the pad and press Circle to land, Circle again to walk. Square on foot surveys flora, fauna and minerals coloured for that world. Board the parked ship, Triangle to take off, Triangle again for orbit. On foot: nub look, D-pad move, double-tap R for jetpack. Walking too far from the pad still builds environmental hazard. Docked: Fly → Disembark / walk station to talk on the concourse.
 
 Suns and gas giants have no landing approach. You cannot land on water. Quiet systems stay sparsely populated; Atlas echoes and extra life appear in rarer or more dangerous stars.
 

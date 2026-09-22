@@ -114,8 +114,18 @@ static void site_xz(const Game *g,int i,float *x,float *z){
 }
 float terrain_height(const Game *g,float x,float z){
  if(g->planet<1||g->planet>=BODY_COUNT)return 0;
- (void)x;(void)z;
- return 24.f;
+ float px,pz;site_xz(g,1,&px,&pz);
+ float dx=x-px,dz=z-pz,d2=dx*dx+dz*dz;
+ float h=24.f;
+ if(d2>100.f*100.f){
+  unsigned u=sector_hash(g->bodies[g->planet].seed^(unsigned)(x*3.1f)^(unsigned)(z*5.7f));
+  float n=((u%1000)/1000.f)*2.f-1.f;
+  float edge=1.f-100.f/sqrtf(d2+1.f);if(edge<0)edge=0;if(edge>1)edge=1;
+  int rocky=g->bodies[g->planet].type!=OCEAN;
+  unsigned art=rocky?(g->bodies[g->planet].seed%4):0;
+  h+=n*(rocky&&art==2?14.f:rocky&&art==1?6.f:10.f)*edge; /* desert/ice/other hills */
+ }
+ return h;
 }
 Vec3 surface_site(const Game *g,int i){float x=0,z=0;if(g->planet>=1)site_xz(g,i,&x,&z);return (Vec3){x,terrain_height(g,x,z)+22,z};}
 int terrain_is_water(const Game *g,float x,float z){
@@ -131,7 +141,15 @@ int enter_planet(Game *g){
  float px,pz;site_xz(g,1,&px,&pz);g->pos=(Vec3){px-220,0,pz-60};g->pos.y=terrain_height(g,g->pos.x,g->pos.z)+170;
  g->yaw=atan2f(px-g->pos.x,pz-g->pos.z);g->pitch=-.22f;g->roll=0;g->speed=48;g->hazard=0;g->cue=SFX_LAND;
  for(int i=0;i<LIFE_COUNT;i++){Lifeform *l=&g->life[i];l->alive=1;l->scanned=0;unsigned h=sector_hash(g->bodies[body].seed+i*131u);l->kind=g->bodies[body].type==OCEAN?(i%5==0?LIFE_MINERAL:(i&1?LIFE_FLORA:LIFE_FAUNA)):(h%3);float a=i*.95f+(h%7)*.1f;float rad=100.f+(h%90)+i*18;l->pos=(Vec3){px+cosf(a)*rad,0,pz+sinf(a)*rad};if(terrain_is_water(g,l->pos.x,l->pos.z)){l->pos.x=px+cosf(a)*140;l->pos.z=pz+sinf(a)*140;}l->pos.y=terrain_height(g,l->pos.x,l->pos.z)+(l->kind==LIFE_FAUNA?16:7);}
- message(g,"Atmosphere. Fly to the cyan pad. Triangle returns to orbit.");speak(g,VOICE_COMP,g->bodies[body].type==OCEAN?"Ocean world. Island pad ahead.":"Rocky surface. Cyan pad in the scrub ahead.");story_event(g,STORY_EV_WORLD);return 1;
+ message(g,"Atmosphere. Fly to the cyan pad. Triangle returns to orbit.");
+ {
+  const Body *wb=&g->bodies[body];
+  const char *line="Rocky surface. Cyan pad in the scrub ahead.";
+  if(wb->type==OCEAN)line="Ocean world. Island pad ahead.";
+  else {int art=(int)(wb->seed%4);if(art==0)line="Arid flats. Cyan pad in the dunes.";else if(art==1)line="Ice field. Cyan pad on the shelf.";else if(art==2)line="Volcanic scrub. Cyan pad ahead.";else line="Forest rise. Cyan pad in the trees.";}
+  speak(g,VOICE_COMP,line);
+ }
+ story_event(g,STORY_EV_WORLD);return 1;
 }
 void leave_planet(Game *g){
  if(g->planet<0)return;
@@ -159,7 +177,7 @@ int takeoff_planet(Game *g){
 }
 int eva_toggle(Game *g){
  if(g->planet<0||g->dead)return 0;
- if(g->surface==1){g->surface=2;g->ship_pos=g->pos;g->pos.x+=55;g->pos.z+=40;g->pos.y=terrain_height(g,g->pos.x,g->pos.z)+22;g->yaw=atan2f(g->ship_pos.x-g->pos.x,g->ship_pos.z-g->pos.z);g->pitch=0;g->speed=0;g->boost=0;g->jetpack=0;message(g,"On foot. R walks. Double-tap R jumps.");speak(g,VOICE_COMP,"On foot. Trees and life around the pad.");return 1;}
+ if(g->surface==1){g->surface=2;g->ship_pos=g->pos;g->pos.x+=55;g->pos.z+=40;g->pos.y=terrain_height(g,g->pos.x,g->pos.z)+22;g->yaw=atan2f(g->ship_pos.x-g->pos.x,g->ship_pos.z-g->pos.z);g->pitch=0;g->speed=0;g->boost=0;g->jetpack=0;message(g,"On foot. Nub look, D-pad move, Square scans, Circle boards.");speak(g,VOICE_COMP,"On foot. Survey flora and fauna around the pad.");return 1;}
  if(g->surface!=2)return 0;
  float dx=g->pos.x-g->ship_pos.x,dz=g->pos.z-g->ship_pos.z;if(dx*dx+dz*dz>3600){message(g,"Return to the parked ship to board.");return 0;}
  g->pos=g->ship_pos;g->surface=1;g->speed=0;message(g,"Boarded. Triangle takes off.");return 1;
@@ -167,8 +185,11 @@ int eva_toggle(Game *g){
 static void planet_tick(Game *g,float dt,float turn,float pitch,int throttle){
  g->heat=fmaxf(0,g->heat-dt*22);g->shot=fmaxf(0,g->shot-dt);g->energy=fminf(100,g->energy+dt*1.5f);
  if(g->surface==2){
-  g->yaw+=turn*dt*2.2f;g->pitch+=pitch*dt*1.6f;if(g->pitch>.6f)g->pitch=.6f;if(g->pitch<-.4f)g->pitch=-.4f;
-  float walk=throttle>0?62.f:throttle<0?-28.f:0;Vec3 dir=forward(g);g->pos.x+=dir.x*walk*dt;g->pos.z+=dir.z*walk*dt;
+  /* Nub look (turn) + forward/back from pitch stick — same mental model as station walk. */
+  g->yaw+=turn*dt*2.2f;g->pitch=0;
+  float walk=0;if(pitch>.18f)walk=62.f;else if(pitch<-.18f)walk=-28.f;
+  if(throttle>0)walk=62.f;else if(throttle<0)walk=-28.f;
+  Vec3 dir=forward(g);g->pos.x+=dir.x*walk*dt;g->pos.z+=dir.z*walk*dt;
   if(g->boost){int lift=g->jetpack<=0;g->jetpack=fminf(80,g->jetpack+220*dt);if(lift)g->cue=SFX_BOOST;}else g->jetpack=fmaxf(-100,g->jetpack-140*dt);
   g->pos.y+=g->jetpack*dt;
   for(int i=0;i<LIFE_COUNT;i++)if(g->life[i].alive&&g->life[i].kind==LIFE_FAUNA){g->life[i].pos.x+=sinf(g->time*1.4f+i)*18*dt;g->life[i].pos.z+=cosf(g->time*1.1f+i)*14*dt;g->life[i].pos.y=terrain_height(g,g->life[i].pos.x,g->life[i].pos.z)+16;}
@@ -625,6 +646,8 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  CHECK(!land_planet(&g),"cannot land while high and fast");
  Vec3 pad=surface_site(&g,1);g.pos=add(pad,(Vec3){0,20,0});g.speed=12;g.energy=100;CHECK(land_planet(&g)&&g.surface==1,"slow pad approach lands the ship");
  CHECK(eva_toggle(&g)&&g.surface==2,"commander can leave the landed ship");
+ {int life=0;for(int i=0;i<LIFE_COUNT;i++)life+=g.life[i].alive;CHECK(life==LIFE_COUNT,"landed worlds spawn a full set of surface lifeforms");}
+ {float farh=terrain_height(&g,pad.x+700,pad.z+700),nearh=terrain_height(&g,pad.x,pad.z);CHECK(nearh>23.f&&nearh<25.f&&fabsf(farh-nearh)>0.5f,"surface terrain stays flat on the pad and rises away from it");}
  CHECK(g.pos.y-terrain_height(&g,g.pos.x,g.pos.z)>=21.9f,"EVA camera remains above terrain at eye height");
  CHECK(survey_scan(&g)&&g.discoveries>0,"visor scan logs nearby surface life");
  float eva_floor=terrain_height(&g,g.pos.x,g.pos.z)+22;g.boost=1;game_tick(&g,.1f,0,0,0,0);float airborne=g.pos.y;g.boost=0;game_tick(&g,.016f,0,0,0,0);CHECK(airborne>eva_floor&&g.pos.y>eva_floor,"jetpack release transitions into a smooth fall");

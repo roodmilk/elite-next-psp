@@ -318,6 +318,7 @@ static void space(void){
  if(game.planet>=0){
   planet_view();hud_postfx();
   if(game.dead)death_effect();
+  if(game.surface==2){planet_eva_hud();return;}
   if(hud_mode==0||game.dead)cockpit();
   else if(hud_mode==1)minimal_overlay();
   return;
@@ -368,8 +369,11 @@ static void walk_screen(void){
   {70,140,LAW,"PATROL","Keep your warrant clean and we stay friendly."},
   {-40,260,EXPLORERS,"SURVEYOR","Guild charts need fresh surface samples."},
   {110,40,TRADERS,"TRADER","Market board is live. Food moves fast here."},
-  {20,320,EXPLORERS,"KEI","When you are ready, open Tracked Mission."}
+  {20,320,EXPLORERS,"KEI","When you are ready, open Tracked Mission."},
+  {-140,200,TRADERS,"TECH","Fuel nozzles are free on bay three."},
+  {160,280,LAW,"CUSTOMS","Restricted goods still raise local warrants."}
  };
+ int folk_n=(int)(sizeof(folk)/sizeof(folk[0]));
  int horizon=96+(int)(sinf(preview_time*.45f+walk_yaw)*.5f);rect(0,0,W,H,walk_kind==2?RGB(3,8,16):RGB(10,16,24));
  for(int y=horizon;y<H;y++){unsigned c=mix_rgb(RGB(28,40,52),RGB(12,18,26),(y-horizon)/(float)fmaxf(1,H-horizon));for(int x=0;x<W;x++)fb[y*STRIDE+x]=c;}
  for(int i=0;i<14;i++){int y=horizon+i*12;int inset=i*9;line(0,y,W/2-inset,horizon,RGB(36+i,52+i,66+i));line(W,y,W/2+inset,horizon,RGB(36+i,52+i,66+i));}
@@ -378,7 +382,7 @@ static void walk_screen(void){
  const char *place=walk_kind==0?station_name(&game):walk_kind==1?"SHIP / PERSONAL DECK":"DERELICT / AIRLOCK";
  text(1,0,GOLD,"ON FOOT / %.18s",place);text(1,2,DIM,walk_kind==2?"NUB LOOK  D-PAD MOVE  X SALVAGE  O EXIT":"NUB LOOK  D-PAD MOVE  X TALK  O EXIT");
  int nearest=-1;float best=999;
- if(walk_kind==0)for(int i=0;i<5;i++){
+ if(walk_kind==0)for(int i=0;i<folk_n;i++){
   float dx=folk[i].x-walk_x,dz=folk[i].z-walk_z;float d=sqrtf(dx*dx+dz*dz);if(d<best){best=d;nearest=i;}
   float relx=dx*cosf(-walk_yaw)-dz*sinf(-walk_yaw),relz=dx*sinf(-walk_yaw)+dz*cosf(-walk_yaw);
   if(relz<20||relz>420)continue;
@@ -397,7 +401,7 @@ static void walk_screen(void){
  rect(0,248,W,24,RGB(8,19,28));rect(0,248,W,2,CYAN);
  if(walk_kind==2){rect(8,252,180,8,RGB(22,28,36));rect(8,252,(int)(1.8f*walk_oxygen),8,CYAN);rect(8,262,180,8,RGB(36,22,26));rect(8,262,(int)(1.8f*walk_integrity),8,RED);text(25,32,WHITE,"O2 %d  SUIT %d",(int)walk_oxygen,(int)walk_integrity);}
  else if(walk_kind==0&&nearest>=0&&best<70){text(1,32,GOLD,"%.12s",folk[nearest].name);text(16,32,WHITE,"%.40s",folk[nearest].line);}
- else text(1,32,DIM,"Walk toward people. X talks. O returns to deck.");
+ else text(1,32,DIM,walk_kind==0?"Walk toward people. X talks. O returns to deck.":"Workshop. Triangle returns to the concourse.");
 }
 static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
  static unsigned in_held=0;static int sq_arm=0;
@@ -417,9 +421,11 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
      {70,140,LAW,"PATROL","Keep your warrant clean and we stay friendly."},
      {-40,260,EXPLORERS,"SURVEYOR","Guild charts need fresh surface samples."},
      {110,40,TRADERS,"TRADER","Market board is live. Food moves fast here."},
-     {20,320,EXPLORERS,"KEI","When you are ready, open Tracked Mission."}
+     {20,320,EXPLORERS,"KEI","When you are ready, open Tracked Mission."},
+     {-140,200,TRADERS,"TECH","Fuel nozzles are free on bay three."},
+     {160,280,LAW,"CUSTOMS","Restricted goods still raise local warrants."}
     };
-    int nearest=-1;float best=999;for(int i=0;i<5;i++){float dx=folk[i].x-walk_x,dz=folk[i].z-walk_z,d=sqrtf(dx*dx+dz*dz);if(d<best){best=d;nearest=i;}}
+    int nearest=-1;float best=999;for(int i=0;i<(int)(sizeof(folk)/sizeof(folk[0]));i++){float dx=folk[i].x-walk_x,dz=folk[i].z-walk_z,d=sqrtf(dx*dx+dz*dz);if(d<best){best=d;nearest=i;}}
     if(nearest>=0&&best<70){speak(&game,folk[nearest].role==LAW?VOICE_LAW:folk[nearest].role==EXPLORERS?VOICE_KEI:VOICE_DOCK,folk[nearest].line);message(&game,folk[nearest].line);game.cue=SFX_UI;}
     else message(&game,"Move closer to someone, then press X.");
    }else message(&game,"Workshop inspection complete.");
@@ -488,7 +494,7 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
     else {int next=game.story<STORY_FREE?story_home_row(&game):0;change_page(HOME);row=next;deck_last=next;}
    }
    else if(page==GUILD&&(pressed&PSP_CTRL_CROSS)){if(row==0)narrative_do(GUILD);else change_page(STORY);}
-   else if(page==HOME&&(pressed&PSP_CTRL_CROSS)){if(row==20){if(game.docked){walk_kind=0;walk_x=walk_z=walk_yaw=0;page=WALK;message(&game,"Station deck. Walk to people and press X to talk.");}else message(&game,"Dock first to walk the station deck.");return;}int pages[]={FLIGHT,MARKET,CHART,YARD,EQUIP,STATUS,HELP,FACTIONS,TARGETING,DEBUG,COMMS,DETAILS,MISSIONS,MISSIONLOG,GALNET,CODEX,RADIO,CAMPAIGN,GUILD,COMFORT};if(row<0||row>=20)return;int opened=row,next=pages[row];if(!story_menu_ok(&game,opened)){message(&game,story_task(&game));game.cue=SFX_UI;return;}if(!game.docked&&(next==YARD||next==EQUIP||next==MISSIONS)){message(&game,"Dock at a station to open this service.");game.cue=SFX_UI;return;}if(next==FLIGHT){int leaving=game.docked;int keep=(selected_target>=0&&selected_target<=BODY_COUNT)?selected_target:0;analog_ready=0;ax=ay=0;launch(&game);if(leaving){selected_target=keep;autoaim=0;if(valid_target(keep))scan_cat=target_category(keep);}}change_page(next);story_on_open(&game,opened);if(!game.cue)game.cue=SFX_UI;}
+   else if(page==HOME&&(pressed&PSP_CTRL_CROSS)){if(row==20){if(game.docked){walk_kind=0;walk_x=walk_z=walk_yaw=0;page=WALK;message(&game,"Station concourse. Walk to people and press X to talk.");}else message(&game,"Dock first to walk the station deck.");return;}int pages[]={FLIGHT,MARKET,CHART,YARD,EQUIP,STATUS,HELP,FACTIONS,TARGETING,DEBUG,COMMS,DETAILS,MISSIONS,MISSIONLOG,GALNET,CODEX,RADIO,CAMPAIGN,GUILD,COMFORT};if(row<0||row>=20)return;int opened=row,next=pages[row];if(!story_menu_ok(&game,opened)){message(&game,story_task(&game));game.cue=SFX_UI;return;}if(!game.docked&&(next==YARD||next==EQUIP||next==MISSIONS)){message(&game,"Dock at a station to open this service.");game.cue=SFX_UI;return;}if(next==FLIGHT){int leaving=game.docked;int keep=(selected_target>=0&&selected_target<=BODY_COUNT)?selected_target:0;analog_ready=0;ax=ay=0;launch(&game);if(leaving){selected_target=keep;autoaim=0;if(valid_target(keep))scan_cat=target_category(keep);}}change_page(next);story_on_open(&game,opened);if(!game.cue)game.cue=SFX_UI;}
    else if(page==LOCAL&&contact_count>0&&row>=0&&row<contact_count&&(pressed&(PSP_CTRL_CROSS|PSP_CTRL_TRIANGLE))){selected_target=contact_ids[row];scan_cat=target_category(selected_target);nav_body=selected_target>0&&selected_target<=BODY_COUNT?selected_target-1:-1;autoaim=(pressed&PSP_CTRL_TRIANGLE)!=0;story_event(&game,STORY_EV_TARGET);if(selected_target==0)campaign_event(&game,CP_LOCK);message(&game,"Target set.");if(!game.docked)change_page(FLIGHT);}
    else if(page==DETAILS&&(pressed&(PSP_CTRL_CROSS|PSP_CTRL_TRIANGLE))){int id=row==0?0:row;if(valid_target(id)){selected_target=id;scan_cat=target_category(id);nav_body=id>0&&id<=BODY_COUNT?id-1:-1;autoaim=(pressed&PSP_CTRL_TRIANGLE)!=0;story_event(&game,STORY_EV_TARGET);if(selected_target==0)campaign_event(&game,CP_LOCK);message(&game,id==0?"Station locked.":id==1?"Sun locked. No landing.":"Body locked.");if(!game.docked)change_page(FLIGHT);}}
   else if(page==COMMS&&(pressed&PSP_CTRL_TRIANGLE)){comms_rescue_confirm=!comms_rescue_confirm;}else if(page==COMMS&&(pressed&PSP_CTRL_CROSS)){if(comms_rescue_confirm){if(emergency_rescue(&game)){selected_target=0;autoaim=0;change_page(HOME);}return;}if(game.docked){message(&game,"Already docked.");game.cue=SFX_UI;}else if(dock(&game)){selected_target=0;autoaim=0;change_page(FLIGHT);}}
@@ -635,6 +641,12 @@ static void input_tests(void){
  TEST_INIT();change_page(HOME);row=15;input(PSP_CTRL_CIRCLE,0,.016f,0,0);INPUT_CHECK(page==HOME&&row==15,"circle on a docked deck keeps the selected door");
  TEST_INIT();change_page(COMMS);input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.docked&&page==COMMS,"comms while docked stays on the station channel");
  game_init(&game);deck_reset();change_page(STORY);row=1;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.story==STORY_FREE&&page==HOME,"flight guide ends only through its visible menu option");
+ TEST_INIT();change_page(HOME);row=20;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(page==WALK&&walk_kind==0,"docked Fly menu disembarks onto the station concourse");
+ input(0,0,.016f,0,.8f);INPUT_CHECK(page==WALK&&fabsf(walk_z)>1.f,"station walk: D-pad / nub forward moves along the concourse");
+ walk_x=-90;walk_z=80;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.voice_time>0||game.message_time>0,"station walk: X talks to a nearby concourse NPC");
+ input(PSP_CTRL_CIRCLE,0,.016f,0,0);INPUT_CHECK(page==HOME,"station walk: Circle returns to the command deck");
+ TEST_INIT();launch(&game);page=FLIGHT;game.approach=1;enter_planet(&game);{Vec3 pad=surface_site(&game,1);game.pos=add(pad,(Vec3){0,18,0});game.speed=8;land_planet(&game);eva_toggle(&game);}
+ {Vec3 before=game.pos;input(0,0,.05f,0,.9f);INPUT_CHECK(game.surface==2&&length(sub(game.pos,before))>1.f,"planet EVA: nub forward walks across the surface");}
  #include "journey-input-tests.h"
  #include "radio-input-tests.h"
  #include "comms-input-tests.h"
