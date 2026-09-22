@@ -11,17 +11,31 @@ if [[ ! -f "$ROOT/EBOOT.PBP" ]]; then
   echo "Missing EBOOT.PBP — run build.sh first" >&2
   exit 1
 fi
-# PPSSPP SDL build in this environment needs a PulseAudio server.
+# PPSSPP SDL needs a real X display + PulseAudio (dummy SDL video breaks GL/software).
+unset SDL_VIDEODRIVER || true
+export DISPLAY="${DISPLAY:-:1}"
+if ! xdpyinfo -display "$DISPLAY" >/dev/null 2>&1; then
+  if command -v Xvfb >/dev/null 2>&1; then
+    Xvfb "$DISPLAY" -screen 0 1024x768x24 >/tmp/elite-xvfb.log 2>&1 &
+    sleep 0.6
+  fi
+fi
 if ! pactl info >/dev/null 2>&1; then
   pulseaudio -D --exit-idle-time=-1 2>/dev/null || pulseaudio --start 2>/dev/null || true
   sleep 0.5
+fi
+if pactl info >/dev/null 2>&1; then
+  export SDL_AUDIODRIVER="${SDL_AUDIODRIVER:-pulse}"
+  if ! pactl list short sinks 2>/dev/null | grep -q .; then
+    pactl load-module module-null-sink sink_name=elite_smoke_null >/dev/null 2>&1 || true
+    pactl set-default-sink elite_smoke_null >/dev/null 2>&1 || true
+  fi
 fi
 TEST_DIR="$HOME/work/smoke-$(date +%Y%m%d-%H%M%S-%3N)"
 mkdir -p "$TEST_DIR"
 cp -f "$ROOT/EBOOT.PBP" "$TEST_DIR/"
 echo 1 > "$TEST_DIR/smoke.flag"
 EBOOT="$TEST_DIR/EBOOT.PBP"
-export DISPLAY="${DISPLAY:-:1}"
 "$EMULATOR" --graphics=software --windowed "$EBOOT" >/tmp/ppsspp-smoke.log 2>&1 &
 PID=$!
 cleanup() { kill "$PID" 2>/dev/null || true; wait "$PID" 2>/dev/null || true; }

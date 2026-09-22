@@ -122,3 +122,106 @@ static unsigned space_fx_twinkle(unsigned c,int i,float time){
  if(r>255)r=255;if(g>255)g=255;if(b>255)b=255;
  return RGB(r,g,b);
 }
+
+/* ---- Wave A: plume densify / boost shimmer / hit sparks / embers ----
+ * Soft-FB only, fixed pools, canopy-clipped. Release wires from flight paint.
+ * Skip decorative work when high_contrast, warp, or guided dock clarity wins. */
+enum { SFX_HIT_SLOTS=16, SFX_EMBER_SLOTS=12 };
+typedef struct { float life,max; int x0,y0,x1,y1; unsigned c; } SfxStreak;
+static SfxStreak sfx_hits[SFX_HIT_SLOTS];
+static SfxStreak sfx_embers[SFX_EMBER_SLOTS];
+static void sfx_fx_reset(void){
+ for(int i=0;i<SFX_HIT_SLOTS;i++)sfx_hits[i].life=0;
+ for(int i=0;i<SFX_EMBER_SLOTS;i++)sfx_embers[i].life=0;
+}
+static int sfx_fx_muted(void){
+ return high_contrast||game.jump>0||game.dock_stage>=2||game.police_stop;
+}
+/* Extra soft-dots along an already-projected NPC aft root (after npc_engine_glow). */
+static void sfx_engine_plume_at(int x,int y,int boostish,int top,int bot){
+ if(sfx_fx_muted()||x<4||x>W-4||y<top+3||y>bot-3)return;
+ int n=boostish?12:8;
+ unsigned core=boostish?CYAN:RGB(255,185,70),edge=boostish?RGB(45,120,170):RGB(150,70,28);
+ for(int i=0;i<n;i++){
+  float t=i/(float)(n-1);
+  int xx=x+(int)((i&1?1:-1)*(1+t*3)+(sinf(game.time*11+i)*.6f));
+  int yy=y+(int)(t*(boostish?14:9)+cosf(game.time*9+i)*.4f);
+  unsigned ink=(i<2)?core:(i<n/2)?edge:RGB(60,40,35);
+  sfx_add(xx,yy,ink,top,bot);
+  if(i<3)sfx_add(xx+1,yy,ink,top,bot);
+ }
+}
+/* Player nozzle heat — screen-space under engine_flare, not a full-screen warp. */
+static void sfx_boost_heat_shimmer(void){
+ if(sfx_fx_muted()||!game.boost||game.dead||game.speed<80)return;
+ int top=view_top(),bot=view_bot();if(bot<150)return;
+ int y=bot-8;
+ for(int i=0;i<22;i++){
+  float a=i*2.39996f+game.time*14.f;
+  int x=240+(int)(sinf(a)*18)+(i%5-2);
+  int yy=y+(int)(cosf(a*1.3f)*3)+(i&3);
+  unsigned ink=(i&3)==0?CYAN:RGB(40,90,130);
+  sfx_add(x,yy,ink,top,bot);
+ }
+}
+static void sfx_engine_plume_player(void){
+ if(sfx_fx_muted()||game.dead||game.speed<80)return;
+ int top=view_top(),bot=view_bot();if(bot<150)return;
+ sfx_engine_plume_at(240,bot-6,game.boost,top,bot);
+ if(game.boost)sfx_boost_heat_shimmer();
+}
+static void sfx_streak_spawn(SfxStreak *pool,int count,int sx,int sy,unsigned seed,float life,int spread){
+ if(sfx_fx_muted()||sx<2||sx>=W-2)return;
+ int armed=0;
+ for(int i=0;i<count&&armed<8;i++){
+  if(pool[i].life>0)continue;
+  unsigned r=seed*1664525u+1013904223u*(unsigned)(i+1);
+  float ang=((r&255)/255.f)*6.2831853f;
+  int len=4+(r>>8)%spread;
+  pool[i].x0=sx;pool[i].y0=sy;
+  pool[i].x1=sx+(int)(cosf(ang)*len);pool[i].y1=sy+(int)(sinf(ang)*len*.7f);
+  pool[i].life=pool[i].max=life*(.7f+((r>>16)&255)/500.f);
+  pool[i].c=(i&1)?GOLD:RGB(220,230,255);
+  armed++;
+ }
+}
+static void sfx_hit_sparks_spawn(int sx,int sy,unsigned seed){
+ sfx_streak_spawn(sfx_hits,SFX_HIT_SLOTS,sx,sy,seed,.32f,14);
+}
+static void sfx_explosion_embers_spawn(int sx,int sy,unsigned seed){
+ sfx_streak_spawn(sfx_embers,SFX_EMBER_SLOTS,sx,sy,seed,.55f,22);
+ for(int i=0;i<SFX_EMBER_SLOTS;i++)if(sfx_embers[i].life>0&&sfx_embers[i].c==GOLD)
+  sfx_embers[i].c=RGB(224,76,28);
+}
+static void sfx_streaks_draw(SfxStreak *pool,int count,int top,int bot,float dt){
+ for(int i=0;i<count;i++){
+  if(pool[i].life<=0)continue;
+  float u=pool[i].life/pool[i].max;if(u<0)u=0;
+  int x0=pool[i].x0,y0=pool[i].y0;
+  int x1=x0+(int)((pool[i].x1-x0)*u),y1=y0+(int)((pool[i].y1-y0)*u);
+  if(y0>=top&&y0<=bot&&y1>=top&&y1<=bot)line(x0,y0,x1,y1,pool[i].c);
+  sfx_add(x0,y0,pool[i].c,top,bot);
+  sfx_add(x1,y1,pool[i].c,top,bot);
+  if(u>.6f)pixel(x1,y1,WHITE);
+  pool[i].life-=dt;
+ }
+}
+static void sfx_hit_sparks_draw(float dt){
+ if(high_contrast){for(int i=0;i<SFX_HIT_SLOTS;i++)sfx_hits[i].life=0;return;}
+ int top=view_top(),bot=view_bot();
+ sfx_streaks_draw(sfx_hits,SFX_HIT_SLOTS,top,bot,dt);
+}
+static void sfx_explosion_embers_draw(float dt){
+ if(high_contrast){for(int i=0;i<SFX_EMBER_SLOTS;i++)sfx_embers[i].life=0;return;}
+ int top=view_top(),bot=view_bot();
+ sfx_streaks_draw(sfx_embers,SFX_EMBER_SLOTS,top,bot,dt);
+}
+/* Arm sparks on the first frames of a hull flash (flash starts ~0.12). */
+static void sfx_maybe_flash_sparks(int sx,int sy,float flash,unsigned seed){
+ if(flash>.095f&&flash<.13f)sfx_hit_sparks_spawn(sx,sy,seed);
+}
+/* Death / debris — burst once while explosion age is young. */
+static void sfx_maybe_death_embers(void){
+ if(sfx_fx_muted()||!game.dead)return;
+ if(game.explosion>.05f&&game.explosion<.12f)sfx_explosion_embers_spawn(240,110,(unsigned)(game.explosion*1000)^0xE11Eu);
+}

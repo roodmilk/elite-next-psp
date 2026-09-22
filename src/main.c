@@ -321,7 +321,7 @@ static void space(void){
  if(game.jump>0){warp_effect();cockpit();return;}
  if(game.approach>=0){planet_prompt();cockpit();return;}
  if(game.police_stop){if(hud_mode==0)cockpit();police_dialog();return;}
- if(game.dead){death_effect();if(hud_mode==0)cockpit();return;}
+ if(game.dead){death_effect();sfx_maybe_death_embers();sfx_explosion_embers_draw(1.f/60);if(hud_mode==0)cockpit();return;}
  if(game.dock_stage>=2){docking_view();if(hud_mode==0)cockpit();return;}
  sector_background();space_fx_nebula();starfield();space_fx_meteors();celestial_rims();draw_bodies();lens_flares();station_model();secondary_hubs();ambient_space();
  int npc_detailed[NPC_COUNT]={0};
@@ -335,14 +335,35 @@ static void space(void){
  for(int i=0;i<ANOMALY_COUNT;i++)if(game.anomaly[i].alive){float d=length(sub(game.anomaly[i].pos,game.pos));if(d>180&&d<10000)shipmesh(mesh_id("WORM"),game.anomaly[i].pos,game.time*.7f+i,sinf(game.time+i)*.2f,4.2f,game.anomaly[i].kind?CYAN:GOLD,0);}
  flush_meshes();
  for(int i=0;i<NPC_COUNT;i++)if(npc_detailed[i]==1){NPC *n=&game.npc[i];ship_sprite_detail(n,n->flash>0?WHITE:faction_colors[n->role]);}
- npc_engine_glow();station_glow();station_entrance();speed_lines();engine_flare();missile_effects();
+ npc_engine_glow();
+ /* Wave A soft-FB: densify NPC plumes using the same aft roots. */
+ if(!sfx_fx_muted()){
+  int top=view_top(),bot=view_bot();
+  for(int i=0;i<NPC_COUNT;i++){NPC *n=&game.npc[i];if(!n->alive||occluded(n->pos))continue;float d=length(sub(n->pos,game.pos));if(d>9000)continue;
+   float lateral=n->freighter?freight_extent(n).x*.38f:0;int plumes=n->freighter?2:1;
+   for(int plume=0;plume<plumes;plume++){
+    float offset=n->freighter?(plume?1:-1)*lateral:0;
+    Vec3 rear=npc_engine_root(n,offset);Vec3 rv=camera(&game,rear);if(rv.z<25)continue;Point root=project(rv);
+    sfx_engine_plume_at((int)root.x,(int)root.y,n->freighter?0:(n->cruise>80),top,bot);
+   }
+  }
+ }
+ station_glow();station_entrance();speed_lines();engine_flare();sfx_engine_plume_player();missile_effects();
  for(int i=0;i<ANOMALY_COUNT;i++)if(game.anomaly[i].alive&&length(sub(game.anomaly[i].pos,game.pos))<=180){unsigned c=game.anomaly[i].kind?CYAN:GOLD;circle(240,110,18+(int)(sinf(game.time*4)*4),c);circle(240,110,7,c);}
  for(int i=0;i<NPC_COUNT;i++){NPC *n=&game.npc[i];if(!n->alive||npc_detailed[i]||occluded(n->pos))continue;Vec3 v=camera(&game,n->pos);if(v.z<30)continue;Point p=project(v);if(p.x<2||p.x>477||p.y<view_top()+2||p.y>view_bot()-2)continue;unsigned c=faction_colors[n->role];rect((int)p.x-1,(int)p.y-1,n->freighter?5:3,n->freighter?3:2,c);}
  freight_effects();mining_effects();
- for(int i=0;i<NPC_COUNT;i++){NPC *n=&game.npc[i];if(!n->alive||n->flash<=0||n->target==-1)continue;Vec3 end=n->target==-2?add(game.pos,mul(forward(&game),30)):game.npc[n->target].pos;Vec3 a=camera(&game,n->pos),b=camera(&game,end);if(a.z>15&&b.z>15){Point p=project(a),q=project(b);if(p.y>view_top()&&p.y<view_bot()&&q.y>view_top()&&q.y<view_bot())line((int)p.x,(int)p.y,(int)q.x,(int)q.y,n->role==LAW?CYAN:RED);}}
+ for(int i=0;i<NPC_COUNT;i++){NPC *n=&game.npc[i];if(!n->alive||n->flash<=0)continue;
+  Vec3 nv=camera(&game,n->pos);if(nv.z>15){Point hp=project(nv);sfx_maybe_flash_sparks((int)hp.x,(int)hp.y,n->flash,(unsigned)(i*97)^(unsigned)(game.time*40));}
+  if(n->target==-1)continue;
+  {Vec3 end=n->target==-2?add(game.pos,mul(forward(&game),30)):game.npc[n->target].pos;Vec3 a=camera(&game,n->pos),b=camera(&game,end);if(a.z>15&&b.z>15){Point p=project(a),q=project(b);if(p.y>view_top()&&p.y<view_bot()&&q.y>view_top()&&q.y<view_bot())line((int)p.x,(int)p.y,(int)q.x,(int)q.y,n->role==LAW?CYAN:RED);}}
+ }
+ for(int i=0;i<DEBRIS_COUNT;i++){Debris *d=&game.debris[i];if(!d->alive||d->flash<=0)continue;Vec3 dv=camera(&game,d->pos);if(dv.z<30||dv.z>2400)continue;Point dp=project(dv);
+  int burst=(d->rock&&d->flash>.19f&&d->flash<.23f)||(!d->rock&&d->flash>.60f&&d->flash<.66f);
+  if(burst)sfx_explosion_embers_spawn((int)dp.x,(int)dp.y,(unsigned)(i*131)^0xDEBu);}
  if(game.shot>.1f){line(50,view_bot(),236,110,RED);line(430,view_bot(),244,110,RED);}
  line(227,110,236,110,AMBER);line(244,110,253,110,AMBER);line(240,97,240,106,AMBER);line(240,114,240,123,AMBER);
  line(232,102,236,106,AMBER);line(244,106,248,102,AMBER);line(232,118,236,114,AMBER);line(244,114,248,118,AMBER);
+ sfx_hit_sparks_draw(1.f/60);sfx_maybe_death_embers();sfx_explosion_embers_draw(1.f/60);
  hud_postfx();
  if(hud_mode==0)target_overlay();else if(hud_mode==1)minimal_overlay();
  warp_effect();planet_prompt();police_dialog();death_effect();
@@ -712,7 +733,14 @@ static void input_tests(void){
     int plain=0;for(int y=view_top();y<=view_bot();y++)for(int x=0;x<W;x++)if(pixels[y*STRIDE+x])plain++;
     /* Base wash only — no soft nebula/meteors when high contrast is on. */
     INPUT_CHECK(plain>1000,"graphics: high contrast keeps the sector wash without decorative FX");
-    high_contrast=0;
+    high_contrast=0;sfx_fx_reset();
+    memset(pixels,0,STRIDE*H*sizeof(unsigned));sfx_hit_sparks_spawn(240,120,0xABCDu);sfx_hit_sparks_draw(0);
+    int sparks=0;for(int y=view_top();y<=view_bot();y++)for(int x=0;x<W;x++)if(pixels[y*STRIDE+x])sparks++;
+    INPUT_CHECK(sparks>=8,"graphics: Wave A hit-spark pool paints soft-FB streaks");
+    high_contrast=1;memset(pixels,0,STRIDE*H*sizeof(unsigned));sfx_hit_sparks_draw(0);
+    int muted=0;for(int y=view_top();y<=view_bot();y++)for(int x=0;x<W;x++)if(pixels[y*STRIDE+x])muted++;
+    INPUT_CHECK(muted==0,"graphics: high contrast mutes Wave A hit sparks");
+    high_contrast=0;sfx_fx_reset();
    }
    preview_reset();quiet_comms=old_quiet;fb=saved_fb;free(pixels);TEST_INIT();
   }
