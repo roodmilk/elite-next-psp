@@ -683,18 +683,18 @@ static void input_tests(void){
    }
    {
     /* Engine roots must sit on the mesh aft tip — radius-scaled glow floated past wide ships. */
-    int ok=1;
+    int aft_ok=1;
     for(int mesh=0;mesh<mesh_count;mesh++){
      float aft=0,rad=1;const Mesh *m=&meshes[mesh];
      for(int v=0;v<m->vertices;v++){float L=length(m->v[v]);if(L>rad)rad=L;aft=fmaxf(aft,-m->v[v].z);}
      if(aft<1)continue;
      NPC sample={0};sample.mesh=mesh;sample.scale=1;sample.radius=rad;sample.dir=(Vec3){0,0,1};
-     if(npc_engine_aft(&sample)>aft+0.01f)ok=0;
+     if(npc_engine_aft(&sample)>aft+0.01f)aft_ok=0;
     }
     NPC tip={0};tip.mesh=mesh_id("VIPER");tip.scale=1;tip.radius=80;tip.dir=(Vec3){0,0,1};
     float viperaft=0;for(int v=0;v<meshes[tip.mesh].vertices;v++)viperaft=fmaxf(viperaft,-meshes[tip.mesh].v[v].z);
     Vec3 root=npc_engine_root(&tip,0);
-    INPUT_CHECK(ok&&fabsf(root.z+viperaft)<0.05f&&viperaft<tip.radius*.65f,"graphics: engine glow roots at the mesh aft tip (not past the silhouette)");
+    INPUT_CHECK(aft_ok&&fabsf(root.z+viperaft)<0.05f&&viperaft<tip.radius*.65f,"graphics: engine glow roots at the mesh aft tip (not past the silhouette)");
    }
    memset(pixels,0,STRIDE*H*sizeof(unsigned));preview_clip(240,110,20,20,25,25);
    DrawTri t={{{20,20,30},{30,20,30},{20,30,30}},WHITE,30};triangle(&t);
