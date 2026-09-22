@@ -129,15 +129,15 @@ The build compiles `game.c`, `ships.c` and `main.c`, links PSP libraries and pro
 - radio checks;
 - performance checks.
 
-The last verified 2.5.4 run passed every group under PPSSPP. PPSSPP success does not replace physical PSP testing.
+The last verified 2.5.5 source built cleanly; full PPSSPP smoke is deferred until the remaining UI queue lands. PPSSPP success does not replace physical PSP testing.
 
 ## Highest-priority remaining work
 
 1. **Confirm 2.5.4 sleep/resume on physical PSP.** Put the handheld to sleep mid-flight and mid-radio for several hours, then wake — screen and audio must return. Also re-check 20+ minute MP3 playback across sample rates.
-2. **Visually inspect the full galaxy map at 480×272.** Confirm labels, route lines, saved amber route goals, 1× density, 2–4× cursor behaviour and mission destination visibility. Add panning polish only if it remains readable.
-3. **Deepen the 24 chapters.** The state machine and chapter spine are playable, but many design-bible scenes currently resolve through generic dock/scan/hunt actions. Implement bespoke convoy rescue, evidence comparison, shelter repair, quiet migration observation, non-lethal blockade paths, relay nodes and epilogues incrementally.
-4. **Add chapter-specific dialogue pages.** Preserve the short flight HUD while making conversations, player replies and consequences available in the Mission Log transcript.
-5. **Physical performance and memory audit.** The new galaxy path is cached, but profile its first route calculation and the 64 KB MP3 buffer on real PSP hardware.
+2. **Galacticnet / Discovery Codex.** Messages tab directly right of Spacebook; Spacebook parody logo; Codex Systems (visited) and Planets (discovered when a system is visited).
+3. **Radio tuner page.** Station dial with static between stations and an off position.
+4. **Per-system visual variety.** Distinct planet looks, ship placement, and warp-in farther from the station.
+5. **Deepen the 24 chapters.** Implement bespoke convoy rescue, evidence comparison, shelter repair, quiet migration observation, non-lethal blockade paths, relay nodes and epilogues incrementally.
 
 ## Known limitations and honest status
 
@@ -147,6 +147,7 @@ The last verified 2.5.4 run passed every group under PPSSPP. PPSSPP success does
 - The full-galaxy chart shows all systems, a cached route and a saved manual route goal, but has not yet had user testing on a physical PSP.
 - The audio fix passed PPSSPP with the user's files; intermittent real-hardware behaviour still requires listening tests.
 - Manual route persistence is playable in 2.5.3; sleep/resume black-screen recovery is in 2.5.4 but still needs multi-hour hardware confirmation.
+- Speaker colour chips and clearer Outfitting tech copy shipped in 2.5.5.
 - Chapter deepening and bespoke dialogue pages remain design-ahead of the executable.
 
 ## Safe continuation workflow
