@@ -32,7 +32,7 @@ enum { TRADERS, LAW, PIRATES, EXPLORERS, FACTION_COUNT };
 enum { SUN, ROCKY, OCEAN, GAS };
 enum { MISSION_DELIVERY, MISSION_BOUNTY, MISSION_EXPLORATION, MISSION_RESCUE, MISSION_SMUGGLING, MISSION_TYPES };
 enum { LIFE_FLORA, LIFE_FAUNA, LIFE_MINERAL };
-enum { SFX_NONE, SFX_UI, SFX_LASER, SFX_HIT, SFX_WARP, SFX_SCAN, SFX_LAND, SFX_MINE, SFX_BOOST, SFX_COMM, SFX_DOCK, SFX_MISSILE, SFX_ALERT, SFX_DEATH, SFX_SELECT };
+enum { SFX_NONE, SFX_UI, SFX_LASER, SFX_HIT, SFX_WARP, SFX_SCAN, SFX_LAND, SFX_MINE, SFX_BOOST, SFX_COMM, SFX_DOCK, SFX_MISSILE, SFX_ALERT, SFX_DEATH, SFX_SELECT, SFX_TALK };
 enum { VOICE_NONE, VOICE_KEI, VOICE_VENN, VOICE_DOCK, VOICE_LAW, VOICE_COMP, VOICE_CONTACT };
 #define BODY_COUNT 5
 #define MISSION_SLOTS 5
@@ -45,6 +45,7 @@ enum { FREIGHT_ABSENT, FREIGHT_ARRIVING, FREIGHT_INBOUND, FREIGHT_SERVICE, FREIG
 typedef struct {
  Vec3 pos,dir; float health,shield,cooldown,flash,scale,radius,cruise;
  int role,mesh,target,alive,waypoint,freighter;
+ int8_t traveller; /* >=0 indexes TravellerLive; -1 = anonymous traffic */
  Vec3 freight_gate,freight_berth;
  float freight_timer;
  int freight_state,freight_style,freight_hub,freight_peer,freight_good,freight_qty,freight_trip;
@@ -57,13 +58,13 @@ typedef struct {
  Anomaly anomaly[ANOMALY_COUNT]; Lifeform life[LIFE_COUNT];
  Body bodies[BODY_COUNT];
  int dock_stage,dock_phase,station_variant; float dock_timer,dock_duration; Vec3 dock_from,dock_to;
- int wanted[256],police_stop,upgrades; float roll,explosion;
+ int wanted[256],police_stop,police_phase,upgrades; float roll,explosion;
  float freight_next,freight_gap;
  float attacked,collision,encounter,incoming_missile,police_grace; int boost,approach,planet,surface,incoming_source;
  Vec3 orbit_pos,ship_pos; float orbit_yaw,orbit_pitch,orbit_roll,orbit_speed;
  Vec3 missile_pos; float missile_time; int missile_target;
  Vec3 pos; float yaw,pitch,speed,energy,heat,fuel,time,jump,shot,message_time,hazard,jetpack;
- int system,destination,credits,kills,legal,ship,docked,dead,laser,missiles,cue;
+ int system,destination,route_goal,credits,kills,legal,ship,docked,dead,laser,missiles,cue;
  int cargo[GOODS],stock[GOODS],price[GOODS],contract,contract_reward;
  float contract_time; int mission_type,mission_stage,mission_target,mission_item,mission_origin,mission_result,last_mission_type,last_mission_system;
  Job jobs[MISSION_SLOTS]; int job_n,job_sel;
@@ -74,8 +75,11 @@ typedef struct {
  float campaign_distance,campaign_fuel;
  int saga_chapter,saga_step,saga_flags,saga_choice,saga_dest,saga_start;
  int saga_trust[4];
+ int passenger_dest,passenger_kind,passenger_pay,gift_flags;
  int npc_kills,shots,discoveries,scanned_flora,scanned_fauna,scanned_minerals,scanned_anomalies,ai_phase;
- uint8_t visited[32]; char message[96],voice[80],collide[40]; float voice_time;
+ uint8_t visited[32]; char message[96],voice[160],collide[40]; float voice_time;
+ /* Living-galaxy named travellers (save V12). See travellers.h */
+ struct { uint8_t sys,dest; int8_t slot; uint8_t flags; } travellers[12];
 } Game;
 extern const Good goods[GOODS];
 extern const PlayerShip player_ships[];
@@ -98,11 +102,20 @@ int campaign_retry(Game *g);
 void campaign_event(Game *g,int event);
 int emergency_rescue(Game *g);
 int route_next_hop(const Game *g,int destination,int *jumps);
+void route_clear(Game *g);
+void route_set_goal(Game *g,int goal);
+void route_refresh_destination(Game *g);
 int wanted_level(const Game *g);
 void add_crime(Game *g,int points);
+int cargo_contraband(const Game *g);
+int goods_restricted(int item);
 int police_fine(const Game *g);
 int police_resolve(Game *g,int jail);
 int police_escape(Game *g);
+int police_scan_submit(Game *g);
+int police_scan_refuse(Game *g);
+int police_pay_desk(Game *g);
+void police_begin(Game *g,int phase);
 int approach_planet(Game *g,int body);
 int enter_planet(Game *g); void leave_planet(Game *g);
 int land_planet(Game *g); int takeoff_planet(Game *g); int eva_toggle(Game *g);

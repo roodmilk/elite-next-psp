@@ -36,32 +36,40 @@ static void social_wrap(int x,int y,int width,unsigned colour,const char *s){
   social_text(x,y+line*10,x+width,colour,part,1);while(s[at]==' ')at++;
  }
 }
+static void spacebook_logo(int x,int y){
+ /* Facebook-parody mark: blue tile with a white lowercase-style s. */
+ const unsigned blue=RGB(49,82,145),white=RGB(255,255,255);
+ rect(x,y,22,22,blue);rect(x+1,y+1,20,20,RGB(66,103,178));
+ rect(x+8,y+4,6,2,white);rect(x+6,y+6,3,10,white);rect(x+9,y+11,6,2,white);rect(x+12,y+13,3,4,white);
+}
 static void spacebook_screen(int messages){
  const unsigned blue=RGB(49,82,145),ink=RGB(34,43,58),muted=RGB(91,107,127),paper=RGB(238,242,247);
  rect(0,0,W,H,paper);
+ spacebook_logo(8,44);
+ social_text(34,50,158,blue,"Spacebook",1);
  char context[64];snprintf(context,sizeof(context),messages?"Messages / System: %s":"Local feed / System: %s",game.systems[game.system].name);
- social_text(112,45,470,muted,context,1);
- rect(8,52,94,186,RGB(221,229,240));draw_portrait(16,59,28,28,game.system,EXPLORERS);
- social_text(15,94,101,ink,"Commander",1);
- social_text(15,109,101,blue,messages?"Inbox":"Your feed",1);
- social_text(15,126,101,muted,messages?"Unread: 3":"Friends: 7",1);
- social_text(15,141,101,muted,messages?"Archived: 12":"Pokes: 42",1);
- social_text(15,164,101,muted,"Sponsored",1);
- social_text(15,180,101,blue,"SPACE VPN",1);
- social_wrap(15,195,83,ink,"Hide from ads. Not the police.");
+ social_text(160,50,470,muted,context,1);
+ rect(8,68,94,170,RGB(221,229,240));draw_portrait(16,74,28,28,game.system,EXPLORERS);
+ social_text(15,108,101,ink,"Commander",1);
+ social_text(15,122,101,blue,messages?"Inbox":"Your feed",1);
+ social_text(15,137,101,muted,messages?"Unread: 3":"Friends: 7",1);
+ social_text(15,152,101,muted,messages?"Archived: 12":"Pokes: 42",1);
+ social_text(15,172,101,muted,"Sponsored",1);
+ social_text(15,186,101,blue,"SPACE VPN",1);
+ social_wrap(15,200,83,ink,"Hide from ads. Not the police.");
  int first=(row/2)*2,total=messages?5:7;
  for(int j=0;j<2&&first+j<total;j++){
-  int i=first+j,y=54+j*94;char author[40],body[96],meta[96];galnet_post(i,author,sizeof(author),body,sizeof(body));
-  rect(111,y,361,90,i==row?RGB(166,190,223):RGB(210,219,230));rect(113,y+2,357,86,RGB(255,255,255));
-  galnet_avatar(121,y+8,22,i);
-  social_text(151,y+8,462,blue,author,1);
-  snprintf(meta,sizeof(meta),"%d min ago / public / near %s",i*7+2,game.systems[game.system].name);social_text(151,y+21,462,muted,meta,1);
-  social_wrap(121,y+36,340,ink,body);
+  int i=first+j,y=68+j*86;char author[40],body[96],meta[96];galnet_post(i,author,sizeof(author),body,sizeof(body));
+  rect(111,y,361,82,i==row?RGB(166,190,223):RGB(210,219,230));rect(113,y+2,357,78,RGB(255,255,255));
+  galnet_avatar(121,y+6,22,i);
+  social_text(151,y+6,462,blue,author,1);
+  snprintf(meta,sizeof(meta),"%d min ago / public / near %s",i*7+2,game.systems[game.system].name);social_text(151,y+18,462,muted,meta,1);
+  social_wrap(121,y+32,340,ink,body);
   int liked=(spacebook_likes[game.system]>>i)&1;
   if(messages)snprintf(meta,sizeof(meta),"Reply       Archive       Mark unread");
   else snprintf(meta,sizeof(meta),"%s  %d       Reply       Share oxygen",liked?"Liked":"Like",12+i*9+liked);
-  social_text(121,y+72,462,blue,meta,1);
-  if(i==row&&spacebook_comments){rect(118,y+53,347,16,paper);social_text(122,y+57,461,muted,"Pip: I have concerns about your privacy settings.",1);}
+  social_text(121,y+64,462,blue,meta,1);
+  if(i==row&&spacebook_comments){rect(118,y+48,347,14,paper);social_text(122,y+51,461,muted,"Pip: I have concerns about your privacy settings.",1);}
  }
  rect(0,244,W,28,RGB(215,225,239));
  social_text(10,253,474,blue,messages?"Up/down  X open  Triangle reply  L/R tab  O back":"Up/down  X like  Triangle comment  L/R tab  O back",1);

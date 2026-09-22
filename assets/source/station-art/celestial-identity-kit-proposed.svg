@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="272" viewBox="0 0 480 272" shape-rendering="crispEdges">
+  <rect width="480" height="272" fill="#080d18"/>
+  <rect width="480" height="22" fill="#151c27"/><rect y="21" width="480" height="1" fill="#55d4d4"/>
+  <text x="8" y="14" fill="#f0b45b" font-family="monospace" font-size="10" font-weight="bold">PROPOSED / CELESTIAL IDENTITY KIT / 480x272</text>
+  <g font-family="monospace" font-size="7" font-weight="bold">
+    <!-- planet silhouettes -->
+    <g transform="translate(8 30)">
+      <rect width="148" height="104" fill="#101722" stroke="#293646"/>
+      <text x="7" y="11" fill="#55d4d4">01 OCEAN / TEMPERATE</text>
+      <circle cx="53" cy="60" r="30" fill="#293646"/><path d="M27 45q20-15 47-2M25 67q20 12 55-3M39 83q18-8 36-1" stroke="#55d4d4" stroke-width="5"/>
+      <path d="M30 38q22-13 45-3" stroke="#e5d2a3" stroke-width="2"/>
+      <circle cx="111" cy="37" r="8" fill="#9b9aa5"/><path d="M96 37h30" stroke="#c18b4d"/>
+      <text x="7" y="96" fill="#e5d2a3">blue limb / cloud slash / moon</text>
+    </g>
+    <g transform="translate(166 30)">
+      <rect width="148" height="104" fill="#101722" stroke="#293646"/>
+      <text x="7" y="11" fill="#f0b45b">02 RED DUNE</text>
+      <circle cx="53" cy="60" r="30" fill="#8b4b37"/><path d="M27 70q20-14 52-2M31 51q17-8 43-3" stroke="#c18b4d" stroke-width="5"/>
+      <path d="M22 40q28-15 62-6" stroke="#e5d2a3" stroke-width="2"/>
+      <circle cx="110" cy="72" r="7" fill="#c18b4d"/>
+      <text x="7" y="96" fill="#e5d2a3">copper crescent / dust bands</text>
+    </g>
+    <g transform="translate(324 30)">
+      <rect width="148" height="104" fill="#101722" stroke="#293646"/>
+      <text x="7" y="11" fill="#55d4d4">03 ICE SHELF</text>
+      <circle cx="53" cy="60" r="30" fill="#9b9aa5"/><path d="M26 55q20-13 54-2M30 75q18 8 48-2" stroke="#e5d2a3" stroke-width="5"/>
+      <path d="M28 39q24-14 48-5" stroke="#55d4d4" stroke-width="2"/>
+      <circle cx="109" cy="37" r="8" fill="#293646"/>
+      <text x="7" y="96" fill="#e5d2a3">pale cap / cyan rim</text>
+    </g>
+    <g transform="translate(8 146)">
+      <rect width="148" height="104" fill="#101722" stroke="#293646"/>
+      <text x="7" y="11" fill="#3c8c6e">04 FUNGAL PLAIN</text>
+      <circle cx="53" cy="60" r="30" fill="#3c8c6e"/><path d="M29 68q18-12 50-3M31 48q17 10 45 0" stroke="#9b9aa5" stroke-width="5"/>
+      <path d="M25 39q24-13 55-3" stroke="#55d4d4" stroke-width="2"/>
+      <circle cx="109" cy="77" r="7" fill="#8b4b37"/>
+      <text x="7" y="96" fill="#e5d2a3">green haze / dark islands</text>
+    </g>
+    <g transform="translate(166 146)">
+      <rect width="148" height="104" fill="#101722" stroke="#293646"/>
+      <text x="7" y="11" fill="#f0b45b">05 COPPER BADLANDS</text>
+      <circle cx="53" cy="60" r="30" fill="#c18b4d"/><path d="M27 54q19 13 52 0M31 76q18-13 46-1" stroke="#8b4b37" stroke-width="6"/>
+      <path d="M27 38q22-13 50-3" stroke="#e5d2a3" stroke-width="2"/>
+      <circle cx="110" cy="39" r="8" fill="#293646"/>
+      <text x="7" y="96" fill="#e5d2a3">warm face / rust ravines</text>
+    </g>
+    <g transform="translate(324 146)">
+      <rect width="148" height="104" fill="#101722" stroke="#293646"/>
+      <text x="7" y="11" fill="#9b9aa5">06 AIRLESS RUIN</text>
+      <circle cx="53" cy="60" r="30" fill="#293646"/><path d="M28 55h49M31 75h40" stroke="#8b4b37" stroke-width="5"/>
+      <path d="M25 37q25-11 54-3" stroke="#e5d2a3" stroke-width="2"/>
+      <path d="M20 89h67" stroke="#55d4d4"/><rect x="42" y="47" width="8" height="14" fill="#f0b45b"/>
+      <text x="7" y="96" fill="#e5d2a3">no limb / one relic light</text>
+    </g>
+  </g>
+  <!-- small star-depth key -->
+  <g transform="translate(8 258)" font-family="monospace" font-size="6">
+    <circle cx="4" cy="3" r="2" fill="#e5d2a3"/><text x="10" y="5" fill="#e5d2a3">ANCHOR</text>
+    <circle cx="62" cy="3" r="1.5" fill="#9b9aa5"/><text x="68" y="5" fill="#9b9aa5">MIDFIELD</text>
+    <circle cx="132" cy="3" r="1" fill="#55d4d4"/><text x="138" y="5" fill="#55d4d4">PINPRICK</text>
+    <text x="250" y="5" fill="#f0b45b">RIM FIRST / DETAIL SECOND / KEEP NEGATIVE SPACE</text>
+  </g>
+</svg>

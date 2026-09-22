@@ -13,10 +13,10 @@ void campaign_event(Game *g,int event){
   const CampaignTransition *t=&campaign_transitions[i];
   if(g->campaign_stage==t->stage&&event==t->event){g->campaign_stage=t->next;break;}
  }
- if(event==CP_LAUNCH)speak(g,VOICE_VENN,"Lave traffic, new commander leaving berth six.");
- if(event==CP_GUIDANCE)speak(g,VOICE_VENN,"Clearance granted. I'll show you the way in.");
+ if(event==CP_LAUNCH)speak(g,VOICE_VENN,"Lave traffic. New commander leaving berth six — soft launch, and keep the collar clean.");
+ if(event==CP_GUIDANCE)speak(g,VOICE_VENN,"Clearance granted. I will show you the way in; prefer boring over clever.");
  if(event==CP_RETURN&&g->campaign_stage==5){
-  speak(g,VOICE_KEI,"Good. Now I know where to find you.");
+  speak(g,VOICE_KEI,"Good. Now I know where to find you when the next call goes quiet.");
   message(g,"First flight complete. Open Campaign to report to Kei.");
  }
 }
@@ -30,7 +30,7 @@ int campaign_claim(Game *g){
  if(g->credits>99999000){message(g,"Credit limit reached. Spend 100 units first.");return 0;}
  /* One state transition commits payment and badge together. */
  g->campaign_stage=6;g->credits+=1000;g->cue=SFX_SELECT;
- message(g,"Harbour badge earned. 100 units paid. Save at the hub.");return 1;
+ message(g,"Harbour badge earned. 100 units paid — a receipt that you left and returned.");return 1;
 }
 int campaign_retry(Game *g){
  if(!g->dead||g->system!=7||!campaign_training(g))return 0;
@@ -43,6 +43,6 @@ int campaign_retry(Game *g){
  g->energy=100;g->heat=0;g->fuel=g->campaign_fuel;
  g->jump=0;g->planet=g->approach=-1;g->surface=0;g->boost=0;
  g->incoming_missile=g->missile_time=g->attacked=0;g->police_stop=0;
- g->cue=SFX_DOCK;speak(g,VOICE_VENN,"Training cover paid the repairs. Try again when ready.");
+ g->cue=SFX_DOCK;speak(g,VOICE_VENN,"Training cover paid the repairs. Try again when your hands are steady.");
  message(g,"Back at Lave Hub. Cargo and credits kept. No reward yet.");return 1;
 }
