@@ -2,6 +2,11 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.15 - 2026-09-22
+
+- Bottom canopy **RED ALERT** stays clear of top speech during combat (status no longer hijacks the speech box); scenic HUD still shows the banner.
+- Hold Square + Left/Right always cycles through the **ENEMIES** band (hostiles only), even when the list is empty.
+
 ## 2.5.14 - 2026-09-22
 
 - Story briefs (first flight and every Open Channel chapter) run a six-beat locked conversation: Circle and Select stay blocked until you accept the next step.

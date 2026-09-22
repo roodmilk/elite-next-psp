@@ -1,4 +1,9 @@
-# ELITE: NEXT — development build 2.5.14
+# ELITE: NEXT — development build 2.5.15
+
+## New in 2.5.15 — clearer RED ALERT and ENEMIES band
+
+- Under attack: compact **RED ALERT** at the bottom of the canopy; character speech stays at the top.
+- Hold Square + Left/Right always includes **ENEMIES** (anyone hostile to you).
 
 ## New in 2.5.14 — locked, expanded story conversations
 

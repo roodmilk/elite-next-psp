@@ -34,11 +34,8 @@ static int collect_scan_ids(int *ids,int cat){
  return n;
 }
 static void step_scan_cat(int dir){
- for(int n=0;n<5;n++){
-  int ids[BODY_COUNT+NPC_COUNT+DEBRIS_COUNT+ANOMALY_COUNT];
-  scan_cat=(scan_cat+dir+5)%5;
-  if(collect_scan_ids(ids,scan_cat))return;
- }
+ /* Always visit every band, including empty ENEMIES, so Square+Left/Right is predictable. */
+ scan_cat=(scan_cat+dir+5)%5;
 }
 static void tab_flight_category(int dir){
  step_scan_cat(dir);
@@ -131,10 +128,12 @@ static void target_overlay(void){
  if(valid_target(selected_target)){Vec3 p=camera(&game,target_position(selected_target));if(p.z>15){Point q=project(p);if(q.x>16&&q.x<464&&q.y>84&&q.y<168){int x=(int)q.x,y=(int)q.y;unsigned lock=autoaim?CYAN:AMBER;if(IS_NPC_ID(selected_target))lock=faction_colors[game.npc[selected_target-BODY_COUNT-1].role];line(x-14,y-14,x-5,y-14,lock);line(x-14,y-14,x-14,y-5,lock);line(x+14,y+14,x+5,y+14,lock);line(x+14,y+14,x+14,y+5,lock);line(x-14,y+14,x-5,y+14,lock);line(x+14,y-14,x+5,y-14,lock);int pulse=1+(int)(fabsf(sinf(game.time*4))*3);circle(x,y,pulse,lock);if(autoaim){line(x-20,y,x-16,y,CYAN);line(x+16,y,x+20,y,CYAN);line(x,y-20,x,y-16,CYAN);line(x,y+16,x,y+20,CYAN);}}}}
 }
 /* Bottom-of-canopy combat cue — keeps speech free at the top. */
+static int combat_alert_active(void){return game.incoming_missile>0||game.attacked>0||game.collision>0;}
 static void combat_alert_banner(void){
- if(game.incoming_missile<=0&&game.attacked<=0&&game.collision<=0)return;
+ if(!combat_alert_active())return;
  int bot=view_bot(),y=bot-14;if(y<28)y=28;
- rect(120,y,240,12,RGB(90,12,18));rect(122,y+1,236,10,RGB(55,8,12));
+ if(y+12>=192&&hud_mode==0)y=178; /* sit in the canopy, above the full HUD strip */
+ rect(100,y,280,12,RGB(110,14,20));rect(102,y+1,276,10,RGB(62,8,12));
  const char *msg=game.incoming_missile>0?"RED ALERT - MISSILE":game.collision>0?"RED ALERT - IMPACT":"RED ALERT";
  int len=(int)strlen(msg);text(30-len/2,y/8,WHITE,"%s",msg);
 }

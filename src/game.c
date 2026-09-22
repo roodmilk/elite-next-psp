@@ -478,7 +478,7 @@ void game_tick(Game *g,float dt,float turn,float pitch,int throttle,int fire){
   n->pos=add(n->pos,mul(n->dir,dt*speed));
   if(length(sub(n->pos,stn))<190)n->pos=add(stn,mul(norm(sub(n->pos,stn)),200));
   if(target!=-1&&best<(n->freighter?2400:1300)&&dot(n->dir,desired)>.8f&&n->cooldown<=0){n->cooldown=1.5f-danger_rating(g,g->system)*.18f+random_f(g)*.5f;n->flash=.1f;
-    if(target==-2){g->energy-=4;g->attacked=3;g->cue=SFX_HIT;if(n->role==PIRATES&&best>1200&&g->incoming_missile<=0&&random_f(g)<.18f){g->incoming_missile=3.5f;g->incoming_source=i;g->cue=SFX_ALERT;message(g,"Warning: incoming missile. Boost to evade.");}}else hit(g,target,n->freighter?20:8,0);
+    if(target==-2){g->energy-=4;g->attacked=3.5f;g->cue=SFX_HIT;if(n->role==PIRATES&&best>1200&&g->incoming_missile<=0&&random_f(g)<.18f){g->incoming_missile=3.5f;g->incoming_source=i;g->cue=SFX_ALERT;}}else hit(g,target,n->freighter?20:8,0);
   }
   if(segment_distance(previous_pos,g->pos,n->pos)<n->radius+15){g->pos=add(n->pos,mul(norm(sub(previous_pos,n->pos)),n->radius+20));g->speed=0;g->boost=0;g->energy-=5;n->health-=10;g->collision=2;note_collision(g,meshes[n->mesh].name);if(n->health<=0)ram_contact(g,i);}
   for(int b=0;b<BODY_COUNT;b++)if(length(sub(n->pos,g->bodies[b].pos))<g->bodies[b].radius+n->radius+100)n->pos=add(g->bodies[b].pos,mul(norm(sub(n->pos,g->bodies[b].pos)),g->bodies[b].radius+n->radius+120));

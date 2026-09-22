@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.14**.
+Prepared 22 September 2026. Current build: **2.5.15**.
 
 ## Start here
 
@@ -61,6 +61,10 @@ Important controls:
 - Galaxy Map: Triangle switches between nearby jumps and the full 256-system map; D-pad moves between systems; L/R zoom; X plots a multi-jump route and saves the final goal.
 
 ## Recent changes that must be preserved
+
+### 2.5.15 — RED ALERT bottom banner and ENEMIES band
+
+Combat status uses a bottom-of-canopy **RED ALERT** strip so top speech stays free. Hold Square + Left/Right cycles PLANETS / SHIPS / STATIONS / OTHER / **ENEMIES**; ENEMIES lists pirates and anyone currently targeting the player.
 
 ### 2.5.14 — locked story conversations
 

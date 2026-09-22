@@ -81,7 +81,7 @@ static void freight_update(Game *g,float dt){
    float pd=length(sub(g->pos,n->pos));n->target=-2;
    Vec3 desired=norm(sub(g->pos,n->pos));n->dir=norm(add(mul(n->dir,1-dt*1.1f),mul(desired,dt*1.1f)));
    if(pd>420)n->pos=add(n->pos,mul(n->dir,dt*fminf(n->cruise+40.f,140.f)));
-   if(pd<3200&&dot(n->dir,desired)>.72f&&n->cooldown<=0){n->cooldown=1.1f;n->flash=.12f;g->energy-=7;g->attacked=3;g->cue=SFX_HIT;}
+   if(pd<3200&&dot(n->dir,desired)>.72f&&n->cooldown<=0){n->cooldown=1.1f;n->flash=.12f;g->energy-=7;g->attacked=3.5f;g->cue=SFX_HIT;}
    continue;
   }
   n->target=-1;

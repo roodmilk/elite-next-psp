@@ -64,7 +64,8 @@ static void docking_view(void){
 static void speech_box(int x,int y,int w){
  const char *s=0;int who=VOICE_COMP;
  if(!quiet_comms&&game.voice_time>0&&game.voice[0]){s=game.voice;who=game.voice_who;}
- else if(game.message_time>0&&game.message[0])s=game.message;
+ /* During combat, status text stays on the bottom RED ALERT banner — not here. */
+ else if(game.message_time>0&&game.message[0]&&!combat_alert_active())s=game.message;
  if(!s)return;
  if(who<VOICE_KEI||who>VOICE_CONTACT)who=VOICE_COMP;
  int role=who==VOICE_LAW?LAW:who==VOICE_KEI?EXPLORERS:TRADERS;
