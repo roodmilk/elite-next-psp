@@ -1,0 +1,31 @@
+name: Publish PSP release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out tested release files
+        uses: actions/checkout@v4
+
+      - name: Package PSP game folder
+        shell: pwsh
+        run: Compress-Archive -Path dist/ELITE-NEXT-PSP -DestinationPath "ELITE-NEXT-PSP-$env:GITHUB_REF_NAME.zip"
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: >-
+          gh release create "$GITHUB_REF_NAME"
+          "ELITE-NEXT-PSP-$GITHUB_REF_NAME.zip"
+          "dist/ELITE-NEXT-PSP/EBOOT.PBP"
+          --title "ELITE: NEXT $GITHUB_REF_NAME"
+          --generate-notes
