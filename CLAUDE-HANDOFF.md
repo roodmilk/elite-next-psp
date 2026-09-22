@@ -133,7 +133,7 @@ The build compiles `game.c`, `ships.c` and `main.c`, links PSP libraries and pro
 - radio checks;
 - performance checks.
 
-The last verified 2.5.6 source built with Red Alert / ENEMIES changes; full PPSSPP smoke follows packaging. PPSSPP success does not replace physical PSP testing.
+The last verified 2.5.6 run passed every group under PPSSPP (game, input, steering, radio, performance). PPSSPP success does not replace physical PSP testing.
 
 ## Highest-priority remaining work
 
