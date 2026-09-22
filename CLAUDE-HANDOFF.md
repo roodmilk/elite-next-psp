@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.40**.
+Prepared 22 September 2026. Current build: **2.5.41**.
 
 ## Start here
 
@@ -77,7 +77,13 @@ Station interiors restaged from `docs/CINEMATIC-MOCKUP-TARGETS.md` + ART DIRECTO
 
 **Implementer tip under ART DIRECTOR authority (rebased on tip #18 `f003e09`):** 8×8 native prop markers; ARRIVALS cargo-loader cycle; walk/help/comfort chrome; aperture beacons kit cyan. Mission cue: ART_AMBER + 2-col header margin (Designer had restored GOLD for the old flush assert — palette stays with ART DIRECTOR; smoke uses header-margin assert). No tag.
 
-**Working tip (Commander: BIG RELEASES ONLY):** Release **v2.5.40** shipped. Living-galaxy Phase 2 on `cursor/living-galaxy-aliveness-fe9e` (PR #23): hybrid named travellers + local proc traffic, **save V12** route persistence, GalNet elsewhere mentions (`docs/LIVING-GALAXY-ALIVENESS.md`) — fold into #18 tip; ART presentation stays ART-owned. No micro-tag.
+**ART LOOK FREEZE (Commander: one bug-fixed EBOOT):** PR #11 @ `3f0dc20` frozen for Systems combine + tag. No new look passes. Mission cue remains ART_AMBER — do not restore GOLD.
+
+**Working tip (Commander: BIG RELEASES ONLY):** Release **v2.5.41** = ART freeze `3f0dc20` + living-galaxy PR #23 `bc56842` (hybrid travellers, save V12, GalNet elsewhere). ART presentation stays ART-owned.
+
+### 2.5.41 — Art freeze + living-galaxy pack
+
+ART tip `3f0dc20` (ART_AMBER) + galaxy `bc56842`. Smoke-green Commander download.
 
 ### 2.5.38 — soft-FB Wave A canopy FX
 

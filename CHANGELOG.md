@@ -10,6 +10,12 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 - GalNet Traffic Control + Spacebook Spotters name travellers on remote routes (not just local sky).
 - Story faces stay story; station crawl cast unchanged.
 
+## 2.5.41 - 2026-09-22
+
+- **Commander playable pack:** ART tip `3f0dc20` (ART_AMBER cue freeze, no GOLD) + living-galaxy PR #23 `bc56842` (hybrid travellers, save V12).
+- Mission cue ART amber with 2-col header margin; smoke green.
+- Hybrid travellers: System Details here/inbound, Triangle hail, GalNet elsewhere mentions.
+
 ## 2.5.40 - 2026-09-22
 
 - **Big combined tip:** ART DIRECTOR McQuarrie visual style + Systems soft-FB Wave B/C beauty + Story tip-batches on MacVenture polish.
@@ -23,6 +29,7 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 - **ART DIRECTOR implementer tip (untagged, under art authority):** native 8×8 hotspot prop markers; ARRIVALS cargo-loader bob; walk/deck/help/comfort charcoal+ochre chrome; docking aperture + prosperity rings use kit cyan (nav only). No micro-tag.
 - **Smoke fix (untagged):** mission cue stays ART amber in the top-right header with a 2-col margin (not flush to the edge); smoke expects ochre ink. No micro-tag.
 - **Reconcile onto Designer tip #18 (`f003e09`):** rebased art implementer commits atop GOLD-restore tip; cue ink remains ART_AMBER per ART DIRECTOR palette; header-margin smoke assert preserved. No micro-tag.
+- **ART look freeze for Systems combine/tag:** PR #11 tip `64977ba` is the art handoff — no further look work until after the bug-fixed EBOOT. Mission cue stays ART_AMBER (do not restore GOLD).
 
 ## 2.5.39 - 2026-09-22
 
