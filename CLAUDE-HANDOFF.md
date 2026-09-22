@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-## Planetary specialist — safe approach boundary (unreleased)
+## Integrated 2.5.47 — safe planetary approach
 
 Approach now stops the remaining collision-frame simulation and pauses threats
 in the simulation API. Gas boundaries offer Circle to turn away, with an explicit
@@ -16,7 +16,7 @@ Validated on main `7ef5fb0`: all five smoke groups pass (57.74 average FPS),
 three native-art scene contracts pass, and six 480x272 prompts reviewed.
 Existing compiler warnings and capture-I/O timing limits are recorded in the
 audit. Release numbering, tags and publishing remain Manager-owned.
-## Gameplay candidate — truthful pilot-rescue controls
+## Integrated 2.5.47 — truthful pilot-rescue controls
 
 Generic rescue objectives now read "Lock rescue ship. Within 600 m: Triangle hail."
 This matches the existing flight controls: Circle locks a contact, Triangle dismisses
@@ -41,11 +41,10 @@ overlap. Evidence is in the Gameplay & Loops task's `outputs/rescue-evidence`;
 normal smoke run is `work/smoke-20260923-001105-281`. Capture I/O was a separate
 run and is not the reported performance baseline.
 
-Highest-priority remaining work for this slice: lead integration review and
-combined smoke after other specialist checkpoints. Do not stack another gameplay
-slice. Chapter 05, planetary approach/EVA, Station Arrivals and Systems runtime
-remain with their active owners. This is an unreleased source candidate: no
-version bump, release tag or packaged binary is part of this bounded handoff.
+Lead integration combined this slice with safe planetary approach and Chapter 05.
+The 2.5.47 PSP build and all five PPSSPP smoke groups passed. Physical PSP testing
+remains the next verification step; later gameplay slices must start from this
+integrated checkpoint.
 
 ## Integrated Gameplay & Story pass — Chapters 02–04
 
@@ -55,7 +54,7 @@ Manager integration passed the PSP build and all five PPSSPP smoke groups: game,
 
 The Chapter 05 slice on `specialist/gameplay-story-ch05` adds the authored early-filing timestamp comparison at Lave, then exposes inspection/protest evidence choices. It reuses `saga_flags` bits `0x400`–`0x2000`, preserves the sealed records, and requires both the sealed receiver and convoy port stamp before comparison can begin. Partial evidence, wrong-system docking, and repeated comparison actions are covered by campaign tests. Legacy Chapter 05 saves are explicitly reopened with both records at Lave rather than being permanently locked.
 
-Prepared 22 September 2026. Current build: **2.5.46**.
+Prepared 23 September 2026. Current build: **2.5.47**.
 
 ## PSP UI/art specialist handoff — native deck readability
 

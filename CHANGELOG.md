@@ -2,6 +2,12 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.47 - 2026-09-23
+
+- Planet approaches now stop the remaining collision frame safely, pause threats while the choice is open, and give gas giants truthful turn-away controls.
+- Chapter 05 adds its timestamp evidence loop, requires both prior records, and safely reopens compatible older Chapter 05 saves.
+- Pilot-rescue objectives now correctly teach Circle to lock and Triangle to hail within 600 m, with the complete pickup, return, payment and retry loop covered by input regressions.
+
 ## Unreleased — safe planetary approach
 
 - Planetary boundary interception stops weapons and remaining simulation immediately; active approach choices pause threats and clocks.
