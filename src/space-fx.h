@@ -226,3 +226,148 @@ static void sfx_maybe_death_embers(void){
  if(sfx_fx_muted()||!game.dead)return;
  if(game.explosion>.05f&&game.explosion<.12f)sfx_explosion_embers_spawn(240,110,(unsigned)(game.explosion*1000)^0xE11Eu);
 }
+
+/* ---- Wave B: planet bloom / specular / travel beauty (soft-FB) ---- */
+static unsigned sfx_planet_haze_tint(const Body *b){
+ if(b->type==OCEAN)return RGB(40,90,130);
+ if(b->type==GAS)return RGB(70,60,90);
+ return RGB((b->color&255)/4,((b->color>>8)&255)/4,((b->color>>16)&255)/5);
+}
+/* Soft atmosphere shell + sun-side specular + optional ocean glint band. */
+static void sfx_planet_bloom_one(const Body *b,int top,int bot){
+ if(b->type==SUN)return;
+ Vec3 v=camera(&game,b->pos);if(v.z<120)return;
+ Point p=project(v);
+ int r=(int)fminf(220,240*b->radius/v.z);if(r<4)return;
+ if(p.x+r<-20||p.x-r>W+20||p.y+r<top-20||p.y-r>bot+20)return;
+ unsigned haze=sfx_planet_haze_tint(b);
+ /* Limb bloom — a few soft rings outside the disc (not a second framebuffer). */
+ int rings=r>40?3:2;
+ for(int ring=1;ring<=rings;ring++){
+  int rr=r+ring*2+(ring==rings?1:0);
+  int samples=24+ring*10;if(samples>56)samples=56;
+  unsigned ink=RGB(((haze&255)*(rings+1-ring))/(rings+2),(((haze>>8)&255)*(rings+1-ring))/(rings+2),(((haze>>16)&255)*(rings+1-ring))/(rings+2));
+  for(int s=0;s<samples;s++){
+   float a=s*6.2831853f/samples+game.time*.02f+b->seed*.01f;
+   sfx_add((int)p.x+(int)(cosf(a)*rr),(int)p.y+(int)(sinf(a)*rr*.92f),ink,top,bot);
+  }
+ }
+ /* Specular — highlight toward projected sun. */
+ Vec3 sv=camera(&game,game.bodies[0].pos);
+ if(sv.z>100){
+  Point sp=project(sv);
+  float dx=sp.x-p.x,dy=sp.y-p.y,len=sqrtf(dx*dx+dy*dy);if(len<1)len=1;
+  float ux=dx/len,uy=dy/len;
+  int hx=(int)(p.x+ux*r*.42f),hy=(int)(p.y+uy*r*.42f);
+  unsigned spec=b->type==OCEAN?RGB(180,220,255):b->type==GAS?RGB(200,190,160):RGB(220,210,180);
+  int rad=2+(r>30)+(r>70);
+  for(int dy=-rad;dy<=rad;dy++)for(int dx2=-rad;dx2<=rad;dx2++){
+   if(dx2*dx2+dy*dy>rad*rad)continue;
+   unsigned ink=RGB(((spec&255)*(rad+1-abs(dx2)))/(rad*3),(((spec>>8)&255)*(rad+1-abs(dy)))/(rad*3),(((spec>>16)&255)*(rad+1-abs(dx2)))/(rad*4));
+   sfx_add(hx+dx2,hy+dy,ink,top,bot);
+  }
+  /* Ocean / ice reflection ribbon under the disc (screen-space fake reflection). */
+  if((b->type==OCEAN||(b->type==ROCKY&&(b->seed&3)==0))&&r>12){
+   int ry=(int)(p.y+r*.55f);unsigned glint=RGB(60,110,150);
+   for(int i=-r/2;i<=r/2;i+=2){
+    float fall=1.f-fabsf(i)/(r*.5f+.1f);if(fall<.15f)continue;
+    int wobble=(int)(sinf(game.time*3.f+i*.2f+b->seed)*.8f);
+    unsigned ink=RGB((int)((glint&255)*fall*.35f),(int)(((glint>>8)&255)*fall*.35f),(int)(((glint>>16)&255)*fall*.4f));
+    sfx_add((int)p.x+i,ry+wobble,ink,top,bot);
+    if((i&3)==0)sfx_add((int)p.x+i,ry+1+wobble,ink,top,bot);
+   }
+  }
+ }
+ /* Near-planet proximity wash — denser when close. */
+ float dist=length(sub(b->pos,game.pos));
+ if(dist<b->radius*8.f&&r>18){
+  int motes=10+(int)fminf(18,(b->radius*4.f)/dist);
+  unsigned wash=RGB((haze&255)/2,((haze>>8)&255)/2,((haze>>16)&255)/3);
+  for(int i=0;i<motes;i++){
+   float a=i*2.39996f+game.time*.4f+b->seed;
+   float rad=r*(.7f+.35f*sinf(a*1.7f));
+   sfx_add((int)(p.x+cosf(a)*rad),(int)(p.y+sinf(a)*rad*.85f),wash,top,bot);
+  }
+ }
+ /* Ice worlds get a faint aurora ribbon above the limb. */
+ if(b->type==ROCKY&&(b->seed%5)==2&&r>16){
+  for(int i=0;i<18;i++){
+   float t=i/17.f;float a=-.9f+t*1.8f+sinf(game.time*.7f+b->seed)*.1f;
+   int x=(int)(p.x+cosf(a)*(r+4+t*6)),y=(int)(p.y-r*.55f+sinf(t*3.f+game.time)*5);
+   sfx_add(x,y,RGB(40,90,70),top,bot);
+   if((i&2)==0)sfx_add(x,y-1,RGB(30,120,90),top,bot);
+  }
+ }
+}
+static void sfx_planet_beauty(void){
+ if(sfx_fx_muted())return;
+ int top=clipy0>=0?clipy0:view_top(),bot=clipy1>=0?clipy1-1:view_bot();
+ for(int i=1;i<BODY_COUNT;i++)sfx_planet_bloom_one(&game.bodies[i],top,bot);
+}
+/* Cruise glitter + denser filaments — beautiful travel without GU particles. */
+static void sfx_travel_beauty(void){
+ if(sfx_fx_muted()||game.dead)return;
+ int top=view_top(),bot=view_bot();
+ float normal=game.speed/fmaxf(1,player_ships[game.ship].speed);
+ int n=game.boost?42:(normal>.6f?22:10);
+ unsigned seed=game.bodies[0].seed^((unsigned)game.system*2654435761u);
+ for(int i=0;i<n;i++){
+  unsigned cell=seed*1664525u+(unsigned)(i*977)+((unsigned)(game.time*40)&255)*1013904223u;
+  int x=(int)((cell>>8)%(W-8))+4;
+  int y=top+8+(int)((cell>>16)%(bot-top-16));
+  unsigned ink=(i%5==0)?RGB(180,210,255):(i%3==0)?RGB(90,120,160):RGB(40,55,80);
+  sfx_add(x,y,ink,top,bot);
+  if((cell&7)==0){
+   int frame=((int)(game.time*8)+i)&3;
+   if(!high_contrast)space_anim_draw(SPACE_ANIM_SPARK,x,y,frame,ink);
+  }
+ }
+ /* Motion streaks when boosting — short soft dashes toward canopy center. */
+ if(game.boost){
+  for(int i=0;i<18;i++){
+   float a=i*2.39996f+game.time*9.f;
+   float r=40+fmodf(i*29+game.time*180,160);
+   int x0=240+(int)(cosf(a)*r),y0=110+(int)(sinf(a)*r*.5f);
+   int x1=240+(int)(cosf(a)*(r+18)),y1=110+(int)(sinf(a)*(r+18)*.5f);
+   if(y0>top&&y0<bot&&y1>top&&y1<bot){line(x0,y0,x1,y1,RGB(30,70,100));sfx_add(x1,y1,CYAN,top,bot);}
+  }
+ }
+ /* Extra nebula filaments — 2 seeded streaks for place. */
+ if(!game.boost){
+  for(int f=0;f<2;f++){
+   float ang=((seed>>(f*5))&255)*.02f+f*1.1f;
+   float ca=cosf(ang),sa=sinf(ang);
+   int x0=40+(int)((seed>>(f*3))&127),y0=top+30+((seed>>(f*7))&63);
+   unsigned tint=sfx_tint(seed,f+3);
+   unsigned soft=RGB((tint&255)/2,((tint>>8)&255)/2,((tint>>16)&255)/3);
+   for(int s=0;s<22;s++){
+    float t=s/21.f;
+    int x=(int)(x0+ca*t*180),y=(int)(y0+sa*t*50+sinf(t*4+game.time*.2f)*3);
+    sfx_add(x,y,soft,top,bot);
+   }
+  }
+ }
+}
+/* Warm canopy wash when the sun fills the view — soft bloom, not a second buffer. */
+static void sfx_sun_canopy_wash(void){
+ if(sfx_fx_muted())return;
+ Vec3 v=camera(&game,game.bodies[0].pos);if(v.z<80)return;
+ Point p=project(v);
+ int r=(int)fminf(260,240*game.bodies[0].radius/v.z);if(r<30)return;
+ int top=view_top(),bot=view_bot();
+ unsigned tint=game.bodies[0].color;
+ unsigned wash=RGB((tint&255)/6,((tint>>8)&255)/7,((tint>>16)&255)/8);
+ int samples=36;float spin=game.time*.15f;
+ for(int k=0;k<samples;k++){
+  float a=spin+k*6.2831853f/samples;
+  int rr=r+(k&3)*3;
+  sfx_add((int)p.x+(int)(cosf(a)*rr),(int)p.y+(int)(sinf(a)*rr*.9f),wash,top,bot);
+ }
+}
+/* Prefer mask plume tip on densified NPC plumes. */
+static void sfx_engine_plume_mask(int x,int y,int boostish){
+ if(sfx_fx_muted())return;
+ int frame=((int)(game.time*(boostish?12.f:7.f)))&3;
+ unsigned ink=boostish?CYAN:RGB(255,185,70);
+ space_anim_draw(SPACE_ANIM_PLUME,x,y,frame,ink);
+}

@@ -180,11 +180,18 @@ static void celestial_rims(void){
   for(int k=3;k>=1;k--){unsigned ink=RGB((tint&255)/(k+2),((tint>>8)&255)/(k+2),((tint>>16)&255)/(k+2));
    for(int s=0;s<96;s++){float angle=s*6.2831853f/96;int x=(int)p.x+(int)(cosf(angle)*(r+k)),y=(int)p.y+(int)(sinf(angle)*(r+k));if(y>=top&&y<=bot)pixel(x,y,ink);}
   }
-  if(b->type==GAS&&r>7&&r<180)for(int s=0;s<64;s++){
-   float a=s*6.2831853f/64,bb=(s+1)*6.2831853f/64,rx=r*1.5f,ry=r*.36f;
-   int x0=(int)(p.x+cosf(a)*rx),y0=(int)(p.y+sinf(a)*ry+cosf(a)*r*.14f);
-   int x1=(int)(p.x+cosf(bb)*rx),y1=(int)(p.y+sinf(bb)*ry+cosf(bb)*r*.14f);
-   if(y0>=top&&y0<=bot&&y1>=top&&y1<=bot)line(x0,y0,x1,y1,RGB(100,109,133));
+  if(b->type==GAS&&r>7&&r<180){
+   for(int s=0;s<64;s++){
+    float a=s*6.2831853f/64,bb=(s+1)*6.2831853f/64,rx=r*1.5f,ry=r*.36f;
+    int x0=(int)(p.x+cosf(a)*rx),y0=(int)(p.y+sinf(a)*ry+cosf(a)*r*.14f);
+    int x1=(int)(p.x+cosf(bb)*rx),y1=(int)(p.y+sinf(bb)*ry+cosf(bb)*r*.14f);
+    if(y0>=top&&y0<=bot&&y1>=top&&y1<=bot)line(x0,y0,x1,y1,RGB(100,109,133));
+   }
+   /* Soft ring sparkle — cheap glitter along the outer ellipse. */
+   if(!high_contrast)for(int s=0;s<20;s++){
+    float a=s*.314f+game.time*.3f;int x=(int)(p.x+cosf(a)*r*1.55f),y=(int)(p.y+sinf(a)*r*.38f);
+    if(y>=top&&y<=bot){sun_bloom_dot(x,y,RGB(90,95,120),0,top,W,bot);if((s&3)==0)pixel(x,y,RGB(180,190,210));}
+   }
   }
  }
 }
