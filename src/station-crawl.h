@@ -245,6 +245,23 @@ static void sc_void_stars(int x,int y,int w,int h,unsigned seed){
   if((i&3)==0)space_anim_draw(SPACE_ANIM_SPARK,px,py,((int)(game.time*3)+i)&3,mix_rgb(SC_OCHRE,SC_CREAM,.4f));
  }
 }
+/* Tiny freighter silhouette that drifts across a berth window (presentation only). */
+static void sc_traffic_silhouette(int x0,int y0,int w,int h,unsigned hull,unsigned lamp){
+ float phase=fmodf(game.time*.18f+(game.system&7)*.07f,1.f);
+ int fx=x0+(int)(phase*(w-56));
+ int fy=y0+h/2-6+(int)(sinf(game.time*.9f)*3);
+ if(fx<x0+2)fx=x0+2;if(fx>x0+w-58)fx=x0+w-58;
+ rect(fx,fy,48,8,hull);
+ rect(fx+8,fy-5,22,6,mix_rgb(hull,SC_CREAM,.2f));
+ rect(fx+40,fy+1,12,5,mix_rgb(hull,SC_VOID,.35f));
+ pixel(fx+2,fy+2,lamp);
+ if(((int)(game.time*6))&1)pixel(fx+46,fy+3,SC_CYAN);
+ space_anim_draw(SPACE_ANIM_PLUME,fx-2,fy+4,((int)(game.time*10))&3,mix_rgb(SC_OCHRE,lamp,.4f));
+}
+/* Soft blink for practical lamps / board slots. */
+static int sc_lamp_on(int slot,float rate){
+ return ((int)(game.time*rate)+slot)&3;
+}
 static void sc_hatch(int x,int y,int w,int h,unsigned frame,unsigned aperture,int hero){
  rect(x,y,w,h,frame);
  rect(x+3,y+4,w-6,h-8,aperture);
@@ -285,9 +302,16 @@ static void sc_illust_arrivals(int x,int y,int w,int h){
  sc_scene_sky(x,y,w,h,mix_rgb(SC_OCHRE,st->wall,.45f),mix_rgb(st->wall2,SC_RUST,.25f));
  sc_wall_plates(x,y,w,h-48,mix_rgb(st->wall,SC_CREAM,.08f),mix_rgb(SC_OLIVE,SC_RUST,.35f));
  sc_floor_planes(x,y,w,h,mix_rgb(SC_CREAM,st->wall,.35f),mix_rgb(st->wall,st->wall2,.4f),st->wall2);
- /* Overhead conduit strip */
+ /* Overhead conduit strip — lamps blink gently */
  rect(x+8,y+2,w-16,4,mix_rgb(st->trim,SC_OLIVE,.4f));
- rect(x+24,y+6,12,2,st->lamp);rect(x+w/2-8,y+6,16,2,st->lamp);rect(x+w-40,y+6,12,2,st->lamp);
+ {
+  int lx[]={24,w/2-8,w-40};int lw[]={12,16,12};
+  for(int i=0;i<3;i++){
+   unsigned lamp=sc_lamp_on(i,2.2f)<3?st->lamp:mix_rgb(st->lamp,SC_VOID,.45f);
+   rect(x+lx[i],y+6,lw[i],2,lamp);
+   if(sc_lamp_on(i,2.2f)==0)pixel(x+lx[i]+lw[i]/2,y+5,SC_CREAM);
+  }
+ }
  /* Distant coral haze through the aperture */
  rect(x+72,y+10,176,70,SC_VOID);
  rect(x+72,y+10,176,3,SC_CREAM);
@@ -297,20 +321,22 @@ static void sc_illust_arrivals(int x,int y,int w,int h){
  sc_void_stars(x+78,y+16,164,58,game.bodies[0].seed^(unsigned)game.system*17u);
  /* Soft warm spill */
  for(int row=0;row<28;row++)rect(x+78,y+16+row,164,1,mix_rgb(SC_VOID,SC_OCHRE,row/40.f));
- /* One freighter silhouette — scale cue, not a fleet */
- rect(x+130,y+40,54,10,st->wall);
- rect(x+140,y+34,28,8,mix_rgb(st->wall,SC_CREAM,.25f));
- rect(x+178,y+42,16,6,st->wall2);
- pixel(x+120,y+30,SC_CREAM);pixel(x+200,y+26,SC_LAV);pixel(x+160,y+22,st->lamp);
+ /* Animated freighter crossing the berth — one ship, readable at 1× */
+ sc_traffic_silhouette(x+78,y+18,164,52,st->wall,st->lamp);
  space_anim_draw(SPACE_ANIM_BEACON,x+118,y+28,((int)(game.time*4))&3,st->lamp);
  sc_warm_key(x+160,y+84,st->lamp);
- /* Mid: traffic board — cyan signal only */
+ /* Mid: traffic board — berth slots blink occupancy */
  rect(x+196,y+84,90,40,st->wall2);
  rect(x+196,y+84,90,2,SC_CREAM);
  rect(x+200,y+88,82,12,mix_rgb(st->accent,st->wall,.4f));
- rect(x+200,y+104,82,8,mix_rgb(SC_OLIVE,st->accent,.25f));
- rect(x+200,y+116,40,4,st->lamp);
  text((x+204)/8,(y+90)/8,st->accent,"BERTHS");
+ for(int i=0;i<6;i++){
+  int on=sc_lamp_on(i+(game.system&3),1.6f)<2;
+  unsigned slot=on?st->lamp:mix_rgb(SC_OLIVE,st->wall2,.5f);
+  rect(x+202+i*13,y+104,10,6,slot);
+  if(on&&(i&1)==0)pixel(x+206+i*13,y+106,SC_CREAM);
+ }
+ rect(x+200,y+116,40,4,sc_lamp_on(0,3.f)<2?st->lamp:mix_rgb(st->lamp,SC_VOID,.4f));
  /* Fore: rail + contact shadow */
  rect(x+72,y+118,160,4,st->trim);
  rect(x+72,y+122,160,3,SC_OLIVE);
@@ -322,11 +348,12 @@ static void sc_illust_shop(int x,int y,int w,int h){
  sc_scene_sky(x,y,w,h,mix_rgb(SC_CREAM,st->wall,.4f),st->wall2);
  sc_wall_plates(x,y,w,h-52,mix_rgb(st->wall,SC_CREAM,.1f),mix_rgb(SC_RUST,st->trim,.3f));
  sc_floor_planes(x,y,w,h,mix_rgb(SC_RUST,st->trim,.45f),mix_rgb(st->trim,st->wall,.35f),st->wall2);
- /* Back shelves — two blocks, not a grid of parts */
+ /* Back shelves — two blocks; one part lamp pulses as "exclusive" cue */
  rect(x+64,y+12,70,48,mix_rgb(st->wall,st->trim,.3f));
  rect(x+70,y+18,18,14,st->lamp);rect(x+94,y+18,18,14,st->accent);rect(x+118,y+18,10,14,SC_RUST);
  rect(x+186,y+12,70,48,mix_rgb(st->wall,st->trim,.3f));
  rect(x+192,y+18,18,14,SC_LAV);rect(x+216,y+18,18,14,st->trim);
+ if(sc_lamp_on(1,3.5f)==0){rect(x+72,y+20,14,10,SC_CREAM);space_anim_draw(SPACE_ANIM_SPARK,x+79,y+25,((int)(game.time*8))&3,st->lamp);}
  /* Mid: ledger */
  rect(x+118,y+36,70,42,mix_rgb(st->wall,SC_RUST,.25f));
  rect(x+124,y+42,58,22,SC_CREAM);
@@ -348,20 +375,25 @@ static void sc_illust_canteen(int x,int y,int w,int h){
  sc_scene_sky(x,y,w,h,mix_rgb(st->wall,SC_OCHRE,.3f),st->wall2);
  sc_wall_plates(x,y,w,h-52,mix_rgb(st->wall,SC_OLIVE,.15f),mix_rgb(SC_RUST,st->trim,.35f));
  sc_floor_planes(x,y,w,h,mix_rgb(st->trim,st->wall,.4f),st->wall,st->wall2);
- /* Back bar wall + few bottles */
+ /* Back bar wall + few bottles with glints */
  rect(x+64,y+12,192,44,mix_rgb(st->wall,st->trim,.2f));
  for(int i=0;i<4;i++){
   unsigned c=mix_rgb(SC_CREAM,st->trim,(i%3)*.2f);
-  rect(x+88+i*36,y+18,10,28,c);pixel(x+91+i*36,y+22,st->lamp);
+  rect(x+88+i*36,y+18,10,28,c);
+  if(sc_lamp_on(i,2.8f)<2)pixel(x+91+i*36,y+22,st->lamp);
  }
  rect(x+64,y+56,192,3,st->accent);
  /* Hero bar */
  rect(x+64,y+100,200,30,mix_rgb(st->trim,st->wall,.35f));
  rect(x+64,y+94,200,8,st->lamp);
  rect(x+240,y+88,12,12,mix_rgb(SC_CREAM,st->lamp,.35f));
- /* Juke + booth — secondary */
+ /* Juke pulse + booth */
  rect(x+16,y+72,40,48,SC_SLATE);
- rect(x+20,y+76,32,18,mix_rgb(st->lamp,st->wall,.4f));
+ {
+  unsigned juke=sc_lamp_on(2,4.f)<2?mix_rgb(st->lamp,SC_OCHRE,.35f):mix_rgb(st->lamp,st->wall,.4f);
+  rect(x+20,y+76,32,18,juke);
+  if(sc_lamp_on(2,4.f)==0)space_anim_draw(SPACE_ANIM_SPARK,x+36,y+84,((int)(game.time*6))&3,SC_CREAM);
+ }
  text((x+18)/8,(y+108)/8,SC_CREAM,"JUKE");
  rect(x+20,y+108,48,28,mix_rgb(st->trim,st->wall2,.35f));
  sc_warm_key(x+160,y+70,st->lamp);
@@ -372,10 +404,14 @@ static void sc_illust_cargo(int x,int y,int w,int h){
  sc_scene_sky(x,y,w,h,mix_rgb(st->wall,st->trim,.15f),st->wall2);
  sc_wall_plates(x,y,w,h-56,st->wall,mix_rgb(SC_OLIVE,st->trim,.3f));
  sc_floor_planes(x,y,w,h,mix_rgb(SC_OLIVE,st->wall,.4f),st->wall,st->wall2);
- /* Cool lift signal */
+ /* Cool lift — cable bob + amber tip cue */
  rect(x+48,y+8,224,4,SC_LAV);
- rect(x+w/2-3,y+8,6,40,st->trim);
- rect(x+w/2-14,y+44,28,8,st->wall);
+ {
+  int bob=(int)(sinf(game.time*2.4f)*4);
+  rect(x+w/2-3,y+8,6,40+bob,st->trim);
+  rect(x+w/2-14,y+44+bob,28,8,st->wall);
+  if(sc_lamp_on(0,2.f)<2)pixel(x+w/2,y+48+bob,st->lamp);
+ }
  /* Hazard stripe on floor lane */
  for(int i=0;i<8;i++)rect(x+56+i*28,y+h-56,14,4,(i&1)?SC_OCHRE:st->wall2);
  /* Three crates — centre is tip hero */
@@ -384,7 +420,10 @@ static void sc_illust_cargo(int x,int y,int w,int h){
   rect(cx,y+h-88,56,40,st->trim);
   rect(cx,y+h-88,56,5,SC_CREAM);
   rect(cx+16,y+h-72,22,8,st->wall2);
-  if(i==1){rect(cx+6,y+h-100,44,14,st->lamp);text((cx+10)/8,(y+h-98)/8,st->wall2,"TIP");}
+  if(i==1){
+   unsigned tip=sc_lamp_on(3,2.5f)<3?st->lamp:mix_rgb(st->lamp,SC_VOID,.35f);
+   rect(cx+6,y+h-100,44,14,tip);text((cx+10)/8,(y+h-98)/8,st->wall2,"TIP");
+  }
  }
  /* Manifest secondary */
  rect(x+72,y+40,48,24,mix_rgb(st->wall,SC_CREAM,.25f));
@@ -402,10 +441,15 @@ static void sc_illust_guild(int x,int y,int w,int h){
  rect(x+20,y+20,20,14,SC_CREAM);rect(x+44,y+20,20,14,st->lamp);
  rect(x+20,y+40,44,8,mix_rgb(st->accent,st->wall,.4f));
  rect(x+20,y+52,28,6,SC_RUST);
+ /* Tracked screen — soft scanline flicker */
  rect(x+96,y+16,128,60,st->wall2);
  rect(x+102,y+22,116,36,mix_rgb(st->wall,st->accent,.35f));
  text((x+108)/8,(y+30)/8,st->accent,"TRACKED MISSION");
- rect(x+108,y+58,100,8,st->lamp);
+ {
+  int scan=((int)(game.time*18))%28;
+  rect(x+104,y+24+scan,112,1,mix_rgb(st->accent,SC_CREAM,.35f));
+ }
+ rect(x+108,y+58,100,8,sc_lamp_on(1,2.f)<2?st->lamp:mix_rgb(st->lamp,SC_VOID,.4f));
  rect(x+64,y+108,192,28,mix_rgb(st->wall,st->wall2,.4f));
  rect(x+64,y+102,192,8,mix_rgb(st->trim,st->wall,.4f));
  rect(x+72,y+114,40,12,SC_CREAM);
@@ -417,12 +461,16 @@ static void sc_illust_clinic(int x,int y,int w,int h){
  sc_scene_sky(x,y,w,h,mix_rgb(st->trim,st->wall,.3f),st->wall2);
  sc_wall_plates(x,y,w,h-52,mix_rgb(st->wall,SC_LAV,.12f),mix_rgb(st->trim,st->wall2,.35f));
  sc_floor_planes(x,y,w,h,mix_rgb(st->trim,st->wall2,.4f),st->wall,st->wall2);
- /* One practical cool key — not a string of discs */
- circle(x+160,y+18,8,mix_rgb(st->lamp,st->accent,.45f));
- rect(x+154,y+26,12,3,st->trim);
+ /* Cool key lamp pulse */
+ {
+  unsigned cool=sc_lamp_on(0,3.2f)<3?mix_rgb(st->lamp,st->accent,.45f):mix_rgb(st->lamp,SC_VOID,.35f);
+  circle(x+160,y+18,8,cool);
+  rect(x+154,y+26,12,3,st->trim);
+ }
  /* Diag panel secondary */
  rect(x+72,y+40,48,36,st->wall2);
  rect(x+76,y+44,40,20,mix_rgb(st->lamp,SC_OLIVE,.35f));
+ if(sc_lamp_on(2,2.5f)==0)rect(x+80,y+48,32,4,st->accent);
  /* Hero bay */
  rect(x+80,y+96,160,40,mix_rgb(st->trim,st->accent,.45f));
  rect(x+80,y+90,160,8,mix_rgb(st->lamp,st->wall,.4f));
@@ -439,11 +487,18 @@ static void sc_illust_customs(int x,int y,int w,int h){
  sc_scene_sky(x,y,w,h,mix_rgb(st->wall,st->trim,.12f),st->wall2);
  sc_wall_plates(x,y,w,h-52,st->wall,mix_rgb(SC_DANGER,st->trim,.2f));
  sc_floor_planes(x,y,w,h,mix_rgb(st->wall,SC_CREAM,.15f),st->wall,st->wall2);
- /* Gate posts + warm scan aperture */
+ /* Gate posts + animated scan sweep */
  rect(x+72,y+40,12,90,mix_rgb(st->trim,SC_RUST,.4f));
  rect(x+100,y+40,12,90,mix_rgb(st->trim,SC_RUST,.4f));
  rect(x+72,y+40,40,6,st->trim);
- for(int i=0;i<4;i++)rect(x+78,y+52+i*18,28,2,mix_rgb(st->accent,SC_VOID,.5f));
+ {
+  int sweep=((int)(game.time*28))%72;
+  for(int i=0;i<4;i++){
+   int yy=y+52+i*18;
+   unsigned bar=(abs((i*18)-sweep)<10)?mix_rgb(st->accent,SC_CREAM,.4f):mix_rgb(st->accent,SC_VOID,.5f);
+   rect(x+78,yy,28,2,bar);
+  }
+ }
  space_anim_draw(SPACE_ANIM_BEACON,x+92,y+70,((int)(game.time*5))&3,mix_rgb(SC_DANGER,SC_AMBER,.4f));
  /* Warrant glass */
  rect(x+140,y+16,120,52,st->wall2);
@@ -512,10 +567,9 @@ static void sc_draw_commands(void){
  sc_win(4,2,472,18,"COMMANDS",SC_AMBER);
  for(int i=0;i<SC_V_COUNT;i++){
   int x=14+i*86;
-  if(i==sc_verb){rect(x-2,6,78,12,mix_rgb(SC_OCHRE,SC_CHAR,.3f));rect(x-2,6,78,1,SC_AMBER);}
+  if(i==sc_verb){rect(x-2,6,78,12,mix_rgb(SC_OCHRE,SC_CHAR,.25f));rect(x-2,6,78,1,SC_AMBER);}
   text(x/8,1,i==sc_verb?SC_AMBER:mix_rgb(SC_LAV,SC_CREAM,.35f),"%s",v[i]);
  }
- text(48,1,SC_AMBER,"TRI");text(52,1,SC_CREAM,"BOARD");
 }
 static void sc_draw_inventory(void){
  sc_win(4,24,64,160,"PACK",mix_rgb(SC_CREAM,SC_AMBER,.3f));
@@ -525,28 +579,26 @@ static void sc_draw_inventory(void){
  if(game.gift_flags&2u){text(1,y,SC_CYAN,"MEDKIT");y+=2;}
  if(!(game.gift_flags&3u)){text(1,y,SC_LAV,"(empty)");y+=2;}
  if(game.passenger_dest>=0){text(1,y,SC_AMBER,"PAX");y+=2;text(1,y,SC_CREAM,"%.8s",game.systems[game.passenger_dest].name);y+=2;}
- text(1,14,SC_LAV,"HERE");
- text(1,16,SC_CYAN,"%.8s",sc_room_short(sc_room));
- text(1,18,SC_AMBER,"TRI");text(1,19,SC_CREAM,"BOARD");
- text(1,21,SC_LAV,"O");text(1,22,SC_CREAM,"DECK");
+ text(1,16,SC_LAV,"HERE");
+ text(1,18,SC_CREAM,"%.8s",sc_room_short(sc_room));
+ text(1,21,SC_LAV,"O DECK");
 }
 static void sc_draw_exits(void){
  sc_win(400,24,76,160,"EXITS",mix_rgb(SC_CREAM,SC_CYAN,.35f));
  int y=4;
  {int sel=0;ScHot hot[24];int hn=sc_hotspots(hot,24);
   for(int h=0;h<hn;h++)if(hot[h].kind==SC_H_EXIT&&hot[h].id==SC_EXIT_SHIP&&h==sc_hot)sel=1;
-  rect(404,y*8-2,68,16,sel?mix_rgb(SC_AMBER,SC_CHAR,.35f):mix_rgb(SC_OCHRE,SC_CHAR,.15f));
+  rect(404,y*8-2,68,16,sel?mix_rgb(SC_AMBER,SC_CHAR,.35f):mix_rgb(SC_OCHRE,SC_CHAR,.12f));
   text(51,y,SC_AMBER,">>SHIP");y+=2;}
  text(51,y,SC_LAV,"doors");y+=2;
  int ex[4],en=sc_exits(sc_room,ex,4);
  for(int i=0;i<en;i++){
   int sel=0;ScHot hot[24];int hn=sc_hotspots(hot,24);
   for(int h=0;h<hn;h++)if(hot[h].kind==SC_H_EXIT&&hot[h].id==ex[i]&&h==sc_hot)sel=1;
-  if(sel)rect(404,y*8-2,68,14,mix_rgb(SC_CYAN,SC_CHAR,.25f));
+  if(sel)rect(404,y*8-2,68,14,mix_rgb(SC_OCHRE,SC_CHAR,.22f));
   text(51,y,sel?SC_AMBER:SC_CREAM,"%.8s",sc_room_short(ex[i]));y+=2;
  }
- text(51,19,SC_LAV,"GO+X");
- text(51,21,SC_AMBER,"TRI");text(51,22,SC_CREAM,"board");
+ text(51,21,SC_LAV,"GO+X");
 }
 static int sc_talk_choices(const ScNpc *p,const char **out,int maxn){
  int n=0;
@@ -586,7 +638,7 @@ static void sc_talk_tip(const ScNpc *p){
  }else message(&game,p->offer?p->offer:p->line);
 }
 static void sc_draw_text_box(void){
- sc_win(4,190,472,78,"TEXT",SC_CYAN);
+ sc_win(4,190,472,78,"TEXT",SC_OCHRE);
  ScHot hot[24]; int hn=sc_hotspots(hot,24);
  if(sc_menu==SC_MENU_SHOP){
   int list[8],ln=sc_exclusive_catalog(list,8);
@@ -619,13 +671,12 @@ static void sc_draw_text_box(void){
  text_wrap(1,27,56,2,SC_CREAM,h->look?h->look:sc_room_blurb(sc_room),0);
  {static const char *v[]={"LOOK","SPEAK","GO","TAKE"};
   text(1,30,SC_AMBER,"%s > %.12s",v[sc_verb],h->label);}
- text(26,30,SC_LAV,"U/D  TRI board  O deck");
+ text(26,30,SC_LAV,"U/D  O deck");
 }
 static void sc_draw_ui(void){
  sc_build_map();
- /* Warm void wash — not flat black dashboard chrome. */
- rect(0,0,W,H,mix_rgb(SC_VOID,SC_OCHRE,.08f));
- for(int i=0;i<H;i+=6)rect(0,i,W,1,mix_rgb(SC_CHAR,SC_VOID,.5f));
+ /* Quiet warm wash — fewer stripe bands so MAIN owns the eye. */
+ rect(0,0,W,H,mix_rgb(SC_VOID,SC_OCHRE,.06f));
  sc_draw_commands();
  sc_draw_inventory();
  sc_draw_main_scene();

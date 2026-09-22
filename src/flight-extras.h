@@ -141,7 +141,16 @@ static void starfield(void){
 }
 static void station_entrance(void){
  Vec3 p[4];for(int i=0;i<4;i++){Vec3 corner=station_port_corner(i);corner.z-=1;p[i]=camera(&game,add(rotate(corner,0,station_angle(&game)),(Vec3){0,0,STATION_Z}));}
- if(game.pos.z<3340)for(int i=0;i<4;i++)if(p[i].z>15&&p[(i+1)%4].z>15){Point a=project(p[i]),b=project(p[(i+1)%4]);line((int)a.x,(int)a.y,(int)b.x,(int)b.y,CYAN);}
+ if(game.pos.z<3340){
+  int frame=((int)(game.time*5))&3;
+  for(int i=0;i<4;i++)if(p[i].z>15&&p[(i+1)%4].z>15){
+   Point a=project(p[i]),b=project(p[(i+1)%4]);
+   /* Warm structural rim + cyan aperture signal (nav only on the cut). */
+   line((int)a.x,(int)a.y,(int)b.x,(int)b.y,RGB(193,139,77));
+   line((int)a.x+1,(int)a.y,(int)b.x+1,(int)b.y,CYAN);
+   if(!high_contrast)space_anim_draw(SPACE_ANIM_BEACON,(int)((a.x+b.x)*.5f),(int)((a.y+b.y)*.5f),frame+i,CYAN);
+  }
+ }
 }
 static void target_overlay(void){
  pick_look_target();

@@ -104,13 +104,35 @@ static void draw_icon(int x,int y,int id,int on){
  else {rect(x+2,y+2,6,4,c);pixel(x+4,y+4,GOLD);}
 }
 static void draw_flora_icon(int x,int y,int seed){
- unsigned leaf=RGB(70+(seed&31),160,70);rect(x+4,y+2,2,8,RGB(90,70,40));rect(x+1,y+3,4,3,leaf);rect(x+5,y+5,4,3,art_tint(leaf,20,10,0));
+ unsigned leaf=RGB(70+(seed&31),150+(seed&20),55+(seed&15));
+ unsigned trunk=RGB(90,70,40);
+ int sway=((int)(preview_time*5)+seed)&1;
+ rect(x+4+sway,y+2,2,8,trunk);
+ rect(x+1,y+3,4,3,leaf);rect(x+5,y+5,4,3,art_tint(leaf,20,10,0));
+ if((seed&3)==0)pixel(x+2,y+4,RGB(200,220,90));
 }
 static void draw_fauna_icon(int x,int y,int seed){
- unsigned c=RGB(120,210-(seed&40),90);rect(x+2,y+4,8,4,c);rect(x+7,y+2,3,3,c);pixel(x+8,y+3,RGB(20,20,20));rect(x+1,y+8,3,2,c);rect(x+6,y+8,3,2,c);
+ /* Four silhouette families — still 10×10 icons, readable at 1×. */
+ int family=seed&3;
+ unsigned c=family==0?RGB(210,170,90):family==1?RGB(120,190,140):family==2?RGB(180,120,200):RGB(230,140,80);
+ int hop=((int)(preview_time*6)+seed)&1;
+ if(family==0){ /* leafback walker */
+  rect(x+2,y+4-hop,8,4,c);rect(x+7,y+2-hop,3,3,c);pixel(x+8,y+3-hop,RGB(20,20,20));
+  rect(x+1,y+8,3,2,c);rect(x+6,y+8,3,2,c);
+ }else if(family==1){ /* hopper */
+  rect(x+3,y+5-hop,6,4,c);rect(x+7,y+3-hop,3,3,c);pixel(x+8,y+4-hop,WHITE);
+  rect(x+2,y+8,2,2,c);rect(x+7,y+7,3,3,c);
+ }else if(family==2){ /* float-bloom */
+  fill_disc(x+5,y+4,3,c);rect(x+4,y+7,3,3,art_tint(c,-30,-20,10));
+  if(hop)pixel(x+5,y+2,WHITE);
+ }else{ /* shell crawler */
+  rect(x+2,y+5,8,3,c);rect(x+3,y+3,6,3,art_tint(c,30,20,0));
+  rect(x+1,y+8,2,2,c);rect(x+8,y+8,2,2,c);pixel(x+9,y+4,RGB(20,20,20));
+ }
 }
 static void draw_mineral_icon(int x,int y,int seed){
  unsigned c=RGB(190,160-(seed&30),90);rect(x+3,y+2,5,8,c);rect(x+2,y+5,7,4,art_tint(c,-20,-10,10));
+ if((seed&1)==0)pixel(x+5,y+4,RGB(240,220,160));
 }
 static void draw_anomaly_icon(int x,int y,int kind){
  unsigned c=kind?CYAN:GOLD;fill_disc(x+6,y+6,5,RGB(12,24,36));circle(x+6,y+6,4,c);pixel(x+6,y+6,c);
@@ -119,8 +141,8 @@ static void draw_station_badge(int x,int y){
  fill_disc(x+18,y+16,14,RGB(24,48,64));circle(x+18,y+16,12,CYAN);rect(x+16,y+4,5,24,GOLD);rect(x+6,y+14,24,5,GOLD);
 }
 static inline void draw_menu_chrome(void){
- rect(8,24,464,1,RGB(18,40,52));
- for(int i=0;i<8;i++)rect(8+i*58,24,12,1,i&1?CYAN:GOLD);
+ rect(8,24,464,1,RGB(41,54,70));
+ for(int i=0;i<4;i++)rect(8+i*116,24,18,1,i&1?RGB(193,139,77):RGB(90,96,76));
 }
 static void lore_line(int system,int line,char *out,int n){
  const char *r=race_name(system),*b=race_body(system);

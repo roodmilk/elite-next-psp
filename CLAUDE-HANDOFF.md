@@ -71,6 +71,8 @@ Station interiors restaged from `docs/CINEMATIC-MOCKUP-TARGETS.md` + ART DIRECTO
 
 **ART DIRECTOR visual style implementation (shipped in 2.5.40 tip):** all MacVenture rooms draw wall plates/rivets/floor seams; ARRIVALS berth window gets void stars + beacon sparkle; deck/UI panels drop gold corner brackets for charcoal + cream/ochre instrument rules; Wave B/C soft-FB planet bloom, travel FX, denser warp and docking beacon masks folded in. Story/saga manuscripts untouched. Packaged as **2.5.40** combined tip for Systems Release.
 
+**Post-2.5.40 ART animation pass (untagged tip on PR #11):** animated ARRIVALS traffic silhouette + blinking berth board; room practical pulses; fauna icon families + field walk bob; docking warm aperture/corridor motes; near-station traffic glints; quieter MacVenture chrome. Presentation draw only — Gameplay Designer owns 256-system aliveness / spawn. No micro-tag.
+
 **Working tip (Commander: BIG RELEASES ONLY):** Unify tip shipped (`v2.5.37`+; working tip **2.5.40** with MacVenture + Act I–IV). Story deepens in **larger PR batches** into `cursor/macventure-cinematic-polish-fe9e` — do not drip-fold every small pass. **2.5.40** is that combined drop — Systems Guy tags `v2.5.40` after smoke green.
 
 ### 2.5.38 — soft-FB Wave A canopy FX

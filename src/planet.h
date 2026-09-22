@@ -81,7 +81,10 @@ static void draw_life_billboard(const Lifeform *l){
  if(biome==BIOME_VOLCANIC){flora=mix_rgb(b->accent,RGB(220,80,40),.45f);fauna=mix_rgb(b->color,RGB(255,140,60),.4f);mineral=mix_rgb(b->color,RGB(120,90,70),.5f);}
  unsigned c=l->scanned?CYAN:l->kind==LIFE_FAUNA?fauna:l->kind==LIFE_FLORA?flora:mineral;
  int kind=l->kind==LIFE_FLORA?0:l->kind==LIFE_FAUNA?1:2;
- field_sprite((int)p.x,(int)p.y,s*2,kind,c,((int)(game.time*4))&1);
+ int pose=((int)(game.time*(l->kind==LIFE_FAUNA?5.f:2.f)+(int)l->pos.x*.01f))&1;
+ field_sprite((int)p.x,(int)p.y,s*2,kind,c,pose);
+ /* Scanned life gets a soft sparkle — presentation only. */
+ if(l->scanned&&!high_contrast)space_anim_draw(SPACE_ANIM_SPARK,(int)p.x,(int)p.y-s,((int)(game.time*8)+(int)l->pos.z)&3,CYAN);
 }
 static void planet_view(void){
  Body *b=&game.bodies[game.planet];int biome=planet_biome(b);

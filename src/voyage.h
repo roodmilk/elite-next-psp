@@ -75,11 +75,61 @@ static void engine_flare(void){
  space_anim_draw(SPACE_ANIM_PLUME,240,y+length/2,(int)(game.time*12.f),core);
 }
 static void secondary_hubs(void){
- for(int i=1;i<HUB_COUNT;i++){Vec3 p=hub_position(&game,i);float d=length(sub(p,game.pos));if(d>30000||occluded(p))continue;unsigned c=i==1?CYAN:RGB(150,110,210);shipmesh(mesh_id("CORIOLIS"),p,0,station_angle(&game)+(i*1.7f),.62f,c,0);}
+ for(int i=1;i<HUB_COUNT;i++){
+  Vec3 p=hub_position(&game,i);float d=length(sub(p,game.pos));if(d>30000||occluded(p))continue;
+  unsigned c=i==1?RGB(170,192,202):RGB(150,110,180);
+  shipmesh(mesh_id("CORIOLIS"),p,0,station_angle(&game)+(i*1.7f),.62f,c,0);
+ }
+}
+/* Distant traffic sparks near the home station — presentation only (Designer owns spawn). */
+static void station_traffic_glints(void){
+ if(high_contrast||game.dock_stage||game.jump>0)return;
+ float d=length(sub(game.pos,(Vec3){0,0,3500}));if(d>18000)return;
+ int top=view_top(),bot=view_bot();
+ unsigned seed=game.bodies[0].seed^(unsigned)game.system*41u;
+ int n=4+(prosperity(&game,game.system)>=4?4:0);
+ for(int i=0;i<n;i++){
+  float a=station_angle(&game)*.3f+i*1.1f+game.time*.12f;
+  float r=420.f+(i&3)*90.f;
+  Vec3 pos={cosf(a)*r,sinf(a*.7f)*60.f,3500.f+sinf(a)*r*.4f};
+  Vec3 v=camera(&game,pos);if(v.z<40||v.z>9000)continue;
+  Point p=project(v);if(p.x<4||p.x>=W-4||p.y<top||p.y>bot)continue;
+  unsigned ink=(i&1)?RGB(255,183,76):RGB(85,212,212);
+  world_spark((int)p.x,(int)p.y,1+(i&1),ink);
+  if((i&2)==0)space_anim_draw(SPACE_ANIM_SPARK,(int)p.x,(int)p.y,((int)(game.time*4)+i)&3,ink);
+ }
+ (void)seed;
 }
 static void docking_view(void){
- if(game.dock_stage==3){rect(0,23,W,195,BG);text(22,10,CYAN,"DOCKING COMPLETE");text(12,14,WHITE,"Welcome to %s",station_name(&game));text(17,18,DIM,"Opening station services...");return;}
- Vec3 oldpos=game.pos;float oldyaw=game.yaw,oldpitch=game.pitch,oldroll=game.roll;game.pos=(Vec3){260,120,2820};Vec3 aim=norm(sub((Vec3){0,0,3400},game.pos));game.yaw=atan2f(aim.x,aim.z);game.pitch=asinf(aim.y);game.roll=0;sector_background();space_fx_nebula();starfield();space_fx_meteors();station_model();station_window_animation();float t=fminf(1,game.dock_timer/3);shipmesh(mesh_id(player_ships[game.ship].name),(Vec3){0,0,3070+t*470},0,station_angle(&game),.7f,GOLD,0);flush_meshes();station_entrance();text(2,5,CYAN,"ARRIVAL CAMERA / %s",station_name(&game));game.pos=oldpos;game.yaw=oldyaw;game.pitch=oldpitch;game.roll=oldroll;
+ if(game.dock_stage==3){
+  rect(0,23,W,195,RGB(8,13,24));
+  rect(40,70,400,2,RGB(193,139,77));
+  text(18,10,RGB(229,210,163),"DOCKING COMPLETE");
+  text(12,14,WHITE,"Welcome to %s",station_name(&game));
+  text(14,18,RGB(155,154,165),"Opening station services...");
+  return;
+ }
+ Vec3 oldpos=game.pos;float oldyaw=game.yaw,oldpitch=game.pitch,oldroll=game.roll;
+ game.pos=(Vec3){260,120,2820};Vec3 aim=norm(sub((Vec3){0,0,3400},game.pos));
+ game.yaw=atan2f(aim.x,aim.z);game.pitch=asinf(aim.y);game.roll=0;
+ sector_background();space_fx_nebula();starfield();space_fx_meteors();
+ station_model();station_window_animation();
+ float t=fminf(1,game.dock_timer/3);
+ shipmesh(mesh_id(player_ships[game.ship].name),(Vec3){0,0,3070+t*470},0,station_angle(&game),.7f,GOLD,0);
+ flush_meshes();
+ station_entrance();
+ /* Soft approach corridor motes — presentation only. */
+ if(!high_contrast){
+  int top=view_top(),bot=view_bot();
+  for(int i=0;i<12;i++){
+   float a=i*.52f+game.time*.8f;
+   int x=240+(int)(cosf(a)*(20+t*40)),y=110+(int)(sinf(a)*(10+t*18));
+   sfx_add(x,y,RGB(40,70,90),top,bot);
+   if((i&3)==0)space_anim_draw(SPACE_ANIM_SPARK,x,y,((int)(game.time*5)+i)&3,RGB(85,212,212));
+  }
+ }
+ text(2,5,RGB(229,210,163),"ARRIVAL / %.16s",station_name(&game));
+ game.pos=oldpos;game.yaw=oldyaw;game.pitch=oldpitch;game.roll=oldroll;
 }
 /* Edge-band captions. Body text is word wrapped to actual 8px cell capacity. */
 static void speech_box(int x,int y,int w){
