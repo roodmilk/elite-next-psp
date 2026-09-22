@@ -40,7 +40,7 @@ static void menu_space_view(int x,int y,int w,int h){
  preview_clip(x+w/2,y+h/2+2,x+1,y+1,x+w-1,y+h-1);
  /* Third-person orbit of the fitted hull against local space — pulled back so the full silhouette reads. */
  {
-  float phase=preview_time*.4f;
+  float phase=preview_time*.1f; /* slow orbit — menu viewport, not flight */
   Vec3 ship=game.docked?(Vec3){0,40,3180}:game.planet>=0?add(game.pos,(Vec3){0,80,0}):game.pos;
   float dist=310.f;Vec3 cam=add(ship,(Vec3){sinf(phase)*dist,88.f+sinf(phase*.7f)*36.f,cosf(phase)*dist});
   game.pos=cam;Vec3 aim=norm(sub(ship,cam));game.yaw=atan2f(aim.x,aim.z);float ap=aim.y;if(ap>1)ap=1;if(ap<-1)ap=-1;game.pitch=asinf(ap);game.roll=0;
@@ -51,7 +51,7 @@ static void menu_space_view(int x,int y,int w,int h){
    Body *b=&game.bodies[1];
    Vec3 bp=camera(&game,b->pos);if(bp.z>80){Point p=project(bp);int r=(int)fminf(28,b->radius*240.f/bp.z);if(r>3&&p.x>x&&p.x<x+w&&p.y>y&&p.y<y+h)circle((int)p.x,(int)p.y,r,b->color);}
   }
-  float yaw=game.docked?station_angle(&game)*.15f+phase*.2f:oldyaw;
+  float yaw=game.docked?station_angle(&game)*.15f+phase*.05f:oldyaw;
   shipmesh(mesh_id(player_ships[game.ship].name),ship,yaw,oldroll*.25f,1.85f,RGB(193,139,77),0);
   flush_meshes();
  }

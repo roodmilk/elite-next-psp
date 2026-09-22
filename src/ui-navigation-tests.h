@@ -20,12 +20,19 @@
  row=4;input(PSP_CTRL_CROSS,0,.016f,0,0);help_tab=0;
  input(PSP_CTRL_LEFT,0,.016f,0,0);INPUT_CHECK(help_tab==3,"controls: pages wrap and remain bounded");
  input(PSP_CTRL_CIRCLE,0,.016f,0,0);INPUT_CHECK(page==COMFORT&&row==4,"controls: Back returns to comfort instead of losing location");
- TEST_INIT();launch(&game);change_page(HOME);row=3;input(PSP_CTRL_CROSS,0,.016f,0,0);
- INPUT_CHECK(page==HOME&&row==3&&strstr(game.message,"Dock"),"deck: locked station service explains why without moving focus");
+ TEST_INIT();launch(&game);change_page(HOME);
+ {int ship_vis[6],ship_n=deck_fill(1,ship_vis),work_vis[6],work_n=deck_fill(2,work_vis),hidden=0;
+  for(int i=0;i<ship_n;i++)if(ship_vis[i]==3||ship_vis[i]==4)hidden=1;
+  for(int i=0;i<work_n;i++)if(work_vis[i]==12)hidden=1;
+  INPUT_CHECK(!hidden&&ship_n==2&&work_n==4,"deck: Shipyard, Outfitting and Mission board hide while undocked");}
+ row=3;deck_clamp_row();INPUT_CHECK(row!=3&&deck_service_visible(row),"deck: undocked focus clamps off hidden station services");
  int distinct=1;for(unsigned seed=0;seed<256;seed++)for(int role=0;role<FACTION_COUNT;role++){
   int id=faction_portrait_index(seed,role);if(id<0||id>=8||id%4!=role)distinct=0;
  }
  INPUT_CHECK(distinct,"portraits: faction always selects the correct uniform family");
+ TEST_INIT();change_page(FACTIONS);row=0;faction_lore_card=0;input(PSP_CTRL_CROSS,0,.016f,0,0);
+ INPUT_CHECK(faction_lore_card==1,"factions: X opens the next lore channel card");
+ input(PSP_CTRL_TRIANGLE,0,.016f,0,0);INPUT_CHECK(page==FACTIONS||page==FLIGHT,"factions: Triangle scans for a contact of that colour");
  TEST_INIT();launch(&game);page=FLIGHT;selected_target=BODY_COUNT+1;
  contact_speak(EXPLORERS,"Survey channel.");INPUT_CHECK(game.voice_who==VOICE_CONTACT&&game.voice_role==EXPLORERS,"identity: ordinary explorers are not Kei");
  TEST_INIT();hud_mode=hud_hidden=0;deck_reset();

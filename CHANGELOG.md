@@ -2,6 +2,12 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## Unreleased — Commander play fixes (tip; no micro-tag)
+
+- Undocked command deck **hides** Shipyard, Outfitting, and Mission board (dock-only services).
+- Menu 3D ship viewport camera orbits much slower.
+- Factions screen: X cycles Story channel lore (saga helpers only); Triangle locks nearest ship of that colour.
+
 ## 2.5.42 - 2026-09-22
 
 - **Commander playable pack:** ART quiet pass `b0a97e1` on the v2.5.41 tip — permanent meteors/station glitter removed; soft docking lights and plumes kept; MacVenture disembark UI decluttered (no PACK/EXITS overlap).

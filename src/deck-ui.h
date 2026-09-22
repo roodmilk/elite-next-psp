@@ -1,5 +1,5 @@
 static void home(void){
- int group=deck_group(row);
+ int group=deck_group(row);deck_clamp_row();group=deck_group(row);
  header(game.docked?"STATION / COMMAND DECK":"COCKPIT / PAUSED");
  for(int i=0;i<5;i++){int x=8+i*94;rect(x,30,90,20,i==group?RGB(41,54,70):RGB(21,28,39));if(i==group)rect(x,48,90,2,RGB(240,180,91));text((x+8)/8,4,i==group?RGB(229,210,163):RGB(155,154,165),"%s",deck_groups[i]);}
  const char *labels[]={game.docked?"Launch":"Resume flight","Cargo & market","Galaxy map","Shipyard","Outfitting","Save / status","Controls","Factions","Targeting computer","Debug tools","Comms / docking","System details","Mission board","Mission log","GalacticNet","Discovery Codex","Radio & audio","Tracked mission","Explorers Guild","Display & chatter","Disembark / walk station","Ship loadout"};
@@ -12,7 +12,8 @@ static void home(void){
  {"Review your discoveries.","Keep a record of your travels."},{"Five offline music stations.","Set music and effects levels."},{"Guide for the tracked mission.","Choose tracking in Mission Log."},
  {"Optional Guild assignments.","Also listed in Mission Log."},{"Choose HUD and text chatter.","Keep the view comfortable."},{"Illustrated station rooms.","LOOK SPEAK GO TAKE on hotspots."},{"Fitted slots and cargo list.","See what your ship carries."}};
  panel(8,58,222,132);panel(238,58,234,132);
- for(int i=0;i<deck_sizes[group];i++){int id=deck_rows[group][i],y=8+i*2;int locked=!game.docked&&(id==3||id==4||id==12||id==20);
+ int vis[6],vn=deck_fill(group,vis);
+ for(int i=0;i<vn;i++){int id=vis[i],y=8+i*2;int locked=!game.docked&&id==20;
   if(id==row){rect(10,y*8-2,218,15,RGB(41,54,70));rect(10,y*8-2,3,15,RGB(240,180,91));}
   int story_row=id==17&&(game.campaign_stage<6||game.guild_chapter<4||game.job_n>0);unsigned ink=id==row?RGB(229,210,163):locked?RGB(155,154,165):story_row?RGB(240,180,91):RGB(229,210,163);
   text(3,y,ink,"%s%s%.21s",id==row?">":" ",story_row?"! ":"",labels[id]);
@@ -22,7 +23,7 @@ static void home(void){
  int is_story=row==17&&(game.campaign_stage<6||game.guild_chapter<4||game.job_n>0);
  text(31,20,RGB(240,180,91),"%.27s",labels[row]);
  text(31,22,RGB(229,210,163),"%s",hints[row][0]);
- if(!game.docked&&(row==3||row==4||row==12||row==20))text(31,23,RGB(240,180,91),"Dock first to open this.");
+ if(!game.docked&&row==20)text(31,23,RGB(240,180,91),"Dock first to open this.");
  if(is_story){rect(246,178,218,2,RGB(193,139,77));text(31,23,RGB(240,180,91),"Open to see your next step.");}
  text(2,25,RGB(85,212,212),"System: %.12s",game.systems[game.system].name);
  {int wl=wanted_level(&game);text(2,26,wl?RED:RGB(155,154,165),wl?"Wanted [%s]":"Clear warrant",stars(wl));}

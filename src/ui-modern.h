@@ -373,14 +373,15 @@ static void system_details(void){
 static void factions(void){
  header("FACTIONS");panel(8,32,232,156);panel(248,32,224,156);
  const char *blurb[]={"Trade between hubs.","Hunt pirates.","Raid passing traders.","Survey nearby worlds."};
- const char *d0[]={"Convoy lanes feed the hub.","Patrols stop wanted ships.","Pirate bounty: 15 units.","Guild wings survey a world."};
- const char *d1[]={"Hail them for market talk.","Pay a fine or take custody.","Missiles lock hostiles only.","They will not fire first."};
+ const char *ops[]={"Convoy lanes feed the hub.","Patrols stop wanted ships.","Pirate bounty: 15 units.","Guild wings survey a world."};
+ const char *how[]={"Hail them for market talk.","Pay a fine or take custody.","Missiles lock hostiles only.","They will not fire first."};
  for(int i=0;i<FACTION_COUNT;i++){int count=0;for(int j=0;j<NPC_COUNT;j++)if(game.npc[j].alive&&game.npc[j].role==i)count++;int y=5+i*4;if(i==row)rect(10,y*8-2,220,28,RGB(25,65,77));draw_portrait(14,y*8-1,28,24,game.system+i*17,i);text(7,y,faction_colors[i],"%.9s",faction_names[i]);text(17,y,i==row?GOLD:WHITE,"SHIPS HERE: %d",count);text(7,y+2,i==row?WHITE:DIM,"%s",blurb[i]);}
  draw_portrait(270,48,86,72,game.system+row*17,row);
  text(32,16,faction_colors[row],"%.22s",faction_names[row]);
- text(32,18,WHITE,"%s",d0[row]);
- text(32,20,WHITE,"%s",d1[row]);
- footer("UP/DOWN   O BACK");
+ text(32,18,WHITE,"%s",ops[row]);
+ {const char *channel=saga_faction_channel(&game,row,faction_lore_card);text(32,20,WHITE,"%.40s",channel?channel:how[row]);}
+ text(32,22,DIM,faction_lore_card?"CHANNEL %d/2":"OPS  X for channel",faction_lore_card);
+ footer("UP/DOWN   X LORE   TRI SCAN   O BACK");
 }
 static void mission_board(void){header("MISSION BOARD");panel(8,32,464,156);if(!game.docked){text(3,8,WHITE,"Dock to take work.");text(3,10,DIM,"You can hold five jobs.");footer("O BACK");return;}int count=mission_count(&game);text(2,5,game.job_n>=MISSION_SLOTS?RED:GOLD,"Log %d/5%s",game.job_n,game.job_n>=MISSION_SLOTS?"  full":"   X accept  |  10 units  |  5:00");text(5,7,CYAN,"%-16s %-8s %s","JOB","DEST","REWARD");for(int i=0;i<count&&i<6;i++){int id=mission_destination(&game,i),type=mission_type_for_offer(&game,i),y=9+i*2,active=mission_offer_active(&game,i),risk=mission_risk(&game,i);if(i==row)selected(y);draw_icon(12,y*8-1,12+type,i==row);text(5,y,active?GOLD:risk>=4?RED:WHITE,"%-16.16s %-8.8s %6.1f",mission_name(type),game.systems[id].name,mission_reward(&game,i)*.1f);text(38,y,risk>=4?RED:AMBER,"%d/5",risk);if(active)text(43,y,GOLD,"LIVE");}if(count){text_wrap(3,21,40,1,DIM,mission_brief(&game,row<count?row:0),0);text(34,23,mission_risk(&game,row<count?row:0)>=4?RED:CYAN,"RISK %d/5",mission_risk(&game,row<count?row:0));}footer(game.job_n>=MISSION_SLOTS?"LOG FULL   SELECT > LOG   O BACK":"UP/DOWN   X ACCEPT   SELECT > LOG");}
 static void mission_log(void){header("MISSION LOG / CHOOSE TRACKED");panel(8,32,464,156);text(2,5,CYAN,"  MISSION                         STATUS");int total=2+game.job_n;for(int i=0;i<total;i++){int y=7+i*2;if(i==row)selected(y);unsigned ink=i==tracked_mission?GOLD:i==row?WHITE:DIM;if(i==0)text(2,y,ink,"%s MAIN STORY / KEI + RYN        %s",i==tracked_mission?"*":" ",game.saga_chapter>=SAGA_COUNT?"DONE":"ACTIVE");else if(i==1)text(2,y,ink,"%s EXPLORERS GUILD ASSIGNMENTS   %s",i==tracked_mission?"*":" ",game.guild_chapter>=4?"DONE":"OPTIONAL");else {Job *j=&game.jobs[i-2];text(2,y,ink,"%s %-18.18s -> %-8.8s %3.0fs",i==tracked_mission?"*":" ",mission_name(j->type),game.systems[j->dest].name,j->time);}}rect(8,165,464,23,RGB(15,31,39));const char *objective=row==0?(game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT?saga_beats[game.saga_chapter].objective:campaign_task(&game)):row==1?guild_objective(&game):mission_objective_at(&game,row-2);if(abandon_confirm)text(2,21,RED,"WARNING: ABANDON? X CONFIRM / O CANCEL");else{text(2,21,GOLD,"NEXT:");text_wrap(8,21,48,1,GOLD,objective,0);}footer("X TRACK   SELECT NEXT STEP   TRI ABANDON   O BACK");}
