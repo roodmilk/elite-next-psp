@@ -1,0 +1,21 @@
+{
+ TEST_INIT();launch(&game);page=FLIGHT;game.voice_time=0;game.message_time=0;
+ input(PSP_CTRL_TRIANGLE,PSP_CTRL_TRIANGLE,.05f,0,0);
+ INPUT_CHECK(page==FLIGHT,"comms: Triangle press waits before choosing tap or hold");
+ for(int i=0;i<12;i++)input(0,PSP_CTRL_TRIANGLE,.05f,0,0);
+ INPUT_CHECK(page==COMMS_PANEL,"comms: holding Triangle opens channel control without hailing");
+ row=0;input(PSP_CTRL_CROSS,0,.016f,0,0);
+ INPUT_CHECK(quiet_comms==1,"comms: quiet mode toggles from channel control");
+ game.message_time=0;speak(&game,VOICE_KEI,"A quiet test.");
+ INPUT_CHECK(!speech_active(),"comms: muted chatter is not an invisible confirmation blocker");
+ input(PSP_CTRL_CIRCLE,0,.016f,0,0);
+ INPUT_CHECK(page==FLIGHT&&!radio_dirty,"comms: close saves preferences and restores flight");
+ quiet_comms=0;radio_dirty=0;remove("radio.cfg");remove("radio.cfg.bak");
+ TEST_INIT();change_page(GALNET);galnet_tab=3;row=1;unsigned before=spacebook_likes[game.system];input(PSP_CTRL_CROSS,0,.016f,0,0);
+ INPUT_CHECK(spacebook_likes[game.system]==(before^2u),"spacebook: X reacts to the focused local post");
+ input(PSP_CTRL_TRIANGLE,0,.016f,0,0);INPUT_CHECK(spacebook_comments,"spacebook: replies expand inside the feed");spacebook_comments=0;
+ TEST_INIT();change_page(INTRO);input(PSP_CTRL_START,0,.016f,0,0);
+ INPUT_CHECK(page==HOME,"intro: Start skips directly to command deck");
+ TEST_INIT();change_page(INTRO);input(PSP_CTRL_CROSS,0,.016f,0,0);
+ INPUT_CHECK(page==CAMPAIGN,"intro: Begin opens the story briefing");
+}

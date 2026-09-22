@@ -1,0 +1,29 @@
+# Generated PSP build output
+/build/
+/EBOOT.PBP
+/*.zip
+/releases/
+/handoff/
+
+# Runtime and test output
+/*-check.txt
+/boot-check.txt
+/*.sav
+/*.sav.bak
+/*.flag
+/*.cfg
+/*.cfg.bak
+/*.tmp
+/radio-preview-*.wav
+
+# User-supplied music is not source-controlled
+/music/**/*.mp3
+/music/**/*.wav
+/music/**/*.ogg
+/music/**/*.flac
+
+# Editor and operating-system files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

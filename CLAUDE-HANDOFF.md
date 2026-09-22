@@ -1,0 +1,153 @@
+# ELITE: NEXT — DEVELOPMENT HANDOFF
+
+Prepared 22 September 2026. Current build: **2.5.2**.
+
+## Start here
+
+This is a native PSP homebrew game inspired by Elite-A and the wider Elite lineage. It is no longer a literal port: it has a new flight/world simulation, 256 seeded systems, modern PSP interface, multi-body systems, factions, missions, planetary flight/EVA, custom radio folders and an original Kei/Ryn campaign called **The Open Channel**.
+
+Read these documents in this order:
+
+1. `CLAUDE-HANDOFF.md` — current implementation state and working rules.
+2. `docs/DESIGN-BIBLE-2.0.md` — concise product and technical direction.
+3. `docs/OPEN-CHANNEL-CAMPAIGN.md` — the 24-chapter main campaign.
+4. `docs/UI-SPEC.md` — PSP-specific layout and interaction rules.
+5. `docs/DESIGN-BIBLE.md` — exhaustive historical design record and detailed original scripts.
+6. `docs/PROGRESS.md` and `docs/FEATURE-MAP.md` — implementation history and feature inventory.
+
+The newest explicit user feedback overrides older prose in the large design bible.
+
+## Non-negotiable product direction
+
+- Keep the title **ELITE: NEXT** and its existing visual identity.
+- Native PSP resolution is 480×272. Every screen, portrait, icon and footer must be verified at that size.
+- Preserve the retro 1980s science-fiction tone: restrained neon, low-resolution pixel art, wireframe heritage and readable silhouettes. Avoid bright generic mobile-game or exaggerated anime styling.
+- The interface must remain glance-readable. Put immediate flight information at the top and bottom; keep the central canopy clear.
+- Blue speech panels belong to named NPCs. Orange right-tailed panels belong to the player.
+- A tracked mission must always show one short, truthful next action. Never direct the player to a random contract that may not exist.
+- Thargoids are rare and unsettling. Do not turn them into routine disposable traffic.
+- All essential objectives need recovery paths. Avoid random availability, missable actors and repeatable rewards.
+- Do not promise “zero bugs.” Build, run the complete regression suite and state what was actually tested.
+
+## Current build and controls
+
+The packaged executable is `EBOOT.PBP`. Put the game folder under `PSP/GAME/ELITE-NEXT/`.
+
+Custom MP3s belong beside the EBOOT:
+
+```text
+music/
+  Deep Field/
+  Neon Transit/
+  Pixel Comet/
+  Velvet Orbit/
+  Far Horizons/
+```
+
+The folders are rescanned on startup. MP3 files are intentionally excluded from the handoff archives; users provide music with suitable rights.
+
+Important controls:
+
+- Select: command deck.
+- Hold Triangle: quick communications.
+- Square tap: targeting computer.
+- Hold Square + D-pad: browse target groups without turning.
+- Hold Square + L: cycle contacts currently in front.
+- Hold Square + R: lock highlighted target and engage auto-turn.
+- L + Left/Right: roll.
+- Double-tap and hold R: high boost.
+- Galaxy Map: Triangle switches between nearby jumps and the full 256-system map; D-pad moves between systems; L/R zoom; X plots a multi-jump route.
+
+## Recent changes that must be preserved
+
+### 2.5.0 — The Open Channel
+
+`src/saga.h` adds a 24-chapter data-driven follow-on to the first-flight prologue. Story state lives in `Game` as `saga_chapter`, `saga_step`, `saga_flags`, `saga_choice`, `saga_dest`, `saga_start` and four trust values. Save format 9 appends ten little-endian values and still imports older saves.
+
+The currently playable chapter actions are deliberately compact: dock, scan, defeat hostile ships, return home or make a choice. The campaign bible contains richer bespoke scenes that still need staged implementation. Do not describe all proposed set-pieces as already implemented.
+
+### 2.5.1 — custom MP3 quality
+
+`src/audio.h` uses the PSP hardware MP3 decoder. It now has a 64 KB compressed stream buffer, 2,048-frame stereo output blocks and bounded Catmull-Rom resampling for 32/44.1/48 kHz sources. Suspend/resume tears down and safely recreates decoder resources. Preserve the larger buffers; the earlier 16 KB/256-frame design produced intermittent crackle on hardware.
+
+### 2.5.2 — galaxy navigation
+
+The nearby list only shows local candidates. Triangle opens a spatial overview of all 256 systems. It marks the current system in cyan, the tracked mission destination in gold, and caches/draws every intermediate jump. L/R zoom from 1× to 4×. X converts the selected long route into its first reachable jump. This logic is generic; **Quator has no special code or significance** and was only the system that exposed the old UI flaw.
+
+Story navigation plans against the fitted drive even if the tank is empty, then marks the next hop as low-fuel until the player refuels. The story screen distinguishes `NEXT` from `FINAL`, and the cockpit names the next reachable hop.
+
+## Architecture
+
+The project is intentionally small and header-heavy.
+
+- `src/game.c`, `src/game.h`: core world state, galaxy, spawning, physics, AI, save/load and tests.
+- `src/main.c`: PSP startup, input routing, rendering loop, screen dispatch and input regressions.
+- `src/ships.c`, `src/ships.h`, `src/mesh.h`: ship definitions and geometry.
+- `src/saga.h`: long campaign data and runtime.
+- `src/campaign*.h`: first-flight prologue and tracked-story UI.
+- `src/story.h`: optional new-player coach; separate from the authored campaign.
+- `src/guild.h`, `src/journey.h`, `src/sectors.h`: Guild assignments, route reliability and repeatable contracts.
+- `src/ui-modern.h`, `src/voyage.h`, `src/narrative-nav.h`: menus, galaxy map, HUD guidance and shared narrative actions.
+- `src/audio.h`, `src/radio-*.h`: hardware MP3 playback, station folders, generated fallback music and audio preferences.
+- `src/*tests.h`: tests compiled into the PSP executable and run by smoke mode.
+- `assets/`: source and generated visual assets. Runtime art is mostly embedded in compiled headers.
+- `elite-a/`: upstream/reference Elite-A material. Retain provenance and do not assume every file is part of the new runtime.
+- `tools/`: asset conversion and validation helpers.
+
+`Game` is one monolithic persistent/runtime structure. New persistent fields require a new save version, strict range validation, an old-save migration path and corruption tests. Rewards and story transitions must remain idempotent.
+
+## Building and testing
+
+Windows PowerShell:
+
+```powershell
+./build.ps1
+./smoke-test.ps1
+```
+
+`build.ps1` expects the PSP toolchain at `../../work/toolchain` unless `-Toolchain` is supplied. `smoke-test.ps1` expects PPSSPP at `../../work/ppsspp/PPSSPPWindows64.exe` unless `-Emulator` is supplied.
+
+The build compiles `game.c`, `ships.c` and `main.c`, links PSP libraries and produces `EBOOT.PBP`. Smoke mode creates a disposable folder and must report zero failures for:
+
+- game checks;
+- input checks;
+- steering checks;
+- radio checks;
+- performance checks.
+
+The last verified 2.5.2 run passed every group. The custom-radio path also received a separate PPSSPP run using four real MP3s. PPSSPP success does not replace physical PSP testing.
+
+## Highest-priority remaining work
+
+1. **Test 2.5.2 on physical PSP hardware.** Verify MP3 playback for at least 20 minutes across 32, 44.1 and 48 kHz files, suspend/resume, station changes, combat SFX and track boundaries.
+2. **Visually inspect the full galaxy map at 480×272.** Confirm labels, route lines, 1× density, 2–4× cursor behaviour and mission destination visibility. Add panning polish only if it remains readable.
+3. **Deepen the 24 chapters.** The state machine and chapter spine are playable, but many design-bible scenes currently resolve through generic dock/scan/hunt actions. Implement bespoke convoy rescue, evidence comparison, shelter repair, quiet migration observation, non-lethal blockade paths, relay nodes and epilogues incrementally.
+4. **Add chapter-specific dialogue pages.** Preserve the short flight HUD while making conversations, player replies and consequences available in the Mission Log transcript.
+5. **Improve route persistence.** The final story destination is saved. A manually chosen non-story route currently resolves dynamically; consider saving the final route goal separately from the immediate jump.
+6. **Physical performance and memory audit.** The new galaxy path is cached, but profile its first route calculation and the 64 KB MP3 buffer on real PSP hardware.
+
+## Known limitations and honest status
+
+- The design bible describes a far larger game than the current executable. Interiors, planetary exploration and spacewalks are bounded prototypes rather than Starfield-scale simulations.
+- The campaign has 24 playable chapter records and persistent choices, but does not yet contain ten hours of unique bespoke mechanics and dialogue. Travel and ordinary play contribute to its intended duration.
+- Only one galaxy seed of 256 classic Elite-style systems is active.
+- The full-galaxy chart shows all systems and a cached route, but has not yet had user testing on a physical PSP.
+- The audio fix passed PPSSPP with the user's files; intermittent real-hardware behaviour still requires listening tests.
+- No Git metadata exists in this workspace. Establish version control before broad refactoring.
+
+## Safe continuation workflow
+
+1. Copy the project and initialise Git.
+2. Run the unchanged build and smoke test to establish a baseline.
+3. Make one coherent feature change.
+4. Add a meaningful regression for its state transition or input path.
+5. Rebuild without compiler warnings and run every check.
+6. Inspect affected screens at native 480×272.
+7. Increment the version in `build.ps1`, update `README.md`, and package a fresh release without overwriting prior releases.
+
+Do not delete older-save handling, audio resume logic, campaign idempotency checks, mission availability checks or route-planning tests to make a new feature easier.
+
+## Rights and source boundary
+
+The project uses Elite-A/reference material and established Elite concepts. The new campaign, dialogue, UI and most new implementation are original. Do not copy dialogue, art, music or proprietary assets from Elite Dangerous, No Man's Sky, Starfield, novels or fan sites. Use lore facts as background and write original expression. Keep source/provenance notes and review redistribution rights before any public release.
+

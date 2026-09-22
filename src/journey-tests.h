@@ -1,0 +1,44 @@
+static void journey_tests(FILE *f,int *failures){
+ int fails=0;Game g,loaded;game_init(&g);accept_mission(&g,0);
+ int hops=0,next=route_next_hop(&g,g.jobs[0].dest,&hops);
+ CHECK(next>=0&&hops>=1&&distance_ly(&g,g.system,next)*10<=g.fuel+.01f,"journey: mission routing chooses a fuel-safe first hop");
+ float original_fuel=g.fuel;g.fuel=0;
+ CHECK(route_next_hop(&g,g.jobs[0].dest,&hops)<0,"journey: empty tank cannot produce a false ready route");g.fuel=original_fuel;
+ int multi=0;for(int i=0;i<256;i++)if(distance_ly(&g,g.system,i)*10>g.fuel){int hop=route_next_hop(&g,i,&hops);if(hop>=0&&hops>1){multi=1;break;}}
+ CHECK(multi,"journey: route planner finds connected multi-jump destinations");
+ float time=g.jobs[0].time;mission_timers(&g,30);
+ CHECK(g.jobs[0].time==time,"journey: docked job clocks are paused");
+ g.docked=0;g.approach=1;mission_timers(&g,30);
+ CHECK(g.jobs[0].time==time,"journey: planet choice does not consume job time");
+ g.approach=-1;g.police_stop=1;mission_timers(&g,30);
+ CHECK(g.jobs[0].time==time,"journey: police dialogue does not consume job time");
+ g.police_stop=0;g.dock_stage=2;mission_timers(&g,30);
+ CHECK(g.jobs[0].time==time,"journey: arrival cinematic does not consume job time");
+ g.dock_stage=0;mission_timers(&g,1);
+ CHECK(g.jobs[0].time==time-1,"journey: jobs count down during actual flight");
+ g.docked=1;g.job_n=1;g.contract=-1;g.jobs[0]=(Job){g.system,MISSION_DELIVERY,0,-1,1,g.system,1000,300};g.cargo[0]=1;
+ CHECK(mission_cargo_reserved(&g,0)==1&&!trade(&g,0,0)&&g.cargo[0]==1,"journey: delivery crate cannot be accidentally sold");
+ g.cargo[0]++;CHECK(trade(&g,0,0)&&g.cargo[0]==1,"journey: surplus personal cargo remains tradable");
+ int cash=g.credits;CHECK(abandon_mission(&g,0)&&!g.cargo[0]&&g.credits==cash+100,"journey: abandonment returns crate instead of minting free cargo");
+ game_init(&g);g.approach=1;g.pos=g.bodies[1].pos;turn_back(&g);
+ CHECK(length(sub(g.pos,g.bodies[1].pos))>=g.bodies[1].radius+99&&!approach_planet(&g,1),"journey: turnback escapes invalid planet position and faces away");
+ game_init(&g);launch(&g);g.credits=0;g.fuel=0;g.legal=5;g.pos=(Vec3){0,0,-20000};
+ CHECK(emergency_rescue(&g)&&g.docked&&g.fuel>0&&g.credits==0&&g.legal==5,"journey: penniless rescue restores travel without clearing local crime");
+ CHECK(!emergency_rescue(&g),"journey: docked recovery cannot be repeated");
+ game_init(&g);int start=g.credits;
+ CHECK(!guild_claim(&g),"guild: incomplete objective cannot pay");
+ launch(&g);docking_complete(&g);
+ CHECK(guild_ready(&g)&&guild_claim(&g)&&g.guild_chapter==1&&g.credits==start+1000,"guild: first return pays once and advances");
+ CHECK(!guild_claim(&g)&&g.credits==start+1000,"guild: repeated confirmation never duplicates reward");
+ g.job_n=1;g.jobs[0]=(Job){g.system,MISSION_DELIVERY,0,-1,1,g.system,1200,300};g.cargo[0]=1;g.docked=0;docking_complete(&g);
+ CHECK(guild_ready(&g)&&guild_claim(&g)&&g.guild_chapter==2,"guild: actual delivery completion advances second assignment");
+ launch(&g);g.pos=g.anomaly[0].pos;analysis_scan(&g,ANOMALY_ID_MIN);
+ CHECK(guild_ready(&g)&&!guild_claim(&g),"guild: real anomaly scan qualifies but report requires docking");
+ docking_complete(&g);CHECK(guild_claim(&g)&&g.guild_chapter==3,"guild: scan report opens rescue assignment");
+ g.job_n=1;g.jobs[0]=(Job){g.system,MISSION_RESCUE,1,-1,1,g.system,1400,300};g.docked=0;docking_complete(&g);
+ CHECK(guild_ready(&g)&&guild_claim(&g)&&g.guild_chapter==4,"guild: rescued pilot return completes opening assignments");
+ remove("test-guild.sav");remove("test-guild.sav.bak");
+ CHECK(save_game(&g,"test-guild.sav")&&load_game(&loaded,"test-guild.sav")&&loaded.guild_chapter==4&&!guild_claim(&loaded),"guild: completed rewards remain claimed after save/load");
+ remove("test-guild.sav");remove("test-guild.sav.bak");
+ *failures+=fails;
+}

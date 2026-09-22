@@ -1,0 +1,5 @@
+Continue development of ELITE: NEXT, a native PSP homebrew game. Read CLAUDE-HANDOFF.md first, then docs/DESIGN-BIBLE-2.0.md, docs/OPEN-CHANNEL-CAMPAIGN.md and docs/UI-SPEC.md. Treat the current source and newest user feedback as authoritative when older design notes disagree.
+
+Before changing anything, run ./build.ps1 and ./smoke-test.ps1 and report the baseline. Preserve PSP 480x272 readability, save migration, mission idempotency, custom MP3 streaming and suspend/resume behaviour. Quator is only an ordinary generated system; the full-galaxy route planner must work generically for every tracked destination.
+
+Continue from the highest-priority remaining work in CLAUDE-HANDOFF.md. Make concrete source changes, add meaningful regressions, rebuild, test and package a new numbered release. Be honest about proposed design versus functionality that is actually playable.

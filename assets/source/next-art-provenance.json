@@ -1,0 +1,67 @@
+{
+  "origin": "Original AI-generated project art created with OpenAI image generation for this game",
+  "thirdPartyDownloadedAssets": false,
+  "conversion": "Deterministic nearest-neighbour scaling, alpha threshold 128, ARGB1555; no chroma key or repainting",
+  "gridBoundaries": "floor(column*width/columns), floor(row*height/rows); supports odd dimensions without overlap",
+  "sources": [
+    {
+      "width": 1774,
+      "grid": "4x2",
+      "sha256": "518be71d8c6200944cde21ed1dc5f1259c30841b2b8e54150d36116cc2b20897",
+      "original": "exec-3bc37a71-ad83-4be1-85a5-a3682a0891bf.png",
+      "file": "next-races-source.png",
+      "height": 887,
+      "usage": "Eight alien race portraits, row-major; retain tile composition"
+    },
+    {
+      "width": 2172,
+      "grid": "1x1",
+      "sha256": "bb257d402a4bf817f59e02dd7492a704127e002f0b26b45a731a7e1813896905",
+      "original": "exec-de90aa63-06ee-4bef-86c2-7961d55446a1.png",
+      "file": "next-logo-source.png",
+      "height": 724,
+      "usage": "ELITE:NEXT logo; alpha bounds fitted without redesign"
+    },
+    {
+      "width": 1402,
+      "grid": "5x4",
+      "sha256": "32b1aad4e2682360a8961cdd186196ac1f0d4179048a3a185d19acb367aacd6e",
+      "original": "exec-6b7d857c-ccb5-425d-acbc-658fcc955e55.png",
+      "file": "next-items-source.png",
+      "height": 1122,
+      "usage": "Twenty items, row-major; each tile trimmed independently"
+    }
+  ],
+  "portraitOrder": [
+    "human",
+    "insectoid",
+    "aquatic",
+    "reptilian",
+    "avian",
+    "crystalline",
+    "fungal",
+    "masked synthetic"
+  ],
+  "itemOrder": [
+    "food",
+    "textiles",
+    "radioactives",
+    "life-support capsule",
+    "liquor",
+    "luxuries",
+    "medicine",
+    "computers",
+    "machinery",
+    "alloys",
+    "firearms",
+    "furs",
+    "minerals",
+    "gold",
+    "platinum",
+    "gemstones",
+    "alien artifact",
+    "shield module",
+    "navigation computer",
+    "energy cell"
+  ]
+}

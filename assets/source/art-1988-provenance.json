@@ -1,0 +1,12 @@
+[
+  {
+    "Source": "factions-1988-source.png",
+    "Algorithm": "SHA256",
+    "Hash": "62CCB556C0AA4800DC697F579A5BFD177FBC7E97407A667654D85D2C3ED5E536"
+  },
+  {
+    "Source": "kei-1988-source.png",
+    "Algorithm": "SHA256",
+    "Hash": "734433BC46B5304BACD22212CD3DA6011B533DD65C78CAA0171E6028600DC2F0"
+  }
+]

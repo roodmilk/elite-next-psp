@@ -1,0 +1,1 @@
+Copy MP3 music for this station into this folder. The game rescans it at startup and shuffles up to 24 tracks. No rebuild is needed.

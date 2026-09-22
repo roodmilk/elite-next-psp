@@ -1,0 +1,12 @@
+[
+  {
+    "Source": "kei-source.png",
+    "Algorithm": "SHA256",
+    "Hash": "368AF2AC58A51B26C91FD5E7F556F1EF3D8CD4E2A646767893CC15968BE52386"
+  },
+  {
+    "Source": "planets-source.png",
+    "Algorithm": "SHA256",
+    "Hash": "93912668AA278633E5EA03E194C59E73B734A8AD60896B583A78395DC309A1CE"
+  }
+]

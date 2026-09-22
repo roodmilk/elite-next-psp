@@ -1,0 +1,8 @@
+Original project art generated with the built-in image tool, 21 September 2026.
+Kei: exec-a783d42e-678f-4d3a-912f-3e8ba98724fc.png -> kei-source.png.
+Planets: exec-6cd8e2ae-020b-4b72-ab8c-c7de15f31a99.png -> planets-source.png.
+Both atlases use 4 x 2 cells, compiled with tools/bake-next-art.ps1.
+Native arrays: eight Kei expressions and eight planet families, each 64x64 ARGB1555.
+131072 additional bytes; total generated arrays 287248 bytes.
+Planet family, palette and mirroring are deterministic from each body's existing seed.
+See campaign-art-provenance.json for source SHA256 hashes.

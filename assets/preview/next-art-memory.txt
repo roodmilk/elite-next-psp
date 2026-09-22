@@ -1,0 +1,15 @@
+ELITE:NEXT compiled art memory
+Format: uint16_t ARGB1555; bit15 opaque, RGB five bits each, zero transparent.
+The CPU renderer must convert this format explicitly; this is not PSP GU native ABGR1555.
+Portraits: 8 x 64 x 64 x 2 = 65,536 bytes
+Items: 20 x 32 x 32 x 2 = 40,960 bytes
+Logo: 320 x 72 x 2 = 46,080 bytes
+Small logo: 100 x 18 x 2 = 3,600 bytes
+Original arrays: 156,176 bytes
+Kei, planet and faction arrays: 196,608 bytes
+TOTAL DECLARED SOURCE ARRAYS: 352,784 bytes
+Current referenced arrays: 287,248 bytes (legacy race array is unused)
+No runtime source-PNG decoding or heap allocation is needed for these arrays.
+The optional host PNG previews show the exact thresholded/quantized runtime colours.
+Array dimensions and source dimensions are checked by the compiler.
+Rebuild: powershell -NoProfile -ExecutionPolicy Bypass -File tools/bake-next-art.ps1
