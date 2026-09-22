@@ -67,7 +67,10 @@ Important controls:
 
 ### 2.5.39 — MacVenture A++ cinematic polish
 
-Station interiors restaged from `docs/CINEMATIC-MOCKUP-TARGETS.md` + ART DIRECTOR kit grammar: one hero per room, three floor/sky planes, warm ochre/cream staging, side hatch doors (no top door chrome over the focal object), thinner cream/cyan window chrome. Verb/hotspot/SHIP return behaviour unchanged. Saga untouched.
+Station interiors restaged from `docs/CINEMATIC-MOCKUP-TARGETS.md` + ART DIRECTOR kit grammar: one hero per room, three floor/sky planes, warm ochre/cream staging, side hatch doors (no top door chrome over the focal object), thinner cream/cyan window chrome. Verb/hotspot/SHIP return behaviour unchanged.
+
+**Working tip (Commander: BIG RELEASES ONLY):** Act III (Ch.14–19 / No Easy Flag) page scripts folded onto this branch after the `v2.5.39` tag. Do not micro-tag further — next GitHub Release only when a substantial combined drop is ready.
+
 
 ### 2.5.38 — soft-FB Wave A canopy FX
 
@@ -75,9 +78,9 @@ Denser NPC/player engine plumes, boost heat shimmer, hit sparks and explosion em
 
 ### 2.5.37 — unified playable tip
 
-One pack: MacVenture station (art-kit soft-FB, SHIP return, talk/shop/gift/taxi) + Act I–II eight-beat page scripts/codas (Ch.02–13 through Carry Home). ART DIRECTOR warmer planets / settlement silhouettes / richer space folded in (`planet.h` / `voyage.h`). Post-unify A++ MacVenture polish composition targets: `docs/CINEMATIC-MOCKUP-TARGETS.md` (hero focus, fewer frames, warm staging) — do not edit story saga ownership.
+One pack: MacVenture station (art-kit soft-FB, SHIP return, talk/shop/gift/taxi) + Act I–III eight-beat page scripts/codas (Ch.02–19 through No Easy Flag). ART DIRECTOR warmer planets / settlement silhouettes / richer space folded in (`planet.h` / `voyage.h`). Post-unify A++ MacVenture polish composition targets: `docs/CINEMATIC-MOCKUP-TARGETS.md` (hero focus, fewer frames, warm staging) — do not edit story saga ownership.
 
-**Story on this tip:** Act II (indices 6–11 / Ch.08–13) at the same page-script authority; codas extend through Carry Home (`SAGA_ACT2_END`); Nadi/Sable Act I beats pulled closer to screenplay (Voss tape, "do not flinch").
+**Story on this tip:** Act III (indices 12–17 / Ch.14–19) at the same page-script authority as Acts I–II; codas extend through No Easy Flag (`SAGA_ACT3_END`); Flag blurbs name tenders / markers / watchers. Next narrative deepen: Act IV (Black Flight → berth).
 
 
 ### 2.5.36 — MacVenture + art kit wire

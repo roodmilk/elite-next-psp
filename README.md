@@ -5,6 +5,7 @@
 - Station rooms restaged: one hero focus, three depth planes, warm ochre/cream staging.
 - Side hatch doors; thinner cream/cyan MacVenture chrome so MAIN owns the eye.
 - Composition from `docs/CINEMATIC-MOCKUP-TARGETS.md` + ART DIRECTOR kit grammar.
+- Working tip also carries Act III page scripts (Ch.14–19) — next GitHub Release only with a bigger combined drop.
 
 ## New in 2.5.38 — soft-FB Wave A canopy FX
 
@@ -13,7 +14,7 @@
 
 ## New in 2.5.37 — unified playable tip
 
-- **One pack:** MacVenture station (LOOK/SPEAK/GO/TAKE, art-kit soft-FB rooms, clear SHIP return) **and** Open Channel Act I–II eight-beat page scripts with choice blurbs and locked codas (through Carry Home).
+- **One pack:** MacVenture station (LOOK/SPEAK/GO/TAKE, art-kit soft-FB rooms, clear SHIP return) **and** Open Channel Act I–III eight-beat page scripts with choice blurbs and locked codas (through No Easy Flag).
 - Warmer planets, settlement silhouettes and richer space from ART DIRECTOR's in-game look pass.
 - Post-unify polish targets: `docs/CINEMATIC-MOCKUP-TARGETS.md` (hero focus, fewer frames, warm staging).
 
