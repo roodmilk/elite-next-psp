@@ -14,19 +14,19 @@ static void home(void){
  panel(8,58,222,132);panel(238,58,234,132);
  for(int i=0;i<deck_sizes[group];i++){int id=deck_rows[group][i],y=8+i*2;int locked=!game.docked&&(id==3||id==4||id==12||id==20);
   if(id==row){rect(10,y*8-2,218,15,RGB(41,54,70));rect(10,y*8-2,3,15,RGB(240,180,91));}
-  int story_row=id==17&&(game.campaign_stage<6||game.guild_chapter<4||game.job_n>0);unsigned ink=id==row?WHITE:locked?DIM:story_row?GOLD:WHITE;
+  int story_row=id==17&&(game.campaign_stage<6||game.guild_chapter<4||game.job_n>0);unsigned ink=id==row?RGB(229,210,163):locked?RGB(155,154,165):story_row?RGB(240,180,91):RGB(229,210,163);
   text(3,y,ink,"%s%s%.21s",id==row?">":" ",story_row?"! ":"",labels[id]);
  }
  /* Top-right: live third-person ship in local space. */
  menu_space_view(246,64,218,92);
  int is_story=row==17&&(game.campaign_stage<6||game.guild_chapter<4||game.job_n>0);
- text(31,20,is_story?GOLD:GOLD,"%.27s",labels[row]);
- text(31,22,WHITE,"%s",hints[row][0]);
- if(!game.docked&&(row==3||row==4||row==12||row==20))text(31,23,AMBER,"Dock first to open this.");
- if(is_story){rect(246,178,218,2,GOLD);text(31,23,GOLD,"Open to see your next step.");}
- text(2,25,CYAN,"System: %.12s",game.systems[game.system].name);
- {int wl=wanted_level(&game);text(2,26,wl?RED:DIM,wl?"Wanted [%s]":"Clear warrant",stars(wl));}
- text(31,25,WHITE,"%.1f units   %s",game.credits*.1f,game.docked?"DOCKED":"PAUSED");
+ text(31,20,RGB(240,180,91),"%.27s",labels[row]);
+ text(31,22,RGB(229,210,163),"%s",hints[row][0]);
+ if(!game.docked&&(row==3||row==4||row==12||row==20))text(31,23,RGB(240,180,91),"Dock first to open this.");
+ if(is_story){rect(246,178,218,2,RGB(193,139,77));text(31,23,RGB(240,180,91),"Open to see your next step.");}
+ text(2,25,RGB(85,212,212),"System: %.12s",game.systems[game.system].name);
+ {int wl=wanted_level(&game);text(2,26,wl?RED:RGB(155,154,165),wl?"Wanted [%s]":"Clear warrant",stars(wl));}
+ text(31,25,RGB(229,210,163),"%.1f units   %s",game.credits*.1f,game.docked?"DOCKED":"PAUSED");
  footer("LEFT/RIGHT TAB   UP/DOWN   X OPEN   O BACK");
 }
 static void help(void){
@@ -60,6 +60,7 @@ static void menu_notice(void){
  if(game.message_time<=0||!game.message[0])return;
  int narrative=page==CAMPAIGN||page==GUILD||page==STORY;
  int y=page==HOME?216:narrative?224:192;int h=narrative?24:32;
- rect(8,y,464,h,RGB(15,30,40));rect(8,y,3,h,GOLD);
- text_wrap(2,(y+2)/8,56,narrative?2:3,GOLD,game.message,0);
+ /* Charcoal plate + ochre rail — action feedback, not a gold debug card. */
+ rect(8,y,464,h,RGB(21,28,39));rect(8,y,464,1,RGB(193,139,77));rect(8,y,3,h,RGB(193,139,77));
+ text_wrap(2,(y+2)/8,56,narrative?2:3,RGB(229,210,163),game.message,0);
 }

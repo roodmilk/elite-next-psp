@@ -84,7 +84,7 @@ static void draw_life_billboard(const Lifeform *l){
  int pose=((int)(game.time*(l->kind==LIFE_FAUNA?5.f:2.f)+(int)l->pos.x*.01f))&1;
  field_sprite((int)p.x,(int)p.y,s*2,kind,c,pose);
  /* Scanned life gets a soft sparkle — presentation only. */
- if(l->scanned&&!high_contrast)space_anim_draw(SPACE_ANIM_SPARK,(int)p.x,(int)p.y-s,((int)(game.time*8)+(int)l->pos.z)&3,CYAN);
+ if(l->scanned&&!high_contrast)space_anim_draw(SPACE_ANIM_SPARK,(int)p.x,(int)p.y-s,((int)(game.time*8)+(int)l->pos.z)&3,RGB(229,210,163));
 }
 static void planet_view(void){
  Body *b=&game.bodies[game.planet];int biome=planet_biome(b);
@@ -144,7 +144,7 @@ static void planet_view(void){
   }
  }
  /* Distant, non-collidable settlement silhouettes establish scale before
-  * the playable field begins: domes, towers and a single warm window. */
+  * the playable field begins: domes, towers and blinking warm windows. */
  {
   unsigned h=planet_hash(b->seed+game.surface*37u);
   unsigned skyline=biome==BIOME_OCEAN?RGB(71,82,91):biome==BIOME_ICE?RGB(90,100,120):biome==BIOME_VOLCANIC?RGB(70,40,38):RGB(111,58,48);
@@ -153,14 +153,26 @@ static void planet_view(void){
    int base=horizon+7-(int)((h>>3)&11),height=10+(int)((h>>8)%28u);
    if((i&1)==0){
     planet_cliprect(x,base-height/2,w,height/2,skyline);
-    /* Dome crown as stacked rects — no circle helper needed beyond soft FB. */
     planet_cliprect(x+w/6,base-height/2-(w/4),w-w/3,w/4,skyline);
    }else{
     planet_cliprect(x,base-height,w,height,skyline);
     planet_cliprect(x+w/3,base-height-10,w/3>0?w/3:1,10,skyline);
    }
-   if(i==2)planet_cliprect(x+w/2-2,base-height/2,4,4,RGB(255,193,73));
+   /* Multiple practical windows — blink by seed so the skyline feels lived-in. */
+   for(int win=0;win<3;win++){
+    int wx=x+3+win*((w>12)?(w/3):4),wy=base-height/2+(win&1)*4;
+    int on=(((int)(game.time*(1.4f+win*.3f))+(int)((h>>(win*3))&7))&3)<2;
+    if(on)planet_cliprect(wx,wy,3,3,win==1?RGB(255,193,73):RGB(255,170,90));
+   }
    h=planet_hash(h+113u);
+  }
+  /* Soft horizon haze band — atmospheric perspective, not a second buffer. */
+  if(!high_contrast){
+   unsigned haze=mix_rgb(sky_lo,skyline,.55f);
+   for(int row=0;row<6;row++){
+    unsigned ink=mix_rgb(haze,sky_lo,row/6.f);
+    for(int x=0;x<W;x+=2)sfx_add(x,horizon-2+row,RGB((ink&255)/4,((ink>>8)&255)/4,((ink>>16)&255)/5),top,bottom-1);
+   }
   }
  }
  for(int y=horizon;y<bottom;y++){
@@ -183,13 +195,25 @@ static void planet_view(void){
  {
   float px=pad.x,pz=pad.z,h=terrain_height(&game,px,pz)+.6f,s=40.f;
   unsigned slab=RGB(118,214,220),edge=RGB(36,92,104),mark=RGB(248,252,236);
+  /* Warm ochre apron so the pad reads as maintained hardware, not a UI glyph. */
+  planet_quad((Vec3){px-s-8,h-.1f,pz-s-8},(Vec3){px+s+8,h-.1f,pz-s-8},(Vec3){px+s+8,h-.1f,pz+s+8},(Vec3){px-s-8,h-.1f,pz+s+8},RGB(139,75,55));
   planet_quad((Vec3){px-s-5,h,pz-s-5},(Vec3){px+s+5,h,pz-s-5},(Vec3){px+s+5,h,pz+s+5},(Vec3){px-s-5,h,pz+s+5},edge);
   planet_quad((Vec3){px-s,h+.2f,pz-s},(Vec3){px+s,h+.2f,pz-s},(Vec3){px+s,h+.2f,pz+s},(Vec3){px-s,h+.2f,pz+s},slab);
   planet_quad((Vec3){px-3,h+.4f,pz-24},(Vec3){px+3,h+.4f,pz-24},(Vec3){px+3,h+.4f,pz+24},(Vec3){px-3,h+.4f,pz+24},mark);
   planet_quad((Vec3){px-24,h+.4f,pz-3},(Vec3){px+24,h+.4f,pz-3},(Vec3){px+24,h+.4f,pz+3},(Vec3){px-24,h+.4f,pz+3},mark);
   if(game.surface==0){
    Vec3 a=camera(&game,(Vec3){px,h+.6f,pz}),bv=camera(&game,(Vec3){px,92.f,pz});
-   if(a.z>12&&bv.z>12){Point p=project(a),q=project(bv);if(p.y>top&&p.y<bottom&&q.y>top&&q.y<bottom){line((int)p.x,(int)p.y,(int)q.x,(int)q.y,CYAN);line((int)p.x+1,(int)p.y,(int)q.x+1,(int)q.y,WHITE);}}
+    if(a.z>12&&bv.z>12){Point p=project(a),q=project(bv);if(p.y>top&&p.y<bottom&&q.y>top&&q.y<bottom){line((int)p.x,(int)p.y,(int)q.x,(int)q.y,RGB(85,212,212));line((int)p.x+1,(int)p.y,(int)q.x+1,(int)q.y,RGB(229,210,163));}}
+  }
+  /* Pad corner beacons — presentation pulse. */
+  if(!high_contrast&&game.surface!=2){
+   for(int c=0;c<4;c++){
+    float ox=(c&1)?s:-s,oz=(c&2)?s:-s;
+    Vec3 cv=camera(&game,(Vec3){px+ox,h+1.f,pz+oz});if(cv.z<12||cv.z>520)continue;
+    Point cp=project(cv);if(cp.y<top||cp.y>bottom)continue;
+    unsigned lamp=((int)(game.time*3)+c)&2?RGB(255,183,76):RGB(211,145,65);
+    space_anim_draw(SPACE_ANIM_BEACON,(int)cp.x,(int)cp.y,((int)(game.time*4)+c)&3,lamp);
+   }
   }
  }
  flush_meshes();
@@ -235,21 +259,21 @@ static void planet_view(void){
  }
  if(game.surface)shipwire_stretched(mesh_id(player_ships[game.ship].name),game.surface==1?game.pos:game.ship_pos,game.surface==1?game.yaw:0,.85f,1.f,GOLD);
  for(int i=0;i<LIFE_COUNT;i++)if(game.life[i].alive)draw_life_billboard(&game.life[i]);
- if(game.surface!=2){line(227,110,236,110,CYAN);line(244,110,253,110,CYAN);line(240,97,240,106,CYAN);line(240,114,240,123,CYAN);}
+ if(game.surface!=2){line(227,110,236,110,RGB(193,139,77));line(244,110,253,110,RGB(193,139,77));line(240,97,240,106,RGB(193,139,77));line(240,114,240,123,RGB(193,139,77));}
 }
-/* Dedicated on-foot chrome — same clarity as station walk, not the full cockpit. */
+/* Dedicated on-foot chrome — charcoal + ochre, not gold/cyan debug bands. */
 static void planet_eva_hud(void){
  Body *b=&game.bodies[game.planet];
  static const char *biome_name[]={"OCEAN ISLAND","ARID FLATS","ICE FIELD","VOLCANIC SCRUB","FOREST RISE"};
  int biome=planet_biome(b);
- rect(0,0,W,28,RGB(8,19,28));rect(0,26,W,2,GOLD);
- text(1,0,GOLD,"ON FOOT / %.14s",b->name);text(1,2,DIM,"NUB LOOK  D-PAD MOVE  2xR JET  SQ SCAN  O BOARD");
- text(40,0,CYAN,"%s",biome_name[biome]);
- rect(0,248,W,24,RGB(8,19,28));rect(0,248,W,2,CYAN);
+ rect(0,0,W,28,RGB(21,28,39));rect(0,26,W,2,RGB(193,139,77));
+ text(1,0,RGB(229,210,163),"ON FOOT / %.14s",b->name);text(1,2,RGB(155,154,165),"NUB LOOK  D-PAD MOVE  2xR JET  SQ SCAN  O BOARD");
+ text(40,0,RGB(85,212,212),"%s",biome_name[biome]);
+ rect(0,248,W,24,RGB(21,28,39));rect(0,248,W,2,RGB(193,139,77));
  float dx=game.pos.x-game.ship_pos.x,dz=game.pos.z-game.ship_pos.z,shipd=sqrtf(dx*dx+dz*dz);
  int near=-1;float best=999;for(int i=0;i<LIFE_COUNT;i++)if(game.life[i].alive&&!game.life[i].scanned){float d=length(sub(game.life[i].pos,game.pos));if(d<best){best=d;near=i;}}
- if(near>=0&&best<380)text(1,32,GOLD,"%s  %d M  — SQ SCAN",game.life[near].kind==LIFE_FLORA?"FLORA":game.life[near].kind==LIFE_FAUNA?"FAUNA":"MINERAL",(int)best);
- else if(shipd<70)text(1,32,CYAN,"SHIP NEAR — O TO BOARD");
- else text(1,32,DIM,"SHIP %d M   HAZARD %d",(int)shipd,(int)game.hazard);
+ if(near>=0&&best<380)text(1,32,RGB(240,180,91),"%s  %d M  — SQ SCAN",game.life[near].kind==LIFE_FLORA?"FLORA":game.life[near].kind==LIFE_FAUNA?"FAUNA":"MINERAL",(int)best);
+ else if(shipd<70)text(1,32,RGB(85,212,212),"SHIP NEAR — O TO BOARD");
+ else text(1,32,RGB(155,154,165),"SHIP %d M   HAZARD %d",(int)shipd,(int)game.hazard);
  if(game.hazard>40){rect(300,252,160,8,RGB(40,20,20));rect(300,252,(int)(1.6f*game.hazard),8,RED);}
 }

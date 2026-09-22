@@ -51,9 +51,9 @@ static void draw_kei(int x,int y,int size,int expression){
  else draw_next_art_fit(kei_faces[i],64,64,x,y,size,size);
 }
 static void draw_portrait(int x,int y,int w,int h,int system,int role){
- if(w>=12&&h>=12){int race=faction_portrait_index((unsigned)system,role);rect(x,y,w,h,RGB(8,16,28));if(w<=32&&h<=32)draw_next_art_fit(faction_portraits_small[race],32,32,x,y,w,h);else draw_next_art_fit(faction_portraits[race],64,64,x,y,w,h);rect(x,y+h-1,w,1,faction_colors[role%FACTION_COUNT]);return;}
- unsigned skin=race_skin(system),cloth=art_tint(faction_colors[role%FACTION_COUNT],-50,-40,-20),bg=RGB(8,16,28),kind=art_hash((unsigned)system*7919u)%8;
- rect(x,y,w,h,bg);rect(x,y,w,1,CYAN);rect(x,y+h-1,w,1,RGB(30,60,80));
+ if(w>=12&&h>=12){int race=faction_portrait_index((unsigned)system,role);rect(x,y,w,h,RGB(21,28,39));if(w<=32&&h<=32)draw_next_art_fit(faction_portraits_small[race],32,32,x,y,w,h);else draw_next_art_fit(faction_portraits[race],64,64,x,y,w,h);rect(x,y+h-1,w,1,faction_colors[role%FACTION_COUNT]);rect(x,y,w,1,RGB(193,139,77));return;}
+ unsigned skin=race_skin(system),cloth=art_tint(faction_colors[role%FACTION_COUNT],-50,-40,-20),bg=RGB(21,28,39),kind=art_hash((unsigned)system*7919u)%8;
+ rect(x,y,w,h,bg);rect(x,y,w,1,RGB(193,139,77));rect(x,y+h-1,w,1,RGB(41,54,70));
  int cx=x+w/2,hw=w/6+3,hh=h/5+4,facey=y+h/5+2,bodyy=facey+hh+5;
  rect(cx-hw,facey,hw*2,hh,skin);
  rect(cx-hw+2,facey+2,hw*2-4,hh-4,art_tint(skin,22,14,8));
@@ -73,19 +73,18 @@ static void draw_portrait(int x,int y,int w,int h,int system,int role){
  if(role==LAW)rect(cx-hw,facey-2,hw*2,2,CYAN);
  if(role==PIRATES)rect(cx-hw/2,facey+hh/2,hw,2,RED);
  if(role==EXPLORERS)rect(cx-1,facey-4,3,4,GOLD);
- /* Tiny identity lights keep small PSP portraits alive without adding
-  * detail that collapses at 32 pixels. Each faction gets its own pulse. */
  if(w>=24&&h>=24){int pulse=(int)(preview_time*(role==PIRATES?7:role==LAW?5:3));if((pulse&3)<2){unsigned glow=faction_colors[role%FACTION_COUNT];pixel(x+w-3,y+2,glow);pixel(x+w-2,y+2,glow);}}
 }
 static void draw_world_card(int x,int y,int w,int h,const Body *b,int seed){
- rect(x,y,w,h,RGB(6,10,20));
- for(int i=0;i<18;i++){unsigned n=art_hash(seed+i*91u);pixel(x+(n% (w-2))+1,y+((n>>8)%(h-2))+1,((n>>16)&3)?DIM:WHITE);}
+ rect(x,y,w,h,RGB(21,28,39));
+ rect(x,y,w,1,RGB(193,139,77));rect(x,y+h-1,w,1,RGB(41,54,70));
+ for(int i=0;i<18;i++){unsigned n=art_hash(seed+i*91u);pixel(x+(n% (w-2))+1,y+((n>>8)%(h-2))+1,((n>>16)&3)?RGB(90,96,76):RGB(229,210,163));}
  int r=h/2-4;if(r<8)r=8;if(r>w/2-4)r=w/2-4;
  draw_planet_disc(x+w/2,y+h/2,r,b->color,b->accent,seed,b->type);
 }
 static void draw_icon(int x,int y,int id,int on){
- unsigned c=on?GOLD:DIM;
- rect(x,y,10,8,RGB(8,18,28));
+ unsigned c=on?RGB(240,180,91):RGB(155,154,165);
+ rect(x,y,10,8,RGB(21,28,39));
  if(id==0){rect(x+2,y+3,6,3,c);rect(x+4,y+1,2,2,c);}
  else if(id==1){rect(x+2,y+2,6,5,c);rect(x+4,y+3,2,3,BG);}
  else if(id==2){pixel(x+5,y+2,c);pixel(x+3,y+4,c);pixel(x+7,y+4,c);pixel(x+5,y+6,c);}
@@ -101,7 +100,7 @@ static void draw_icon(int x,int y,int id,int on){
  else if(id==12){rect(x+2,y+2,6,5,c);rect(x+3,y+3,4,1,BG);}
  else if(id==13){rect(x+2,y+1,6,6,c);rect(x+4,y+3,2,3,BG);}
  else if(id==14){rect(x+1,y+2,8,4,c);rect(x+3,y+3,4,2,BG);}
- else {rect(x+2,y+2,6,4,c);pixel(x+4,y+4,GOLD);}
+ else {rect(x+2,y+2,6,4,c);pixel(x+4,y+4,RGB(240,180,91));}
 }
 static void draw_flora_icon(int x,int y,int seed){
  unsigned leaf=RGB(70+(seed&31),150+(seed&20),55+(seed&15));

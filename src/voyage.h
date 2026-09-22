@@ -115,7 +115,7 @@ static void docking_view(void){
  sector_background();space_fx_nebula();starfield();space_fx_meteors();
  station_model();station_window_animation();
  float t=fminf(1,game.dock_timer/3);
- shipmesh(mesh_id(player_ships[game.ship].name),(Vec3){0,0,3070+t*470},0,station_angle(&game),.7f,GOLD,0);
+ shipmesh(mesh_id(player_ships[game.ship].name),(Vec3){0,0,3070+t*470},0,station_angle(&game),.7f,RGB(193,139,77),0);
  flush_meshes();
  station_entrance();
  /* Soft approach corridor motes — presentation only. */
@@ -124,8 +124,8 @@ static void docking_view(void){
   for(int i=0;i<12;i++){
    float a=i*.52f+game.time*.8f;
    int x=240+(int)(cosf(a)*(20+t*40)),y=110+(int)(sinf(a)*(10+t*18));
-   sfx_add(x,y,RGB(40,70,90),top,bot);
-   if((i&3)==0)space_anim_draw(SPACE_ANIM_SPARK,x,y,((int)(game.time*5)+i)&3,RGB(85,212,212));
+   sfx_add(x,y,RGB(60,50,35),top,bot);
+   if((i&3)==0)space_anim_draw(SPACE_ANIM_SPARK,x,y,((int)(game.time*5)+i)&3,RGB(229,210,163));
   }
  }
  text(2,5,RGB(229,210,163),"ARRIVAL / %.16s",station_name(&game));
@@ -142,15 +142,17 @@ static void speech_box(int x,int y,int w){
  int role=who==VOICE_LAW?LAW:who==VOICE_KEI?EXPLORERS:TRADERS;
  if(who==VOICE_CONTACT)role=game.voice_role>=0&&game.voice_role<FACTION_COUNT?game.voice_role:EXPLORERS;
  static const char *names[]={"","KEI","VENN","DOCKHAND","LOCAL LAW","COMPUTER","CONTACT"};
- unsigned ink=who==VOICE_COMP?CYAN:faction_colors[role];
+ /* Computer voice uses soft cyan; named speakers keep faction ink on charcoal plate. */
+ unsigned ink=who==VOICE_COMP?RGB(85,212,212):faction_colors[role];
  int portrait=who!=VOICE_COMP,tx=x+(portrait?40:8),col=tx/8,cap=(x+w-8-tx)/8;
  /* Three body rows under the name plate stay inside the top caption band (y<56). */
  int box_h=32;
- rect(x,y,w,box_h,RGB(8,18,28));rect(x,y,2,box_h,ink);
+ rect(x,y,w,box_h,RGB(21,28,39));rect(x,y,w,1,RGB(193,139,77));rect(x,y+box_h-1,w,1,RGB(41,54,70));
+ rect(x,y,2,box_h,ink);
  if(portrait){if(who==VOICE_KEI)draw_kei(x+4,y,32,0);else draw_portrait(x+4,y,32,32,who==VOICE_CONTACT?game.voice_seed:who*37,role);}
  speaker_name_tag(col,y/8,who==VOICE_CONTACT?faction_names[role]:names[who],ink);
  button_icon(x+w-16,y,'T',ink);
- text_wrap(col,y/8+1,cap,3,WHITE,s,0);
+ text_wrap(col,y/8+1,cap,3,RGB(229,210,163),s,0);
 }
 static void pip_bar(int x,int y,int w,int h,int fill,unsigned c){
  if(fill<0)fill=0;
@@ -207,7 +209,7 @@ static void radar_dot(Vec3 p,unsigned ink,int kind,int focus){
  RadarPoint q=radar_point(p);line(q.x,q.y,q.x,q.y-q.lift,ink);q.y-=q.lift;
  if(focus){line(q.x-3,q.y-3,q.x+3,q.y-3,WHITE);line(q.x-3,q.y+3,q.x+3,q.y+3,WHITE);}
  if(kind==1){pixel(q.x,q.y-2,ink);line(q.x-2,q.y,q.x+2,q.y,ink);pixel(q.x,q.y+2,ink);}
- else if(kind==2){rect(q.x-2,q.y-2,5,5,ink);rect(q.x-1,q.y-1,3,3,RGB(8,18,28));}
+ else if(kind==2){rect(q.x-2,q.y-2,5,5,ink);rect(q.x-1,q.y-1,3,3,RGB(21,28,39));}
  else rect(q.x-1,q.y-1,3,3,ink);
 }
 static const char *tracked_hud_cue(void){
@@ -218,82 +220,83 @@ static const char *tracked_hud_cue(void){
 }
 static void cockpit(void){
  if(hud_hidden||hud_mode==2)return;
- /* Top 24px: system, heading, route. Bottom 80px: all instruments. */
- rect(0,0,W,24,RGB(6,15,24));rect(0,23,W,1,RGB(43,77,89));
- text(1,0,CYAN,"System: %.11s",game.systems[game.system].name);
- {int wl=wanted_level(&game);text(1,1,wl?RED:DIM,wl?"Wanted %d/5":"Wanted 0/5",wl);}
+ /* Top 24px: system, heading, route. Bottom 80px: all instruments.
+  * Charcoal + ochre instrument bands — McQuarrie chrome, not cyan debug boxes. */
+ rect(0,0,W,24,RGB(21,28,39));rect(0,23,W,1,RGB(193,139,77));
+ text(1,0,RGB(85,212,212),"System: %.11s",game.systems[game.system].name);
+ {int wl=wanted_level(&game);text(1,1,wl?RED:RGB(155,154,165),wl?"Wanted %d/5":"Wanted 0/5",wl);}
  int heading=(int)(game.yaw*57.29578f)%360;if(heading<0)heading+=360;
- text(24,0,DIM,"%03d",heading);danger_badge(224,4,danger_rating(&game,game.system));
+ text(24,0,RGB(155,154,165),"%03d",heading);danger_badge(224,4,danger_rating(&game,game.system));
  /* Mission cue flush to the top-right (1-col inset). Keep past the danger badge. */
  {
   const char *cue=tracked_hud_cue();
   int cols=W/8,inset=1,left=34,clen=(int)strlen(cue),max=cols-inset-left;
   if(max<8)max=8;if(clen>max)clen=max;
-  text(cols-inset-clen,0,GOLD,"%.*s",clen,cue);
+  text(cols-inset-clen,0,RGB(240,180,91),"%.*s",clen,cue);
  }
- if(game.dock_stage==1){rect(8,24,464,16,RGB(8,24,32));text(2,4,CYAN,"DOCKING GUIDANCE ACTIVE");}
- else if(square_held){rect(8,24,464,32,RGB(8,24,32));for(int i=0;i<5;i++)text(1+i*11,4,i==scan_cat?GOLD:DIM,"%s",scan_cat_names[i]);text(2,6,CYAN,"D-PAD BANDS   L CYCLE VIEW");text(35,6,GOLD,"R LOCK");}
+ if(game.dock_stage==1){rect(8,24,464,16,RGB(21,28,39));rect(8,24,464,1,RGB(193,139,77));text(2,4,RGB(85,212,212),"DOCKING GUIDANCE ACTIVE");}
+ else if(square_held){rect(8,24,464,32,RGB(21,28,39));rect(8,24,464,1,RGB(193,139,77));for(int i=0;i<5;i++)text(1+i*11,4,i==scan_cat?RGB(240,180,91):RGB(155,154,165),"%s",scan_cat_names[i]);text(2,6,RGB(85,212,212),"D-PAD BANDS   L CYCLE VIEW");text(35,6,RGB(240,180,91),"R LOCK");}
  else if(game.approach<0&&!game.police_stop&&!game.dead&&!game.dock_stage&&game.jump<=0)speech_box(8,24,464);
  combat_alert_banner();
- rect(0,192,W,80,RGB(6,15,24));rect(0,192,W,1,CYAN);
- line(155,198,155,258,RGB(32,57,69));line(323,198,323,258,RGB(32,57,69));
+ rect(0,192,W,80,RGB(21,28,39));rect(0,192,W,1,RGB(193,139,77));
+ line(155,198,155,258,RGB(41,54,70));line(323,198,323,258,RGB(41,54,70));
  int id=valid_target(selected_target)?selected_target:valid_target(look_target)?look_target:-1;
- text(4,25,DIM,game.surface==2?"PARKED SHIP":game.planet>=0?"LANDING PAD":"TARGET");
- hud_pixel_icon(8,200,id<0?3:id==0?0:id<=BODY_COUNT?1:2,CYAN);
+ text(4,25,RGB(155,154,165),game.surface==2?"PARKED SHIP":game.planet>=0?"LANDING PAD":"TARGET");
+ hud_pixel_icon(8,200,id<0?3:id==0?0:id<=BODY_COUNT?1:2,RGB(85,212,212));
  if(id>=0||game.planet>=0){
   Vec3 wp=game.surface==2?game.ship_pos:game.planet>=0?surface_site(&game,1):target_position(id),p=camera(&game,wp);
   const char *name=game.surface==2?player_ships[game.ship].name:game.planet>=0?game.bodies[game.planet].name:scanner_known(id)?target_name(id):"UNKNOWN CONTACT";
   int cut=(int)strlen(name);if(cut>18){cut=18;for(int k=18;k>8;k--)if(name[k]==' '){cut=k;break;}}
-  text(1,27,GOLD,"%.*s",cut,name);
+  text(1,27,RGB(240,180,91),"%.*s",cut,name);
   const char *tail=name+cut;while(*tail==' ')tail++;
-  if(*tail)text(1,28,GOLD,"%.18s",tail);
-  text(1,30,WHITE,"%d M",(int)length(p));
+  if(*tail)text(1,28,RGB(240,180,91),"%.18s",tail);
+  text(1,30,RGB(229,210,163),"%d M",(int)length(p));
   if(IS_NPC_ID(id)&&scanner_known(id)){
    NPC *n=&game.npc[id-BODY_COUNT-1];
    float mh=n->freighter?900.f:n->role==LAW?110.f:80.f,ms=n->freighter?100.f:n->role==LAW?60.f:40.f;
    int hull=(int)fmaxf(0,fminf(100,100.f*n->health/mh)),shld=(int)fmaxf(0,fminf(100,100.f*n->shield/fmaxf(1.f,ms)));
-   text(1,31,DIM,"HULL");pip_bar(40,250,70,4,hull,hull<30?RED:(n->freighter?GOLD:CYAN));
-   text(15,31,DIM,"SHLD");pip_bar(128,250,50,4,shld,CYAN);
-  }else text(1,31,autoaim?CYAN:DIM,"%s",autoaim?"LOCKED / ALIGNING":"HOLD SQ + R: LOCK");
+   text(1,31,RGB(155,154,165),"HULL");pip_bar(40,250,70,4,hull,hull<30?RED:(n->freighter?RGB(240,180,91):RGB(85,212,212)));
+   text(15,31,RGB(155,154,165),"SHLD");pip_bar(128,250,50,4,shld,RGB(85,212,212));
+  }else text(1,31,autoaim?RGB(85,212,212):RGB(155,154,165),"%s",autoaim?"LOCKED / ALIGNING":"HOLD SQ + R: LOCK");
  }
- else {text(1,27,DIM,"NO TARGET");text(1,30,WHITE,"SQUARE TO SELECT");}
- text(28,25,DIM,"AHEAD");text(29,31,DIM,"AFT");
- line(171,230,309,230,RGB(25,49,60));line(240,211,240,249,RGB(25,49,60));
- line(177,214,303,214,RGB(19,37,49));line(177,246,303,246,RGB(19,37,49));
- if(game.planet>=0){for(int i=0;i<3;i++)radar_dot(camera(&game,surface_site(&game,i)),i==1?CYAN:GOLD,2,0);if(game.surface==2)radar_dot(camera(&game,game.ship_pos),CYAN,0,1);}
+ else {text(1,27,RGB(155,154,165),"NO TARGET");text(1,30,RGB(229,210,163),"SQUARE TO SELECT");}
+ text(28,25,RGB(155,154,165),"AHEAD");text(29,31,RGB(155,154,165),"AFT");
+ line(171,230,309,230,RGB(41,54,70));line(240,211,240,249,RGB(41,54,70));
+ line(177,214,303,214,RGB(41,54,70));line(177,246,303,246,RGB(41,54,70));
+ if(game.planet>=0){for(int i=0;i<3;i++)radar_dot(camera(&game,surface_site(&game,i)),i==1?RGB(85,212,212):RGB(240,180,91),2,0);if(game.surface==2)radar_dot(camera(&game,game.ship_pos),RGB(85,212,212),0,1);}
  else {
   /* Draw faint scenery first, selected contact last. */
   for(int pass=0;pass<2;pass++)for(int tid=0;tid<=ANOMALY_ID_MAX;tid++)if(valid_target(tid)&&((tid==selected_target)==pass)){
-   int ship=IS_NPC_ID(tid);unsigned ink=ship?faction_colors[game.npc[tid-BODY_COUNT-1].role]:tid==0?CYAN:tid<=BODY_COUNT?RGB(125,122,91):DIM;
+   int ship=IS_NPC_ID(tid);unsigned ink=ship?faction_colors[game.npc[tid-BODY_COUNT-1].role]:tid==0?RGB(85,212,212):tid<=BODY_COUNT?RGB(125,122,91):RGB(155,154,165);
    radar_dot(camera(&game,target_position(tid)),ink,tid==0?2:tid<=BODY_COUNT?1:0,pass);
   }
-  for(int hub=1;hub<HUB_COUNT;hub++)if(hub!=nearest_hub(&game))radar_dot(camera(&game,hub_position(&game,hub)),CYAN,2,0);
+  for(int hub=1;hub<HUB_COUNT;hub++)if(hub!=nearest_hub(&game))radar_dot(camera(&game,hub_position(&game,hub)),RGB(85,212,212),2,0);
  }
- hud_pixel_icon(237,227,2,WHITE);
+ hud_pixel_icon(237,227,2,RGB(229,210,163));
  for(int i=0;i<3;i++){
   int x=336+i*46;int n=i==0?game.pip_sys:i==1?game.pip_eng:game.pip_wep;
-  unsigned ink=paused&&i==pip_sel?GOLD:DIM;
+  unsigned ink=paused&&i==pip_sel?RGB(240,180,91):RGB(155,154,165);
   text(x/8,25,ink,"%s",i==0?"SYS":i==1?"ENG":"WEP");
-  if(paused&&i==pip_sel){line(x,218,x+22,218,GOLD);line(x,219,x+22,219,CYAN);}
-  for(int k=0;k<4;k++)rect(x+k*5,210,3,2,k<n?(i==0?CYAN:i==1?AMBER:RED):RGB(29,46,57));
+  if(paused&&i==pip_sel){line(x,218,x+22,218,RGB(240,180,91));line(x,219,x+22,219,RGB(85,212,212));}
+  for(int k=0;k<4;k++)rect(x+k*5,210,3,2,k<n?(i==0?RGB(85,212,212):i==1?RGB(240,180,91):RED):RGB(41,54,70));
  }
  const char *labels[]={"SHLD","SPD","HEAT","FUEL"};
  int vmax=player_ships[game.ship].speed;if(vmax<1)vmax=1;
  int values[]={(int)game.energy,(int)(100*game.speed/vmax),(int)game.heat,(int)(100*game.fuel/fmaxf(1,player_ships[game.ship].range))};
- unsigned cols[]={game.energy<30?RED:CYAN,GOLD,game.heat>70?RED:RGB(139,106,72),GOLD};
- for(int i=0;i<4;i++){text(42,27+i,DIM,"%s",labels[i]);pip_bar(378,216+i*8,90,5,values[i],cols[i]);}
- rect(0,262,W,10,RGB(10,24,33));
- button_icon(8,263,'T',CYAN);text(3,33,DIM,"HOLD: COMMS");
+ unsigned cols[]={game.energy<30?RED:RGB(85,212,212),RGB(240,180,91),game.heat>70?RED:RGB(139,106,72),RGB(240,180,91)};
+ for(int i=0;i<4;i++){text(42,27+i,RGB(155,154,165),"%s",labels[i]);pip_bar(378,216+i*8,90,5,values[i],cols[i]);}
+ rect(0,262,W,10,RGB(21,28,39));rect(0,262,W,1,RGB(193,139,77));
+ button_icon(8,263,'T',RGB(85,212,212));text(3,33,RGB(155,154,165),"HOLD: COMMS");
  if(game.dead)text(20,33,RED,"START: RECOVER");
- else if(paused)text(20,33,GOLD,"HOLD START  L/R BANK  U/D POWER");
- else if(game.police_stop)text(20,33,GOLD,"X PAY   O CUSTODY");
- else if(game.approach>=0)text(20,33,GOLD,"X ENTER   O TURN BACK");
- else if(game.surface==2)text(20,33,DIM,"O BOARD   SQUARE SCAN   2xR JET");
- else if(game.planet>=0)text(20,33,DIM,game.surface==1?"O WALK   TRIANGLE TAKE OFF":"O LAND   TRIANGLE ORBIT");
+ else if(paused)text(20,33,RGB(240,180,91),"HOLD START  L/R BANK  U/D POWER");
+ else if(game.police_stop)text(20,33,RGB(240,180,91),"X PAY   O CUSTODY");
+ else if(game.approach>=0)text(20,33,RGB(240,180,91),"X ENTER   O TURN BACK");
+ else if(game.surface==2)text(20,33,RGB(155,154,165),"O BOARD   SQUARE SCAN   2xR JET");
+ else if(game.planet>=0)text(20,33,RGB(155,154,165),game.surface==1?"O WALK   TRIANGLE TAKE OFF":"O LAND   TRIANGLE ORBIT");
  else {
   int action=valid_target(look_target)?look_target:id;
   int rock=IS_DEBRIS_ID(action)&&game.debris[action-DEBRIS_ID_MIN].rock;
   const char *verb=rock?"MINE":IS_DEBRIS_ID(action)?"COLLECT":IS_NPC_ID(action)?"LOCK":IS_ANOMALY_ID(action)?"SCAN":action==0?"DOCK":"APPROACH";
-  button_icon(158,263,'S',GOLD);text(22,33,DIM,"TARGETS");button_icon(264,263,rock?'X':'O',CYAN);text(35,33,DIM,"%s",verb);text(46,33,DIM,"MS %d",game.missiles);
+  button_icon(158,263,'S',RGB(240,180,91));text(22,33,RGB(155,154,165),"TARGETS");button_icon(264,263,rock?'X':'O',RGB(85,212,212));text(35,33,RGB(155,154,165),"%s",verb);text(46,33,RGB(155,154,165),"MS %d",game.missiles);
  }
 }

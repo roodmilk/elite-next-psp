@@ -168,12 +168,13 @@ static void combat_alert_banner(void){
 }
 static void minimal_overlay(void){
  pick_look_target();
- rect(0,0,W,24,RGB(6,15,24));rect(0,248,W,24,RGB(6,15,24));
- text(1,1,CYAN,"System: %.11s",game.systems[game.system].name);
- text(43,1,WHITE,"SPD %d",(int)game.speed);
- text(1,32,game.energy<30?RED:CYAN,"SHIELD %d%%",(int)game.energy);
+ rect(0,0,W,24,RGB(21,28,39));rect(0,23,W,1,RGB(193,139,77));
+ rect(0,248,W,24,RGB(21,28,39));rect(0,248,W,1,RGB(193,139,77));
+ text(1,1,RGB(85,212,212),"System: %.11s",game.systems[game.system].name);
+ text(43,1,RGB(229,210,163),"SPD %d",(int)game.speed);
+ text(1,32,game.energy<30?RED:RGB(85,212,212),"SHIELD %d%%",(int)game.energy);
  int id=valid_target(selected_target)?selected_target:valid_target(look_target)?look_target:-1;
- if(id>=0)text(25,32,GOLD,"%.32s",target_name(id));
+ if(id>=0)text(25,32,RGB(240,180,91),"%.32s",target_name(id));
  combat_alert_banner();
 }
 static void missile_effects(void){int top=view_top(),bot=view_bot();if(game.missile_time>0){Vec3 p=camera(&game,game.missile_pos);if(p.z>15){Point q=project(p);int x=(int)q.x,y=(int)q.y;if(x>2&&x<478&&y>top&&y<bot){circle(x,y,3,GOLD);line(x,y,x-6,y+8,RED);}}}if(game.incoming_missile>0&&game.incoming_source>=0&&game.incoming_source<NPC_COUNT&&game.npc[game.incoming_source].alive){Vec3 p=camera(&game,game.npc[game.incoming_source].pos);if(p.z>15){Point q=project(p);if(q.x>4&&q.x<476&&q.y>top+4&&q.y<bot-4)circle((int)q.x,(int)q.y,8,RED);}}}
@@ -189,18 +190,18 @@ static void warp_effect(void){
   float end=radius+18+progress*110;
   int y0=(int)fmaxf(top,fminf(bot,110+sinf(angle)*radius*.5f));
   int y1=(int)fmaxf(top,fminf(bot,110+sinf(angle)*end*.5f));
-  unsigned ink=i%5==0?WHITE:i%5==1?CYAN:i%5==2?RGB(180,120,255):i%5==3?RGB(80,160,220):RGB(40,90,140);
+  unsigned ink=i%5==0?RGB(229,210,163):i%5==1?RGB(85,212,212):i%5==2?RGB(193,139,77):i%5==3?RGB(155,154,165):RGB(41,54,70);
   line(240+(int)(cosf(angle)*radius),y0,240+(int)(cosf(angle)*end),y1,ink);
   if((i&3)==0)sfx_add(240+(int)(cosf(angle)*end),y1,ink,top,bot);
  }
  for(int k=0;k<16;k++){
   float a=k*.4f+game.time*2.f;
-  space_anim_draw(SPACE_ANIM_SPARK,240+(int)(cosf(a)*30),110+(int)(sinf(a)*18),((int)(game.time*10)+k)&3,CYAN);
+  space_anim_draw(SPACE_ANIM_SPARK,240+(int)(cosf(a)*30),110+(int)(sinf(a)*18),((int)(game.time*10)+k)&3,RGB(240,180,91));
  }
- rect(80,88,320,28,DASH);rect(80,88,320,2,AMBER);
- text(15,12,AMBER,"WARP TO %.12s  %.1f",game.systems[game.destination].name,game.jump);
+ rect(80,88,320,28,RGB(21,28,39));rect(80,88,320,2,RGB(193,139,77));
+ text(15,12,RGB(240,180,91),"WARP TO %.12s  %.1f",game.systems[game.destination].name,game.jump);
 }
-static void planet_prompt(void){if(game.approach<0)return;int y0=hud_mode==0?88:view_top()+8;rect(20,y0,440,84,DASH);rect(20,y0,440,2,AMBER);text(7,12,AMBER,"APPROACH: %s",game.bodies[game.approach].name);button_icon(58,y0+38,'X',CYAN);text(10,(y0+39)/8,WHITE,"fly the surface");button_icon(210,y0+38,'O',RED);text(29,(y0+39)/8,WHITE,"turn back");text(7,19,AMBDIM,game.bodies[game.approach].type==GAS?"Gas giant: scan it, then reverse away.":"Land on the cyan pad, then O to walk.");}
+static void planet_prompt(void){if(game.approach<0)return;int y0=hud_mode==0?88:view_top()+8;rect(20,y0,440,84,RGB(21,28,39));rect(20,y0,440,2,RGB(193,139,77));rect(20,y0+82,440,2,RGB(41,54,70));text(7,12,RGB(240,180,91),"APPROACH: %s",game.bodies[game.approach].name);button_icon(58,y0+38,'X',RGB(85,212,212));text(10,(y0+39)/8,RGB(229,210,163),"fly the surface");button_icon(210,y0+38,'O',RED);text(29,(y0+39)/8,RGB(229,210,163),"turn back");text(7,19,RGB(155,154,165),game.bodies[game.approach].type==GAS?"Gas giant: scan it, then reverse away.":"Land on the ochre pad, then O to walk.");}
 static void celestial_rims(void){
  int top=view_top(),bot=view_bot();
  for(int i=0;i<BODY_COUNT;i++){
@@ -307,7 +308,7 @@ static void lens_flares(void){
   }
  }
 }
-static void police_dialog(void){if(!game.police_stop)return;const int bx=76,by=38,bw=388,bh=65;unsigned edge=faction_colors[LAW];draw_portrait(16,45,48,48,VOICE_LAW*37,LAW);rect(bx,by,bw,bh,RGB(14,29,39));rect(bx,by,bw,2,edge);rect(bx,by+bh-2,bw,2,RGB(30,78,86));rect(bx+bw-2,by,2,bh,edge);line(bx,by+20,bx-12,by+28,edge);line(bx-12,by+28,bx,by+36,edge);rect(bx-3,by+22,4,13,RGB(14,29,39));speaker_name_tag(11,6,"LOCAL LAW",edge);text(11,8,WHITE,"Commander, your vessel is under local arrest.");text(11,10,WHITE,"Warrant %d/5 in %s. Choose now.",wanted_level(&game),game.systems[game.system].name);text(2,14,DIM,"YOUR RESPONSE");const char *opts[]={"PAY FINE AND LEAVE","ACCEPT STATION CUSTODY","RUN FROM LAW"};for(int i=0;i<3;i++){int y=16+i*3;if(i==police_choice)selected(y);text(3,y,i==police_choice?WHITE:DIM,"%s %s",i==police_choice?">":" ",opts[i]);if(i==0)text(32,y,i==police_choice?CYAN:DIM,"%.1f U",police_fine(&game)*.1f);if(i==1)text(32,y,i==police_choice?GOLD:DIM,"UP TO %.1f U",police_fine(&game)*.05f);if(i==2)text(32,y,i==police_choice?RED:DIM,"WARRANT + PURSUIT");}text(2,26,DIM,"UP/DOWN CHOOSE   X CONFIRM   FLIGHT PAUSED");}
+static void police_dialog(void){if(!game.police_stop)return;const int bx=76,by=38,bw=388,bh=65;unsigned edge=faction_colors[LAW];draw_portrait(16,45,48,48,VOICE_LAW*37,LAW);rect(bx,by,bw,bh,RGB(21,28,39));rect(bx,by,bw,2,edge);rect(bx,by+bh-2,bw,2,RGB(41,54,70));rect(bx+bw-2,by,2,bh,edge);line(bx,by+20,bx-12,by+28,edge);line(bx-12,by+28,bx,by+36,edge);rect(bx-3,by+22,4,13,RGB(21,28,39));speaker_name_tag(11,6,"LOCAL LAW",edge);text(11,8,RGB(229,210,163),"Commander, your vessel is under local arrest.");text(11,10,RGB(229,210,163),"Warrant %d/5 in %s. Choose now.",wanted_level(&game),game.systems[game.system].name);text(2,14,RGB(155,154,165),"YOUR RESPONSE");const char *opts[]={"PAY FINE AND LEAVE","ACCEPT STATION CUSTODY","RUN FROM LAW"};for(int i=0;i<3;i++){int y=16+i*3;if(i==police_choice)selected(y);text(3,y,i==police_choice?RGB(229,210,163):RGB(155,154,165),"%s %s",i==police_choice?">":" ",opts[i]);if(i==0)text(32,y,i==police_choice?RGB(85,212,212):RGB(155,154,165),"%.1f U",police_fine(&game)*.1f);if(i==1)text(32,y,i==police_choice?RGB(240,180,91):RGB(155,154,165),"UP TO %.1f U",police_fine(&game)*.05f);if(i==2)text(32,y,i==police_choice?RED:RGB(155,154,165),"WARRANT + PURSUIT");}text(2,26,RGB(155,154,165),"UP/DOWN CHOOSE   X CONFIRM   FLIGHT PAUSED");}
 static void death_effect(void){if(!game.dead)return;rect(0,38,W,142,BG);float age=game.explosion;
  const Mesh *m=&meshes[mesh_id(player_ships[game.ship].name)];
  for(int i=0;i<m->triangles;i++){const MeshTri *t=&m->t[i];Vec3 center=mul(add(add(m->v[t->a],m->v[t->b]),m->v[t->c]),1.f/3);Vec3 dir=norm(add(center,(Vec3){sinf(i*4.f)*25,cosf(i*2.f)*25,20}));Vec3 shift=add((Vec3){0,0,340},mul(dir,age*130));int indices[3]={t->a,t->b,t->c};Point p[3];int visible=1;for(int j=0;j<3;j++){Vec3 v=add(shift,rotate(mul(m->v[indices[j]],1.5f),age*.8f,age*.3f));if(v.z<15){visible=0;break;}p[j]=project(v);}if(!visible)continue;for(int j=0;j<3;j++){Point a=p[j],b=p[(j+1)%3];if(a.y>=40&&a.y<178&&b.y>=40&&b.y<178)line((int)a.x,(int)a.y,(int)b.x,(int)b.y,i%3?GOLD:RED);}}

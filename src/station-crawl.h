@@ -365,9 +365,13 @@ static void sc_illust_shop(int x,int y,int w,int h){
  rect(x+196,y+100,60,28,mix_rgb(st->trim,SC_RUST,.4f));
  rect(x+200,y+104,52,6,SC_CREAM);
  sc_warm_key(x+160,y+82,st->lamp);
- /* Clamp crate — scale cue */
+ /* Clamp crate — scale cue + soft label blink */
  rect(x+24,y+h-44,36,28,mix_rgb(st->trim,SC_OCHRE,.4f));
  rect(x+24,y+h-44,36,4,SC_CREAM);
+ if(sc_lamp_on(4,2.2f)<2)rect(x+28,y+h-36,12,4,st->accent);
+ /* Hanging tool rack — left alcove personality */
+ rect(x+12,y+40,20,48,mix_rgb(st->wall,SC_SLATE,.3f));
+ rect(x+16,y+48,4,28,st->trim);rect(x+24,y+52,4,20,SC_RUST);
 }
 static void sc_illust_canteen(int x,int y,int w,int h){
  const ArtRoomStyle *st=sc_style();
@@ -396,6 +400,13 @@ static void sc_illust_canteen(int x,int y,int w,int h){
  }
  text((x+18)/8,(y+108)/8,SC_CREAM,"JUKE");
  rect(x+20,y+108,48,28,mix_rgb(st->trim,st->wall2,.35f));
+ /* Steam wisps + cup on the bar — lived-in cue */
+ if(!high_contrast)for(int i=0;i<3;i++){
+  int sx=x+100+i*40+(int)(sinf(game.time*1.5f+i)*2);
+  int sy=y+88-(int)fmodf(game.time*18+i*11,14);
+  pixel(sx,sy,mix_rgb(SC_CREAM,st->wall,.4f));
+ }
+ rect(x+148,y+96,8,6,SC_CREAM);rect(x+150,y+92,4,4,mix_rgb(SC_CREAM,st->lamp,.3f));
  sc_warm_key(x+160,y+70,st->lamp);
 }
 static void sc_illust_cargo(int x,int y,int w,int h){
@@ -429,6 +440,14 @@ static void sc_illust_cargo(int x,int y,int w,int h){
  rect(x+72,y+40,48,24,mix_rgb(st->wall,SC_CREAM,.25f));
  rect(x+76,y+44,40,6,st->accent);
  rect(x+48,y+h-52,w-96,4,st->lamp);
+ /* Loader silhouette + rolling tip pallet glimmer */
+ rect(x+20,y+h-100,28,40,mix_rgb(st->wall,SC_OLIVE,.35f));
+ rect(x+24,y+h-108,20,10,st->trim);
+ {
+  int roll=(int)fmodf(game.time*22,40);
+  rect(x+w-70+roll/4,y+h-70,22,12,mix_rgb(st->trim,SC_OCHRE,.35f));
+  rect(x+w-68+roll/4,y+h-66,8,4,SC_CREAM);
+ }
 }
 static void sc_illust_guild(int x,int y,int w,int h){
  const ArtRoomStyle *st=sc_style();
@@ -441,6 +460,10 @@ static void sc_illust_guild(int x,int y,int w,int h){
  rect(x+20,y+20,20,14,SC_CREAM);rect(x+44,y+20,20,14,st->lamp);
  rect(x+20,y+40,44,8,mix_rgb(st->accent,st->wall,.4f));
  rect(x+20,y+52,28,6,SC_RUST);
+ /* Amber mission pin blink on evidence board */
+ if(sc_lamp_on(5,2.8f)<2){rect(x+52,y+54,6,6,SC_AMBER);pixel(x+54,y+56,SC_CREAM);}
+ /* Cream paper strips */
+ rect(x+22,y+64,16,8,SC_CREAM);rect(x+42,y+66,18,6,mix_rgb(SC_CREAM,st->trim,.25f));
  /* Tracked screen — soft scanline flicker */
  rect(x+96,y+16,128,60,st->wall2);
  rect(x+102,y+22,116,36,mix_rgb(st->wall,st->accent,.35f));
@@ -475,6 +498,11 @@ static void sc_illust_clinic(int x,int y,int w,int h){
  rect(x+80,y+96,160,40,mix_rgb(st->trim,st->accent,.45f));
  rect(x+80,y+90,160,8,mix_rgb(st->lamp,st->wall,.4f));
  rect(x+90,y+108,40,16,st->accent);
+ /* Privacy screen — clinic silhouette */
+ rect(x+48,y+72,16,70,mix_rgb(st->wall,SC_LAV,.25f));
+ rect(x+50,y+76,12,8,mix_rgb(st->accent,st->wall,.4f));
+ /* Vitals blip on diag panel */
+ if(sc_lamp_on(1,5.f)==0)pixel(x+96,y+52,SC_CREAM);
  /* Medkit locker */
  rect(x+244,y+48,52,72,st->wall);
  rect(x+250,y+56,40,28,mix_rgb(st->lamp,st->accent,.35f));
@@ -506,9 +534,15 @@ static void sc_illust_customs(int x,int y,int w,int h){
  text((x+156)/8,(y+26)/8,SC_CREAM,"WARRANT");
  rect(x+146,y+44,108,16,SC_VOID);
  text((x+160)/8,(y+46)/8,st->accent,"SCAN");
+ /* Restricted placard */
+ rect(x+268,y+48,40,28,mix_rgb(st->wall,SC_DANGER,.25f));
+ rect(x+272,y+52,32,8,SC_DANGER);
+ text((x+274)/8,(y+54)/8,SC_CREAM,"REST");
  /* Inspect desk */
  rect(x+120,y+112,140,28,st->wall);
  rect(x+120,y+108,140,6,mix_rgb(SC_CREAM,st->wall,.35f));
+ /* Warrant stamp pulse */
+ if(sc_lamp_on(3,1.8f)<2)rect(x+230,y+118,20,12,mix_rgb(SC_DANGER,SC_AMBER,.35f));
  sc_warm_key(x+190,y+96,st->lamp);
 }
 static void sc_draw_main_scene(void){
