@@ -497,12 +497,12 @@ static const char *saga_choice_label(int chapter,int option){
 /* Short consequence blurb for the highlighted permanent decision. */
 static const char *saga_choice_blurb(int chapter,int option){
  static const char *silence[3]={
-  "Loud truth. Settlements hear it — so do pirates.",
-  "Slower peer review. Stamp survives. Meridian gains time.",
-  "Evidence chain. Charges become possible. Release waits."};
+  "Loud truth. Settlements hear it — so do pirates with knives.",
+  "Guild peer review. Slower stamp. Meridian gains time to move.",
+  "Iona's sealed chain. Charges become possible. Release waits — and people may die in that wait."};
  static const char *carry[3]={
-  "Light the board. Clinics prepare loud — Meridian feels observed.",
-  "Boring vault + chain. Teeth later. Meridian gets spin time.",
+  "Broadcast now. Clinics prepare loud — Meridian feels watched.",
+  "Verify first. Boring vault + hash. Teeth later; Meridian gets spin time.",
   "Active hazards only. Safer ops, less public trust, quieter counterplay."};
  static const char *flag[3]={
   "Civilian tenders on the clock. Ideals do not hold a lane alone.",
@@ -523,9 +523,9 @@ static const char *saga_choice_blurb(int chapter,int option){
 /* Spoken reaction after a permanent decision — trust should be felt, not only counted. */
 static const char *saga_choice_reaction(int chapter,int option){
  static const char *silence[3]={
-  "Sable: Loud it is. Pirates will hear it too — that was always the price.",
-  "Kei: Peer review is slower. I can live with slower if the stamp survives.",
-  "Iona: Lodged. Now it is an evidence chain, not a rumour with better stationery."};
+  "Sable: Brave. Also loud. I update prices — I do not punish refusal.",
+  "Kei: Careful is not betrayal. I will fight for the pauses in the report.",
+  "Iona: Ugly and correct. Sealed transfer. I will not pretend a broadcast is a conviction."};
  static const char *carry[3]={
   "Kei: Then we warn them loud. Meridian will move — so will the people we care about.",
   "Iona: Verify first. Teeth later. I will keep the clock honest.",

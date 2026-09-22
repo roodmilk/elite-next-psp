@@ -104,7 +104,9 @@
  INPUT_CHECK(strstr(saga_beats[0].talk2,"you")&&strstr(saga_beats[0].ask1,"holding"),"script: chapter 02 beat 1 answers who holds the case");
  INPUT_CHECK(strstr(saga_beats[10].ask1,"alive")&&strstr(saga_beats[10].line,"alive"),"script: Ryn reunion keeps living voice on both sides");
  INPUT_CHECK(strstr(saga_beats[10].talk2,"Yes")||strstr(saga_beats[10].talk2,"yes")||strstr(saga_beats[10].talk2,"geometry"),"script: Ryn beat 1 answers the alive ask");
- INPUT_CHECK(strstr(saga_choice_reaction(5,0),"Pirates")&&strstr(saga_close_line(0),"Case"),"script: choice reactions and chapter closers stay character-voiced");
+ INPUT_CHECK((strstr(saga_choice_reaction(5,0),"loud")||strstr(saga_choice_reaction(5,0),"Loud")||strstr(saga_choice_reaction(5,0),"Brave"))&&strstr(saga_close_line(0),"Case"),"script: choice reactions and chapter closers stay character-voiced");
+ INPUT_CHECK(strstr(saga_choice_blurb(5,0),"pirates")&&strstr(saga_choice_blurb(5,2),"die"),"script: Silence blurbs name pirate knives and delay cost");
+ INPUT_CHECK(strstr(prologue_brief_reply(3),"Walk me through")&&strstr(prologue_brief_reply(4),"ready when you are"),"script: prologue asks stay spoken, not menu chrome");
  INPUT_CHECK(strstr(saga_coda_line1(0),"evidence")&&strstr(saga_coda_line2(1),"sky"),"script: Act I codas keep screenplay aftermath voice");
  INPUT_CHECK(strstr(saga_beats[5].line,"flinch")&&strstr(saga_beats[6].line,"Clinic"),"script: Act I Sable staging and Act II Mara clinic open from screenplay");
  INPUT_CHECK(strstr(saga_beats[10].ask2,"silent")&&strstr(saga_beats[10].talk3,"ghost")&&saga_has_coda(11),"script: Ryn reunion asks why she vanished; Act II coda range reaches Carry Home");

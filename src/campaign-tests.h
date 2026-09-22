@@ -39,6 +39,7 @@ static void campaign_tests(FILE *f,int *failures){
  epic.saga_chapter=5;epic.saga_step=0;saga_begin(&epic);epic.saga_choice=2;
  CHECK(saga_ready(&epic)&&saga_advance(&epic)&&epic.saga_trust[1]==1&&(epic.saga_flags&1),"saga: player choice persists as trust and consequence flags");
  CHECK(saga_coda_pending==5&&strstr(saga_choice_blurb(5,1),"Slower"),"saga: Act I choice queues coda and shows consequence blurbs");
+ CHECK(!!strstr(saga_choice_reaction(5,0),"loud")||!!strstr(saga_choice_reaction(5,0),"Loud")||!!strstr(saga_choice_reaction(5,0),"Brave"),"saga: Silence public reaction stays character-voiced");
  saga_coda_pending=-1;
  CHECK(saga_has_coda(11)&&strstr(saga_coda_line1(10),"Amplifier")&&strstr(saga_beats[9].talk6,"grammar"),"saga: Act II page scripts and codas reach reunion / giants");
  CHECK(saga_has_coda(17)&&strstr(saga_coda_line1(12),"Packets")&&strstr(saga_beats[12].line,"Three copies")&&strstr(saga_beats[17].talk6,"Ideals"),"saga: Act III page scripts and codas reach map / No Easy Flag");

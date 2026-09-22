@@ -163,8 +163,8 @@ static const char *prologue_brief_reply(int beat){
   "What is the catch?",
   "Tell me about Ryn's ship.",
   "How do the controls work?",
-  "Confirm first flight plan",
-  "I am ready to accept",
+  "Walk me through first flight.",
+  "I am ready when you are.",
   "Accept first flight"};
  return r[beat>=0&&beat<PROLOGUE_BRIEF_BEATS?beat:PROLOGUE_BRIEF_BEATS-1];
 }
