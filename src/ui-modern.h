@@ -450,15 +450,16 @@ static void galnet_bounties(void){
 }
 static void galnet_chrome(void){
  header("GALACTICNET // LIVE NETWORK");rect(0,22,W,20,RGB(11,25,35));
- /* Larger L/R pads with clear air before NEWS / after JOBS. */
- rect(0,22,30,20,RGB(8,18,28));rect(450,22,30,20,RGB(8,18,28));
- rect(3,24,24,16,RGB(25,65,77));rect(453,24,24,16,RGB(25,65,77));
+ /* Six equal tabs between L/R pads — short labels so SPACEBOOK/MESSAGES never collide. */
+ rect(0,22,28,20,RGB(8,18,28));rect(452,22,28,20,RGB(8,18,28));
+ rect(2,24,24,16,RGB(25,65,77));rect(454,24,24,16,RGB(25,65,77));
  text(1,3,CYAN,"<L");text(57,3,CYAN,"R>");
- const char *shorts[]={"NEWS","MARKET","WANTED","SPACEBOOK","MESSAGES","JOBS"};
+ const char *shorts[]={"NEWS","MARKET","WANTED","BOOK","INBOX","JOBS"};
  for(int i=0;i<6;i++){
-  int x=42+i*67;
-  if(i==galnet_tab){rect(x,22,65,20,RGB(25,65,77));rect(x,40,65,2,GOLD);}
-  text((x+6)/8,3,i==galnet_tab?WHITE:DIM,"%.9s",shorts[i]);
+  int x=30+i*70,tw=68;
+  if(i==galnet_tab){rect(x,22,tw,20,RGB(25,65,77));rect(x,40,tw,2,GOLD);}
+  int len=(int)strlen(shorts[i]);int col=(x+(tw-len*8)/2)/8;
+  text(col,3,i==galnet_tab?WHITE:DIM,"%s",shorts[i]);
  }
 }
 static void galnet_screen(void){if(galnet_tab==3||galnet_tab==4)spacebook_screen(galnet_tab==4);else if(galnet_tab==0)news_screen();else if(galnet_tab==1)galnet_market();else if(galnet_tab==2)galnet_bounties();else {int count=galnet_rows(),pages=(count+2)/3,first=row/3*3;rect(0,42,W,206,BG);text(2,6,CYAN,"MISSION FEED");page_number_at(20,6,row/3+1,pages);for(int j=0;j<3&&first+j<count;j++){int i=first+j,y=8+j*5;char author[40],body[96];galnet_post(i,author,sizeof(author),body,sizeof(body));panel(8,y*8-3,464,34);if(i==row)rect(8,y*8-3,3,34,GOLD);galnet_avatar(14,y*8-1,28,i);text(7,y,i==row?GOLD:CYAN,"%s",author);text(7,y+2,WHITE,"%.50s",body);}footer("L/R SECTION   UP/DOWN   O BACK");}galnet_chrome();}

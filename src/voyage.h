@@ -62,7 +62,18 @@ static void ambient_space(void){
  if(system_whales(game.system)){Body *b=&game.bodies[3];for(int i=0;i<3;i++){float a=game.time*.028f+i*.62f;Vec3 pos=add(b->pos,(Vec3){cosf(a)*(b->radius+5600),700+sinf(a+i)*.5f*480,sinf(a)*(b->radius+5600)});if(length(sub(pos,game.pos))<14000)shipmesh(mesh_id("WORM"),pos,a+1.57f,sinf(game.time*.35f+i)*.16f,7.2f+i*1.3f,RGB(96,186,198),0);}}
  if(system_comet(game.system)){float a=game.time*.018f;Vec3 pos={cosf(a)*17000,1800,sinf(a)*17000};if(length(sub(pos,game.pos))<12000){shipmesh(mesh_id("BOULDER"),pos,a,a*.3f,1.4f,RGB(210,230,240),0);Vec3 tail=add(pos,(Vec3){sinf(a)*900,-200,-cosf(a)*900});Vec3 u=camera(&game,pos),v=camera(&game,tail);if(u.z>30&&v.z>30){Point p=project(u),q=project(v);if(p.y>view_top()&&p.y<view_bot()&&q.y>view_top()&&q.y<view_bot()){line((int)p.x,(int)p.y,(int)q.x,(int)q.y,RGB(85,160,200));if(!high_contrast){int top=view_top(),bot=view_bot();for(int k=0;k<5;k++){float t=k/4.f;int x=(int)(p.x+(q.x-p.x)*t),y=(int)(p.y+(q.y-p.y)*t);sfx_add(x,y,RGB(50,90,120),top,bot);}}}}}}
 }
-static void speed_lines(void){float normal=game.speed/player_ships[game.ship].speed;if(normal<.75f||game.dock_stage||game.jump>0)return;int count=game.boost?65:18;float power=game.boost?fminf(1,normal/20):fminf(1,(normal-.75f)*4);for(int i=0;i<count;i++){float a=i*2.39996f;float r=95+fmodf(i*37+game.time*(game.boost?650:130),190);float trail=(game.boost?20+power*95:3+power*12);int x=240+(int)(cosf(a)*r),y=110+(int)(sinf(a)*r*.5f),xx=240+(int)(cosf(a)*(r+trail)),yy=110+(int)(sinf(a)*(r+trail)*.5f);int top=view_top(),bottom=view_bot();if(y>top&&y<bottom&&yy>top&&yy<bottom)line(x,y,xx,yy,game.boost?CYAN:RGB(95,128,145));}}
+/* Boost-only soft dashes — no always-on cruise streaks (Commander: quiet oceans). */
+static void speed_lines(void){
+ if(!game.boost||game.dock_stage||game.jump>0)return;
+ float normal=game.speed/fmaxf(1,player_ships[game.ship].speed),power=fminf(1,normal/20);
+ int top=view_top(),bottom=view_bot();
+ for(int i=0;i<28;i++){
+  float a=i*2.39996f;float r=110+fmodf(i*37+game.time*520,160);float trail=12+power*40;
+  int x=240+(int)(cosf(a)*r),y=110+(int)(sinf(a)*r*.5f);
+  int xx=240+(int)(cosf(a)*(r+trail)),yy=110+(int)(sinf(a)*(r+trail)*.5f);
+  if(y>top&&y<bottom&&yy>top&&yy<bottom){sfx_add(x,y,RGB(40,90,120),top,bottom);sfx_add(xx,yy,RGB(50,110,140),top,bottom);}
+ }
+}
 static void engine_flare(void){
  if(game.speed<80||game.dock_stage||game.jump>0||game.dead)return;
  int bottom=view_bot();if(bottom<150)return;float normal=game.speed/fmaxf(1,player_ships[game.ship].speed),power=game.boost?fminf(1,normal/20):fminf(1,normal);
@@ -145,30 +156,30 @@ static unsigned dim_rgb(unsigned c,int num,int den){
  if(b>255)b=255;
  return RGB(r,g,b);
 }
-/* Applied to the world before any UI. Vignette + threshold bloom that never
- * reallocates and only samples a sparse grid — stays glitch-free on PSP. */
+/* Soft bloom on the space canopy only — never after UI glyphs.
+ * Header/instrument chrome stays crisp; bloom is for suns/engines/haze. */
 static void hud_postfx(void){
  if(high_contrast)return;
- int top=view_top(),bot=view_bot();
+ /* Keep bloom off the 24px header band so mission cue / system text stay sharp. */
+ int top=view_top();if(top<24&&!hud_hidden)top=24;
+ int bot=view_bot();if(bot>191&&hud_mode==0)bot=191;
+ if(bot<=top+6)return;
  for(int y=top;y<=bot;y++)for(int x=0;x<8;x++){
   fb[y*STRIDE+x]=dim_rgb(fb[y*STRIDE+x],24+x,32);
   fb[y*STRIDE+W-1-x]=dim_rgb(fb[y*STRIDE+W-1-x],24+x,32);
  }
- /* Two-pass sparse bloom: gather bright samples, then soft-add to neighbours. */
+ /* Sparse bloom — high threshold so cream/amber HUD ink never blooms. */
  for(int y=top+3;y<=bot-3;y+=3)for(int x=3;x<W-3;x+=3){
   unsigned c=fb[y*STRIDE+x];int r=c&255,g=(c>>8)&255,b=(c>>16)&255,lum=r+g+b;
-  if(lum<540)continue;
-  int boost=(lum-540)/24;if(boost>6)boost=6;
+  if(lum<620)continue;
   for(int dy=-2;dy<=2;dy++)for(int dx=-2;dx<=2;dx++){
    int dist=dx*dx+dy*dy;if(dist==0||dist>8)continue;
-   int yy=y+dy,xx=x+dx;unsigned d=fb[yy*STRIDE+xx];
+   int yy=y+dy,xx=x+dx;if(yy<top||yy>bot)continue;unsigned d=fb[yy*STRIDE+xx];
    int fall=5-dist/2;if(fall<1)fall=1;
    int nr=((d&255)*6+(r*fall)/5)/6,ng=(((d>>8)&255)*6+(g*fall)/5)/6,nb=(((d>>16)&255)*6+(b*fall)/5)/6;
    if(nr>255)nr=255;if(ng>255)ng=255;if(nb>255)nb=255;
-   /* Never write the sample pixel itself — avoids strobing the source. */
    fb[yy*STRIDE+xx]=RGB(nr,ng,nb);
   }
-  (void)boost;
  }
 }
 static void danger_badge(int x,int y,int level){
@@ -237,7 +248,7 @@ static void cockpit(void){
    int hull=(int)fmaxf(0,fminf(100,100.f*n->health/mh)),shld=(int)fmaxf(0,fminf(100,100.f*n->shield/fmaxf(1.f,ms)));
    text(1,31,RGB(155,154,165),"HULL");pip_bar(40,250,70,4,hull,hull<30?RED:(n->freighter?RGB(240,180,91):RGB(85,212,212)));
    text(15,31,RGB(155,154,165),"SHLD");pip_bar(128,250,50,4,shld,RGB(85,212,212));
-  }else text(1,31,autoaim?RGB(85,212,212):RGB(155,154,165),"%s",autoaim?"LOCKED / ALIGNING":"HOLD SQ + R: LOCK");
+  }else if(autoaim)text(1,31,RGB(85,212,212),"LOCKED / ALIGNING");
  }
  else {text(1,27,RGB(155,154,165),"NO TARGET");text(1,30,RGB(229,210,163),"SQUARE TO SELECT");}
  text(28,25,RGB(155,154,165),"AHEAD");text(29,31,RGB(155,154,165),"AFT");

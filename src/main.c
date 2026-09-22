@@ -380,12 +380,12 @@ static void space(void){
  line(227,110,236,110,AMBER);line(244,110,253,110,AMBER);line(240,97,240,106,AMBER);line(240,114,240,123,AMBER);
  line(232,102,236,106,AMBER);line(244,106,248,102,AMBER);line(232,118,236,114,AMBER);line(244,114,248,118,AMBER);
  sfx_hit_sparks_draw(1.f/60);sfx_maybe_death_embers();sfx_explosion_embers_draw(1.f/60);
+ /* Bloom the world once — never after cockpit glyphs (Commander: no text glow). */
  hud_postfx();
  if(hud_mode==0)target_overlay();else if(hud_mode==1)minimal_overlay();
  warp_effect();planet_prompt();police_dialog();death_effect();
  if(hud_mode==0||game.dock_stage||game.dead||game.police_stop||game.approach>=0)cockpit();
  else if(hud_mode==2)combat_alert_banner(); /* scenic: still show bottom RED ALERT */
- hud_postfx();
 }
 #include "ship-preview.h"
 #include "ui-modern.h"
@@ -423,7 +423,7 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
  int oldpage=page;r_tap+=dt;l_tap+=dt;if(hard_brake>0){hard_brake-=dt;if(hard_brake<0)hard_brake=0;}if(page==INTRO){intro_time+=dt;if(pressed&PSP_CTRL_CROSS){game.voice_time=0;change_page(CAMPAIGN);}else if(pressed&PSP_CTRL_START){game.voice_time=0;change_page(HOME);}else if(pressed&PSP_CTRL_TRIANGLE){if(load_game(&game,"commander.sav")){selected_target=0;autoaim=0;change_page(HOME);}else message(&game,"No saved commander. X begins your journey.");}return;}
  if(page==WALK){
   if(walk_kind==0){
-   /* MacVenture station: O / TRI board ship; verbs handled in sc_input. */
+   /* MacVenture station: O / TRI board ship; options list handled in sc_input. */
    if(pressed&PSP_CTRL_CIRCLE&&sc_menu==0){page=HOME;message(&game,"Back on the command deck.");return;}
    sc_input(pressed); return;
   }
@@ -499,7 +499,7 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
     else {int next=game.story<STORY_FREE?story_home_row(&game):0;change_page(HOME);row=next;deck_last=next;}
    }
    else if(page==GUILD&&(pressed&PSP_CTRL_CROSS)){if(row==0)narrative_do(GUILD);else change_page(STORY);}
-   else if(page==HOME&&(pressed&PSP_CTRL_CROSS)){if(row==20){if(game.docked){walk_kind=0;walk_x=walk_z=walk_yaw=0;sc_built_for=-1;page=WALK;message(&game,"Station deck. L/R verb, U/D highlight, X do, TRI ship.");}else message(&game,"Dock first to walk the station deck.");return;}if(row==21){change_page(INVENTORY);return;}int pages[]={FLIGHT,MARKET,CHART,YARD,EQUIP,STATUS,HELP,FACTIONS,TARGETING,DEBUG,COMMS,DETAILS,MISSIONS,MISSIONLOG,GALNET,CODEX,RADIO,CAMPAIGN,GUILD,COMFORT};if(row<0||row>=20)return;int opened=row,next=pages[row];if(!story_menu_ok(&game,opened)){message(&game,story_task(&game));game.cue=SFX_UI;return;}if(!game.docked&&(next==YARD||next==EQUIP||next==MISSIONS)){message(&game,"Dock at a station to open this service.");game.cue=SFX_UI;return;}if(next==FLIGHT){int leaving=game.docked;int keep=(selected_target>=0&&selected_target<=BODY_COUNT)?selected_target:0;analog_ready=0;ax=ay=0;launch(&game);if(leaving){selected_target=keep;autoaim=0;if(valid_target(keep))scan_cat=target_category(keep);}}change_page(next);story_on_open(&game,opened);if(!game.cue)game.cue=SFX_UI;}
+   else if(page==HOME&&(pressed&PSP_CTRL_CROSS)){if(row==20){if(game.docked){walk_kind=0;walk_x=walk_z=walk_yaw=0;sc_built_for=-1;page=WALK;message(&game,"Station deck. U/D options, X do, TRI ship.");}else message(&game,"Dock first to walk the station deck.");return;}if(row==21){change_page(INVENTORY);return;}int pages[]={FLIGHT,MARKET,CHART,YARD,EQUIP,STATUS,HELP,FACTIONS,TARGETING,DEBUG,COMMS,DETAILS,MISSIONS,MISSIONLOG,GALNET,CODEX,RADIO,CAMPAIGN,GUILD,COMFORT};if(row<0||row>=20)return;int opened=row,next=pages[row];if(!story_menu_ok(&game,opened)){message(&game,story_task(&game));game.cue=SFX_UI;return;}if(!game.docked&&(next==YARD||next==EQUIP||next==MISSIONS)){message(&game,"Dock at a station to open this service.");game.cue=SFX_UI;return;}if(next==FLIGHT){int leaving=game.docked;int keep=(selected_target>=0&&selected_target<=BODY_COUNT)?selected_target:0;analog_ready=0;ax=ay=0;launch(&game);if(leaving){selected_target=keep;autoaim=0;if(valid_target(keep))scan_cat=target_category(keep);}}change_page(next);story_on_open(&game,opened);if(!game.cue)game.cue=SFX_UI;}
    else if(page==LOCAL&&contact_count>0&&row>=0&&row<contact_count&&(pressed&(PSP_CTRL_CROSS|PSP_CTRL_TRIANGLE))){selected_target=contact_ids[row];scan_cat=target_category(selected_target);nav_body=selected_target>0&&selected_target<=BODY_COUNT?selected_target-1:-1;autoaim=(pressed&PSP_CTRL_TRIANGLE)!=0;story_event(&game,STORY_EV_TARGET);if(selected_target==0)campaign_event(&game,CP_LOCK);message(&game,"Target set.");if(!game.docked)change_page(FLIGHT);}
    else if(page==DETAILS&&(pressed&(PSP_CTRL_CROSS|PSP_CTRL_TRIANGLE))){int id=row==0?0:row;if(valid_target(id)){selected_target=id;scan_cat=target_category(id);nav_body=id>0&&id<=BODY_COUNT?id-1:-1;autoaim=(pressed&PSP_CTRL_TRIANGLE)!=0;story_event(&game,STORY_EV_TARGET);if(selected_target==0)campaign_event(&game,CP_LOCK);message(&game,id==0?"Station locked.":id==1?"Sun locked. No landing.":"Body locked.");if(!game.docked)change_page(FLIGHT);}}
   else if(page==COMMS&&(pressed&PSP_CTRL_TRIANGLE)){comms_rescue_confirm=!comms_rescue_confirm;}else if(page==COMMS&&(pressed&PSP_CTRL_CROSS)){if(comms_rescue_confirm){if(emergency_rescue(&game)){selected_target=0;autoaim=0;change_page(HOME);}return;}if(game.docked){message(&game,"Already docked.");game.cue=SFX_UI;}else if(dock(&game)){selected_target=0;autoaim=0;change_page(FLIGHT);}}
@@ -659,19 +659,24 @@ static void input_tests(void){
  game_init(&game);deck_reset();change_page(STORY);row=1;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.story==STORY_FREE&&page==HOME,"flight guide ends only through its visible menu option");
  TEST_INIT();change_page(HOME);row=20;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(page==WALK&&walk_kind==0,"docked Fly menu disembarks onto the station concourse");
  input(0,0,.016f,0,0); /* build station rooms */
- {int v0=sc_verb;input(PSP_CTRL_RIGHT,0,.016f,0,0);INPUT_CHECK(page==WALK&&sc_verb==((v0+1)%SC_V_COUNT),"station: RIGHT cycles MacVenture verb");
-  int h0=sc_hot;input(PSP_CTRL_DOWN,0,.016f,0,0);INPUT_CHECK(page==WALK&&sc_hot!=h0,"station: DOWN cycles illustrated hotspots");}
- sc_verb=SC_V_SPEAK;sc_hot=0;input(PSP_CTRL_CROSS,0,.016f,0,0);
- INPUT_CHECK(sc_menu==SC_MENU_TALK,"station: SPEAK+X opens talk choices with a person");
- input(PSP_CTRL_CROSS,0,.016f,0,0); /* pick first choice */
- INPUT_CHECK(sc_menu==SC_MENU_NONE||sc_menu==SC_MENU_SHOP||game.message_time>0||game.voice_time>0,"station: talk choice resolves");
+ {int h0=sc_hot;input(PSP_CTRL_DOWN,0,.016f,0,0);INPUT_CHECK(page==WALK&&sc_hot!=h0,"station: DOWN cycles options list");}
+ /* First person in the options list talks when X is pressed. */
+ {
+  ScHot hot[24];int hn=sc_hotspots(hot,24),person=-1;
+  for(int i=0;i<hn;i++)if(hot[i].kind==SC_H_PERSON){person=i;break;}
+  INPUT_CHECK(person>=0,"station: arrivals lists at least one person");
+  if(person>=0){sc_hot=person;input(PSP_CTRL_CROSS,0,.016f,0,0);
+   INPUT_CHECK(sc_menu==SC_MENU_TALK,"station: X on a person opens talk choices");
+   input(PSP_CTRL_CROSS,0,.016f,0,0); /* pick first choice */
+   INPUT_CHECK(sc_menu==SC_MENU_NONE||sc_menu==SC_MENU_SHOP||game.message_time>0||game.voice_time>0,"station: talk choice resolves");}
+ }
  input(PSP_CTRL_CIRCLE,0,.016f,0,0);input(PSP_CTRL_CIRCLE,0,.016f,0,0);INPUT_CHECK(page==HOME,"station: Circle returns to the command deck");
- /* GO verb walks the small room graph through an exit hotspot. */
+ /* Selecting a door option walks the small room graph. */
  TEST_INIT();change_page(HOME);row=20;input(PSP_CTRL_CROSS,0,.016f,0,0);input(0,0,.016f,0,0);
- {int start=sc_room;sc_verb=SC_V_GO;
+ {int start=sc_room;
   ScHot hot[24];int hn=sc_hotspots(hot,24),ex=-1;
-  for(int i=0;i<hn;i++)if(hot[i].kind==SC_H_EXIT){ex=i;break;}
-  if(ex>=0){sc_hot=ex;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(sc_room!=start,"station: GO through an exit changes room");}
+  for(int i=0;i<hn;i++)if(hot[i].kind==SC_H_EXIT&&hot[i].id!=SC_EXIT_SHIP){ex=i;break;}
+  if(ex>=0){sc_hot=ex;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(sc_room!=start,"station: X on a door changes room");}
   else INPUT_CHECK(0,"station: arrivals must list at least one exit hotspot");}
  TEST_INIT();launch(&game);page=FLIGHT;game.approach=1;enter_planet(&game);{Vec3 pad=surface_site(&game,1);game.pos=add(pad,(Vec3){0,18,0});game.speed=8;land_planet(&game);eva_toggle(&game);}
  {Vec3 before=game.pos;input(0,0,.05f,0,.9f);INPUT_CHECK(game.surface==2&&length(sub(game.pos,before))>1.f,"planet EVA: nub forward walks across the surface");}

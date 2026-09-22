@@ -39,15 +39,15 @@ typedef struct { const char *name; int role; int act; int shop_item; int gift_bi
 enum { SC_ACT_TALK=0, SC_ACT_SHOP, SC_ACT_GIFT, SC_ACT_QUEST, SC_ACT_TAXI, SC_ACT_BOARD };
 typedef struct { int kind; int id; int x,y,w,h; const char *label; const char *look; } ScHot;
 static void sc_person_pos(int room,int i,int *ox,int *oy){
- /* Keep people off side hatches and free the hero focal zone (full-width MAIN). */
+ /* Keep people inside the narrower MAIN (options list owns the right). */
  static const int pos[SC_R_COUNT][3][2]={
-  {{110,88},{260,84},{0,0}},
-  {{140,90},{280,86},{0,0}},
-  {{120,88},{280,86},{0,0}},
-  {{90,90},{0,0},{0,0}},
-  {{120,88},{280,86},{0,0}},
-  {{160,88},{0,0},{0,0}},
-  {{200,88},{0,0},{0,0}}
+  {{90,88},{210,84},{0,0}},
+  {{100,90},{220,86},{0,0}},
+  {{90,88},{220,86},{0,0}},
+  {{80,90},{0,0},{0,0}},
+  {{90,88},{210,86},{0,0}},
+  {{120,88},{0,0},{0,0}},
+  {{150,88},{0,0},{0,0}}
  };
  if(room<0||room>=SC_R_COUNT)room=0;if(i<0)i=0;if(i>2)i=2;
  *ox=pos[room][i][0];*oy=pos[room][i][1];
@@ -117,8 +117,8 @@ static void sc_build_map(void){
 }
 static int sc_door_dir(int dir){(void)dir;return 1;}
 static int sc_door_ahead(void){return 1;}
-/* Shared MAIN rect — hotspots and draw must agree (no overlapping chrome). */
-enum { SC_VX=8, SC_VY=22, SC_VW=464, SC_VH=156 };
+/* Shared MAIN + right options list — no verb row, no PACK chrome. */
+enum { SC_VX=6, SC_VY=20, SC_VW=340, SC_VH=168, SC_LX=354, SC_LY=20, SC_LW=120, SC_LH=168 };
 /* Focal anchors only (art handoff: 3–5 interactables + people/doors/ship).
  * Doors sit as side hatches — never over the hero focal object. */
 static int sc_hotspots(ScHot *out,int maxn){
@@ -132,8 +132,8 @@ static int sc_hotspots(ScHot *out,int maxn){
   SC_HOT(SC_H_PERSON,i,VX+px,VY+py,52,64,people[i].name,people[i].line);
  }
  int ex[4],en=sc_exits(sc_room,ex,4);
- /* Side hatch layout on the full-width MAIN — clear of SHIP. */
- static const int door_xy[4][2]={{6,40},{408,40},{90,118},{200,118}};
+ /* Side hatch layout on the illustrated MAIN (left of options list). */
+ static const int door_xy[4][2]={{4,36},{286,36},{70,120},{180,120}};
  for(int i=0;i<en&&i<4;i++){
   int dx=VX+door_xy[i][0],dy=VY+door_xy[i][1];
   int dw=i<2?50:42,dh=i<2?60:26;
@@ -569,7 +569,7 @@ static void sc_illust_customs(int x,int y,int w,int h){
 }
 static void sc_draw_main_scene(void){
  const int VX=SC_VX,VY=SC_VY,VW=SC_VW,VH=SC_VH;
- /* Scene only — no MAIN title chrome stealing the action row. */
+ /* Illustrated room only — options list is the selector chrome. */
  rect(VX,VY,VW,VH,SC_VOID);
  rect(VX,VY,VW,1,SC_OCHRE);
  rect(VX,VY+VH-1,VW,1,SC_SLATE);
@@ -582,7 +582,7 @@ static void sc_draw_main_scene(void){
  else sc_illust_customs(VX,VY,VW,VH);
  ScNpc people[3]; int pn=sc_fill_npcs(sc_room,people,3);
  ScHot hot[24]; int hn=sc_hotspots(hot,24);
- /* Hatches — silhouette only; label lives in the text band (no stacked door text). */
+ /* Hatches — silhouette only; names live in the right options list. */
  {
   int exit_ord=0;
   for(int i=0;i<hn;i++)if(hot[i].kind==SC_H_EXIT&&hot[i].id!=SC_EXIT_SHIP){
@@ -598,13 +598,11 @@ static void sc_draw_main_scene(void){
   if(px==0&&py==0)continue;
   sc_draw_person_sprite(VX+px,VY+py,&people[i],sc_hot<hn&&hot[sc_hot].kind==SC_H_PERSON&&hot[sc_hot].id==i);
  }
- /* Selection frame only — no 8×8 marker spam on every prop. */
  for(int i=0;i<hn;i++){
   if(hot[i].kind==SC_H_PERSON||hot[i].kind==SC_H_EXIT)continue;
   if(sc_hot==i){
    rect(hot[i].x-2,hot[i].y-2,hot[i].w+4,1,SC_AMBER);rect(hot[i].x-2,hot[i].y+hot[i].h+1,hot[i].w+4,1,SC_AMBER);
    rect(hot[i].x-2,hot[i].y-2,1,hot[i].h+4,SC_AMBER);rect(hot[i].x+hot[i].w+1,hot[i].y-2,1,hot[i].h+4,SC_AMBER);
-   sc_prop8(hot[i].x+hot[i].w-10,hot[i].y+2,hot[i].id,SC_AMBER);
   }
  }
  for(int i=0;i<hn;i++)if(hot[i].kind==SC_H_EXIT&&hot[i].id==SC_EXIT_SHIP){
@@ -614,33 +612,38 @@ static void sc_draw_main_scene(void){
   rect(hot[i].x,hot[i].y+hot[i].h-1,hot[i].w,1,c);
   text((hot[i].x+8)/8,(hot[i].y+8)/8,c,"SHIP");
  }
- if(sc_hot>=0&&sc_hot<hn&&hot[sc_hot].kind==SC_H_EXIT){
-  ScHot *h=&hot[sc_hot];
-  rect(h->x-2,h->y-2,h->w+4,1,SC_AMBER);rect(h->x-2,h->y+h->h+1,h->w+4,1,SC_AMBER);
- }
 }
-/* One clear action row — verbs only, no COMMANDS window title fighting the buttons. */
-static void sc_draw_commands(void){
- static const char *v[]={"LOOK","SPEAK","GO","TAKE"};
+/* Room title only — no verb buttons, no PACK hold cue. */
+static void sc_draw_header(void){
  rect(0,0,W,SC_VY-2,SC_CHAR);
  rect(0,SC_VY-3,W,1,SC_OCHRE);
- for(int i=0;i<SC_V_COUNT;i++){
-  int x=8+i*70;
-  if(i==sc_verb){rect(x,3,66,14,mix_rgb(SC_OCHRE,SC_CHAR,.28f));rect(x,3,66,1,SC_AMBER);}
-  text((x+10)/8,1,i==sc_verb?SC_AMBER:SC_LAV,"%s",v[i]);
- }
- text(36,1,SC_CREAM,"%.14s",sc_room_title(sc_room));
- {
-  /* Compact hold cue — replaces the PACK side panel. */
-  char hold[24];int n=0;
-  if(game.gift_flags&1u)n+=snprintf(hold+n,(int)sizeof(hold)-n,"CLAMP ");
-  if(game.gift_flags&2u)n+=snprintf(hold+n,(int)sizeof(hold)-n,"MED ");
-  if(game.passenger_dest>=0)n+=snprintf(hold+n,(int)sizeof(hold)-n,"PAX");
-  if(n>0)text(48,1,SC_CYAN,"%.10s",hold);
-  else text(52,1,SC_LAV,"O DECK");
+ text(1,1,SC_AMBER,"%.18s",sc_room_title(sc_room));
+ text(28,1,SC_LAV,"U/D  X do  TRI ship");
+}
+/* Right-side people / options list — the only selector. */
+static void sc_draw_options(void){
+ rect(SC_LX,SC_LY,SC_LW,SC_LH,mix_rgb(SC_CHAR,SC_VOID,.35f));
+ rect(SC_LX,SC_LY,SC_LW,1,SC_OCHRE);
+ rect(SC_LX,SC_LY+SC_LH-1,SC_LW,1,SC_SLATE);
+ rect(SC_LX,SC_LY,1,SC_LH,SC_OCHRE);
+ text((SC_LX+8)/8,(SC_LY+4)/8,SC_LAV,"OPTIONS");
+ ScHot hot[24]; int hn=sc_hotspots(hot,24);
+ if(sc_hot<0)sc_hot=0;if(hn>0&&sc_hot>=hn)sc_hot=hn-1;
+ int rows=(SC_LH-20)/12;if(rows<4)rows=4;if(rows>12)rows=12;
+ int first=0;if(hn>rows){first=sc_hot-(rows/2);if(first<0)first=0;if(first>hn-rows)first=hn-rows;}
+ for(int j=0;j<rows&&first+j<hn;j++){
+  int i=first+j,y=SC_LY+16+j*12;
+  unsigned ink=i==sc_hot?SC_AMBER:SC_CREAM;
+  if(i==sc_hot)rect(SC_LX+2,y-1,SC_LW-4,11,mix_rgb(SC_OCHRE,SC_CHAR,.28f));
+  char line[20];
+  if(hot[i].kind==SC_H_PERSON)snprintf(line,sizeof(line),"%.14s",hot[i].label);
+  else if(hot[i].kind==SC_H_EXIT&&hot[i].id==SC_EXIT_SHIP)snprintf(line,sizeof(line),"YOUR SHIP");
+  else if(hot[i].kind==SC_H_EXIT)snprintf(line,sizeof(line),"-> %.11s",hot[i].label);
+  else snprintf(line,sizeof(line),"%.14s",hot[i].label);
+  text((SC_LX+6)/8,y/8,ink,"%s",line);
  }
 }
-/* Side PACK/EXITS panels removed — they overlapped MAIN and stacked labels. */
+/* Verb chrome retired — options list owns LOOK/SPEAK/GO/TAKE payoffs. */
 static int sc_talk_choices(const ScNpc *p,const char **out,int maxn){
  int n=0;
  #define SC_CH(S) do{if(n<maxn)out[n++]=(S);}while(0)
@@ -679,7 +682,7 @@ static void sc_talk_tip(const ScNpc *p){
  }else message(&game,p->offer?p->offer:p->line);
 }
 static void sc_draw_text_box(void){
- /* One feedback band under MAIN — label + look only, no stacked verb/keyword lines. */
+ /* Feedback band under MAIN + options — label + look only. */
  const int ty=SC_VY+SC_VH+2;
  rect(0,ty,W,H-ty,mix_rgb(SC_VOID,SC_CHAR,.6f));
  rect(0,ty,W,1,SC_OCHRE);
@@ -708,18 +711,19 @@ static void sc_draw_text_box(void){
   }
   return;
  }
- if(hn<=0){text_wrap(1,row,58,3,SC_CREAM,sc_room_blurb(sc_room),0);text(1,row+4,SC_LAV,"U/D target   L/R verb   O deck");return;}
+ if(hn<=0){text_wrap(1,row,58,3,SC_CREAM,sc_room_blurb(sc_room),0);text(1,row+4,SC_LAV,"U/D options   X do   O deck");return;}
  if(sc_hot<0)sc_hot=0;if(sc_hot>=hn)sc_hot=hn-1;
  ScHot *h=&hot[sc_hot];
  text(1,row,SC_AMBER,"%.20s",h->label);
  text_wrap(1,row+1,58,2,SC_CREAM,h->look?h->look:sc_room_blurb(sc_room),0);
- text(1,row+4,SC_LAV,"U/D target   L/R verb   O deck   TRI ship");
+ text(1,row+4,SC_LAV,"U/D options   X do   O deck   TRI ship");
 }
 static void sc_draw_ui(void){
  sc_build_map();
  rect(0,0,W,H,mix_rgb(SC_VOID,SC_OCHRE,.05f));
- sc_draw_commands();
+ sc_draw_header();
  sc_draw_main_scene();
+ sc_draw_options();
  sc_draw_text_box();
 }
 static void sc_board_ship(void){
@@ -772,47 +776,29 @@ static void sc_apply(void){
  if(hn<=0){message(&game,sc_room_blurb(sc_room));return;}
  if(sc_hot<0)sc_hot=0;if(sc_hot>=hn)sc_hot=hn-1;
  ScHot *h=&hot[sc_hot];
- if(sc_verb==SC_V_LOOK){
-  message(&game,h->look?h->look:sc_room_blurb(sc_room));game.cue=SFX_UI;return;
+ /* Natural action from the selected options-list entry — no verb row. */
+ if(h->kind==SC_H_EXIT){
+  if(h->id==SC_EXIT_SHIP){sc_board_ship();return;}
+  sc_room=h->id;sc_hot=0;message(&game,sc_room_blurb(sc_room));game.cue=SFX_SELECT;return;
  }
- if(sc_verb==SC_V_GO){
-  if(h->kind==SC_H_EXIT){
-   if(h->id==SC_EXIT_SHIP){sc_board_ship();return;}
-   sc_room=h->id;sc_hot=0;sc_verb=SC_V_LOOK;message(&game,sc_room_blurb(sc_room));game.cue=SFX_SELECT;return;
-  }
-  message(&game,"GO needs a door or YOUR SHIP (also TRI).");game.cue=SFX_UI;return;
- }
- if(sc_verb==SC_V_SPEAK){
-  if(h->kind!=SC_H_PERSON){message(&game,"Nobody there. Pick a person, then SPEAK.");game.cue=SFX_UI;return;}
+ if(h->kind==SC_H_PERSON){
   ScNpc people[3]; int pn=sc_fill_npcs(sc_room,people,3);
   if(h->id<0||h->id>=pn){message(&game,"They stepped away.");return;}
   sc_menu=SC_MENU_TALK;sc_talk_who=h->id;sc_talk_row=0;game.cue=SFX_UI;return;
  }
- if(sc_verb==SC_V_TAKE){
-  if(h->kind==SC_H_PERSON){
-   ScNpc people[3]; int pn=sc_fill_npcs(sc_room,people,3);
-   if(h->id>=0&&h->id<pn&&people[h->id].act==SC_ACT_GIFT){
-    sc_menu=SC_MENU_TALK;sc_talk_who=h->id;sc_talk_row=1;game.cue=SFX_UI;return;
-   }
-   if(h->id>=0&&h->id<pn&&people[h->id].act==SC_ACT_SHOP){sc_menu=SC_MENU_SHOP;sc_shop_row=0;return;}
-   if(h->id>=0&&h->id<pn&&(people[h->id].act==SC_ACT_QUEST||people[h->id].act==SC_ACT_TAXI)){
-    sc_menu=SC_MENU_TALK;sc_talk_who=h->id;sc_talk_row=1;message(&game,"Offer sits in SPEAK — pick the deal.");game.cue=SFX_UI;return;
+ /* Props that own a deal open talk with that person; otherwise LOOK. */
+ if(h->kind==SC_H_PROP||h->kind==SC_H_FEATURE){
+  int owner=sc_find_hot(SC_H_PERSON,-1);
+  if(owner>=0&&(!strcmp(h->label,"TIP CRATE")||!strcmp(h->label,"STOCK CRATE")||!strcmp(h->label,"MEDKIT LOCKER")||!strcmp(h->label,"COUNTER")||!strcmp(h->label,"BAR TOP")||!strcmp(h->label,"GUILD DESK"))){
+   ScHot hot2[24]; int hn2=sc_hotspots(hot2,24);
+   if(owner<hn2&&hot2[owner].kind==SC_H_PERSON){
+    sc_hot=owner;sc_menu=SC_MENU_TALK;sc_talk_who=hot2[owner].id;sc_talk_row=1;
+    message(&game,"Ask them — their deal is open.");game.cue=SFX_UI;return;
    }
   }
-  /* Props with an owner: route TAKE into the fun SPEAK deal instead of a dead end. */
-  if(h->kind==SC_H_PROP||h->kind==SC_H_FEATURE){
-   int owner=sc_find_hot(SC_H_PERSON,-1);
-   if(owner>=0&&(!strcmp(h->label,"TIP CRATE")||!strcmp(h->label,"STOCK CRATE")||!strcmp(h->label,"MEDKIT LOCKER")||!strcmp(h->label,"COUNTER")||!strcmp(h->label,"BAR TOP")||!strcmp(h->label,"GUILD DESK"))){
-    ScHot hot2[24]; int hn2=sc_hotspots(hot2,24);
-    if(owner<hn2&&hot2[owner].kind==SC_H_PERSON){
-     sc_hot=owner;sc_verb=SC_V_SPEAK;sc_menu=SC_MENU_TALK;sc_talk_who=hot2[owner].id;sc_talk_row=1;
-     message(&game,"Ask them — TAKE opens their deal.");game.cue=SFX_UI;return;
-    }
-   }
-   if(h->kind==SC_H_PROP){message(&game,"Bolted down. SPEAK to whoever owns it.");game.cue=SFX_UI;return;}
-  }
-  message(&game,"You cannot take that.");game.cue=SFX_UI;
+  message(&game,h->look?h->look:sc_room_blurb(sc_room));game.cue=SFX_UI;return;
  }
+ message(&game,h->look?h->look:sc_room_blurb(sc_room));game.cue=SFX_UI;
 }
 static int sc_input(unsigned pressed){
  sc_build_map();
@@ -837,8 +823,6 @@ static int sc_input(unsigned pressed){
   return 1;
  }
  ScHot hot[24]; int hn=sc_hotspots(hot,24);if(hn<1)hn=1;
- if(pressed&PSP_CTRL_LEFT){sc_verb=(sc_verb+SC_V_COUNT-1)%SC_V_COUNT;sc_snap_verb_hot();game.cue=SFX_SELECT;}
- if(pressed&PSP_CTRL_RIGHT){sc_verb=(sc_verb+1)%SC_V_COUNT;sc_snap_verb_hot();game.cue=SFX_SELECT;}
  if(pressed&PSP_CTRL_UP){sc_hot=(sc_hot+hn-1)%hn;game.cue=SFX_SELECT;}
  if(pressed&PSP_CTRL_DOWN){sc_hot=(sc_hot+1)%hn;game.cue=SFX_SELECT;}
  if(pressed&PSP_CTRL_CROSS)sc_apply();

@@ -77,13 +77,13 @@ Station interiors restaged from `docs/CINEMATIC-MOCKUP-TARGETS.md` + ART DIRECTO
 
 **Implementer tip under ART DIRECTOR authority (rebased on tip #18 `f003e09`):** 8×8 native prop markers; ARRIVALS cargo-loader cycle; walk/help/comfort chrome; aperture beacons kit cyan. Mission cue: ART_AMBER + 2-col header margin (Designer had restored GOLD for the old flush assert — palette stays with ART DIRECTOR; smoke uses header-margin assert). No tag.
 
-**ART LOOK FREEZE (Commander: one bug-fixed EBOOT):** Look freeze base remains `3f0dc20` (ART_AMBER — do not restore GOLD). Post-freeze Commander bugs on PR #11: MacVenture disembark declutter + space FX quieting (meteors/station glitter off; soft docking lights/plumes/haze). No tag until smoke green.
+**ART LOOK FREEZE (Commander: one bug-fixed EBOOT):** Look freeze base remains `3f0dc20` (ART_AMBER — do not restore GOLD). Post-v2.5.42 ART tip on PR #11: HUD lock hint off; soft cosmic oceans; no text bloom; GalNet tab neatness; MacVenture options-list disembark (no verb row / pack). No tag until Systems smoke.
 
-**Working tip (Commander: BIG RELEASES ONLY):** Release **v2.5.41** = ART freeze `3f0dc20` + living-galaxy PR #23 `bc56842` (hybrid travellers, save V12, GalNet elsewhere). ART presentation stays ART-owned. Disembark/FX tip rides the same untagged PR tip until Systems smoke.
+**Working tip (Commander: BIG RELEASES ONLY):** **v2.5.42** shipped quiet FX. Next Systems pack waits on ART tip smoke after this look pass.
 
 ### 2.5.42 — ART quiet FX + declutter disembark
 
-Quiet space FX (`b0a97e1`) on the combined tip. Smoke-green Commander pack.
+Quiet space FX (`b0a97e1`) on the combined tip. Smoke-green Commander pack. Follow-on untagged ART tip: options-list station deck + HUD/GalNet/space-ocean look fixes.
 
 ### 2.5.41 — Art freeze + living-galaxy pack
 
