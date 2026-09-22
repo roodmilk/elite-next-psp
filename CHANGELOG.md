@@ -2,6 +2,11 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.7 - 2026-09-22
+
+- Radio page looks like a chassis with speaker grille, frequency dial (OFF + stations 1–5), and needle; retune plays audible static; Triangle / left-of-1 turns radio off.
+- SHIPS scanner band lists every ship again; ENEMIES still lists only hostiles.
+
 ## 2.5.6 - 2026-09-22
 
 - Combat warnings show a compact **RED ALERT** strip at the bottom of the canopy so speech at the top stays readable.

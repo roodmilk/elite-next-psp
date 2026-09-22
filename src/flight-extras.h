@@ -24,7 +24,7 @@ static void lock_local_target(int id,const char *kind){
 static int collect_scan_ids(int *ids,int cat){
  int n=0;
  if(cat==0){for(int i=1;i<BODY_COUNT;i++)ids[n++]=i+1;}
- else if(cat==1){for(int i=0;i<NPC_COUNT;i++)if(game.npc[i].alive&&!npc_is_hostile(&game.npc[i]))ids[n++]=BODY_COUNT+1+i;}
+ else if(cat==1){for(int i=0;i<NPC_COUNT;i++)if(game.npc[i].alive)ids[n++]=BODY_COUNT+1+i;}
  else if(cat==2)ids[n++]=0;
  else if(cat==4){for(int i=0;i<NPC_COUNT;i++)if(game.npc[i].alive&&npc_is_hostile(&game.npc[i]))ids[n++]=BODY_COUNT+1+i;}
  else {

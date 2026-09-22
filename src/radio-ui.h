@@ -1,33 +1,43 @@
 static void radio_screen(void){
  header("RADIO / DEEP SPACE FM");
- /* Radio face: dial, station notches, levels on the right. */
- rect(8,32,304,188,RGB(18,22,28));rect(10,34,300,184,RGB(28,34,42));
- rect(20,48,276,78,RGB(12,14,18));rect(22,50,272,74,RGB(8,10,14));
- /* Frequency dial line with OFF + five station ticks. */
- int dial_y=88,dial_x0=36,dial_x1=278,span=dial_x1-dial_x0;
+ /* Radio chassis: speaker grille left, dial face, levels right. */
+ rect(8,32,304,188,RGB(22,18,14));rect(10,34,300,184,RGB(36,30,22));
+ rect(16,42,112,168,RGB(14,12,10));
+ for(int g=0;g<9;g++){int y=50+g*16;line(24,y,112,y,RGB(48,40,30));line(24,y+4,112,y+4,RGB(28,24,18));}
+ rect(36,70,68,68,RGB(20,18,16));circle(70,104,26,RGB(70,60,48));circle(70,104,18,RGB(40,34,28));
+ text(5,22,DIM,"SPKR");
+
+ /* Dial glass */
+ rect(136,42,166,110,RGB(10,12,16));rect(138,44,162,106,RGB(6,8,12));
+ if(row==0)rect(136,42,166,110,RGB(25,65,77));
+ text(18,6,row==0?WHITE:DIM,"TUNER");
+ /* Frequency dial: OFF then stations 1-5, obvious notches. */
+ int dial_y=96,dial_x0=152,dial_x1=286,span=dial_x1-dial_x0;
  line(dial_x0,dial_y,dial_x1,dial_y,RGB(90,110,120));
- /* OFF at left, stations evenly spaced. */
  int notches=RADIO_STATION_COUNT+1;
  for(int i=0;i<notches;i++){
   int x=dial_x0+(span*i)/(notches-1);
   int active=radio_off?i==0:(!radio_off&&radio_station==i-1);
-  line(x,dial_y-10,x,dial_y+10,active?GOLD:RGB(120,140,150));
+  line(x,dial_y-12,x,dial_y+12,active?GOLD:RGB(120,140,150));
   if(i==0)text(x/8-1,dial_y/8+2,active?GOLD:DIM,"OFF");
-  else text(x/8-1,dial_y/8+2,active?GOLD:DIM,"%d",i);
+  else {text(x/8,dial_y/8+2,active?GOLD:CYAN,"%d",i);rect(x-2,dial_y-16,5,3,active?GOLD:RGB(70,90,100));}
  }
  /* Needle */
  {
   int sel=radio_off?0:radio_station+1;
   int x=dial_x0+(span*sel)/(notches-1);
-  line(x,dial_y-22,x,dial_y+4,CYAN);rect(x-3,dial_y-26,7,5,CYAN);
+  line(x,dial_y-24,x,dial_y+6,CYAN);rect(x-4,dial_y-28,9,6,CYAN);
  }
- if(row==0)rect(18,46,280,82,RGB(25,65,77));
- text(3,6,row==0?WHITE:DIM,"TUNER  LEFT/RIGHT");
- text(3,16,radio_static_ms>0?AMBER:radio_off?DIM:CYAN,radio_static_ms>0?"-- STATIC --":radio_off?"RADIO OFF":"LOCKED");
- text(3,18,WHITE,"%.18s",radio_off?"(silence)":radio_station_name(radio_station));
- text(3,20,CYAN,"%.18s",radio_off?"Turn on with Right":radio_station_genre(radio_station));
- text(3,22,DIM,radio_off?"":(radio_track_count[radio_station]?"FOLDER MP3":"GENERATED"));
+ /* Between-station static cue on the glass */
+ if(radio_static_ms>0){
+  for(int s=0;s<18;s++){int sx=148+(s*17+radio_static_ms*3)%150,sy=52+(s*11)%36;pixel(sx,sy,AMBER);pixel(sx+1,sy,RGB(180,140,40));}
+  text(18,14,AMBER,"-- STATIC --");
+ }else if(radio_off)text(18,14,DIM,"RADIO OFF");
+ else text(18,14,CYAN,"LOCKED");
+ text(18,16,WHITE,"%.18s",radio_off?"(silence)":radio_station_name(radio_station));
+ text(18,18,CYAN,"%.18s",radio_off?"Right: station 1":radio_station_genre(radio_station));
 
+ /* Volume panel */
  panel(320,32,152,188);
  text(41,5,GOLD,"LEVELS");
  for(int i=0;i<2;i++){
@@ -36,8 +46,9 @@ static void radio_screen(void){
   text(41,y,WHITE,"%-7s %2d",i?"FX":"MUSIC",volume);
   rect(330,y*8+10,120,5,DIM);rect(330,y*8+10,volume*12,5,i?AMBER:CYAN);
  }
- text(41,18,DIM,"Stations marked 1-5");
- text(41,20,DIM,"Left of 1 is OFF");
- text(41,22,DIM,"Triangle: power");
+ text(41,17,DIM,"Notches 1-5 = stations");
+ text(41,19,DIM,"Left of 1 = OFF");
+ text(41,21,DIM,"Triangle: power");
+ text(41,23,DIM,radio_off?"":(radio_track_count[radio_station]?"FOLDER MP3":"GENERATED"));
  footer("UP/DOWN  L/R TUNE OR LEVEL  TRI OFF  O BACK");
 }

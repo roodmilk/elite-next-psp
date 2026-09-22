@@ -90,14 +90,15 @@ static int audio_worker(SceSize n,void *a){
   for(int i=0;i<AUDIO_FRAMES;i++){
    int music_l=0,music_r=0;
    int tuning=radio_static_ms>0;
-   int wanted=(radio_off||tuning||radio_station!=station)?0:radio_volume*100;
+   /* Static must stay audible while retuning; only mute when OFF or crossfading. */
+   int wanted=radio_off?0:(tuning||radio_station==station)?radio_volume*100:0;
    music_gain+=(music_gain<wanted)-(music_gain>wanted);
    int effect_target=sound_volume*100;effects_gain+=(effects_gain<effect_target)-(effects_gain>effect_target);
    int duck_target=(audio_scene==2||(sfx_id==SFX_ALERT&&sfx_t>0))?450:audio_duck?750:1000;
    duck_gain+=(duck_gain<duck_target)-(duck_gain>duck_target);
    if(!music_gain&&radio_station!=station){station=radio_station;radio_synth_reset(&synth,station);}
    if(!radio_off&&!tuning){if(!mp3_sample(station,&music_l,&music_r))radio_synth_sample(&synth,&music_l,&music_r);}
-   if(tuning){noise=noise*1664525u+1013904223u;int crackle=((int)((noise>>24)&255)-128)*18;music_l=crackle;music_r=((int)((noise>>16)&255)-128)*14;}
+   if(tuning){noise=noise*1664525u+1013904223u;int crackle=((int)((noise>>24)&255)-128)*22;music_l=crackle;music_r=((int)((noise>>16)&255)-128)*18;}
    int sfx=0;if(sfx_t>0){
     noise=noise*1664525u+1013904223u;int wave=triangle_wave(phase*13),e=sfx_t,den=sfx_len>0?sfx_len:1;
     if(sfx_id==SFX_SELECT)sfx=triangle_wave(phase*21)*52*e/den;
