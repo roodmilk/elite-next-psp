@@ -124,7 +124,8 @@ static int text_wrap(int col,int rowy,int cols,int max_rows,unsigned ink,const c
   if(len>cols){int k;for(k=cut;k>cols/3;k--)if(s[k]==' '){cut=k;break;}}
   text(col,rowy+used,ink,"%.*s",cut,s);s+=cut;while(*s==' ')s++;
  }
- if(left)*left=s;return used;
+ if(left)*left=s;
+ return used;
 }
 /* Coloured name plate so "KEI SAYS" / "REI SAYS" read at a glance on 480x272. */
 static void speaker_name_tag(int col,int rowy,const char *name,unsigned color){
