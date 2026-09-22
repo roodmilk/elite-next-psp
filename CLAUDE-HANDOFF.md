@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.41**.
+Prepared 22 September 2026. Current build: **2.5.42**.
 
 ## Start here
 
@@ -80,6 +80,10 @@ Station interiors restaged from `docs/CINEMATIC-MOCKUP-TARGETS.md` + ART DIRECTO
 **ART LOOK FREEZE (Commander: one bug-fixed EBOOT):** Look freeze base remains `3f0dc20` (ART_AMBER — do not restore GOLD). Post-freeze Commander bugs on PR #11: MacVenture disembark declutter + space FX quieting (meteors/station glitter off; soft docking lights/plumes/haze). No tag until smoke green.
 
 **Working tip (Commander: BIG RELEASES ONLY):** Release **v2.5.41** = ART freeze `3f0dc20` + living-galaxy PR #23 `bc56842` (hybrid travellers, save V12, GalNet elsewhere). ART presentation stays ART-owned. Disembark/FX tip rides the same untagged PR tip until Systems smoke.
+
+### 2.5.42 — ART quiet FX + declutter disembark
+
+Quiet space FX (`b0a97e1`) on the combined tip. Smoke-green Commander pack.
 
 ### 2.5.41 — Art freeze + living-galaxy pack
 
