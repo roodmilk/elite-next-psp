@@ -1,4 +1,8 @@
-# ELITE: NEXT — development build 2.5.20
+# ELITE: NEXT — development build 2.5.21
+
+## New in 2.5.21 — full Act I–IV screenplay authority
+
+- Screenplay merged to complete character bible, lore ledger, and full scene scripts for every chapter and branch.
 
 ## New in 2.5.20 — Open Channel feature screenplay
 

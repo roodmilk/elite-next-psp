@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.20**.
+Prepared 22 September 2026. Current build: **2.5.21**.
 
 ## Start here
 
@@ -63,6 +63,10 @@ Important controls:
 - Galaxy Map: Triangle switches between nearby jumps and the full 256-system map; D-pad moves between systems; L/R zoom; X plots a multi-jump route and saves the final goal.
 
 ## Recent changes that must be preserved
+
+### 2.5.21 — full screenplay assembly
+
+`docs/OPEN-CHANNEL-SCREENPLAY.md` now holds the merged Act I–IV feature script (character bible, lore ledger, full scenes, branch matrices). Playable trust/choice wiring unchanged from 2.5.20.
 
 ### 2.5.20 — Open Channel screenplay + trust
 
