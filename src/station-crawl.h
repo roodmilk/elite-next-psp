@@ -39,15 +39,15 @@ typedef struct { const char *name; int role; int act; int shop_item; int gift_bi
 enum { SC_ACT_TALK=0, SC_ACT_SHOP, SC_ACT_GIFT, SC_ACT_QUEST, SC_ACT_TAXI, SC_ACT_BOARD };
 typedef struct { int kind; int id; int x,y,w,h; const char *label; const char *look; } ScHot;
 static void sc_person_pos(int room,int i,int *ox,int *oy){
- /* Keep people off the door row; leave centre free for focal props. */
+ /* Keep people off side hatches and free the hero focal zone. */
  static const int pos[SC_R_COUNT][3][2]={
-  {{40,94},{218,90},{0,0}},
-  {{96,98},{232,92},{0,0}},
-  {{72,96},{236,94},{0,0}},
-  {{48,98},{0,0},{0,0}},
-  {{78,96},{228,94},{0,0}},
-  {{100,96},{0,0},{0,0}},
-  {{108,96},{0,0},{0,0}}
+  {{70,94},{200,90},{0,0}},
+  {{110,98},{210,92},{0,0}},
+  {{90,96},{210,94},{0,0}},
+  {{56,98},{0,0},{0,0}},
+  {{86,96},{210,94},{0,0}},
+  {{120,96},{0,0},{0,0}},
+  {{160,96},{0,0},{0,0}}
  };
  if(room<0||room>=SC_R_COUNT)room=0;if(i<0)i=0;if(i>2)i=2;
  *ox=pos[room][i][0];*oy=pos[room][i][1];
@@ -62,13 +62,13 @@ static const char *sc_room_short(int r){
 }
 static const char *sc_room_blurb(int r){
  static const char *n[]={
-  "Berth window and traffic board. Warm lamps. Your ship waits when you are done.",
-  "Ochre crates and a frank ledger. Exclusive stock lives behind this counter.",
-  "Warm counter light, worn booths. Rumours and taxi seats share the air.",
-  "Pallet lane and hazard stripes. Loader keeps the tip clipboard.",
-  "Quiet survey desk. Tracked Mission sits on the green terminal.",
-  "Cool task light, one medkit issue. Rest if you need it.",
-  "Navy glass and a red scanner gate. Restricted goods light the beams."
+  "One bright berth window. A freighter slips the lane. Board waits when you look.",
+  "Cream walls, ochre counter. One ledger — deals happen here.",
+  "Warm bar top under a single practical. Rumours sit in the booth.",
+  "Three crates, one tip mark, cool hoist above. Keep the lane clear.",
+  "Tracked slate owns the room. Desk paper stays secondary.",
+  "One treatment bay, one cool lamp, one medkit locker.",
+  "Scanner gate reads first. Warrant glass keeps your heat honest."
  };
  return r>=0&&r<SC_R_COUNT?n[r]:"";
 }
@@ -117,7 +117,8 @@ static void sc_build_map(void){
 }
 static int sc_door_dir(int dir){(void)dir;return 1;}
 static int sc_door_ahead(void){return 1;}
-/* Focal anchors only (art handoff: 3–5 interactables + people/doors/ship). */
+/* Focal anchors only (art handoff: 3–5 interactables + people/doors/ship).
+ * Doors sit as side hatches — never over the hero focal object. */
 static int sc_hotspots(ScHot *out,int maxn){
  int n=0;
  #define SC_HOT(K,ID,X,Y,W,H,L,LOOK) do{if(n<maxn){out[n].kind=(K);out[n].id=(ID);out[n].x=(X);out[n].y=(Y);out[n].w=(W);out[n].h=(H);out[n].label=(L);out[n].look=(LOOK);n++;}}while(0)
@@ -129,39 +130,42 @@ static int sc_hotspots(ScHot *out,int maxn){
   SC_HOT(SC_H_PERSON,i,VX+px,VY+py,52,64,people[i].name,people[i].line);
  }
  int ex[4],en=sc_exits(sc_room,ex,4);
+ /* Side hatch layout: primary left, secondary right, overflow mid-bottom (clear of SHIP). */
+ static const int door_xy[4][2]={{8,52},{258,52},{78,128},{136,128}};
  for(int i=0;i<en&&i<4;i++){
-  int dx=VX+10+i*76,dy=VY+4;
-  SC_HOT(SC_H_EXIT,ex[i],dx,dy,70,22,sc_room_short(ex[i]),"Door. GO + X walks through. Also listed under EXITS.");
+  int dx=VX+door_xy[i][0],dy=VY+door_xy[i][1];
+  int dw=i<2?50:42,dh=i<2?60:26;
+  SC_HOT(SC_H_EXIT,ex[i],dx,dy,dw,dh,sc_room_short(ex[i]),"Door. GO + X walks through. Also listed under EXITS.");
  }
- /* Ship return — every room, amber, bottom-right of MAIN. */
- SC_HOT(SC_H_EXIT,SC_EXIT_SHIP,VX+236,VY+128,76,28,"YOUR SHIP","Board your ship now. TRI also boards. EXITS > SHIP.");
+ /* Ship return — every room, amber, bottom-right of MAIN (clear of hero + overflow doors). */
+ SC_HOT(SC_H_EXIT,SC_EXIT_SHIP,VX+244,VY+128,68,28,"YOUR SHIP","Board your ship now. TRI also boards. EXITS > SHIP.");
  if(sc_room==SC_R_ARRIVALS){
-  SC_HOT(SC_H_FEATURE,0,VX+208,VY+78,90,52,"TRAFFIC BOARD","Berths, delays, heat. Safe to LOOK.");
-  SC_HOT(SC_H_FEATURE,1,VX+24,VY+12,270,48,"BERTH WINDOW","Cool spill from the lane. Tiny freighter silhouette.");
-  SC_HOT(SC_H_PROP,0,VX+36,VY+122,200,14,"RAIL","Handrail over the freighter lane.");
+  SC_HOT(SC_H_FEATURE,1,VX+72,VY+10,176,70,"BERTH WINDOW","Warm spill from the lane. One freighter silhouette.");
+  SC_HOT(SC_H_FEATURE,0,VX+196,VY+84,90,40,"TRAFFIC BOARD","Berths and delays. Cool cyan signal only.");
+  SC_HOT(SC_H_PROP,0,VX+72,VY+118,160,12,"RAIL","Handrail over the freighter lane.");
  }else if(sc_room==SC_R_SHOP){
-  SC_HOT(SC_H_FEATURE,1,VX+118,VY+38,60,42,"LEDGER","Hand ink. Prices the main board never prints.");
-  SC_HOT(SC_H_PROP,1,VX+176,VY+98,72,40,"STOCK CRATE","Exclusive clamps and spares. SPEAK to buy.");
-  SC_HOT(SC_H_FEATURE,8,VX+88,VY+100,150,22,"COUNTER","Warm key light. Deals happen here.");
+  SC_HOT(SC_H_FEATURE,8,VX+88,VY+96,150,36,"COUNTER","Ochre counter. Deals happen here.");
+  SC_HOT(SC_H_FEATURE,1,VX+118,VY+36,70,42,"LEDGER","Hand ink. Prices the main board never prints.");
+  SC_HOT(SC_H_PROP,1,VX+196,VY+100,60,36,"STOCK CRATE","Exclusive clamps and spares. SPEAK to buy.");
  }else if(sc_room==SC_R_CANTEEN){
-  SC_HOT(SC_H_PROP,2,VX+40,VY+112,240,26,"BAR TOP","Warm amber pools. Tip jars and rings.");
-  SC_HOT(SC_H_FEATURE,2,VX+12,VY+78,42,48,"JUKE","Soft Transit loop. Not a nightclub.");
-  SC_HOT(SC_H_PROP,13,VX+16,VY+100,50,28,"RUMOUR BOOTH","Travellers leave tip notes in the seat.");
+  SC_HOT(SC_H_PROP,2,VX+64,VY+100,200,30,"BAR TOP","One warm practical. Tip jar at the end.");
+  SC_HOT(SC_H_FEATURE,2,VX+16,VY+72,40,48,"JUKE","Soft Transit loop. Not a nightclub.");
+  SC_HOT(SC_H_PROP,13,VX+20,VY+108,48,28,"RUMOUR BOOTH","Travellers leave tip notes in the seat.");
  }else if(sc_room==SC_R_CARGO){
-  SC_HOT(SC_H_PROP,3,VX+128,VY+72,54,44,"TIP CRATE","Marked for the board. SPEAK to the loader.");
-  SC_HOT(SC_H_FEATURE,5,VX+12,VY+8,296,18,"CARGO LIFT","Overhead hoist. Industrial cool light.");
-  SC_HOT(SC_H_PROP,17,VX+68,VY+42,44,24,"MANIFEST","Today's tip jobs. Loader keeps the pen.");
+  SC_HOT(SC_H_PROP,3,VX+128,VY+72,64,48,"TIP CRATE","Marked for the board. SPEAK to the loader.");
+  SC_HOT(SC_H_FEATURE,5,VX+48,VY+8,224,16,"CARGO LIFT","Overhead hoist. Industrial cool light.");
+  SC_HOT(SC_H_PROP,17,VX+72,VY+40,48,24,"MANIFEST","Today's tip jobs. Loader keeps the pen.");
  }else if(sc_room==SC_R_GUILD){
-  SC_HOT(SC_H_FEATURE,3,VX+88,VY+14,144,56,"TRACKED SCREEN","Mission slate. Kei points here when you stall.");
-  SC_HOT(SC_H_PROP,7,VX+50,VY+110,220,28,"GUILD DESK","Sage survey gear and cream paper strips.");
+  SC_HOT(SC_H_FEATURE,3,VX+96,VY+16,128,60,"TRACKED SCREEN","Mission slate. Kei points here when you stall.");
+  SC_HOT(SC_H_PROP,7,VX+64,VY+108,192,28,"GUILD DESK","Sage survey gear and cream paper strips.");
  }else if(sc_room==SC_R_CLINIC){
-  SC_HOT(SC_H_PROP,4,VX+240,VY+40,60,80,"MEDKIT LOCKER","One issue. TAKE after SPEAK with the medic.");
-  SC_HOT(SC_H_PROP,8,VX+70,VY+100,180,36,"TREATMENT BAY","Cool slate bench. Rest if you need it.");
-  SC_HOT(SC_H_FEATURE,12,VX+24,VY+50,50,36,"DIAG PANEL","Soft beeps. Shape beats hue for readability.");
+  SC_HOT(SC_H_PROP,8,VX+80,VY+96,160,40,"TREATMENT BAY","Cool slate bench. Rest if you need it.");
+  SC_HOT(SC_H_PROP,4,VX+244,VY+48,52,72,"MEDKIT LOCKER","One issue. TAKE after SPEAK with the medic.");
+  SC_HOT(SC_H_FEATURE,12,VX+72,VY+40,48,36,"DIAG PANEL","Soft beeps. Shape beats hue for readability.");
  }else if(sc_room==SC_R_CUSTOMS){
-  SC_HOT(SC_H_FEATURE,4,VX+100,VY+18,120,56,"WARRANT GLASS","Your legal heat on navy glass.");
-  SC_HOT(SC_H_FEATURE,6,VX+24,VY+50,26,80,"SCANNER GATE","Walk through only if you like questions.");
-  SC_HOT(SC_H_PROP,23,VX+80,VY+110,160,28,"INSPECT DESK","Stamps, forms, a tired officer.");
+  SC_HOT(SC_H_FEATURE,6,VX+72,VY+40,40,90,"SCANNER GATE","Walk through only if you like questions.");
+  SC_HOT(SC_H_FEATURE,4,VX+140,VY+16,120,52,"WARRANT GLASS","Your legal heat on navy glass.");
+  SC_HOT(SC_H_PROP,23,VX+120,VY+112,140,28,"INSPECT DESK","Stamps, forms, a tired officer.");
  }
  #undef SC_HOT
  return n;
@@ -181,17 +185,43 @@ static void sc_snap_verb_hot(void){
   if(i>=0)sc_hot=i;
  }
 }
-/* ---- drawing helpers ---- */
+/* ---- drawing helpers (A++ cinematic: hero focus, 3 planes, warm staging) ---- */
 static void sc_win(int x,int y,int w,int h,const char *title,unsigned edge){
- rect(x,y,w,h,SC_CHAR);
- rect(x,y,w,12,SC_SLATE);
- rect(x,y,w,1,edge);rect(x,y+h-1,w,1,edge);rect(x,y,1,h,edge);rect(x+w-1,y,1,h,edge);
- text((x+6)/8,(y+2)/8,SC_CREAM,"%.14s",title);
+ /* Thin cream/cyan instruments — chrome recedes so MAIN owns the eye. */
+ rect(x,y,w,h,mix_rgb(SC_VOID,SC_CHAR,.55f));
+ rect(x,y,w,10,mix_rgb(SC_CHAR,SC_CREAM,.12f));
+ rect(x,y,w,1,mix_rgb(edge,SC_CREAM,.35f));
+ rect(x,y+h-1,w,1,mix_rgb(edge,SC_VOID,.4f));
+ rect(x,y,1,h,mix_rgb(edge,SC_CREAM,.25f));
+ rect(x+w-1,y,1,h,mix_rgb(edge,SC_VOID,.35f));
+ text((x+6)/8,(y+1)/8,mix_rgb(SC_CREAM,edge,.2f),"%.14s",title);
 }
 static void sc_scene_sky(int x,int y,int w,int h,unsigned hi,unsigned lo){
  for(int row=0;row<h;row++){
   float t=row/(float)(h>1?h-1:1);
   rect(x,y+row,w,1,mix_rgb(hi,lo,t));
+ }
+}
+/* Three floor value masses — no checker texture that dies at 1×. */
+static void sc_floor_planes(int x,int y,int w,int h,unsigned nearc,unsigned midc,unsigned farc){
+ int band=h/5;if(band<10)band=10;
+ rect(x,y+h-band*3,w,band,farc);
+ rect(x,y+h-band*2,w,band,midc);
+ rect(x,y+h-band,w,band,nearc);
+}
+static void sc_warm_key(int cx,int cy,unsigned lamp){
+ rect(cx-10,cy,20,3,mix_rgb(lamp,SC_CREAM,.4f));
+ rect(cx-4,cy+3,8,2,lamp);
+ pixel(cx,cy-2,SC_CREAM);
+}
+static void sc_hatch(int x,int y,int w,int h,unsigned frame,unsigned aperture,int hero){
+ rect(x,y,w,h,frame);
+ rect(x+3,y+4,w-6,h-8,aperture);
+ if(hero){
+  rect(x+1,y+1,w-2,2,SC_CREAM);
+  rect(x+w/2-2,y+h/2-6,4,12,mix_rgb(SC_AMBER,frame,.4f));
+ }else{
+  rect(x+w/2-1,y+h/2-4,2,8,mix_rgb(SC_CYAN,frame,.35f));
  }
 }
 static void sc_anchor_tick(int x,int y,int w,int h,unsigned c){
@@ -203,7 +233,7 @@ static void sc_anchor_tick(int x,int y,int w,int h,unsigned c){
 }
 static void sc_draw_person_sprite(int x,int y,const ScNpc *p,int selected){
  unsigned ink=faction_colors[p->role%FACTION_COUNT];
- /* Contact shadow */
+ /* Contact shadow — keep silhouette friendly, two-tone accents only. */
  rect(x+10,y+60,32,4,mix_rgb(SC_VOID,SC_CHAR,.4f));
  if(selected){rect(x-2,y-2,52,66,SC_AMBER);rect(x-1,y-1,50,64,SC_CHAR);}
  else sc_anchor_tick(x,y,52,64,mix_rgb(ink,SC_CREAM,.5f));
@@ -220,136 +250,159 @@ static void sc_draw_person_sprite(int x,int y,const ScNpc *p,int selected){
 }
 static void sc_illust_arrivals(int x,int y,int w,int h){
  const ArtRoomStyle *st=sc_style();
- /* Kit HUB: board + berth window; warm lamp + cyan berth cue. */
- sc_scene_sky(x,y,w,h,st->wall,st->wall2);
- rect(x+18,y+10,w-36,52,SC_VOID);
- rect(x+18,y+10,w-36,2,st->trim);
- for(int i=0;i<22;i++){unsigned n=art_hash((unsigned)(i*97+game.system));pixel(x+30+(n%(w-60)),y+16+((n>>8)%36),((n>>16)&1)?SC_CREAM:SC_LAV);}
- rect(x+w/2-48,y+28,64,12,st->wall);rect(x+w/2-28,y+22,28,8,mix_rgb(st->wall,st->wall2,.5f));
- pixel(x+w/2+8,y+30,st->lamp);pixel(x+w/2-36,y+34,st->trim);
- for(int i=0;i<5;i++){rect(x+12+i*60,y+64,48,3,SC_OLIVE);rect(x+28+i*60,y+68,12,5,st->lamp);}
- for(int row=0;row<8;row++){
-  rect(x+4,y+76+row*8,26,7,((row)&1)?st->trim:mix_rgb(st->trim,SC_OLIVE,.35f));
-  rect(x+w-30,y+76+row*8,26,7,((row)&1)?st->trim:mix_rgb(st->trim,SC_OLIVE,.35f));
- }
- for(int row=0;row<6;row++)for(int col=0;col<8;col++){
-  int fx=x+34+col*32,fy=y+h-58+row*8;
-  unsigned c=((col+row)&1)?st->wall:mix_rgb(st->wall,st->wall2,.4f);
-  rect(fx,fy,30,7,c);rect(fx,fy,30,1,mix_rgb(SC_CREAM,st->wall,.55f));
- }
- rect(x+w-100,y+76,88,56,st->wall2);
- rect(x+w-96,y+80,80,14,mix_rgb(st->accent,st->wall,.45f));
- rect(x+w-96,y+98,80,10,mix_rgb(SC_OLIVE,st->accent,.3f));
- rect(x+w-96,y+112,80,10,st->lamp);
- text((x+w-90)/8,(y+82)/8,st->accent,"BERTHS");
- rect(x+36,y+h-68,w-72,4,st->trim);
- rect(x+36,y+h-64,w-72,3,SC_OLIVE);
- rect(x+42,y+78,34,46,st->wall);rect(x+46,y+84,26,36,SC_VOID);
- rect(x+w-76,y+78,34,46,st->wall);rect(x+w-72,y+84,26,36,SC_VOID);
+ /* Hero: berth window at upper third. Layers: void lane / cream hall / rail. */
+ sc_scene_sky(x,y,w,h,mix_rgb(SC_OCHRE,st->wall,.45f),mix_rgb(st->wall2,SC_RUST,.25f));
+ sc_floor_planes(x,y,w,h,mix_rgb(SC_CREAM,st->wall,.35f),mix_rgb(st->wall,st->wall2,.4f),st->wall2);
+ /* Distant coral haze through the aperture */
+ rect(x+72,y+10,176,70,SC_VOID);
+ rect(x+72,y+10,176,3,SC_CREAM);
+ rect(x+72,y+10,3,70,mix_rgb(SC_CREAM,st->trim,.4f));
+ rect(x+245,y+10,3,70,mix_rgb(SC_CREAM,st->trim,.4f));
+ /* Soft warm spill */
+ for(int row=0;row<28;row++)rect(x+78,y+16+row,164,1,mix_rgb(SC_VOID,SC_OCHRE,row/40.f));
+ /* One freighter silhouette — scale cue, not a fleet */
+ rect(x+130,y+40,54,10,st->wall);
+ rect(x+140,y+34,28,8,mix_rgb(st->wall,SC_CREAM,.25f));
+ rect(x+178,y+42,16,6,st->wall2);
+ pixel(x+120,y+30,SC_CREAM);pixel(x+200,y+26,SC_LAV);pixel(x+160,y+22,st->lamp);
+ sc_warm_key(x+160,y+84,st->lamp);
+ /* Mid: traffic board — cyan signal only */
+ rect(x+196,y+84,90,40,st->wall2);
+ rect(x+200,y+88,82,12,mix_rgb(st->accent,st->wall,.4f));
+ rect(x+200,y+104,82,8,mix_rgb(SC_OLIVE,st->accent,.25f));
+ rect(x+200,y+116,40,4,st->lamp);
+ text((x+204)/8,(y+90)/8,st->accent,"BERTHS");
+ /* Fore: rail */
+ rect(x+72,y+118,160,4,st->trim);
+ rect(x+72,y+122,160,3,SC_OLIVE);
 }
 static void sc_illust_shop(int x,int y,int w,int h){
  const ArtRoomStyle *st=sc_style();
- sc_scene_sky(x,y,w,h,mix_rgb(st->trim,st->wall,.4f),st->wall2);
- for(int row=0;row<6;row++)for(int col=0;col<9;col++)
-  rect(x+6+col*34,y+h-54+row*8,32,7,((col+row)&1)?st->trim:mix_rgb(SC_RUST,st->trim,.4f));
- for(int s=0;s<4;s++){
-  rect(x+8,y+12+s*26,64,22,mix_rgb(st->wall,st->trim,.3f));
-  rect(x+12,y+16+s*26,14,12,st->lamp);rect(x+30,y+16+s*26,14,12,st->accent);rect(x+48,y+16+s*26,14,12,SC_RUST);
-  rect(x+w-72,y+12+s*26,64,22,mix_rgb(st->wall,st->trim,.3f));
-  rect(x+w-68,y+16+s*26,14,12,SC_LAV);rect(x+w-50,y+16+s*26,14,12,st->trim);
- }
- rect(x+78,y+h-76,w-156,26,SC_RUST);
- rect(x+78,y+h-84,w-156,10,st->trim);
- for(int i=0;i<5;i++)rect(x+90+i*28,y+h-72,18,10,st->wall2);
- rect(x+w/2-28,y+38,56,40,mix_rgb(st->wall,SC_RUST,.3f));
- rect(x+w/2-22,y+44,44,20,SC_CREAM);
- text((x+w/2-18)/8,(y+50)/8,st->lamp,"LEDGER");
- rect(x+w/2-18,y+8,36,26,st->wall);rect(x+w/2-12,y+12,24,18,SC_VOID);
+ /* Hero: ochre counter. Cream walls, two shelf masses only. */
+ sc_scene_sky(x,y,w,h,mix_rgb(SC_CREAM,st->wall,.4f),st->wall2);
+ sc_floor_planes(x,y,w,h,mix_rgb(SC_RUST,st->trim,.45f),mix_rgb(st->trim,st->wall,.35f),st->wall2);
+ /* Back shelves — two blocks, not a grid of parts */
+ rect(x+64,y+12,70,48,mix_rgb(st->wall,st->trim,.3f));
+ rect(x+70,y+18,18,14,st->lamp);rect(x+94,y+18,18,14,st->accent);rect(x+118,y+18,10,14,SC_RUST);
+ rect(x+186,y+12,70,48,mix_rgb(st->wall,st->trim,.3f));
+ rect(x+192,y+18,18,14,SC_LAV);rect(x+216,y+18,18,14,st->trim);
+ /* Mid: ledger */
+ rect(x+118,y+36,70,42,mix_rgb(st->wall,SC_RUST,.25f));
+ rect(x+124,y+42,58,22,SC_CREAM);
+ text((x+128)/8,(y+48)/8,st->lamp,"LEDGER");
+ /* Hero counter */
+ rect(x+88,y+96,150,36,SC_RUST);
+ rect(x+88,y+90,150,8,st->trim);
+ rect(x+96,y+104,40,16,st->wall2);
+ rect(x+196,y+100,60,28,mix_rgb(st->trim,SC_RUST,.4f));
+ rect(x+200,y+104,52,6,SC_CREAM);
+ sc_warm_key(x+160,y+82,st->lamp);
 }
 static void sc_illust_canteen(int x,int y,int w,int h){
  const ArtRoomStyle *st=sc_style();
- /* Kit BAR: warm practical key, no neon. */
- sc_scene_sky(x,y,w,h,st->wall,st->wall2);
- for(int row=0;row<5;row++)rect(x,y+h-46+row*8,w,8,mix_rgb(st->wall,st->wall2,row/5.f));
- rect(x+20,y+12,w-40,48,mix_rgb(st->wall,st->trim,.25f));
- for(int i=0;i<10;i++){
-  unsigned c=mix_rgb(SC_CREAM,st->trim,(i%4)*.2f);
-  rect(x+28+i*24,y+18,10,32,c);pixel(x+31+i*24,y+22,st->lamp);
+ /* Hero: bar top. Four bottles, one booth, one juke. */
+ sc_scene_sky(x,y,w,h,mix_rgb(st->wall,SC_OCHRE,.3f),st->wall2);
+ sc_floor_planes(x,y,w,h,mix_rgb(st->trim,st->wall,.4f),st->wall,st->wall2);
+ /* Back bar wall + few bottles */
+ rect(x+64,y+12,192,44,mix_rgb(st->wall,st->trim,.2f));
+ for(int i=0;i<4;i++){
+  unsigned c=mix_rgb(SC_CREAM,st->trim,(i%3)*.2f);
+  rect(x+88+i*36,y+18,10,28,c);pixel(x+91+i*36,y+22,st->lamp);
  }
- rect(x+20,y+62,w-40,3,st->accent);
- rect(x+24,y+h-68,w-48,24,mix_rgb(st->trim,st->wall,.4f));
- rect(x+24,y+h-76,w-48,10,st->lamp);
- for(int i=0;i<6;i++){rect(x+44+i*40,y+h-90,10,12,mix_rgb(SC_CREAM,st->lamp,.3f));pixel(x+47+i*40,y+h-92,st->lamp);}
- rect(x+16,y+h-108,48,26,mix_rgb(st->trim,st->wall2,.35f));
- rect(x+w-64,y+h-108,48,26,mix_rgb(st->trim,st->wall2,.35f));
- rect(x+12,y+78,40,46,SC_SLATE);rect(x+16,y+82,32,20,mix_rgb(st->lamp,st->wall,.4f));
- for(int i=0;i<4;i++)pixel(x+20+i*6,y+110,st->accent);
- text((x+16)/8,(y+116)/8,SC_CREAM,"JUKE");
+ rect(x+64,y+56,192,3,st->accent);
+ /* Hero bar */
+ rect(x+64,y+100,200,30,mix_rgb(st->trim,st->wall,.35f));
+ rect(x+64,y+94,200,8,st->lamp);
+ rect(x+240,y+88,12,12,mix_rgb(SC_CREAM,st->lamp,.35f));
+ /* Juke + booth — secondary */
+ rect(x+16,y+72,40,48,SC_SLATE);
+ rect(x+20,y+76,32,18,mix_rgb(st->lamp,st->wall,.4f));
+ text((x+18)/8,(y+108)/8,SC_CREAM,"JUKE");
+ rect(x+20,y+108,48,28,mix_rgb(st->trim,st->wall2,.35f));
+ sc_warm_key(x+160,y+70,st->lamp);
 }
 static void sc_illust_cargo(int x,int y,int w,int h){
  const ArtRoomStyle *st=sc_style();
- sc_scene_sky(x,y,w,h,mix_rgb(st->wall,st->trim,.2f),st->wall2);
- for(int row=0;row<6;row++)for(int col=0;col<9;col++)
-  rect(x+4+col*35,y+h-56+row*8,33,7,((col+row)&1)?st->wall:mix_rgb(SC_OLIVE,st->wall,.4f));
- rect(x+12,y+8,w-24,4,SC_LAV);rect(x+w/2-3,y+8,6,48,st->trim);
- rect(x+w/2-14,y+52,28,8,st->wall);
- for(int i=0;i<5;i++){
-  rect(x+16+i*58,y+h-104,50,40,st->trim);
-  rect(x+16+i*58,y+h-104,50,5,SC_CREAM);
-  rect(x+30+i*58,y+h-88,20,8,st->wall2);
-  if(i==2){rect(x+20+i*58,y+h-116,42,14,st->lamp);text((x+24+i*58)/8,(y+h-114)/8,st->wall2,"TIP");}
+ /* Hero: tip crate centre. Three crates, one cool hoist. */
+ sc_scene_sky(x,y,w,h,mix_rgb(st->wall,st->trim,.15f),st->wall2);
+ sc_floor_planes(x,y,w,h,mix_rgb(SC_OLIVE,st->wall,.4f),st->wall,st->wall2);
+ /* Cool lift signal */
+ rect(x+48,y+8,224,4,SC_LAV);
+ rect(x+w/2-3,y+8,6,40,st->trim);
+ rect(x+w/2-14,y+44,28,8,st->wall);
+ /* Three crates — centre is tip hero */
+ for(int i=0;i<3;i++){
+  int cx=x+72+i*72;
+  rect(cx,y+h-88,56,40,st->trim);
+  rect(cx,y+h-88,56,5,SC_CREAM);
+  rect(cx+16,y+h-72,22,8,st->wall2);
+  if(i==1){rect(cx+6,y+h-100,44,14,st->lamp);text((cx+10)/8,(y+h-98)/8,st->wall2,"TIP");}
  }
- rect(x+4,y+h-62,w-8,4,st->lamp);
- for(int i=0;i<(w-8)/12;i++)if(i&1)rect(x+4+i*12,y+h-62,12,4,st->wall2);
+ /* Manifest secondary */
+ rect(x+72,y+40,48,24,mix_rgb(st->wall,SC_CREAM,.25f));
+ rect(x+76,y+44,40,6,st->accent);
+ rect(x+48,y+h-52,w-96,4,st->lamp);
 }
 static void sc_illust_guild(int x,int y,int w,int h){
  const ArtRoomStyle *st=sc_style();
- sc_scene_sky(x,y,w,h,mix_rgb(st->wall,st->wall2,.5f),st->wall2);
- for(int row=0;row<5;row++)rect(x,y+h-44+row*8,w,8,mix_rgb(st->wall,st->wall2,row/5.f));
- rect(x+w/2-40,y+68,80,h-116,mix_rgb(st->wall,st->wall2,.3f));
- rect(x+w/2-70,y+14,140,56,st->wall2);
- rect(x+w/2-64,y+20,128,34,mix_rgb(st->wall,st->accent,.35f));
- text((x+w/2-48)/8,(y+28)/8,st->accent,"TRACKED MISSION");
- rect(x+w/2-50,y+54,100,8,st->lamp);
- rect(x+50,y+h-76,w-100,30,mix_rgb(st->wall,st->wall2,.4f));
- rect(x+50,y+h-84,w-100,10,mix_rgb(st->trim,st->wall,.4f));
- rect(x+30,y+h-98,36,26,SC_SLATE);rect(x+w-66,y+h-98,36,26,SC_SLATE);
- rect(x+16,y+78,18,38,mix_rgb(st->wall,st->accent,.2f));rect(x+12,y+70,26,12,mix_rgb(st->wall,st->lamp,.3f));
+ /* Hero: tracked screen. Desk secondary. Olive/cream calm. */
+ sc_scene_sky(x,y,w,h,mix_rgb(st->wall,st->wall2,.45f),st->wall2);
+ sc_floor_planes(x,y,w,h,mix_rgb(st->wall,SC_CREAM,.2f),st->wall,st->wall2);
+ rect(x+96,y+16,128,60,st->wall2);
+ rect(x+102,y+22,116,36,mix_rgb(st->wall,st->accent,.35f));
+ text((x+108)/8,(y+30)/8,st->accent,"TRACKED MISSION");
+ rect(x+108,y+58,100,8,st->lamp);
+ rect(x+64,y+108,192,28,mix_rgb(st->wall,st->wall2,.4f));
+ rect(x+64,y+102,192,8,mix_rgb(st->trim,st->wall,.4f));
+ rect(x+72,y+114,40,12,SC_CREAM);
+ sc_warm_key(x+160,y+80,st->lamp);
 }
 static void sc_illust_clinic(int x,int y,int w,int h){
  const ArtRoomStyle *st=sc_style();
- sc_scene_sky(x,y,w,h,mix_rgb(st->trim,st->wall,.35f),st->wall2);
- for(int row=0;row<5;row++)rect(x,y+h-44+row*8,w,8,mix_rgb(st->trim,st->wall2,row/5.f));
- for(int i=0;i<4;i++){circle(x+50+i*70,y+16,7,mix_rgb(st->lamp,st->accent,.4f));rect(x+46+i*70,y+22,14,3,st->trim);}
- rect(x+70,y+h-84,w-140,34,mix_rgb(st->trim,st->accent,.5f));
- rect(x+70,y+h-92,w-140,10,mix_rgb(st->lamp,st->wall,.4f));
- rect(x+80,y+h-108,42,18,st->accent);
- rect(x+w-78,y+40,60,78,st->wall);
- rect(x+w-70,y+50,44,28,mix_rgb(st->lamp,st->accent,.35f));
- text((x+w-64)/8,(y+58)/8,st->wall2,"MEDKIT");
- rect(x+w-70,y+88,44,18,st->wall2);
- rect(x+24,y+50,48,34,st->wall2);rect(x+28,y+54,40,22,mix_rgb(st->lamp,SC_OLIVE,.4f));
+ /* Hero: treatment bay. One cool lamp, one locker. */
+ sc_scene_sky(x,y,w,h,mix_rgb(st->trim,st->wall,.3f),st->wall2);
+ sc_floor_planes(x,y,w,h,mix_rgb(st->trim,st->wall2,.4f),st->wall,st->wall2);
+ /* One practical cool key — not a string of discs */
+ circle(x+160,y+18,8,mix_rgb(st->lamp,st->accent,.45f));
+ rect(x+154,y+26,12,3,st->trim);
+ /* Diag panel secondary */
+ rect(x+72,y+40,48,36,st->wall2);
+ rect(x+76,y+44,40,20,mix_rgb(st->lamp,SC_OLIVE,.35f));
+ /* Hero bay */
+ rect(x+80,y+96,160,40,mix_rgb(st->trim,st->accent,.45f));
+ rect(x+80,y+90,160,8,mix_rgb(st->lamp,st->wall,.4f));
+ rect(x+90,y+108,40,16,st->accent);
+ /* Medkit locker */
+ rect(x+244,y+48,52,72,st->wall);
+ rect(x+250,y+56,40,28,mix_rgb(st->lamp,st->accent,.35f));
+ text((x+252)/8,(y+64)/8,st->wall2,"MED");
+ rect(x+250,y+92,40,16,st->wall2);
 }
 static void sc_illust_customs(int x,int y,int w,int h){
  const ArtRoomStyle *st=sc_style();
- sc_scene_sky(x,y,w,h,mix_rgb(st->wall,st->trim,.15f),st->wall2);
- for(int row=0;row<5;row++)rect(x,y+h-44+row*8,w,8,mix_rgb(st->wall,st->wall2,row/5.f));
- rect(x+24,y+48,22,h-98,mix_rgb(st->trim,SC_RUST,.4f));
- rect(x+w-46,y+48,22,h-98,mix_rgb(st->trim,SC_RUST,.4f));
- rect(x+24,y+48,w-48,8,st->trim);
- for(int i=0;i<6;i++)rect(x+50+i*36,y+52,3,h-108,mix_rgb(st->trim,SC_VOID,.45f));
- rect(x+60,y+h-76,w-120,28,st->wall);
- rect(x+60,y+h-84,w-120,10,mix_rgb(SC_CREAM,st->wall,.4f));
- rect(x+w/2-60,y+16,120,56,st->wall2);
- rect(x+w/2-54,y+22,108,20,st->trim);
- text((x+w/2-40)/8,(y+28)/8,SC_CREAM,"WARRANT");
- rect(x+w/2-54,y+46,108,18,SC_VOID);
- text((x+w/2-36)/8,(y+50)/8,st->accent,"SCANNING");
+ /* Hero: scanner gate aperture. Warrant secondary. Cobalt/navy calm. */
+ sc_scene_sky(x,y,w,h,mix_rgb(st->wall,st->trim,.12f),st->wall2);
+ sc_floor_planes(x,y,w,h,mix_rgb(st->wall,SC_CREAM,.15f),st->wall,st->wall2);
+ /* Gate posts + warm scan aperture */
+ rect(x+72,y+40,12,90,mix_rgb(st->trim,SC_RUST,.4f));
+ rect(x+100,y+40,12,90,mix_rgb(st->trim,SC_RUST,.4f));
+ rect(x+72,y+40,40,6,st->trim);
+ for(int i=0;i<4;i++)rect(x+78,y+52+i*18,28,2,mix_rgb(st->accent,SC_VOID,.5f));
+ /* Warrant glass */
+ rect(x+140,y+16,120,52,st->wall2);
+ rect(x+146,y+22,108,18,st->trim);
+ text((x+156)/8,(y+26)/8,SC_CREAM,"WARRANT");
+ rect(x+146,y+44,108,16,SC_VOID);
+ text((x+160)/8,(y+46)/8,st->accent,"SCAN");
+ /* Inspect desk */
+ rect(x+120,y+112,140,28,st->wall);
+ rect(x+120,y+108,140,6,mix_rgb(SC_CREAM,st->wall,.35f));
+ sc_warm_key(x+190,y+96,st->lamp);
 }
 static void sc_draw_main_scene(void){
  const int VX=72,VY=24,VW=320,VH=160;
  sc_win(VX-2,VY-14,VW+4,VH+18,"MAIN",SC_CYAN);
- text((VX+6)/8,(VY-12)/8,SC_CYAN,"%.16s",sc_room_title(sc_room));
+ text((VX+6)/8,(VY-12)/8,mix_rgb(SC_CREAM,SC_CYAN,.3f),"%.16s",sc_room_title(sc_room));
  if(sc_room==SC_R_ARRIVALS)sc_illust_arrivals(VX,VY,VW,VH);
  else if(sc_room==SC_R_SHOP)sc_illust_shop(VX,VY,VW,VH);
  else if(sc_room==SC_R_CANTEEN)sc_illust_canteen(VX,VY,VW,VH);
@@ -359,6 +412,18 @@ static void sc_draw_main_scene(void){
  else sc_illust_customs(VX,VY,VW,VH);
  ScNpc people[3]; int pn=sc_fill_npcs(sc_room,people,3);
  ScHot hot[24]; int hn=sc_hotspots(hot,24);
+ /* Side hatches first — primary exit reads as cream hero door, others cyan. */
+ {
+  int exit_ord=0;
+  for(int i=0;i<hn;i++)if(hot[i].kind==SC_H_EXIT&&hot[i].id!=SC_EXIT_SHIP){
+   int hero=exit_ord==0;
+   unsigned frame=(hero||sc_hot==i)?mix_rgb(SC_CREAM,SC_OCHRE,.35f):mix_rgb(SC_SLATE,SC_CREAM,.2f);
+   unsigned aperture=(hero||sc_hot==i)?mix_rgb(SC_VOID,SC_OCHRE,.2f):SC_VOID;
+   sc_hatch(hot[i].x,hot[i].y,hot[i].w,hot[i].h,frame,aperture,hero||sc_hot==i);
+   text((hot[i].x+4)/8,(hot[i].y+hot[i].h-12)/8,sc_hot==i?SC_AMBER:(hero?SC_CREAM:SC_CYAN),"%.7s",hot[i].label);
+   exit_ord++;
+  }
+ }
  for(int i=0;i<pn;i++){
   int px,py;sc_person_pos(sc_room,i,&px,&py);
   if(px==0&&py==0)continue;
@@ -372,16 +437,13 @@ static void sc_draw_main_scene(void){
    rect(hot[i].x-2,hot[i].y-2,1,hot[i].h+4,SC_AMBER);rect(hot[i].x+hot[i].w+1,hot[i].y-2,1,hot[i].h+4,SC_AMBER);
   }else sc_anchor_tick(hot[i].x,hot[i].y,hot[i].w,hot[i].h,SC_CREAM);
  }
- for(int i=0;i<hn;i++)if(hot[i].kind==SC_H_EXIT){
-  int ship=hot[i].id==SC_EXIT_SHIP;
-  unsigned c=(sc_hot==i)?SC_AMBER:(ship?SC_AMBER:SC_CYAN);
-  rect(hot[i].x,hot[i].y,hot[i].w,hot[i].h,SC_CHAR);
+ for(int i=0;i<hn;i++)if(hot[i].kind==SC_H_EXIT&&hot[i].id==SC_EXIT_SHIP){
+  unsigned c=(sc_hot==i)?SC_AMBER:SC_AMBER;
+  rect(hot[i].x,hot[i].y,hot[i].w,hot[i].h,mix_rgb(SC_CHAR,SC_OCHRE,.2f));
   rect(hot[i].x,hot[i].y,hot[i].w,1,c);
   rect(hot[i].x,hot[i].y+hot[i].h-1,hot[i].w,1,c);
-  if(ship){
-   rect(hot[i].x+1,hot[i].y+1,hot[i].w-2,hot[i].h-2,mix_rgb(SC_AMBER,SC_CHAR,.25f));
-   text((hot[i].x+6)/8,(hot[i].y+8)/8,c,">> SHIP");
-  }else text((hot[i].x+4)/8,(hot[i].y+6)/8,c,"%.7s",hot[i].label);
+  rect(hot[i].x+1,hot[i].y+1,hot[i].w-2,hot[i].h-2,mix_rgb(SC_AMBER,SC_CHAR,.22f));
+  text((hot[i].x+6)/8,(hot[i].y+8)/8,c,">> SHIP");
  }
  if(sc_hot>=0&&sc_hot<hn&&hot[sc_hot].kind==SC_H_EXIT){
   ScHot *h=&hot[sc_hot];
@@ -393,13 +455,13 @@ static void sc_draw_commands(void){
  sc_win(4,2,472,18,"COMMANDS",SC_AMBER);
  for(int i=0;i<SC_V_COUNT;i++){
   int x=14+i*86;
-  if(i==sc_verb){rect(x-2,6,78,12,mix_rgb(SC_OLIVE,SC_CHAR,.4f));rect(x-2,6,78,1,SC_AMBER);}
-  text(x/8,1,i==sc_verb?SC_AMBER:SC_LAV,"%s",v[i]);
+  if(i==sc_verb){rect(x-2,6,78,12,mix_rgb(SC_OCHRE,SC_CHAR,.3f));rect(x-2,6,78,1,SC_AMBER);}
+  text(x/8,1,i==sc_verb?SC_AMBER:mix_rgb(SC_LAV,SC_CREAM,.35f),"%s",v[i]);
  }
  text(48,1,SC_AMBER,"TRI");text(52,1,SC_CREAM,"BOARD");
 }
 static void sc_draw_inventory(void){
- sc_win(4,24,64,160,"PACK",SC_AMBER);
+ sc_win(4,24,64,160,"PACK",mix_rgb(SC_CREAM,SC_AMBER,.3f));
  text(1,5,SC_LAV,"HOLD");
  int y=7;
  if(game.gift_flags&1u){text(1,y,SC_CYAN,"CLAMP");y+=2;}
@@ -412,18 +474,18 @@ static void sc_draw_inventory(void){
  text(1,21,SC_LAV,"O");text(1,22,SC_CREAM,"DECK");
 }
 static void sc_draw_exits(void){
- sc_win(400,24,76,160,"EXITS",SC_CYAN);
+ sc_win(400,24,76,160,"EXITS",mix_rgb(SC_CREAM,SC_CYAN,.35f));
  int y=4;
  {int sel=0;ScHot hot[24];int hn=sc_hotspots(hot,24);
   for(int h=0;h<hn;h++)if(hot[h].kind==SC_H_EXIT&&hot[h].id==SC_EXIT_SHIP&&h==sc_hot)sel=1;
-  rect(404,y*8-2,68,16,sel?mix_rgb(SC_AMBER,SC_CHAR,.35f):mix_rgb(SC_OCHRE,SC_CHAR,.2f));
-  text(51,y,sel?SC_AMBER:SC_AMBER,">>SHIP");y+=2;}
+  rect(404,y*8-2,68,16,sel?mix_rgb(SC_AMBER,SC_CHAR,.35f):mix_rgb(SC_OCHRE,SC_CHAR,.15f));
+  text(51,y,SC_AMBER,">>SHIP");y+=2;}
  text(51,y,SC_LAV,"doors");y+=2;
  int ex[4],en=sc_exits(sc_room,ex,4);
  for(int i=0;i<en;i++){
   int sel=0;ScHot hot[24];int hn=sc_hotspots(hot,24);
   for(int h=0;h<hn;h++)if(hot[h].kind==SC_H_EXIT&&hot[h].id==ex[i]&&h==sc_hot)sel=1;
-  if(sel)rect(404,y*8-2,68,14,mix_rgb(SC_CYAN,SC_CHAR,.3f));
+  if(sel)rect(404,y*8-2,68,14,mix_rgb(SC_CYAN,SC_CHAR,.25f));
   text(51,y,sel?SC_AMBER:SC_CREAM,"%.8s",sc_room_short(ex[i]));y+=2;
  }
  text(51,19,SC_LAV,"GO+X");
@@ -504,8 +566,9 @@ static void sc_draw_text_box(void){
 }
 static void sc_draw_ui(void){
  sc_build_map();
- rect(0,0,W,H,SC_VOID);
- for(int i=0;i<H;i+=4)rect(0,i,W,1,SC_CHAR);
+ /* Warm void wash — not flat black dashboard chrome. */
+ rect(0,0,W,H,mix_rgb(SC_VOID,SC_OCHRE,.08f));
+ for(int i=0;i<H;i+=6)rect(0,i,W,1,mix_rgb(SC_CHAR,SC_VOID,.5f));
  sc_draw_commands();
  sc_draw_inventory();
  sc_draw_main_scene();

@@ -1,4 +1,10 @@
-# ELITE: NEXT — development build 2.5.38
+# ELITE: NEXT — development build 2.5.39
+
+## New in 2.5.39 — MacVenture cinematic polish
+
+- Station rooms restaged: one hero focus, three depth planes, warm ochre/cream staging.
+- Side hatch doors; thinner cream/cyan MacVenture chrome so MAIN owns the eye.
+- Composition from `docs/CINEMATIC-MOCKUP-TARGETS.md` + ART DIRECTOR kit grammar.
 
 ## New in 2.5.38 — soft-FB Wave A canopy FX
 
