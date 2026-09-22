@@ -445,6 +445,7 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
  if(game.police_stop){game.boost=0;autoaim=0;if(pressed&PSP_CTRL_UP){police_choice=(police_choice+2)%3;game.cue=SFX_SELECT;}if(pressed&PSP_CTRL_DOWN){police_choice=(police_choice+1)%3;game.cue=SFX_SELECT;}if(pressed&PSP_CTRL_CROSS){if(police_choice==0)police_resolve(&game,0);else if(police_choice==1){if(police_resolve(&game,1))change_page(HOME);}else police_escape(&game);if(!game.police_stop)police_choice=0;}return;}
  if(pressed&PSP_CTRL_START){if(game.dead){if(campaign_retry(&game)){selected_target=0;autoaim=0;change_page(CAMPAIGN);}else {game_init(&game);deck_reset();selected_target=0;autoaim=0;change_page(STORY);}}}
  if(page==FLIGHT&&!game.dead&&!game.police_stop&&game.jump<=0&&!game.dock_stage)paused=(held&PSP_CTRL_START)!=0;else if(paused)paused=0;
+ /* Hold Start: redistribute on the existing SYS/ENG/WEP meters — no separate panel. */
  if(paused){fire_blocked=1;game.boost=0;if(pressed&PSP_CTRL_LEFT)pip_sel=(pip_sel+2)%3;if(pressed&PSP_CTRL_RIGHT)pip_sel=(pip_sel+1)%3;if(pressed&PSP_CTRL_UP)pip_shift(&game,pip_sel);if(pressed&PSP_CTRL_DOWN)pip_selected_move(&game,pip_sel,-1);return;}
  if(game.dock_stage){autoaim=0;if(game.dock_stage==1&&(pressed&PSP_CTRL_CIRCLE)){game.dock_stage=0;game.speed=0;game.boost=0;message(&game,"Docking guidance cancelled. You have control.");return;}game_tick(&game,dt,0,0,0,0);if(game.docked)change_page(HOME);return;}
  if(game.dead){game_tick(&game,dt,0,0,0,0);return;}
@@ -575,6 +576,14 @@ static void input_tests(void){
  input(PSP_CTRL_TRIANGLE,0,.016f,0,0);INPUT_CHECK(page==FLIGHT&&game.jump>0,"warp countdown locks navigation until arrival");
  input(PSP_CTRL_SQUARE,PSP_CTRL_SQUARE,.016f,0,0);input(0,0,.016f,0,0);INPUT_CHECK(page==FLIGHT&&game.jump>0,"square tap during warp does not open the computer");
  input(PSP_CTRL_START,0,.016f,0,0);INPUT_CHECK(page==FLIGHT&&game.jump>0&&!paused,"start during warp does not freeze hyperspace");
+ TEST_INIT();launch(&game);page=FLIGHT;pip_sel=1;game.pip_sys=2;game.pip_eng=2;game.pip_wep=4;
+ input(0,PSP_CTRL_START,.016f,0,0);INPUT_CHECK(paused,"holding Start enters power redistribute on the cockpit meters");
+ input(PSP_CTRL_RIGHT,PSP_CTRL_START|PSP_CTRL_RIGHT,.016f,0,0);INPUT_CHECK(pip_sel==2,"Start+Right selects WEP on the existing meters");
+ input(PSP_CTRL_UP,PSP_CTRL_START|PSP_CTRL_UP,.016f,0,0);INPUT_CHECK(game.pip_wep==4&&game.pip_sys+game.pip_eng+game.pip_wep==8,"Start+Up cannot push a bank past four pips");
+ input(PSP_CTRL_LEFT,PSP_CTRL_START|PSP_CTRL_LEFT,.016f,0,0);INPUT_CHECK(pip_sel==1,"Start+Left returns to ENG");
+ int eng_before=game.pip_eng;input(PSP_CTRL_UP,PSP_CTRL_START|PSP_CTRL_UP,.016f,0,0);INPUT_CHECK(game.pip_eng==eng_before+1,"Start+Up puts more power into ENG");
+ int eng_hi=game.pip_eng;input(PSP_CTRL_DOWN,PSP_CTRL_START|PSP_CTRL_DOWN,.016f,0,0);INPUT_CHECK(game.pip_eng==eng_hi-1,"Start+Down takes power out of ENG");
+ input(0,0,.016f,0,0);INPUT_CHECK(!paused&&game.pip_sys+game.pip_eng+game.pip_wep==8,"releasing Start resumes flight with eight pips still assigned");
  TEST_INIT();game.campaign_stage=6;saga_begin(&game);chart_mode=0;chart_zoom=1;change_page(CHART);input(PSP_CTRL_TRIANGLE,0,.016f,0,0);
  INPUT_CHECK(chart_mode&&chart_cursor==game.saga_dest,"galaxy overview opens focused on the tracked mission destination");
  input(PSP_CTRL_RTRIGGER,0,.016f,0,0);INPUT_CHECK(chart_zoom==2,"galaxy overview R zooms in");
@@ -746,10 +755,7 @@ int main(void){
   fb=(unsigned *)(0x44000000u+(unsigned)buffer*STRIDE*H*4);pspDebugScreenSetOffset(buffer*STRIDE*H*4);if(page!=FLIGHT||hud_mode==1)rect(0,0,W,H,BG);drawcount=0;
   switch(page){case FLIGHT:space();break;case MARKET:market_screen();break;case CHART:chart();break;case YARD:yard();break;case EQUIP:equipment();break;case STATUS:status();break;case HELP:help();break;case FACTIONS:factions();break;case LOCAL:local_system();break;case DEBUG:debug_screen();break;case COMMS:communications();break;case DETAILS:system_details();break;case MISSIONS:mission_board();break;case MISSIONLOG:mission_log();break;case TARGETING:targeting_screen();break;case GALNET:galnet_screen();break;case CODEX:codex_screen();break;case STORY:story_screen();break;case GUILD:guild_screen();break;case RADIO:radio_screen();break;case COMMS_PANEL:comms_panel();break;case INTRO:intro_screen();break;case CAMPAIGN:campaign_screen();break;case COMFORT:comfort_screen();break;case WALK:walk_screen();break;default:home();}
   if(page!=FLIGHT&&!paused&&page!=INTRO&&page!=GALNET)menu_notice();
-  if(paused){
-  /* Pip banks highlight on the existing cockpit meters — no separate overlay panel. */
- }
-  if(dump_native&&frames==6)dump_native_bmp("native-480x272.bmp");
+ if(dump_native&&frames==6)dump_native_bmp("native-480x272.bmp");
   if(dump_native&&smoke&&(frames==95||frames==125||frames==205||frames==215||frames==255||frames==275||frames==355||frames==365||frames==385||frames==425)){char capture[64];snprintf(capture,sizeof(capture),"scene-%03d.bmp",frames);dump_native_bmp(capture);}
   if(dump_native&&smoke&&audit_all&&frames>=160&&frames<=420&&frames%10==5){char capture[64];snprintf(capture,sizeof(capture),"audit-%03d.bmp",frames);dump_native_bmp(capture);}
   sceDisplayWaitVblankStart();sceDisplaySetFrameBuf((void*)fb,STRIDE,PSP_DISPLAY_PIXEL_FORMAT_8888,PSP_DISPLAY_SETBUF_NEXTFRAME);buffer^=1;frames++;

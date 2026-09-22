@@ -169,7 +169,13 @@ static void cockpit(void){
   for(int hub=1;hub<HUB_COUNT;hub++)if(hub!=nearest_hub(&game))radar_dot(camera(&game,hub_position(&game,hub)),CYAN,2,0);
  }
  hud_pixel_icon(237,227,2,WHITE);
- for(int i=0;i<3;i++){int x=336+i*46;int n=i==0?game.pip_sys:i==1?game.pip_eng:game.pip_wep;unsigned ink=paused&&i==pip_sel?GOLD:DIM;if(paused&&i==pip_sel)rect(x-3,206,24,12,RGB(28,48,40));text(x/8,25,ink,"%s",i==0?"SYS":i==1?"ENG":"WEP");for(int k=0;k<4;k++)rect(x+k*5,210,3,2,k<n?(i==0?CYAN:i==1?AMBER:RED):RGB(29,46,57));}
+ for(int i=0;i<3;i++){
+  int x=336+i*46;int n=i==0?game.pip_sys:i==1?game.pip_eng:game.pip_wep;
+  unsigned ink=paused&&i==pip_sel?GOLD:DIM;
+  text(x/8,25,ink,"%s",i==0?"SYS":i==1?"ENG":"WEP");
+  if(paused&&i==pip_sel){line(x,218,x+22,218,GOLD);line(x,219,x+22,219,CYAN);}
+  for(int k=0;k<4;k++)rect(x+k*5,210,3,2,k<n?(i==0?CYAN:i==1?AMBER:RED):RGB(29,46,57));
+ }
  const char *labels[]={"SHLD","SPD","HEAT","FUEL"};
  int vmax=player_ships[game.ship].speed;if(vmax<1)vmax=1;
  int values[]={(int)game.energy,(int)(100*game.speed/vmax),(int)game.heat,(int)(100*game.fuel/fmaxf(1,player_ships[game.ship].range))};
@@ -178,7 +184,7 @@ static void cockpit(void){
  rect(0,262,W,10,RGB(10,24,33));
  button_icon(8,263,'T',CYAN);text(3,33,DIM,"HOLD: COMMS");
  if(game.dead)text(20,33,RED,"START: RECOVER");
- else if(paused)text(20,33,GOLD,"START+LR BANK  UD POWER");
+ else if(paused)text(20,33,GOLD,"HOLD START  L/R BANK  U/D POWER");
  else if(game.police_stop)text(20,33,GOLD,"X PAY   O CUSTODY");
  else if(game.approach>=0)text(20,33,GOLD,"X ENTER   O TURN BACK");
  else if(game.surface==2)text(20,33,DIM,"O BOARD   SQUARE SCAN   2xR JET");

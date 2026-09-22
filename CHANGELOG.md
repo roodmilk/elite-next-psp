@@ -2,6 +2,10 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.10 - 2026-09-22
+
+- Hold Start redistributes SYS/ENG/WEP on the existing cockpit meters only (L/R select bank, U/D move power) — no separate bottom-right panel; input regressions cover the chord.
+
 ## 2.5.9 - 2026-09-22
 
 - Double-tap L hard-brake and hull heat (speed / boost / sun → cool when clear; critical locks boost; max destroys) covered by regressions; controls docs updated.
