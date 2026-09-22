@@ -87,38 +87,13 @@ static void space_fx_nebula(void){
   if((cell&15)==0)sfx_add(x+1,y,c,top,bot);
  }
 }
-/* Rare shooting stars — brief streaks, seeded so systems feel different. */
-static void space_fx_meteors(void){
- if(high_contrast||game.jump>0||game.boost)return;
- int top=clipy0>=0?clipy0:view_top(),bot=clipy1>=0?clipy1-1:view_bot();
- unsigned seed=game.bodies[0].seed^0xA5A5u;
- float period=11.f+(seed%9); /* 11–19 s between chances */
- float phase=fmodf(game.time*.37f+(seed&255)*.13f,period);
- /* Active window ~0.55s; only one slot fires when the low bits match. */
- if(phase>0.55f)return;
- if(((seed>>4)+(int)(game.time/period))%5==0)return; /* skip 4/5 windows = rare */
- float t=phase/0.55f;
- float ang=((seed>>8)&255)*.0245f+1.1f;
- float ca=cosf(ang),sa=sinf(ang);
- int x0=40+((seed>>3)&127),y0=top+20+((seed>>11)&63);
- int len=70+((seed>>5)&63);
- int x1=x0+(int)(ca*len),y1=y0+(int)(sa*len*.55f);
- int x=(int)(x0+(x1-x0)*t),y=(int)(y0+(y1-y0)*t);
- int tx=(int)(x0+(x1-x0)*fmaxf(0.f,t-.18f)),ty=(int)(y0+(y1-y0)*fmaxf(0.f,t-.18f));
- if(y<top||y>bot||ty<top||ty>bot)return;
- unsigned head=RGB(220,230,255),tail=RGB(90,120,180);
- line(tx,ty,x,y,tail);
- sfx_add(x,y,head,top,bot);
- sfx_add(x+1,y,head,top,bot);
- if(x>=4&&x<W-4&&y>=top+4&&y<=bot-4)space_anim_draw(SPACE_ANIM_SPARK,x,y,(int)(game.time*10.f),head);
- pixel(x,y,WHITE);
-}
-/* Stronger star twinkle + occasional bright sparkle (called from starfield). */
+/* Shooting stars removed — Commander: no permanent meteor shower. */
+static void space_fx_meteors(void){}
+/* Gentle star twinkle only — no bright four-point sparkle subset. */
 static unsigned space_fx_twinkle(unsigned c,int i,float time){
  float rate=1.1f+(i&7)*.22f;
  float wave=sinf(time*rate+i*1.7f);
- int tw=(int)(wave*22);
- if((i%13)==0)tw+=(int)(fabsf(sinf(time*3.1f+i))*28); /* brighter sparkle subset */
+ int tw=(int)(wave*12);
  int r=(int)fmaxf(20,(c&255)+tw),g=(int)fmaxf(24,((c>>8)&255)+tw),b=(int)fmaxf(30,((c>>16)&255)+tw);
  if(r>255)r=255;if(g>255)g=255;if(b>255)b=255;
  return RGB(r,g,b);
@@ -321,23 +296,19 @@ static void sfx_planet_beauty(void){
  int top=clipy0>=0?clipy0:view_top(),bot=clipy1>=0?clipy1-1:view_bot();
  for(int i=1;i<BODY_COUNT;i++)sfx_planet_bloom_one(&game.bodies[i],top,bot);
 }
-/* Cruise glitter + denser filaments — beautiful travel without GU particles. */
+/* Cruise haze filaments — soft additive only, no four-point glitter. */
 static void sfx_travel_beauty(void){
  if(sfx_fx_muted()||game.dead)return;
  int top=view_top(),bot=view_bot();
  float normal=game.speed/fmaxf(1,player_ships[game.ship].speed);
- int n=game.boost?42:(normal>.6f?22:10);
+ int n=game.boost?28:(normal>.6f?14:6);
  unsigned seed=game.bodies[0].seed^((unsigned)game.system*2654435761u);
  for(int i=0;i<n;i++){
   unsigned cell=seed*1664525u+(unsigned)(i*977)+((unsigned)(game.time*40)&255)*1013904223u;
   int x=(int)((cell>>8)%(W-8))+4;
   int y=top+8+(int)((cell>>16)%(bot-top-16));
-  unsigned ink=(i%5==0)?RGB(180,210,255):(i%3==0)?RGB(90,120,160):RGB(40,55,80);
+  unsigned ink=(i%5==0)?RGB(90,120,160):(i%3==0)?RGB(50,70,100):RGB(28,40,60);
   sfx_add(x,y,ink,top,bot);
-  if((cell&7)==0){
-   int frame=((int)(game.time*8)+i)&3;
-   if(!high_contrast)space_anim_draw(SPACE_ANIM_SPARK,x,y,frame,ink);
-  }
  }
  /* Motion streaks when boosting — short soft dashes toward canopy center. */
  if(game.boost){
@@ -453,19 +424,18 @@ static void sfx_debris_dust(void){
   }
  }
 }
-/* Approach corridor — cyan path lights toward the hub mouth. */
+/* Approach corridor — soft cyan haze toward the hub mouth (no beacon glitter). */
 static void sfx_dock_corridor(void){
  if(sfx_fx_muted()||game.dock_stage)return;
  float dz=STATION_ENTRY_Z-game.pos.z;if(dz<200||dz>9000)return;
  if(fabsf(game.pos.x)>900||fabsf(game.pos.y)>900)return;
  int top=view_top(),bot=view_bot();
- for(int i=0;i<12;i++){
-  float t=i/11.f;
+ for(int i=0;i<10;i++){
+  float t=i/9.f;
   Vec3 w={(i&1?-1:1)*40.f*(1.f-t),((i&2)?1:-1)*28.f*(1.f-t),STATION_ENTRY_Z-t*dz*.85f};
   Vec3 v=camera(&game,w);if(v.z<20)continue;Point p=project(v);
-  int frame=((int)(game.time*6)+i)&3;
-  space_anim_draw(SPACE_ANIM_BEACON,(int)p.x,(int)p.y,frame,CYAN);
-  sfx_add((int)p.x,(int)p.y,RGB(40,120,160),top,bot);
+  sfx_add((int)p.x,(int)p.y,RGB(30,90,110),top,bot);
+  if((i&1)==0)sfx_add((int)p.x+1,(int)p.y,RGB(24,70,88),top,bot);
  }
 }
 /* Anomaly pulse rings when a rift is on-screen. */

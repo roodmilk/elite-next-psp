@@ -39,15 +39,15 @@ typedef struct { const char *name; int role; int act; int shop_item; int gift_bi
 enum { SC_ACT_TALK=0, SC_ACT_SHOP, SC_ACT_GIFT, SC_ACT_QUEST, SC_ACT_TAXI, SC_ACT_BOARD };
 typedef struct { int kind; int id; int x,y,w,h; const char *label; const char *look; } ScHot;
 static void sc_person_pos(int room,int i,int *ox,int *oy){
- /* Keep people off side hatches and free the hero focal zone. */
+ /* Keep people off side hatches and free the hero focal zone (full-width MAIN). */
  static const int pos[SC_R_COUNT][3][2]={
-  {{70,94},{200,90},{0,0}},
-  {{110,98},{210,92},{0,0}},
-  {{90,96},{210,94},{0,0}},
-  {{56,98},{0,0},{0,0}},
-  {{86,96},{210,94},{0,0}},
-  {{120,96},{0,0},{0,0}},
-  {{160,96},{0,0},{0,0}}
+  {{110,88},{260,84},{0,0}},
+  {{140,90},{280,86},{0,0}},
+  {{120,88},{280,86},{0,0}},
+  {{90,90},{0,0},{0,0}},
+  {{120,88},{280,86},{0,0}},
+  {{160,88},{0,0},{0,0}},
+  {{200,88},{0,0},{0,0}}
  };
  if(room<0||room>=SC_R_COUNT)room=0;if(i<0)i=0;if(i>2)i=2;
  *ox=pos[room][i][0];*oy=pos[room][i][1];
@@ -117,12 +117,14 @@ static void sc_build_map(void){
 }
 static int sc_door_dir(int dir){(void)dir;return 1;}
 static int sc_door_ahead(void){return 1;}
+/* Shared MAIN rect — hotspots and draw must agree (no overlapping chrome). */
+enum { SC_VX=8, SC_VY=22, SC_VW=464, SC_VH=156 };
 /* Focal anchors only (art handoff: 3–5 interactables + people/doors/ship).
  * Doors sit as side hatches — never over the hero focal object. */
 static int sc_hotspots(ScHot *out,int maxn){
  int n=0;
  #define SC_HOT(K,ID,X,Y,W,H,L,LOOK) do{if(n<maxn){out[n].kind=(K);out[n].id=(ID);out[n].x=(X);out[n].y=(Y);out[n].w=(W);out[n].h=(H);out[n].label=(L);out[n].look=(LOOK);n++;}}while(0)
- const int VX=72,VY=24;
+ const int VX=SC_VX,VY=SC_VY;
  ScNpc people[3]; int pn=sc_fill_npcs(sc_room,people,3);
  for(int i=0;i<pn;i++){
   int px,py;sc_person_pos(sc_room,i,&px,&py);
@@ -130,15 +132,15 @@ static int sc_hotspots(ScHot *out,int maxn){
   SC_HOT(SC_H_PERSON,i,VX+px,VY+py,52,64,people[i].name,people[i].line);
  }
  int ex[4],en=sc_exits(sc_room,ex,4);
- /* Side hatch layout: primary left, secondary right, overflow mid-bottom (clear of SHIP). */
- static const int door_xy[4][2]={{8,52},{258,52},{78,128},{136,128}};
+ /* Side hatch layout on the full-width MAIN — clear of SHIP. */
+ static const int door_xy[4][2]={{6,40},{408,40},{90,118},{200,118}};
  for(int i=0;i<en&&i<4;i++){
   int dx=VX+door_xy[i][0],dy=VY+door_xy[i][1];
   int dw=i<2?50:42,dh=i<2?60:26;
-  SC_HOT(SC_H_EXIT,ex[i],dx,dy,dw,dh,sc_room_short(ex[i]),"Door. GO + X walks through. Also listed under EXITS.");
+  SC_HOT(SC_H_EXIT,ex[i],dx,dy,dw,dh,sc_room_short(ex[i]),"Door. GO + X walks through.");
  }
- /* Ship return — every room, amber, bottom-right of MAIN (clear of hero + overflow doors). */
- SC_HOT(SC_H_EXIT,SC_EXIT_SHIP,VX+244,VY+128,68,28,"YOUR SHIP","Board your ship now. TRI also boards. EXITS > SHIP.");
+ /* Ship return — bottom-right of MAIN. */
+ SC_HOT(SC_H_EXIT,SC_EXIT_SHIP,VX+SC_VW-72,VY+SC_VH-30,68,26,"YOUR SHIP","Board your ship now. TRI also boards.");
  if(sc_room==SC_R_ARRIVALS){
   SC_HOT(SC_H_FEATURE,1,VX+72,VY+10,176,70,"BERTH WINDOW","Warm spill from the lane. One freighter silhouette.");
   SC_HOT(SC_H_FEATURE,0,VX+196,VY+84,90,40,"TRAFFIC BOARD","Berths and delays. Cool cyan signal only.");
@@ -192,16 +194,6 @@ static void sc_snap_verb_hot(void){
  }
 }
 /* ---- drawing helpers (A++ cinematic: hero focus, 3 planes, warm staging) ---- */
-static void sc_win(int x,int y,int w,int h,const char *title,unsigned edge){
- /* Thin cream/ochre instruments — no cyan box outline; signal colour only in title. */
- rect(x,y,w,h,mix_rgb(SC_VOID,SC_CHAR,.55f));
- rect(x,y,w,10,mix_rgb(SC_CHAR,SC_CREAM,.14f));
- rect(x,y,w,1,mix_rgb(SC_OCHRE,SC_CREAM,.45f));
- rect(x,y+h-1,w,1,mix_rgb(SC_SLATE,SC_VOID,.35f));
- rect(x,y,1,h,mix_rgb(SC_OLIVE,SC_CREAM,.2f));
- rect(x+w-1,y,1,h,mix_rgb(SC_SLATE,SC_VOID,.4f));
- text((x+6)/8,(y+1)/8,mix_rgb(SC_CREAM,edge,.25f),"%.14s",title);
-}
 static void sc_scene_sky(int x,int y,int w,int h,unsigned hi,unsigned lo){
  for(int row=0;row<h;row++){
   float t=row/(float)(h>1?h-1:1);
@@ -232,17 +224,16 @@ static void sc_warm_key(int cx,int cy,unsigned lamp){
  rect(cx-4,cy+3,8,2,lamp);
  pixel(cx,cy-2,SC_CREAM);
 }
-/* Sparse pinprick stars inside a berth/void aperture. */
+/* Sparse pinprick stars inside a berth/void aperture — no glitter masks. */
 static void sc_void_stars(int x,int y,int w,int h,unsigned seed){
  unsigned s=seed^0xA11Cu;
- for(int i=0;i<14;i++){
+ for(int i=0;i<10;i++){
   s=s*1664525u+1013904223u;
   int px=x+2+(int)((s>>8)%(unsigned)(w>4?w-4:1));
   s=s*1664525u+1013904223u;
   int py=y+2+(int)((s>>8)%(unsigned)(h>4?h-4:1));
-  unsigned c=(i%5==0)?SC_CREAM:(i%3==0)?SC_LAV:mix_rgb(SC_VOID,SC_CREAM,.35f);
+  unsigned c=(i%5==0)?mix_rgb(SC_VOID,SC_CREAM,.45f):(i%3==0)?mix_rgb(SC_VOID,SC_LAV,.35f):mix_rgb(SC_VOID,SC_CREAM,.22f);
   pixel(px,py,c);
-  if((i&3)==0)space_anim_draw(SPACE_ANIM_SPARK,px,py,((int)(game.time*3)+i)&3,mix_rgb(SC_OCHRE,SC_CREAM,.4f));
  }
 }
 /* Tiny freighter silhouette that drifts across a berth window (presentation only). */
@@ -345,7 +336,8 @@ static void sc_illust_arrivals(int x,int y,int w,int h){
  for(int row=0;row<28;row++)rect(x+78,y+16+row,164,1,mix_rgb(SC_VOID,SC_OCHRE,row/40.f));
  /* Animated freighter crossing the berth — one ship, readable at 1× */
  sc_traffic_silhouette(x+78,y+18,164,52,st->wall,st->lamp);
- space_anim_draw(SPACE_ANIM_BEACON,x+118,y+28,((int)(game.time*4))&3,st->lamp);
+ /* Soft berth lamp — cream pixel pulse, not a four-point glitter mask. */
+ if(sc_lamp_on(0,2.5f)<2){pixel(x+118,y+28,mix_rgb(st->lamp,SC_CREAM,.35f));pixel(x+119,y+28,mix_rgb(st->lamp,SC_VOID,.4f));}
  sc_warm_key(x+160,y+84,st->lamp);
  /* Mid: traffic board — berth slots blink occupancy */
  rect(x+196,y+84,90,40,st->wall2);
@@ -383,7 +375,7 @@ static void sc_illust_shop(int x,int y,int w,int h){
  rect(x+70,y+18,18,14,st->lamp);rect(x+94,y+18,18,14,st->accent);rect(x+118,y+18,10,14,SC_RUST);
  rect(x+186,y+12,70,48,mix_rgb(st->wall,st->trim,.3f));
  rect(x+192,y+18,18,14,SC_LAV);rect(x+216,y+18,18,14,st->trim);
- if(sc_lamp_on(1,3.5f)==0){rect(x+72,y+20,14,10,SC_CREAM);space_anim_draw(SPACE_ANIM_SPARK,x+79,y+25,((int)(game.time*8))&3,st->lamp);}
+ if(sc_lamp_on(1,3.5f)==0){rect(x+72,y+20,14,10,SC_CREAM);pixel(x+79,y+25,mix_rgb(st->lamp,SC_CREAM,.4f));}
  /* Mid: ledger */
  rect(x+118,y+36,70,42,mix_rgb(st->wall,SC_RUST,.25f));
  rect(x+124,y+42,58,22,SC_CREAM);
@@ -426,7 +418,7 @@ static void sc_illust_canteen(int x,int y,int w,int h){
  {
   unsigned juke=sc_lamp_on(2,4.f)<2?mix_rgb(st->lamp,SC_OCHRE,.35f):mix_rgb(st->lamp,st->wall,.4f);
   rect(x+20,y+76,32,18,juke);
-  if(sc_lamp_on(2,4.f)==0)space_anim_draw(SPACE_ANIM_SPARK,x+36,y+84,((int)(game.time*6))&3,SC_CREAM);
+  if(sc_lamp_on(2,4.f)==0)pixel(x+36,y+84,mix_rgb(SC_CREAM,st->lamp,.35f));
  }
  text((x+18)/8,(y+108)/8,SC_CREAM,"JUKE");
  rect(x+20,y+108,48,28,mix_rgb(st->trim,st->wall2,.35f));
@@ -576,9 +568,11 @@ static void sc_illust_customs(int x,int y,int w,int h){
  sc_warm_key(x+190,y+96,st->lamp);
 }
 static void sc_draw_main_scene(void){
- const int VX=72,VY=24,VW=320,VH=160;
- sc_win(VX-2,VY-14,VW+4,VH+18,"MAIN",SC_CYAN);
- text((VX+6)/8,(VY-12)/8,mix_rgb(SC_CREAM,SC_CYAN,.3f),"%.16s",sc_room_title(sc_room));
+ const int VX=SC_VX,VY=SC_VY,VW=SC_VW,VH=SC_VH;
+ /* Scene only — no MAIN title chrome stealing the action row. */
+ rect(VX,VY,VW,VH,SC_VOID);
+ rect(VX,VY,VW,1,SC_OCHRE);
+ rect(VX,VY+VH-1,VW,1,SC_SLATE);
  if(sc_room==SC_R_ARRIVALS)sc_illust_arrivals(VX,VY,VW,VH);
  else if(sc_room==SC_R_SHOP)sc_illust_shop(VX,VY,VW,VH);
  else if(sc_room==SC_R_CANTEEN)sc_illust_canteen(VX,VY,VW,VH);
@@ -588,7 +582,7 @@ static void sc_draw_main_scene(void){
  else sc_illust_customs(VX,VY,VW,VH);
  ScNpc people[3]; int pn=sc_fill_npcs(sc_room,people,3);
  ScHot hot[24]; int hn=sc_hotspots(hot,24);
- /* Side hatches first — primary exit reads as cream hero door, others cyan. */
+ /* Hatches — silhouette only; label lives in the text band (no stacked door text). */
  {
   int exit_ord=0;
   for(int i=0;i<hn;i++)if(hot[i].kind==SC_H_EXIT&&hot[i].id!=SC_EXIT_SHIP){
@@ -596,7 +590,6 @@ static void sc_draw_main_scene(void){
    unsigned frame=(hero||sc_hot==i)?mix_rgb(SC_CREAM,SC_OCHRE,.35f):mix_rgb(SC_SLATE,SC_CREAM,.2f);
    unsigned aperture=(hero||sc_hot==i)?mix_rgb(SC_VOID,SC_OCHRE,.2f):SC_VOID;
    sc_hatch(hot[i].x,hot[i].y,hot[i].w,hot[i].h,frame,aperture,hero||sc_hot==i);
-   text((hot[i].x+4)/8,(hot[i].y+hot[i].h-12)/8,sc_hot==i?SC_AMBER:(hero?SC_CREAM:SC_CYAN),"%.7s",hot[i].label);
    exit_ord++;
   }
  }
@@ -605,70 +598,49 @@ static void sc_draw_main_scene(void){
   if(px==0&&py==0)continue;
   sc_draw_person_sprite(VX+px,VY+py,&people[i],sc_hot<hn&&hot[sc_hot].kind==SC_H_PERSON&&hot[sc_hot].id==i);
  }
- /* Cue ticks + 8×8 prop markers on features; amber frame on selection. */
+ /* Selection frame only — no 8×8 marker spam on every prop. */
  for(int i=0;i<hn;i++){
   if(hot[i].kind==SC_H_PERSON||hot[i].kind==SC_H_EXIT)continue;
   if(sc_hot==i){
    rect(hot[i].x-2,hot[i].y-2,hot[i].w+4,1,SC_AMBER);rect(hot[i].x-2,hot[i].y+hot[i].h+1,hot[i].w+4,1,SC_AMBER);
    rect(hot[i].x-2,hot[i].y-2,1,hot[i].h+4,SC_AMBER);rect(hot[i].x+hot[i].w+1,hot[i].y-2,1,hot[i].h+4,SC_AMBER);
-  }else sc_anchor_tick(hot[i].x,hot[i].y,hot[i].w,hot[i].h,SC_CREAM);
-  /* Marker sits outside the prop box so the silhouette stays clear. */
-  if(hot[i].w>=16&&hot[i].h>=12){
-   unsigned ink=sc_hot==i?SC_AMBER:(hot[i].kind==SC_H_FEATURE?SC_CYAN:SC_OCHRE);
-   sc_prop8(hot[i].x+hot[i].w-10,hot[i].y+2,hot[i].id,ink);
+   sc_prop8(hot[i].x+hot[i].w-10,hot[i].y+2,hot[i].id,SC_AMBER);
   }
  }
  for(int i=0;i<hn;i++)if(hot[i].kind==SC_H_EXIT&&hot[i].id==SC_EXIT_SHIP){
-  unsigned c=(sc_hot==i)?SC_AMBER:SC_AMBER;
+  unsigned c=sc_hot==i?SC_AMBER:SC_OCHRE;
   rect(hot[i].x,hot[i].y,hot[i].w,hot[i].h,mix_rgb(SC_CHAR,SC_OCHRE,.2f));
   rect(hot[i].x,hot[i].y,hot[i].w,1,c);
   rect(hot[i].x,hot[i].y+hot[i].h-1,hot[i].w,1,c);
-  rect(hot[i].x+1,hot[i].y+1,hot[i].w-2,hot[i].h-2,mix_rgb(SC_AMBER,SC_CHAR,.22f));
-  text((hot[i].x+6)/8,(hot[i].y+8)/8,c,">> SHIP");
+  text((hot[i].x+8)/8,(hot[i].y+8)/8,c,"SHIP");
  }
  if(sc_hot>=0&&sc_hot<hn&&hot[sc_hot].kind==SC_H_EXIT){
   ScHot *h=&hot[sc_hot];
   rect(h->x-2,h->y-2,h->w+4,1,SC_AMBER);rect(h->x-2,h->y+h->h+1,h->w+4,1,SC_AMBER);
  }
 }
+/* One clear action row — verbs only, no COMMANDS window title fighting the buttons. */
 static void sc_draw_commands(void){
  static const char *v[]={"LOOK","SPEAK","GO","TAKE"};
- sc_win(4,2,472,18,"COMMANDS",SC_AMBER);
+ rect(0,0,W,SC_VY-2,SC_CHAR);
+ rect(0,SC_VY-3,W,1,SC_OCHRE);
  for(int i=0;i<SC_V_COUNT;i++){
-  int x=14+i*86;
-  if(i==sc_verb){rect(x-2,6,78,12,mix_rgb(SC_OCHRE,SC_CHAR,.25f));rect(x-2,6,78,1,SC_AMBER);}
-  text(x/8,1,i==sc_verb?SC_AMBER:mix_rgb(SC_LAV,SC_CREAM,.35f),"%s",v[i]);
+  int x=8+i*70;
+  if(i==sc_verb){rect(x,3,66,14,mix_rgb(SC_OCHRE,SC_CHAR,.28f));rect(x,3,66,1,SC_AMBER);}
+  text((x+10)/8,1,i==sc_verb?SC_AMBER:SC_LAV,"%s",v[i]);
+ }
+ text(36,1,SC_CREAM,"%.14s",sc_room_title(sc_room));
+ {
+  /* Compact hold cue — replaces the PACK side panel. */
+  char hold[24];int n=0;
+  if(game.gift_flags&1u)n+=snprintf(hold+n,(int)sizeof(hold)-n,"CLAMP ");
+  if(game.gift_flags&2u)n+=snprintf(hold+n,(int)sizeof(hold)-n,"MED ");
+  if(game.passenger_dest>=0)n+=snprintf(hold+n,(int)sizeof(hold)-n,"PAX");
+  if(n>0)text(48,1,SC_CYAN,"%.10s",hold);
+  else text(52,1,SC_LAV,"O DECK");
  }
 }
-static void sc_draw_inventory(void){
- sc_win(4,24,64,160,"PACK",mix_rgb(SC_CREAM,SC_AMBER,.3f));
- text(1,5,SC_LAV,"HOLD");
- int y=7;
- if(game.gift_flags&1u){text(1,y,SC_CYAN,"CLAMP");y+=2;}
- if(game.gift_flags&2u){text(1,y,SC_CYAN,"MEDKIT");y+=2;}
- if(!(game.gift_flags&3u)){text(1,y,SC_LAV,"(empty)");y+=2;}
- if(game.passenger_dest>=0){text(1,y,SC_AMBER,"PAX");y+=2;text(1,y,SC_CREAM,"%.8s",game.systems[game.passenger_dest].name);y+=2;}
- text(1,16,SC_LAV,"HERE");
- text(1,18,SC_CREAM,"%.8s",sc_room_short(sc_room));
- text(1,21,SC_LAV,"O DECK");
-}
-static void sc_draw_exits(void){
- sc_win(400,24,76,160,"EXITS",mix_rgb(SC_CREAM,SC_CYAN,.35f));
- int y=4;
- {int sel=0;ScHot hot[24];int hn=sc_hotspots(hot,24);
-  for(int h=0;h<hn;h++)if(hot[h].kind==SC_H_EXIT&&hot[h].id==SC_EXIT_SHIP&&h==sc_hot)sel=1;
-  rect(404,y*8-2,68,16,sel?mix_rgb(SC_AMBER,SC_CHAR,.35f):mix_rgb(SC_OCHRE,SC_CHAR,.12f));
-  text(51,y,SC_AMBER,">>SHIP");y+=2;}
- text(51,y,SC_LAV,"doors");y+=2;
- int ex[4],en=sc_exits(sc_room,ex,4);
- for(int i=0;i<en;i++){
-  int sel=0;ScHot hot[24];int hn=sc_hotspots(hot,24);
-  for(int h=0;h<hn;h++)if(hot[h].kind==SC_H_EXIT&&hot[h].id==ex[i]&&h==sc_hot)sel=1;
-  if(sel)rect(404,y*8-2,68,14,mix_rgb(SC_OCHRE,SC_CHAR,.22f));
-  text(51,y,sel?SC_AMBER:SC_CREAM,"%.8s",sc_room_short(ex[i]));y+=2;
- }
- text(51,21,SC_LAV,"GO+X");
-}
+/* Side PACK/EXITS panels removed — they overlapped MAIN and stacked labels. */
 static int sc_talk_choices(const ScNpc *p,const char **out,int maxn){
  int n=0;
  #define SC_CH(S) do{if(n<maxn)out[n++]=(S);}while(0)
@@ -707,49 +679,47 @@ static void sc_talk_tip(const ScNpc *p){
  }else message(&game,p->offer?p->offer:p->line);
 }
 static void sc_draw_text_box(void){
- sc_win(4,190,472,78,"TEXT",SC_OCHRE);
+ /* One feedback band under MAIN — label + look only, no stacked verb/keyword lines. */
+ const int ty=SC_VY+SC_VH+2;
+ rect(0,ty,W,H-ty,mix_rgb(SC_VOID,SC_CHAR,.6f));
+ rect(0,ty,W,1,SC_OCHRE);
+ int row=ty/8+1;
  ScHot hot[24]; int hn=sc_hotspots(hot,24);
  if(sc_menu==SC_MENU_SHOP){
   int list[8],ln=sc_exclusive_catalog(list,8);
-  text(1,25,SC_AMBER,"CHANDLER STOCK");
-  if(!ln)text(1,27,SC_LAV,"Sold out today.");
-  else {int idx=list[sc_shop_row%ln];text(1,27,SC_CREAM,"%.14s  %.1fU",equipment_list_names[idx],equipment_costs[idx]*.1f);
-   text(1,29,SC_LAV,"UP/DOWN  X buy  TRI back");}
+  text(1,row,SC_AMBER,"CHANDLER STOCK");
+  if(!ln)text(1,row+1,SC_LAV,"Sold out today.");
+  else {int idx=list[sc_shop_row%ln];text(1,row+1,SC_CREAM,"%.18s  %.1fU",equipment_list_names[idx],equipment_costs[idx]*.1f);
+   text(1,row+3,SC_LAV,"UP/DOWN  X buy  TRI back");}
   return;
  }
  if(sc_menu==SC_MENU_TALK){
   ScNpc people[3]; int pn=sc_fill_npcs(sc_room,people,3);
   if(sc_talk_who<0||sc_talk_who>=pn){sc_menu=SC_MENU_NONE;return;}
   ScNpc *p=&people[sc_talk_who];
-  text(1,25,SC_AMBER,"%.10s",p->name);
-  text_wrap(14,25,42,1,SC_CREAM,p->line,0);
+  text(1,row,SC_AMBER,"%.12s",p->name);
+  text_wrap(14,row,42,1,SC_CREAM,p->line,0);
   const char *ch[4]; int cn=sc_talk_choices(p,ch,4);
   if(sc_talk_row<0)sc_talk_row=0;if(sc_talk_row>=cn)sc_talk_row=cn-1;
-  for(int i=0;i<cn;i++){
-   int y=27+i;
+  for(int i=0;i<cn&&i<3;i++){
+   int y=row+2+i;
    text(1,y,i==sc_talk_row?SC_AMBER:SC_LAV,i==sc_talk_row?">":" ");
    text_wrap(3,y,54,1,i==sc_talk_row?SC_CREAM:SC_LAV,ch[i],0);
   }
   return;
  }
- if(hn<=0){text_wrap(1,25,56,3,SC_CREAM,sc_room_blurb(sc_room),0);return;}
+ if(hn<=0){text_wrap(1,row,58,3,SC_CREAM,sc_room_blurb(sc_room),0);text(1,row+4,SC_LAV,"U/D target   L/R verb   O deck");return;}
  if(sc_hot<0)sc_hot=0;if(sc_hot>=hn)sc_hot=hn-1;
  ScHot *h=&hot[sc_hot];
- text(1,25,SC_AMBER,"%.14s",h->label);
- {const ArtRoomStyle *st=sc_style();text(20,25,SC_LAV,"%.18s",st->keywords);}
- text_wrap(1,27,56,2,SC_CREAM,h->look?h->look:sc_room_blurb(sc_room),0);
- {static const char *v[]={"LOOK","SPEAK","GO","TAKE"};
-  text(1,30,SC_AMBER,"%s > %.12s",v[sc_verb],h->label);}
- text(26,30,SC_LAV,"U/D  O deck");
+ text(1,row,SC_AMBER,"%.20s",h->label);
+ text_wrap(1,row+1,58,2,SC_CREAM,h->look?h->look:sc_room_blurb(sc_room),0);
+ text(1,row+4,SC_LAV,"U/D target   L/R verb   O deck   TRI ship");
 }
 static void sc_draw_ui(void){
  sc_build_map();
- /* Quiet warm wash — fewer stripe bands so MAIN owns the eye. */
- rect(0,0,W,H,mix_rgb(SC_VOID,SC_OCHRE,.06f));
+ rect(0,0,W,H,mix_rgb(SC_VOID,SC_OCHRE,.05f));
  sc_draw_commands();
- sc_draw_inventory();
  sc_draw_main_scene();
- sc_draw_exits();
  sc_draw_text_box();
 }
 static void sc_board_ship(void){

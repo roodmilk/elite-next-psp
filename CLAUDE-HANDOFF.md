@@ -77,13 +77,13 @@ Station interiors restaged from `docs/CINEMATIC-MOCKUP-TARGETS.md` + ART DIRECTO
 
 **Implementer tip under ART DIRECTOR authority (rebased on tip #18 `f003e09`):** 8×8 native prop markers; ARRIVALS cargo-loader cycle; walk/help/comfort chrome; aperture beacons kit cyan. Mission cue: ART_AMBER + 2-col header margin (Designer had restored GOLD for the old flush assert — palette stays with ART DIRECTOR; smoke uses header-margin assert). No tag.
 
-**ART LOOK FREEZE (Commander: one bug-fixed EBOOT):** PR #11 @ `3f0dc20` frozen for Systems combine + tag. No new look passes. Mission cue remains ART_AMBER — do not restore GOLD.
+**ART LOOK FREEZE (Commander: one bug-fixed EBOOT):** Look freeze base remains `3f0dc20` (ART_AMBER — do not restore GOLD). Post-freeze Commander bugs on PR #11: MacVenture disembark declutter + space FX quieting (meteors/station glitter off; soft docking lights/plumes/haze). No tag until smoke green.
 
-**Working tip (Commander: BIG RELEASES ONLY):** Release **v2.5.41** = ART freeze `3f0dc20` + living-galaxy PR #23 `bc56842` (hybrid travellers, save V12, GalNet elsewhere). ART presentation stays ART-owned.
+**Working tip (Commander: BIG RELEASES ONLY):** Release **v2.5.41** = ART freeze `3f0dc20` + living-galaxy PR #23 `bc56842` (hybrid travellers, save V12, GalNet elsewhere). ART presentation stays ART-owned. Disembark/FX tip rides the same untagged PR tip until Systems smoke.
 
 ### 2.5.41 — Art freeze + living-galaxy pack
 
-ART tip `3f0dc20` (ART_AMBER) + galaxy `bc56842`. Smoke-green Commander download.
+ART tip `3f0dc20` (ART_AMBER) + galaxy `bc56842`. Smoke-green Commander download. Follow-on: MacVenture PACK/EXITS overlap removed; space meteors + station sparkle glitter dropped for soft haze.
 
 ### 2.5.38 — soft-FB Wave A canopy FX
 
@@ -107,7 +107,7 @@ Crisp three-depth station walkaround: riveted panels, checker floor, destination
 
 ### 2.5.29 — soft-FB space FX kit
 
-In-engine nebula, clouds, twinkle and rare meteors (`space-fx.h`). No GU particle dependency; high contrast skips decorative haze.
+In-engine nebula, clouds, and gentle twinkle (`space-fx.h`). Constant meteors and station glitter masks removed (Commander FX quieting). No GU particle dependency; high contrast skips decorative haze.
 
 ### 2.5.28 — OpenEnroth-style station crawl depth
 

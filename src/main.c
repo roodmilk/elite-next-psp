@@ -325,7 +325,7 @@ static void space(void){
  if(game.police_stop){if(hud_mode==0)cockpit();police_dialog();return;}
  if(game.dead){death_effect();sfx_maybe_death_embers();sfx_explosion_embers_draw(1.f/60);if(hud_mode==0)cockpit();return;}
  if(game.dock_stage>=2){docking_view();if(hud_mode==0)cockpit();return;}
- sector_background();space_fx_nebula();starfield();space_fx_meteors();celestial_rims();draw_bodies();sfx_planet_beauty();lens_flares();sfx_sun_canopy_wash();station_model();station_window_animation();secondary_hubs();ambient_space();station_traffic_glints();sfx_travel_beauty();sfx_travel_fun();
+ sector_background();space_fx_nebula();starfield();celestial_rims();draw_bodies();sfx_planet_beauty();lens_flares();sfx_sun_canopy_wash();station_model();station_window_animation();secondary_hubs();ambient_space();sfx_travel_beauty();sfx_travel_fun();
  int npc_detailed[NPC_COUNT]={0};
  for(int i=0;i<NPC_COUNT;i++){NPC *n=&game.npc[i];if(!n->alive||occluded(n->pos))continue;float distance=length(sub(n->pos,game.pos)),limit=n->freighter?12000.f:5200.f;if(distance>limit)continue;npc_detailed[i]=n->freighter?2:1;unsigned c=n->flash>0?WHITE:faction_colors[n->role];float yaw=atan2f(n->dir.x,n->dir.z);if(npc_detailed[i]==2){capital_model(n,c);continue;}shipmesh(n->mesh,n->pos,yaw,0,n->scale,c,0);}
  for(int i=0;i<DEBRIS_COUNT;i++){Debris *d=&game.debris[i];if(!d->alive||occluded(d->pos))continue;float distance=length(sub(d->pos,game.pos));if(distance>11000)continue;
@@ -352,14 +352,14 @@ static void space(void){
   }
  }
  station_glow();
- /* ART DIRECTOR beacon masks on the docking aperture. */
+ /* Soft docking aperture lamps — additive haze, not four-point sparkles. */
  if(!sfx_fx_muted()&&game.pos.z<STATION_ENTRY_Z&&!occluded((Vec3){0,0,STATION_ENTRY_Z})){
-  int frame=((int)(game.time*5))&3;
+  int top=view_top(),bot=view_bot();
   for(int i=0;i<4;i++){
    Vec3 corner=station_port_corner(i);corner.z-=2;
    Vec3 v=camera(&game,add(rotate(corner,0,station_angle(&game)),(Vec3){0,0,STATION_Z}));
    if(v.z<20)continue;Point p=project(v);
-   space_anim_draw(SPACE_ANIM_BEACON,(int)p.x,(int)p.y,frame,RGB(85,212,212));
+   sfx_add((int)p.x,(int)p.y,RGB(40,90,95),top,bot);
   }
  }
  station_entrance();speed_lines();engine_flare();sfx_engine_plume_player();

@@ -7,6 +7,8 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 - **Commander playable pack:** ART tip `3f0dc20` (ART_AMBER cue freeze, no GOLD) + living-galaxy PR #23 `bc56842` (hybrid travellers, save V12).
 - Mission cue ART amber with 2-col header margin; smoke green.
 - Hybrid travellers: System Details here/inbound, Triangle hail, GalNet elsewhere mentions.
+- **MacVenture disembark declutter (untagged tip):** one action-row verbs; full-width MAIN; PACK/EXITS side panels removed; door labels and prop-marker spam dropped; text band is label+look only. Overlap gone at 480×272.
+- **Space FX quieting (same tip):** constant meteors removed; station traffic glitter / four-point sparkle masks dropped; window lamps + aperture/docking lights use soft additive haze; travel glitter stars removed. Plumes/nebula haze kept. No tag until smoke green.
 
 ## 2.5.40 - 2026-09-22
 

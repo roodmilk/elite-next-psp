@@ -134,8 +134,8 @@ static void starfield(void){
   Vec3 p=camera(&game,add(game.pos,mul(stars[i],30000)));if(p.z<100)continue;Point q=project(p);
   if(q.x<xt||q.x>xb||q.y<yt||q.y>yb)continue;
   unsigned c=i%7==0?RGB(196,215,255):i%11==0?RGB(240,213,164):i%19==0?RGB(255,180,190):RGB(95+i%90,110+i%90,140+i%90);
-  /* Twinkle more stars (and a bright sparkle subset) via space-fx. */
-  if(!high_contrast&&((i%5)==0||(i%17)==0||(i%13)==0))c=space_fx_twinkle(c,i,game.time);
+  /* Gentle twinkle only — no bright sparkle subset. */
+  if(!high_contrast&&((i%5)==0||(i%17)==0))c=space_fx_twinkle(c,i,game.time);
   pixel((int)q.x,(int)q.y,c);
   if(i%29==0){pixel((int)q.x+1,(int)q.y,c);pixel((int)q.x,(int)q.y+1,c);}
   if(!high_contrast&&(i%41)==0){sfx_add((int)q.x,(int)q.y,RGB(40,50,70),yt,yb);}
@@ -145,13 +145,13 @@ static void starfield(void){
 static void station_entrance(void){
  Vec3 p[4];for(int i=0;i<4;i++){Vec3 corner=station_port_corner(i);corner.z-=1;p[i]=camera(&game,add(rotate(corner,0,station_angle(&game)),(Vec3){0,0,STATION_Z}));}
  if(game.pos.z<3340){
-  int frame=((int)(game.time*5))&3;
+  int top=view_top(),bot=view_bot();
   for(int i=0;i<4;i++)if(p[i].z>15&&p[(i+1)%4].z>15){
    Point a=project(p[i]),b=project(p[(i+1)%4]);
-   /* Warm structural rim + cyan aperture signal (nav only on the cut). */
+   /* Warm structural rim + soft cyan aperture (nav cut only). */
    line((int)a.x,(int)a.y,(int)b.x,(int)b.y,RGB(193,139,77));
-   line((int)a.x+1,(int)a.y,(int)b.x+1,(int)b.y,RGB(85,212,212));
-   if(!high_contrast)space_anim_draw(SPACE_ANIM_BEACON,(int)((a.x+b.x)*.5f),(int)((a.y+b.y)*.5f),frame+i,RGB(85,212,212));
+   line((int)a.x+1,(int)a.y,(int)b.x+1,(int)b.y,RGB(60,140,145));
+   if(!high_contrast)sfx_add((int)((a.x+b.x)*.5f),(int)((a.y+b.y)*.5f),RGB(40,90,95),top,bot);
   }
  }
 }
@@ -197,10 +197,6 @@ static void warp_effect(void){
   line(240+(int)(cosf(angle)*radius),y0,240+(int)(cosf(angle)*end),y1,ink);
   if((i&3)==0)sfx_add(240+(int)(cosf(angle)*end),y1,ink,top,bot);
  }
- for(int k=0;k<16;k++){
-  float a=k*.4f+game.time*2.f;
-  space_anim_draw(SPACE_ANIM_SPARK,240+(int)(cosf(a)*30),110+(int)(sinf(a)*18),((int)(game.time*10)+k)&3,RGB(240,180,91));
- }
  rect(80,88,320,28,RGB(21,28,39));rect(80,88,320,2,RGB(193,139,77));
  text(15,12,RGB(240,180,91),"WARP TO %.12s  %.1f",game.systems[game.destination].name,game.jump);
 }
@@ -222,23 +218,22 @@ static void celestial_rims(void){
     int x1=(int)(p.x+cosf(bb)*rx),y1=(int)(p.y+sinf(bb)*ry+cosf(bb)*r*.14f);
     if(y0>=top&&y0<=bot&&y1>=top&&y1<=bot)line(x0,y0,x1,y1,RGB(100,109,133));
    }
-   /* Soft ring sparkle — cheap glitter along the outer ellipse. */
-   if(!high_contrast)for(int s=0;s<20;s++){
-    float a=s*.314f+game.time*.3f;int x=(int)(p.x+cosf(a)*r*1.55f),y=(int)(p.y+sinf(a)*r*.38f);
-    if(y>=top&&y<=bot){sun_bloom_dot(x,y,RGB(90,95,120),0,top,W,bot);if((s&3)==0)pixel(x,y,RGB(180,190,210));}
+   /* Soft ring haze — no glitter pixels. */
+   if(!high_contrast)for(int s=0;s<12;s++){
+    float a=s*.523f;int x=(int)(p.x+cosf(a)*r*1.55f),y=(int)(p.y+sinf(a)*r*.38f);
+    if(y>=top&&y<=bot)sun_bloom_dot(x,y,RGB(50,55,70),0,top,W,bot);
    }
   }
  }
 }
 static void station_glow(void){
  if(game.pos.z>=STATION_ENTRY_Z||occluded((Vec3){0,0,STATION_ENTRY_Z}))return;
- int frame=((int)(game.time*5))&3;
+ int top=view_top(),bot=view_bot();
  for(int i=0;i<4;i++){
   Vec3 corner=station_port_corner(i);corner.z-=2;
   Vec3 v=camera(&game,add(rotate(corner,0,station_angle(&game)),(Vec3){0,0,STATION_Z}));
   if(v.z<20)continue;Point p=project(v);
-  world_spark((int)p.x,(int)p.y,3,CYAN);
-  if(!high_contrast)space_anim_draw(SPACE_ANIM_BEACON,(int)p.x,(int)p.y,frame,CYAN);
+  if(!high_contrast)sfx_add((int)p.x,(int)p.y,RGB(40,90,95),top,bot);
  }
 }
 /* Mesh ships are drawn with yaw only; freighters follow full dir. Match that here. */

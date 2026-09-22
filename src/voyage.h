@@ -16,23 +16,20 @@ static void station_model(void){
  for(int i=0;i<4;i++){int j=(i+1)%4;Vec3 a=camera(&game,station_vertex(outer[i])),b=camera(&game,station_vertex(outer[j])),c=camera(&game,station_vertex(inner[j])),d=camera(&game,station_vertex(inner[i]));queue_triangle(a,b,c,RGB(109,140,151));queue_triangle(a,c,d,RGB(109,140,151));Vec3 backi=inner[i],backj=inner[j];backi.z=0;backj.z=0;queue_triangle(d,c,camera(&game,station_vertex(backj)),RGB(8,19,24));queue_triangle(d,camera(&game,station_vertex(backj)),camera(&game,station_vertex(backi)),RGB(8,19,24));}
   if(prosperity(&game,game.system)>=4){for(int ring=0;ring<2;ring++){float radius=230+ring*65;for(int i=0;i<24;i++){float a=station_angle(&game)+i*6.2831853f/24,b=station_angle(&game)+(i+1)*6.2831853f/24;Vec3 u=camera(&game,(Vec3){cosf(a)*radius,sinf(a)*radius,3500+(ring?100:-80)}),v=camera(&game,(Vec3){cosf(b)*radius,sinf(b)*radius,3500+(ring?100:-80)});if(u.z>15&&v.z>15){Point p=project(u),q=project(v);line((int)p.x,(int)p.y,(int)q.x,(int)q.y,ring?RGB(85,212,212):RGB(155,154,165));}}}}
 }
-/* Small practical windows make the exterior read as a lived-in miniature.
- * Procedural beacon masks; no station crawl geometry or interaction state. */
+/* Practical station windows — soft warm lamps only (no glitter masks). */
 static void station_window_animation(void){
  if(high_contrast)return;
  int top=clipy0>=0?clipy0:view_top(),bot=clipy1>=0?clipy1-1:view_bot();
- unsigned seed=game.bodies[0].seed^(unsigned)game.system*97u;
- int count=prosperity(&game,game.system)>=4?20:10;
+ int count=prosperity(&game,game.system)>=4?12:6;
  for(int i=0;i<count;i++){
   float a=station_angle(&game)+(i+.5f)*6.2831853f/count;
   float radius=214.f+(i&1)*38.f;
   Vec3 v=camera(&game,(Vec3){cosf(a)*radius,sinf(a)*radius,3500.f+((i&3)-1)*72.f});
   if(v.z<20)continue;
   Point p=project(v);if(p.x<2||p.x>=W-2||p.y<top||p.y>bot)continue;
-  unsigned c=((i+(int)(game.time*2.f))&5)==0?RGB(255,183,76):RGB(211,145,65);
-  space_anim_draw(SPACE_ANIM_BEACON,(int)p.x,(int)p.y,(int)(game.time*4.f)+i,c);
+  unsigned c=((i+(int)(game.time*1.4f))&3)?RGB(60,40,22):RGB(90,58,28);
+  sfx_add((int)p.x,(int)p.y,c,top,bot);
  }
- (void)seed;
 }
 static void secondary_hubs(void);
 static void menu_space_view(int x,int y,int w,int h){
@@ -47,7 +44,7 @@ static void menu_space_view(int x,int y,int w,int h){
   Vec3 ship=game.docked?(Vec3){0,40,3180}:game.planet>=0?add(game.pos,(Vec3){0,80,0}):game.pos;
   float dist=310.f;Vec3 cam=add(ship,(Vec3){sinf(phase)*dist,88.f+sinf(phase*.7f)*36.f,cosf(phase)*dist});
   game.pos=cam;Vec3 aim=norm(sub(ship,cam));game.yaw=atan2f(aim.x,aim.z);float ap=aim.y;if(ap>1)ap=1;if(ap<-1)ap=-1;game.pitch=asinf(ap);game.roll=0;
-  starfield();space_fx_nebula();space_fx_meteors();
+  starfield();space_fx_nebula();
   /* Local scenery so the inset reads as “ship in this system,” not a void studio. */
   if(game.docked||length(sub(ship,(Vec3){0,0,3500}))<14000){station_model();station_window_animation();}
   else {
@@ -63,7 +60,7 @@ static void menu_space_view(int x,int y,int w,int h){
 }
 static void ambient_space(void){
  if(system_whales(game.system)){Body *b=&game.bodies[3];for(int i=0;i<3;i++){float a=game.time*.028f+i*.62f;Vec3 pos=add(b->pos,(Vec3){cosf(a)*(b->radius+5600),700+sinf(a+i)*.5f*480,sinf(a)*(b->radius+5600)});if(length(sub(pos,game.pos))<14000)shipmesh(mesh_id("WORM"),pos,a+1.57f,sinf(game.time*.35f+i)*.16f,7.2f+i*1.3f,RGB(96,186,198),0);}}
- if(system_comet(game.system)){float a=game.time*.018f;Vec3 pos={cosf(a)*17000,1800,sinf(a)*17000};if(length(sub(pos,game.pos))<12000){shipmesh(mesh_id("BOULDER"),pos,a,a*.3f,1.4f,RGB(210,230,240),0);Vec3 tail=add(pos,(Vec3){sinf(a)*900,-200,-cosf(a)*900});Vec3 u=camera(&game,pos),v=camera(&game,tail);if(u.z>30&&v.z>30){Point p=project(u),q=project(v);if(p.y>view_top()&&p.y<view_bot()&&q.y>view_top()&&q.y<view_bot()){line((int)p.x,(int)p.y,(int)q.x,(int)q.y,CYAN);if(!high_contrast){int top=view_top(),bot=view_bot();for(int k=0;k<8;k++){float t=k/7.f;int x=(int)(p.x+(q.x-p.x)*t),y=(int)(p.y+(q.y-p.y)*t);sfx_add(x+(k&1),y,RGB(90,140,180),top,bot);space_anim_draw(SPACE_ANIM_SPARK,x,y,((int)(game.time*6)+k)&3,RGB(180,220,255));}}}}}}
+ if(system_comet(game.system)){float a=game.time*.018f;Vec3 pos={cosf(a)*17000,1800,sinf(a)*17000};if(length(sub(pos,game.pos))<12000){shipmesh(mesh_id("BOULDER"),pos,a,a*.3f,1.4f,RGB(210,230,240),0);Vec3 tail=add(pos,(Vec3){sinf(a)*900,-200,-cosf(a)*900});Vec3 u=camera(&game,pos),v=camera(&game,tail);if(u.z>30&&v.z>30){Point p=project(u),q=project(v);if(p.y>view_top()&&p.y<view_bot()&&q.y>view_top()&&q.y<view_bot()){line((int)p.x,(int)p.y,(int)q.x,(int)q.y,RGB(85,160,200));if(!high_contrast){int top=view_top(),bot=view_bot();for(int k=0;k<5;k++){float t=k/4.f;int x=(int)(p.x+(q.x-p.x)*t),y=(int)(p.y+(q.y-p.y)*t);sfx_add(x,y,RGB(50,90,120),top,bot);}}}}}}
 }
 static void speed_lines(void){float normal=game.speed/player_ships[game.ship].speed;if(normal<.75f||game.dock_stage||game.jump>0)return;int count=game.boost?65:18;float power=game.boost?fminf(1,normal/20):fminf(1,(normal-.75f)*4);for(int i=0;i<count;i++){float a=i*2.39996f;float r=95+fmodf(i*37+game.time*(game.boost?650:130),190);float trail=(game.boost?20+power*95:3+power*12);int x=240+(int)(cosf(a)*r),y=110+(int)(sinf(a)*r*.5f),xx=240+(int)(cosf(a)*(r+trail)),yy=110+(int)(sinf(a)*(r+trail)*.5f);int top=view_top(),bottom=view_bot();if(y>top&&y<bottom&&yy>top&&yy<bottom)line(x,y,xx,yy,game.boost?CYAN:RGB(95,128,145));}}
 static void engine_flare(void){
@@ -81,25 +78,8 @@ static void secondary_hubs(void){
   shipmesh(mesh_id("CORIOLIS"),p,0,station_angle(&game)+(i*1.7f),.62f,c,0);
  }
 }
-/* Distant traffic sparks near the home station — presentation only (Designer owns spawn). */
-static void station_traffic_glints(void){
- if(high_contrast||game.dock_stage||game.jump>0)return;
- float d=length(sub(game.pos,(Vec3){0,0,3500}));if(d>18000)return;
- int top=view_top(),bot=view_bot();
- unsigned seed=game.bodies[0].seed^(unsigned)game.system*41u;
- int n=4+(prosperity(&game,game.system)>=4?4:0);
- for(int i=0;i<n;i++){
-  float a=station_angle(&game)*.3f+i*1.1f+game.time*.12f;
-  float r=420.f+(i&3)*90.f;
-  Vec3 pos={cosf(a)*r,sinf(a*.7f)*60.f,3500.f+sinf(a)*r*.4f};
-  Vec3 v=camera(&game,pos);if(v.z<40||v.z>9000)continue;
-  Point p=project(v);if(p.x<4||p.x>=W-4||p.y<top||p.y>bot)continue;
-  unsigned ink=(i&1)?RGB(255,183,76):RGB(85,212,212);
-  world_spark((int)p.x,(int)p.y,1+(i&1),ink);
-  if((i&2)==0)space_anim_draw(SPACE_ANIM_SPARK,(int)p.x,(int)p.y,((int)(game.time*4)+i)&3,ink);
- }
- (void)seed;
-}
+/* Station-local traffic glitter removed — read as hull lights, not sparkle dots. */
+static void station_traffic_glints(void){}
 static void docking_view(void){
  if(game.dock_stage==3){
   rect(0,23,W,195,RGB(8,13,24));
@@ -112,20 +92,19 @@ static void docking_view(void){
  Vec3 oldpos=game.pos;float oldyaw=game.yaw,oldpitch=game.pitch,oldroll=game.roll;
  game.pos=(Vec3){260,120,2820};Vec3 aim=norm(sub((Vec3){0,0,3400},game.pos));
  game.yaw=atan2f(aim.x,aim.z);game.pitch=asinf(aim.y);game.roll=0;
- sector_background();space_fx_nebula();starfield();space_fx_meteors();
+ sector_background();space_fx_nebula();starfield();
  station_model();station_window_animation();
  float t=fminf(1,game.dock_timer/3);
  shipmesh(mesh_id(player_ships[game.ship].name),(Vec3){0,0,3070+t*470},0,station_angle(&game),.7f,RGB(193,139,77),0);
  flush_meshes();
  station_entrance();
- /* Soft approach corridor motes — presentation only. */
+ /* Soft approach haze only — no glitter stars in the corridor. */
  if(!high_contrast){
   int top=view_top(),bot=view_bot();
-  for(int i=0;i<12;i++){
-   float a=i*.52f+game.time*.8f;
+  for(int i=0;i<8;i++){
+   float a=i*.52f+game.time*.5f;
    int x=240+(int)(cosf(a)*(20+t*40)),y=110+(int)(sinf(a)*(10+t*18));
-   sfx_add(x,y,RGB(60,50,35),top,bot);
-   if((i&3)==0)space_anim_draw(SPACE_ANIM_SPARK,x,y,((int)(game.time*5)+i)&3,RGB(229,210,163));
+   sfx_add(x,y,RGB(40,32,22),top,bot);
   }
  }
  text(2,5,RGB(229,210,163),"ARRIVAL / %.16s",station_name(&game));
