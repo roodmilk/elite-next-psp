@@ -282,11 +282,10 @@ static void sc_draw_ui(void){
  sc_draw_fp();
  rect(0,0,W,28,RGB(8,19,28)); rect(0,26,W,2,GOLD);
  text(1,0,GOLD,"STATION / %.16s",station_name(&game));
- text(1,2,DIM,"LEFT/RIGHT TURN  UP MOVE  X ACT  O DECK");
- text(28,2,CYAN,"%.12s",sc_room_name(sc_map[sc_y][sc_x]));
- /* Facing compass strip */
- {const char *d[]={"N","E","S","W"};text(40,0,WHITE,"[%s]",d[sc_face&3]);
-  if(sc_door_ahead())text(44,0,CYAN,"DOOR");else text(44,0,DIM,"WALL");}
+ text(28,0,CYAN,"%.12s",sc_room_name(sc_map[sc_y][sc_x]));
+ {const char *d[]={"N","E","S","W"};text(42,0,WHITE,"[%s]",d[sc_face&3]);
+  if(sc_door_ahead())text(46,0,CYAN,"DOOR");else text(46,0,DIM,"WALL");}
+ text(1,2,DIM,"LEFT/RIGHT TURN   UP MOVE   X ACT   O DECK");
  sc_draw_minimap();
  rect(0,248,W,24,RGB(8,19,28)); rect(0,248,W,2,CYAN);
  ScNpc people[3]; int pn=sc_fill_npcs(sc_x,sc_y,people,3);
@@ -305,7 +304,7 @@ static void sc_draw_ui(void){
   text(1,31,GOLD,"%d here",pn); text_wrap(12,31,46,1,WHITE,people[0].line,0);
   text(1,32,DIM,"X talk / trade   face a door to walk");
  }else text(1,31,DIM,"Empty deck. Face a door and press UP.");
- if(game.passenger_dest>=0)text(40,0,CYAN,"PAX");
+ if(game.passenger_dest>=0)text(50,2,CYAN,"PAX");
 }
 static void sc_do_act(void){
  ScNpc people[3]; int pn=sc_fill_npcs(sc_x,sc_y,people,3);

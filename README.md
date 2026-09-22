@@ -1,4 +1,9 @@
-# ELITE: NEXT — development build 2.5.27
+# ELITE: NEXT — development build 2.5.28
+
+## New in 2.5.28 — deeper station crawl corridors
+
+- OpenEnroth-style FP depth: side portals track facing, arched passages show the next room tint, tile floors and ceiling beams.
+- Talk, shops, gifts and taxis unchanged.
 
 ## New in 2.5.27 — ask-then-answer story chat
 

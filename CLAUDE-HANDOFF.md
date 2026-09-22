@@ -64,6 +64,10 @@ Important controls:
 
 ## Recent changes that must be preserved
 
+### 2.5.28 — OpenEnroth-style station crawl depth
+
+Facing-relative side portals, arched passages, tile floor, ceiling beams, denser props; interactions unchanged.
+
 ### 2.5.27 — ask-then-answer story chat
 
 Prologue/saga Cross speaks the commander line first; NPC answer on the next beat. Saga replies are acknowledgments, not pre-answered questions.
