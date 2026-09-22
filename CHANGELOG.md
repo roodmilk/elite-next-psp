@@ -2,12 +2,14 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
-## Unreleased — soft-FB space beauty (PR; no micro-tag)
+## 2.5.40 - 2026-09-22
 
-- Wave B soft-FB: planet atmosphere bloom, sun-side specular, ocean reflection bands, ice aurora ribbons, near-planet haze, night-side city lights.
-- Travel beauty: denser cruise glitter, boost motion streaks, nebula filaments, sun canopy wash; ART DIRECTOR `space-animation-kit.h` plume/beacon/spark masks.
-- Wave C fun travel: solar wind streamers, traffic wakes, debris dust, dock corridor beacons, anomaly pulse rings, richer hyperspace tunnel.
-- Atmosphere flight: sun bloom streak + water/ice specular glitter + volcanic embers; gas-giant ring sparkle.
+- **Big combined tip:** ART DIRECTOR McQuarrie visual style + Systems soft-FB Wave B/C beauty + Story tip-batches on MacVenture polish.
+- Station MacVenture rooms: wall plates/rivets, floor seams, berth void stars + beacon, stronger hero staging ARRIVALS→CUSTOMS.
+- UI chrome: charcoal + cream/ochre instrument panels; gold corner-bracket look removed.
+- Soft-FB space beauty: planet bloom/specular/ocean/ice/city lights; travel glitter, solar wind, traffic wakes, dock beacons, anomaly pulses, denser warp tunnel.
+- Atmosphere flight: sun bloom streak, water/ice glitter, volcanic embers; gas-giant ring sparkle.
+- Story already on tip: Mission Network Vol II, GalNet colour, Guild Vol III, berth-six epilogue (from prior tip-batches).
 
 ## 2.5.39 - 2026-09-22
 
