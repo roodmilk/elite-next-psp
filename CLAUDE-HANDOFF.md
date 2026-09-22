@@ -33,6 +33,8 @@ The newest explicit user feedback overrides older prose in the large design bibl
 
 The packaged executable is `EBOOT.PBP`. Put the game folder under `PSP/GAME/ELITE-NEXT/`.
 
+**Download:** every playable build must appear on the GitHub Releases page (latest: https://github.com/roodmilk/elite-next-psp/releases/latest). After smoke is green, tag `v<VERSION>` and push the tag — do not leave the EBOOT only on a branch.
+
 Custom MP3s belong beside the EBOOT:
 
 ```text
