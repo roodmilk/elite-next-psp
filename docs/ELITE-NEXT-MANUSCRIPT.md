@@ -280,7 +280,7 @@ Each template: **Offer line** (board) → **Accept radio** → **In-flight remin
 
 ## II.5 Systemic mission novellas (multi-job arcs)
 
-These are optional chains the Mission Network can surface as linked briefs (implementation may start as flavour-linked singles).
+These are optional chains the Mission Network can surface as linked briefs. **Shipped on tip as flavour-linked singles** in `mission_brief` (Hungry Pad / Listen Twice / Boring Lies copy rotates by system+offer; Open Channel flags tint without spoiling). Full multi-job chain state remains backlog.
 
 ### Arc MN-A — "The Hungry Pad" (3 deliveries)
 1. Clinic pack → 2) School cook follow-up → 3) Convoy tender restock.  
@@ -570,14 +570,14 @@ Posts should feel local and slightly wrong when Meridian is active.
 - Mission Network: clocks, slots, markers — diegetic UI.
 
 ### Campaign-reactive GalNet seeds
-| Flag | Post seed |
-|---|---|
-| After Ch.07 publish | "Anonymous chart dump flooding local boards." |
-| After Ch.07 Guild | "Explorers peer-review lane open — slow, stubborn." |
-| After Ch.07 Iona | "Lawful evidence cage sealed; no comment." |
-| After Ch.13 loud | Settlements prep; Meridian ads turn personal. |
-| After Ch.19 | Helper faction mentions "standing by on your route." |
-| After Ch.23 | "Unidentified echo — do not approach. Do not invent gods." |
+| Flag | Post seed | Playable |
+|---|---|---|
+| After Ch.07 publish | "Anonymous chart dump flooding local boards." | Mira Spacebook via `saga_galnet_mira` |
+| After Ch.07 Guild | "Explorers peer-review lane open — slow, stubborn." | Desk / Kei wires |
+| After Ch.07 Iona | "Lawful evidence cage sealed; no comment." | Iona Spacebook via `saga_galnet_iona` |
+| After Ch.13 loud | Settlements prep; Meridian ads turn personal. | Mira Spacebook |
+| After Ch.19 | Helper faction mentions "standing by on your route." | Freighter + Mission Network |
+| After Ch.23 | "Unidentified echo — do not approach. Do not invent gods." | Iona Spacebook |
 
 ## V.6 Police stop (citizen track)
 Warrant dialogue stays adult and local:
@@ -636,8 +636,9 @@ If fled / testified / stood down: rare GalNet sightings; no revenge fetch quest 
 | 2026-09-22 | 2.5.37 tip | Act III (Ch.14–19) page scripts + Act III codas through No Easy Flag; Flag blurbs from screenplay |
 | 2026-09-22 | 2.5.39 tip (untagged pack) | Dialogue chrome fix (no YOU:/YOU SPOKE); Act IV Ch.20–25 page scripts + codas through berth; ask→answer realigned |
 | 2026-09-22 | 2.5.39 tip batch | Berth-six epilogue + coalition helpers from screenplay echoes; GalNet Open Channel colour from `saga_flags` |
-| (next) | — | Author 3 systemic mission novella chains in board data |
-| (next) | — | Expand GalNet reactive table beyond desk/Kei wires |
+| 2026-09-22 | 2.5.39 tip batch | Vol II mission brief banks + expanded GalNet reactive Spacebook/Network; Guild Vol III opening dialogue |
+| (next) | — | Wire true multi-job novella chain state (MN-A/B/C) beyond flavour-linked singles |
+| (next) | — | Author remaining bespoke set-piece backlog (Ch.02 seal, pods, courtroom, recorder) |
 
 ---
 

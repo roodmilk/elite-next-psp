@@ -40,7 +40,41 @@ int mission_count(const Game *g){int max=1+prosperity(g,g->system),n=0;while(n<m
 int jobs_active(const Game *g){return g->job_n;}
 int mission_type_for_offer(const Game *g,int offer){return (g->system+offer)%MISSION_TYPES;}
 const char *mission_name(int type){static const char *names[]={"Food delivery","Pirate hunt","Exploration scan","Pilot rescue","Covert delivery"};return type>=0&&type<MISSION_TYPES?names[type]:"Unknown mission";}
-const char *mission_brief(const Game *g,int offer){static char out[96];int type=mission_type_for_offer(g,offer),risk=danger_rating(g,g->system),wealth=prosperity(g,g->system);const char *dest=mission_destination(g,offer)>=0?g->systems[mission_destination(g,offer)].name:"nearby space";if(type==MISSION_DELIVERY)snprintf(out,sizeof(out),wealth>=4?"Fresh cargo to %s; market is hungry.":"Essential cargo to %s; margins are thin.",dest);else if(type==MISSION_BOUNTY)snprintf(out,sizeof(out),risk>=4?"Raiders active near %s; bounty is live.":"Track one wanted hull beyond %s.",dest);else if(type==MISSION_EXPLORATION)snprintf(out,sizeof(out),"Survey the unusual worlds around %s.",dest);else if(type==MISSION_RESCUE)snprintf(out,sizeof(out),risk>=4?"Distress beacon in hostile lanes near %s.":"A civilian beacon is waiting near %s.",dest);else snprintf(out,sizeof(out),"Quiet courier run to %s; local law is watching.",dest);return out;}
+const char *mission_brief(const Game *g,int offer){
+ /* Authored banks from manuscript Vol II — flavour-linked singles (Hungry Pad / Listen Twice / Boring Lies).
+  * Open Channel flags tint copy without spoiling chapter reveals. */
+ static char out[96];
+ int type=mission_type_for_offer(g,offer),risk=danger_rating(g,g->system),wealth=prosperity(g,g->system);
+ int dest_id=mission_destination(g,offer);const char *dest=dest_id>=0?g->systems[dest_id].name:"nearby space";
+ int pick=(g->system*7+offer*3)&3;int flags=g->campaign_stage>=6?g->saga_flags:0;
+ if(type==MISSION_DELIVERY){
+  if(flags&2&&pick==0){snprintf(out,sizeof(out),"Clinic softpacks to %s — settlements still prepping loud.",dest);return out;}
+  if(pick==0)snprintf(out,sizeof(out),"Protein crates to %s; kitchen ran out of polite excuses.",dest);
+  else if(pick==1)snprintf(out,sizeof(out),"School meal packs to %s dock. Quiet in the good way.",dest);
+  else if(pick==2)snprintf(out,sizeof(out),wealth>=4?"Greenhouse starters for %s — hope needs fertiliser.":"Water filters to %s; thirst makes bad navigators.",dest);
+  else snprintf(out,sizeof(out),wealth>=4?"Fresh cargo to %s; market is hungry.":"Essential cargo to %s; margins are thin.",dest);
+ }else if(type==MISSION_BOUNTY){
+  if(flags&1&&pick==0){snprintf(out,sizeof(out),"Clear a raider shaking quiet couriers near %s.",dest);return out;}
+  if(pick==0)snprintf(out,sizeof(out),risk>=4?"Raiders active near %s; bounty is live.":"Track one wanted hull beyond %s.",dest);
+  else if(pick==1)snprintf(out,sizeof(out),"Marked hull past %s. Clear it. Do not become the next bulletin.",dest);
+  else snprintf(out,sizeof(out),"Pirate taking tolls on the %s approach — remove the toll.",dest);
+ }else if(type==MISSION_EXPLORATION){
+  if(flags&4&&pick==0){snprintf(out,sizeof(out),"Listen twice near %s — markers, not ownership claims.",dest);return out;}
+  if(pick==0)snprintf(out,sizeof(out),"Untitled anomaly near %s. Scan before you invent a god.",dest);
+  else if(pick==1)snprintf(out,sizeof(out),"Migration whisper off %s. Observe; do not herd.",dest);
+  else snprintf(out,sizeof(out),"Survey the unusual worlds around %s.",dest);
+ }else if(type==MISSION_RESCUE){
+  if(pick==0)snprintf(out,sizeof(out),risk>=4?"Distress beacon in hostile lanes near %s.":"A civilian beacon is waiting near %s.",dest);
+  else if(pick==1)snprintf(out,sizeof(out),"Beacon in the same sector as %s — stamp before shrug.",dest);
+  else snprintf(out,sizeof(out),"Freighter tender crew in suits near %s — air thin, time thinner.",dest);
+ }else{
+  if(flags&1&&pick==0){snprintf(out,sizeof(out),"Sealed favour to %s — agricultural sensors on the label.",dest);return out;}
+  if(pick==0)snprintf(out,sizeof(out),"Quiet courier to %s; boring lie if asked. Local law is watching.",dest);
+  else if(pick==1)snprintf(out,sizeof(out),"Sealed crate to %s. Do not open for curiosity.",dest);
+  else snprintf(out,sizeof(out),"Quiet courier run to %s; local law is watching.",dest);
+ }
+ return out;
+}
 int mission_risk(const Game *g,int offer){int id=mission_destination(g,offer);if(id<0)return 1;int r=danger_rating(g,id);int type=mission_type_for_offer(g,offer);if(type==MISSION_BOUNTY||type==MISSION_SMUGGLING)r++;return r>5?5:r<1?1:r;}
 int mission_reward(const Game *g,int offer){int id=mission_destination(g,offer),type=mission_type_for_offer(g,offer);if(id<0)return 0;const int bonus[]={0,700,500,900,1300};int risk=mission_risk(g,offer);return 1000+(int)(distance_ly(g,g->system,id)*200)+prosperity(g,g->system)*150+bonus[type]+(risk-1)*125;}
 static int job_marked(const Job *j,const Game *g,int id){if(j->dest!=g->system)return 0;if(j->type==MISSION_DELIVERY||j->type==MISSION_SMUGGLING)return id==0;if(j->type==MISSION_EXPLORATION)return id==j->item+1;if(j->type==MISSION_RESCUE&&j->stage)return id==0;if((j->type==MISSION_BOUNTY||j->type==MISSION_RESCUE)&&j->target>=0)return id==BODY_COUNT+1+j->target;return 0;}

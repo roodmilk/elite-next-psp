@@ -691,6 +691,41 @@ static const char *saga_galnet_kei(const Game *g){
  if(g->saga_chapter>=6)return "Ryn is on the wire again. Tools before speeches.";
  return 0;
 }
+/* Spacebook / Mission Network colour — manuscript V.5 campaign-reactive seeds. */
+static const char *saga_galnet_iona(const Game *g){
+ if(!g||g->campaign_stage<6)return 0;
+ if(g->saga_flags&8)return "Inspection calendar is public. Distrust stays part of the design.";
+ if(g->saga_flags&4)return "Suspend language ready if Meridian paints a public ribbon.";
+ if(g->saga_flags&1)return "Lawful evidence cage sealed; no comment until the chain holds.";
+ if(g->saga_chapter>=21)return "Unidentified echo — do not approach. Do not invent gods.";
+ return 0;
+}
+static const char *saga_galnet_mira(const Game *g){
+ if(!g||g->campaign_stage<6)return 0;
+ if(g->saga_flags&2)return "Settlements stocking early. Meridian ads got personal overnight.";
+ if(g->saga_flags&1)return "Anonymous chart dump flooding local boards. Buy nothing labelled safe.";
+ return 0;
+}
+static const char *saga_galnet_freighter(const Game *g){
+ if(!g||g->campaign_stage<6||!(g->saga_flags&4))return 0;
+ if(g->saga_trust[SAGA_TRUST_PUBLIC]>=2)return "Tenders standing by on your route. No speeches. Just fuel.";
+ if(g->saga_trust[SAGA_TRUST_GUILD]>=2)return "Survey markers painted mid-cut. Follow dots, not ads.";
+ if(g->saga_trust[SAGA_TRUST_LAW]>=2)return "Ceasefire call ready if paint crosses the public lane.";
+ return "Coalition chatter on the channel — allies, not owners.";
+}
+static const char *saga_galnet_sable(const Game *g){
+ if(!g||g->campaign_stage<6)return 0;
+ if(g->saga_trust[SAGA_TRUST_INDEPENDENT]>=1)return "Quiet corridor open. Explicit bargain. No surprises.";
+ if(g->saga_flags&1)return "Free cargo inspection behind the gas giant. Still a joke. Mostly.";
+ return 0;
+}
+static const char *saga_galnet_network(const Game *g){
+ if(!g||g->campaign_stage<6)return 0;
+ if(g->saga_chapter>=SAGA_COUNT)return "Open Channel complete. Board stays the daily novel.";
+ if(g->saga_flags&4)return "Helper factions standing by on your route. Tracked Mission stays true.";
+ if(g->saga_chapter>=12)return "Side jobs may echo the channel — forged notices, sealed crates, pauses.";
+ return 0;
+}
 static int saga_voice_who(const SagaBeat *b){
  if(!b)return VOICE_CONTACT;
  if(b->role==0)return VOICE_KEI;

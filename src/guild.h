@@ -41,8 +41,9 @@ static inline const char *guild_objective(const Game *g){
  int i=g->guild_chapter;if(i<0)i=0;if(i>4)i=4;return tasks[i];
 }
 static inline const char *guild_line(const Game *g,int line){
+ /* Expanded Guild dialogue from manuscript Vol III — echo Open Channel verbs without spoiling Act I. */
  static const char *lines[][4]={
-  {"KEI: The ship is yours. Take your time.","Learn her turns, then bring her home.","VENN: Your berth will still be here.","A safe return is a good first story."},
+  {"KEI: Borrowed hulls remember their last pilot.","Learn her turns before you ask for heroics.","VENN: Prefer docking soft enough that I do not file you.","A safe return is a good first story."},
   {"TAMSIN: A crate can look like a number.","At the far end, someone needs dinner.","KEI: Take a food job from the board.","Keep its crate aboard until you dock."},
   {"ORU: Silence is rarely quite empty.","Find an anomaly in your target list.","Get close, then press Circle to scan.","KEI: Ryn taught me to listen twice."},
   {"KEI: A rescue beacon is still calling.","Take a pilot rescue from the board.","Hail them nearby, then bring them home.","Nobody should become a missing number."},

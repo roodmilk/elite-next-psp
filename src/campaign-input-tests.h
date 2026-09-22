@@ -123,6 +123,11 @@
   Game echo;game_init(&echo);echo.campaign_stage=6;echo.saga_trust[0]=2;echo.saga_flags=4;echo.saga_chapter=19;
   INPUT_CHECK(strstr(saga_epilogue_line(&echo),"noisy")&&strstr(saga_trust_helper(&echo),"Tamsin"),"script: epilogue and helpers speak berth-six decision echoes");
   INPUT_CHECK(saga_galnet_desk(&echo)&&strstr(saga_galnet_desk(&echo),"Coalition")&&saga_galnet_kei(&echo)&&strstr(saga_galnet_kei(&echo),"Lane first"),"script: GalNet desk/Kei posts colour from Open Channel flags");
+  INPUT_CHECK(saga_galnet_iona(&echo)&&strstr(saga_galnet_iona(&echo),"Suspend")&&saga_galnet_freighter(&echo)&&strstr(saga_galnet_freighter(&echo),"Tenders"),"script: GalNet Iona/freighter posts colour from Flag trust");
+  echo.saga_flags=1;echo.saga_trust[0]=0;echo.saga_trust[3]=1;
+  INPUT_CHECK(saga_galnet_mira(&echo)&&strstr(saga_galnet_mira(&echo),"chart dump")&&saga_galnet_sable(&echo)&&strstr(saga_galnet_sable(&echo),"corridor"),"script: GalNet Mira/Sable posts colour from Silence + Independent");
+  echo.system=0;INPUT_CHECK(mission_type_for_offer(&echo,0)==MISSION_DELIVERY&&strstr(mission_brief(&echo,0),"Protein"),"script: mission briefs use authored Vol II Hungry Pad bank");
+  INPUT_CHECK(strstr(guild_line(&echo,0),"Borrowed hulls"),"script: Guild opening line keeps manuscript expanded dialogue");
  }
  TEST_INIT();
 }
