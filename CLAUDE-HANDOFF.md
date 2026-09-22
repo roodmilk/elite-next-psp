@@ -80,7 +80,7 @@ Story navigation plans against the fitted drive even if the tank is empty, then 
 
 ### 2.5.9 — hard brake / heat polish, target bars, freighter fight-back
 
-Double-tap L hard brake and heat rules keep their regressions. Target panel shows HULL/SHLD bars. Damaged freighters return fire and destroying non-pirates raises extra local warrant. Engine plumes attach at mesh aft.
+Double-tap L hard brake and heat rules keep their regressions. Target panel shows HULL/SHLD bars. Damaged freighters return fire and destroying non-pirates raises extra local warrant. Engine plumes attach at mesh aft. Station walk is a FLY deck door with talkable NPCs; planet surfaces pull tint from world colours.
 
 ### 2.5.8 — per-system skies and far warp-in
 
