@@ -14,10 +14,47 @@ jobs:
     steps:
       - name: Check out tested release files
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Package PSP game folder
         shell: pwsh
         run: Compress-Archive -Path dist/ELITE-NEXT-PSP -DestinationPath "ELITE-NEXT-PSP-$env:GITHUB_REF_NAME.zip"
+
+      - name: Write player-facing release notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          {
+            echo "## Play this build"
+            echo
+            echo "1. Download **ELITE-NEXT-PSP-${TAG}.zip** (full game folder) or **EBOOT.PBP** alone."
+            echo "2. **PPSSPP:** open \`EBOOT.PBP\` from the unzipped folder."
+            echo "3. **PSP:** copy the folder to \`ms0:/PSP/GAME/ELITE-NEXT/\`."
+            echo
+            echo "Optional: drop your own MP3s into the \`music/\` station folders beside the EBOOT."
+            echo
+            echo "| Asset | Purpose |"
+            echo "| --- | --- |"
+            echo "| \`ELITE-NEXT-PSP-${TAG}.zip\` | Complete folder (EBOOT + music stations + install notes) |"
+            echo "| \`EBOOT.PBP\` | Game executable only |"
+            echo
+            echo "Project page: https://github.com/${GITHUB_REPOSITORY}#play-in-5-minutes"
+            echo
+            echo "---"
+            echo
+            PREV="$(git describe --tags --abbrev=0 "${TAG}^" 2>/dev/null || true)"
+            if [ -n "$PREV" ]; then
+              gh api "repos/${GITHUB_REPOSITORY}/releases/generate-notes" \
+                -f tag_name="$TAG" \
+                -f previous_tag_name="$PREV" \
+                --jq .body || echo "**Full Changelog**: https://github.com/${GITHUB_REPOSITORY}/compare/${PREV}...${TAG}"
+            else
+              echo "First packaged release for this repository line."
+            fi
+          } > release-notes.md
 
       - name: Create GitHub Release
         env:
@@ -28,4 +65,4 @@ jobs:
           "ELITE-NEXT-PSP-$GITHUB_REF_NAME.zip"
           "dist/ELITE-NEXT-PSP/EBOOT.PBP"
           --title "ELITE: NEXT $GITHUB_REF_NAME"
-          --generate-notes
+          --notes-file release-notes.md
