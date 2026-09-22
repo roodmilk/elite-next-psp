@@ -318,6 +318,7 @@ The last verified 2.5.32 run passed every group under PPSSPP (game, input, steer
 - Systems/QA added an optional `content.pack` archive for bounded ASCII UI-label overrides. It is ignored when absent or malformed, and `localization-check.txt` covers valid/rejected packs. It does not alter commander save compatibility.
 - Systems/QA added `src/planet-profile.h`: a deterministic, save-neutral descriptor derived from existing planet seeds. It is currently a runtime-neutral contract plus regression coverage; terrain/biome application is deferred until the Planetary owner validates the shared traversal lattice. No `Game` or commander-save fields changed.
 - `tools/generate-planet-previews.py` mirrors the PSP profile/sector arithmetic and produces `planet-profiles.json` plus a 256-system `planet-profiles.ppm` atlas for offline QA; it is not loaded by the PSP.
+- `src/planet-noise.h` exposes the current allocation-free bounded surface sample through `planet_noise_sample()`; it preserves the validated terrain output and is the seam for any later PSP-safe heightfield adapter.
 
 1. **Confirm 2.5.4 sleep/resume on physical PSP.** Put the handheld to sleep mid-flight and mid-radio for several hours, then wake — screen and audio must return. Also re-check 20+ minute MP3 playback across sample rates.
 2. **Deepen the 24 chapters further.** Briefings now carry full spoken sentences and authored asks; many bible set-pieces still resolve through generic dock/scan/hunt actions rather than unique scenes.

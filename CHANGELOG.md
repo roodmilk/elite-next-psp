@@ -41,6 +41,7 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 - Added a save-neutral `PlanetProfile` derived from each planet seed, centralizing family, terrain style, palette, prop density and activity density.
 - The profile contract is currently runtime-neutral while the Planetary owner validates the shared terrain/collision lattice; no existing surface geometry is changed by this checkpoint.
 - Added a dependency-free offline preview generator for all 256 systems, emitting profile JSON and a compact PPM atlas.
+- Added a PSP-safe `planet_noise_sample()` adapter that preserves the existing bounded surface sample while giving future terrain work one deterministic, allocation-free seam.
 
 - Loadout display and module refunds validate fitted catalog indexes before using equipment arrays.
 - Added V13 slot-value regression checks; save version and V12 migration remain unchanged.
