@@ -1,18 +1,19 @@
 /* Flight presentation and target selection. Target IDs: station, bodies, NPCs, debris. */
 static int selected_target=0,look_target=-1,autoaim=0,scan_cat=2,square_held=0,police_choice=0;
 static float r_tap=10,l_tap=10,hard_brake=0;
-static const char *scan_cat_names[]={"PLANETS","SHIPS","STATIONS","OTHER"};
+static const char *scan_cat_names[]={"PLANETS","SHIPS","STATIONS","OTHER","ENEMIES"};
+static int npc_is_hostile(const NPC *n){return n->role==PIRATES||n->target==-2;}
 static int target_category(int id){
  if(id==0)return 2;
  if(id>0&&id<=BODY_COUNT)return 0;
- if(IS_NPC_ID(id))return 1;
+ if(IS_NPC_ID(id))return npc_is_hostile(&game.npc[id-BODY_COUNT-1])?4:1;
  return 3;
 }
 static Vec3 target_position(int id){if(id==0)return hub_position(&game,game.docked?game.station_variant:nearest_hub(&game));if(id<=BODY_COUNT)return game.bodies[id-1].pos;if(IS_NPC_ID(id))return game.npc[id-BODY_COUNT-1].pos;if(IS_DEBRIS_ID(id))return game.debris[id-DEBRIS_ID_MIN].pos;return game.anomaly[id-ANOMALY_ID_MIN].pos;}
 static const char *target_name(int id){if(id==0)return station_name(&game);if(id<=BODY_COUNT)return game.bodies[id-1].name;static char label[32];if(IS_DEBRIS_ID(id)){Debris *d=&game.debris[id-DEBRIS_ID_MIN];if(d->rock)snprintf(label,sizeof(label),d->rock==2?"ICE ASTEROID":"MINERAL ASTEROID");else if(d->wreck)snprintf(label,sizeof(label),"WRECKAGE #%02d",id-DEBRIS_ID_MIN+1);else snprintf(label,sizeof(label),"%s POD",goods[d->good>=0&&d->good<GOODS?d->good:12].name);return label;}if(IS_ANOMALY_ID(id)){Anomaly *a=&game.anomaly[id-ANOMALY_ID_MIN];snprintf(label,sizeof(label),a->kind?"MERIDIAN ECHO":"STELLAR RIFT");return label;}NPC *n=&game.npc[id-BODY_COUNT-1];int serial=(id*17+game.system*7)&255;if(n->role==LAW)snprintf(label,sizeof(label),"ENCRYPTED // %02X",serial);else if(n->role==PIRATES)snprintf(label,sizeof(label),"RAIDER %c-%02d",'A'+(serial%26),serial%100);else if(n->role==EXPLORERS)snprintf(label,sizeof(label),"GUILD %c-%02d",'A'+(serial%26),serial%100);else if(n->freighter)snprintf(label,sizeof(label),"CAPITAL MERCHANT %02d",serial%100);else snprintf(label,sizeof(label),"MERCHANT %c-%02d",'A'+(serial%26),serial%100);return label;}
 static int valid_target(int id){if(id<0||id>ANOMALY_ID_MAX)return 0;if(id<=BODY_COUNT)return 1;if(IS_NPC_ID(id))return game.npc[id-BODY_COUNT-1].alive;if(IS_DEBRIS_ID(id))return game.debris[id-DEBRIS_ID_MIN].alive;return game.anomaly[id-ANOMALY_ID_MIN].alive;}
 static int scanner_known(int id){if(!IS_NPC_ID(id)||(game.upgrades&16))return 1;return length(sub(target_position(id),game.pos))<=2500;}
-static int nearest_hostile_target(void){int best=-1;float range=1e9f;for(int i=0;i<NPC_COUNT;i++)if(game.npc[i].alive&&(game.npc[i].role==PIRATES||game.npc[i].target==-2)){float d=length(sub(game.npc[i].pos,game.pos));if(d<range){range=d;best=BODY_COUNT+1+i;}}return best;}
+static int nearest_hostile_target(void){int best=-1;float range=1e9f;for(int i=0;i<NPC_COUNT;i++)if(game.npc[i].alive&&npc_is_hostile(&game.npc[i])){float d=length(sub(game.npc[i].pos,game.pos));if(d<range){range=d;best=BODY_COUNT+1+i;}}return best;}
 static void pick_look_target(void);
 static int occluded(Vec3 pos);
 static void lock_local_target(int id,const char *kind){
@@ -23,8 +24,9 @@ static void lock_local_target(int id,const char *kind){
 static int collect_scan_ids(int *ids,int cat){
  int n=0;
  if(cat==0){for(int i=1;i<BODY_COUNT;i++)ids[n++]=i+1;}
- else if(cat==1){for(int i=0;i<NPC_COUNT;i++)if(game.npc[i].alive)ids[n++]=BODY_COUNT+1+i;}
+ else if(cat==1){for(int i=0;i<NPC_COUNT;i++)if(game.npc[i].alive&&!npc_is_hostile(&game.npc[i]))ids[n++]=BODY_COUNT+1+i;}
  else if(cat==2)ids[n++]=0;
+ else if(cat==4){for(int i=0;i<NPC_COUNT;i++)if(game.npc[i].alive&&npc_is_hostile(&game.npc[i]))ids[n++]=BODY_COUNT+1+i;}
  else {
   for(int i=0;i<ANOMALY_COUNT;i++)if(game.anomaly[i].alive)ids[n++]=ANOMALY_ID_MIN+i;
   for(int i=0;i<DEBRIS_COUNT;i++)if(game.debris[i].alive)ids[n++]=DEBRIS_ID_MIN+i;
@@ -32,9 +34,9 @@ static int collect_scan_ids(int *ids,int cat){
  return n;
 }
 static void step_scan_cat(int dir){
- for(int n=0;n<4;n++){
+ for(int n=0;n<5;n++){
   int ids[BODY_COUNT+NPC_COUNT+DEBRIS_COUNT+ANOMALY_COUNT];
-  scan_cat=(scan_cat+dir+4)%4;
+  scan_cat=(scan_cat+dir+5)%5;
   if(collect_scan_ids(ids,scan_cat))return;
  }
 }
@@ -44,7 +46,7 @@ static void tab_flight_category(int dir){
  if(!n){message(&game,"No contacts in that band.");return;}
  int best=0;float br=1e9f;
  for(int i=0;i<n;i++){float d=length(sub(target_position(ids[i]),game.pos));if(d<br){br=d;best=i;}}
- static const char *lab[]={"Planet","Ship","Station","Other"};
+ static const char *lab[]={"Planet","Ship","Station","Other","Enemy"};
  lock_local_target(ids[best],lab[scan_cat]);
 }
 static void cycle_scan_item(int dir){
@@ -52,7 +54,7 @@ static void cycle_scan_item(int dir){
  if(!n){message(&game,"No contacts in that band.");return;}
  int cur=-1;for(int i=0;i<n;i++)if(ids[i]==selected_target)cur=i;
  if(cur<0)cur=dir>0?-1:0;
- static const char *lab[]={"Planet","Ship","Station","Other"};
+ static const char *lab[]={"Planet","Ship","Station","Other","Enemy"};
  lock_local_target(ids[(cur+dir+n)%n],lab[scan_cat]);
 }
 static void cycle_front_target(void){
@@ -93,7 +95,7 @@ static void hail_target(void){
  if(IS_NPC_ID(id)){
   if(mission_interact(&game,id))return;
   NPC *n=&game.npc[id-BODY_COUNT-1];
-  selected_target=id;scan_cat=1;autoaim=0;story_event(&game,STORY_EV_TARGET);
+  selected_target=id;scan_cat=target_category(id);autoaim=0;story_event(&game,STORY_EV_TARGET);
   if(n->role==PIRATES)speak(&game,VOICE_COMP,"No reply. They're painting us.");
   else if(n->role==LAW)contact_speak(LAW,game.legal?"Stop. Pay the fine or take custody.":"Clear. Keep the lane clean.");
   else if(n->role==TRADERS){if(n->freighter){char cargo[80];snprintf(cargo,sizeof(cargo),"%s %s. %d%c %s. %s.",n->freight_state<=FREIGHT_INBOUND?"From":"To",game.systems[n->freight_peer].name,n->freight_qty,goods[n->freight_good].unit,goods[n->freight_good].name,freight_status(n));contact_speak(TRADERS,cargo);}else contact_speak(TRADERS,"Market's open at the hub. Don't scrape the paint.");}
@@ -128,6 +130,14 @@ static void target_overlay(void){
  pick_look_target();
  if(valid_target(selected_target)){Vec3 p=camera(&game,target_position(selected_target));if(p.z>15){Point q=project(p);if(q.x>16&&q.x<464&&q.y>84&&q.y<168){int x=(int)q.x,y=(int)q.y;unsigned lock=autoaim?CYAN:AMBER;if(IS_NPC_ID(selected_target))lock=faction_colors[game.npc[selected_target-BODY_COUNT-1].role];line(x-14,y-14,x-5,y-14,lock);line(x-14,y-14,x-14,y-5,lock);line(x+14,y+14,x+5,y+14,lock);line(x+14,y+14,x+14,y+5,lock);line(x-14,y+14,x-5,y+14,lock);line(x+14,y-14,x+5,y-14,lock);int pulse=1+(int)(fabsf(sinf(game.time*4))*3);circle(x,y,pulse,lock);if(autoaim){line(x-20,y,x-16,y,CYAN);line(x+16,y,x+20,y,CYAN);line(x,y-20,x,y-16,CYAN);line(x,y+16,x,y+20,CYAN);}}}}
 }
+/* Bottom-of-canopy combat cue — keeps speech free at the top. */
+static void combat_alert_banner(void){
+ if(game.incoming_missile<=0&&game.attacked<=0&&game.collision<=0)return;
+ int bot=view_bot(),y=bot-14;if(y<28)y=28;
+ rect(120,y,240,12,RGB(90,12,18));rect(122,y+1,236,10,RGB(55,8,12));
+ const char *msg=game.incoming_missile>0?"RED ALERT - MISSILE":game.collision>0?"RED ALERT - IMPACT":"RED ALERT";
+ int len=(int)strlen(msg);text(30-len/2,y/8,WHITE,"%s",msg);
+}
 static void minimal_overlay(void){
  pick_look_target();
  rect(0,0,W,24,RGB(6,15,24));rect(0,248,W,24,RGB(6,15,24));
@@ -136,7 +146,7 @@ static void minimal_overlay(void){
  text(1,32,game.energy<30?RED:CYAN,"SHIELD %d%%",(int)game.energy);
  int id=valid_target(selected_target)?selected_target:valid_target(look_target)?look_target:-1;
  if(id>=0)text(25,32,GOLD,"%.32s",target_name(id));
- if(game.incoming_missile>0||game.attacked>0||game.collision>0){rect(8,24,464,16,RGB(70,15,22));text(2,4,WHITE,game.incoming_missile>0?"MISSILE INBOUND - BOOST TO EVADE":game.attacked>0?"UNDER ATTACK":"COLLISION - SLOW DOWN");}
+ combat_alert_banner();
 }
 static void missile_effects(void){int top=view_top(),bot=view_bot();if(game.missile_time>0){Vec3 p=camera(&game,game.missile_pos);if(p.z>15){Point q=project(p);int x=(int)q.x,y=(int)q.y;if(x>2&&x<478&&y>top&&y<bot){circle(x,y,3,GOLD);line(x,y,x-6,y+8,RED);}}}if(game.incoming_missile>0&&game.incoming_source>=0&&game.incoming_source<NPC_COUNT&&game.npc[game.incoming_source].alive){Vec3 p=camera(&game,game.npc[game.incoming_source].pos);if(p.z>15){Point q=project(p);if(q.x>4&&q.x<476&&q.y>top+4&&q.y<bot-4)circle((int)q.x,(int)q.y,8,RED);}}}
 static void warp_effect(void){if(game.jump<=0)return;int top=view_top(),bot=view_bot();rect(0,top,W,bot-top+1,RGB(4,8,24));float progress=(5-game.jump)/5;for(int i=0;i<85;i++){float angle=i*2.39996f;float radius=15+fmodf(i*19+progress*450,230);float end=radius+20+progress*90;int y0=(int)fmaxf(top,fminf(bot,110+sinf(angle)*radius*.5f)),y1=(int)fmaxf(top,fminf(bot,110+sinf(angle)*end*.5f));line(240+(int)(cosf(angle)*radius),y0,240+(int)(cosf(angle)*end),y1,i%3?CYAN:WHITE);}rect(80,88,320,28,DASH);rect(80,88,320,2,AMBER);text(15,12,AMBER,"WARP TO %.12s  %.1f",game.systems[game.destination].name,game.jump);}

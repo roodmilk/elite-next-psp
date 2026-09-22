@@ -2,6 +2,12 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.6 - 2026-09-22
+
+- Combat warnings show a compact **RED ALERT** strip at the bottom of the canopy so speech at the top stays readable.
+- Hold Square + Left/Right now includes an **ENEMIES** scanner band listing pirates and anyone currently hostile.
+- Confirmed Galacticnet Spacebook/Messages order with parody logo, and Discovery Codex Systems + Planets (worlds unlocked by visiting a system).
+
 ## 2.5.5 - 2026-09-22
 
 - Speaker labels (`KEI SAYS`, `IONA SAYS`, flight chatter, Law stops) now sit on a colour chip matching the speaker.

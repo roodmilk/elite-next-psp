@@ -130,11 +130,10 @@ static void cockpit(void){
  int heading=(int)(game.yaw*57.29578f)%360;if(heading<0)heading+=360;
  text(24,0,DIM,"%03d",heading);danger_badge(224,4,danger_rating(&game,game.system));
  {const char *cue=tracked_hud_cue();int clen=(int)strlen(cue);if(clen>24)clen=24;text(60-clen,0,GOLD,"%.*s",clen,cue);}
- if(game.incoming_missile>0||game.attacked>0||game.collision>0){
-  rect(8,24,464,16,RGB(70,15,22));text(2,4,WHITE,game.incoming_missile>0?"MISSILE INBOUND - BOOST TO EVADE":game.attacked>0?"UNDER ATTACK":"COLLISION - SLOW DOWN");
- }else if(game.dock_stage==1){rect(8,24,464,16,RGB(8,24,32));text(2,4,CYAN,"DOCKING GUIDANCE ACTIVE");}
- else if(square_held){rect(8,24,464,32,RGB(8,24,32));for(int i=0;i<4;i++)text(2+i*14,4,i==scan_cat?GOLD:DIM,"%s",scan_cat_names[i]);text(2,6,CYAN,"D-PAD BANDS   L CYCLE VIEW");text(35,6,GOLD,"R LOCK");}
+ if(game.dock_stage==1){rect(8,24,464,16,RGB(8,24,32));text(2,4,CYAN,"DOCKING GUIDANCE ACTIVE");}
+ else if(square_held){rect(8,24,464,32,RGB(8,24,32));for(int i=0;i<5;i++)text(1+i*11,4,i==scan_cat?GOLD:DIM,"%s",scan_cat_names[i]);text(2,6,CYAN,"D-PAD BANDS   L CYCLE VIEW");text(35,6,GOLD,"R LOCK");}
  else if(game.approach<0&&!game.police_stop&&!game.dead&&!game.dock_stage&&game.jump<=0)speech_box(8,24,464);
+ combat_alert_banner();
  rect(0,192,W,80,RGB(6,15,24));rect(0,192,W,1,CYAN);
  line(155,198,155,258,RGB(32,57,69));line(323,198,323,258,RGB(32,57,69));
  int id=valid_target(selected_target)?selected_target:valid_target(look_target)?look_target:-1;

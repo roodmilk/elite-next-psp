@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.5**.
+Prepared 22 September 2026. Current build: **2.5.6**.
 
 ## Start here
 
@@ -76,6 +76,10 @@ The nearby list only shows local candidates. Triangle opens a spatial overview o
 
 Story navigation plans against the fitted drive even if the tank is empty, then marks the next hop as low-fuel until the player refuels. The story screen distinguishes `NEXT` from `FINAL`, and the cockpit names the next reachable hop.
 
+### 2.5.6 — red alert and enemies band
+
+Combat cues use a bottom-of-canopy RED ALERT strip. Square+D-pad scanner bands include ENEMIES (hostiles only). Galacticnet Spacebook/Messages and Codex Systems/Planets remain as shipped in 2.5.5.
+
 ### 2.5.5 — speaker chips, menus, radio, system variety
 
 Dialogue name plates use `speaker_name_tag` so `NAME SAYS` sits on a faction-coloured chip. Tracked Mission draws speaker portraits. Outfitting explains tech gates in plain language. Galacticnet order is Spacebook then Messages with a parody logo. Codex lists Systems and Planets discovered by visiting. Radio is a tuner with OFF, static on retune, and Triangle power. Planet types/traffic layout vary per system; hyperspace arrival is farther from the hub.
@@ -129,7 +133,7 @@ The build compiles `game.c`, `ships.c` and `main.c`, links PSP libraries and pro
 - radio checks;
 - performance checks.
 
-The last verified 2.5.5 run passed every group under PPSSPP (game, input, steering, radio, performance). PPSSPP success does not replace physical PSP testing.
+The last verified 2.5.6 source built with Red Alert / ENEMIES changes; full PPSSPP smoke follows packaging. PPSSPP success does not replace physical PSP testing.
 
 ## Highest-priority remaining work
 
