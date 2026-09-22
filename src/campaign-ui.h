@@ -35,19 +35,19 @@ static void campaign_screen(void){
    int beat=saga_brief_beat;if(beat<0)beat=0;if(beat>=SAGA_BRIEF_BEATS)beat=SAGA_BRIEF_BEATS-1;
    if(saga_brief_echo){
     player_speech_bubble(54,saga_brief_reply(b,beat));
-    panel(16,124,448,45);text(3,16,GOLD,"YOU SPOKE");
-    text_wrap(3,18,54,1,WHITE,"X to hear their reply.",0);
-    text(3,20,AMBER,"Beat %d / %d - you speak first",beat+1,SAGA_BRIEF_BEATS);
-    narrative_reply_choice(0,22,"Hear the reply");
+    panel(16,124,448,45);text(3,16,GOLD,"WAITING");
+    text_wrap(3,18,54,1,WHITE,"X — hear their answer.",0);
+    text(3,20,AMBER,"%d / %d",beat+1,SAGA_BRIEF_BEATS);
+    narrative_reply_choice(0,22,"Hear the answer");
    }else{
     saga_speaker_face(16,56,48,b);
     rect(76,54,388,68,RGB(14,29,39));rect(76,54,388,2,ink);rect(76,120,388,2,RGB(30,78,86));rect(462,54,2,68,ink);
     line(76,74,64,82,ink);line(64,82,76,90,ink);rect(73,76,4,13,RGB(14,29,39));
     speaker_name_tag(11,7,b->speaker,ink);
     text_wrap(11,9,46,3,WHITE,saga_brief_line(b,beat),0);
-    panel(16,130,448,39);text(3,17,GOLD,"CONVERSATION");
-    text_wrap(3,19,54,1,WHITE,beat<SAGA_BRIEF_BEATS-1?"Listen, then reply.":b->objective,0);
-    text(3,20,AMBER,"Beat %d / %d - finish before leaving",beat+1,SAGA_BRIEF_BEATS);
+    panel(16,130,448,39);text(3,17,GOLD,beat<SAGA_BRIEF_BEATS-1?"YOUR REPLY":"ACCEPT");
+    text_wrap(3,19,54,1,WHITE,beat<SAGA_BRIEF_BEATS-1?"Ask, then hear the answer.":b->objective,0);
+    text(3,20,AMBER,"%d / %d",beat+1,SAGA_BRIEF_BEATS);
     narrative_reply_choice(0,22,saga_brief_reply(b,beat));
    }
    footer("X CONTINUE   (O/SELECT LOCKED)");return;
@@ -76,15 +76,15 @@ static void campaign_screen(void){
   if(prologue_brief_echo){
    /* Commander ask is on screen; Kei's answer waits for the next Cross. */
    player_speech_bubble(54,prologue_brief_reply(beat));
-   rect(16,130,448,27,RGB(13,36,43));text(3,17,CYAN,"YOU ASKED");
-   text_wrap(3,19,54,1,WHITE,"X to hear Kei's answer.",0);
-   text(3,20,AMBER,"Ask first - Beat %d / %d",beat+1,PROLOGUE_BRIEF_BEATS);
+   rect(16,130,448,27,RGB(13,36,43));text(3,17,CYAN,"WAITING");
+   text_wrap(3,19,54,1,WHITE,"X — hear Kei's answer.",0);
+   text(3,20,AMBER,"%d / %d",beat+1,PROLOGUE_BRIEF_BEATS);
    narrative_reply_choice(0,22,"Hear Kei's answer");
   }else{
    kei_speech_bubble(48,prologue_brief_line1(beat),prologue_brief_line2(beat),0);
-   rect(16,130,448,27,RGB(13,36,43));text(3,17,CYAN,"CURRENT OBJECTIVE");
+   rect(16,130,448,27,RGB(13,36,43));text(3,17,CYAN,beat<PROLOGUE_BRIEF_BEATS-1?"YOUR REPLY":"ACCEPT");
    text_wrap(3,19,54,1,WHITE,beat<PROLOGUE_BRIEF_BEATS-1?"Ask Kei, then hear the answer.":"Accept first flight, then launch.",0);
-   text(3,20,AMBER,"YOUR REPLY - Beat %d / %d",beat+1,PROLOGUE_BRIEF_BEATS);
+   text(3,20,AMBER,"%d / %d",beat+1,PROLOGUE_BRIEF_BEATS);
    narrative_reply_choice(0,22,prologue_brief_reply(beat));
   }
   footer("X CONTINUE   (O/SELECT LOCKED UNTIL ACCEPT)");return;
