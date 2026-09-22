@@ -704,10 +704,12 @@ static void input_tests(void){
    INPUT_CHECK(clean,"graphics: routine cockpit text never paints central viewing area");
    memset(pixels,0,STRIDE*H*sizeof(unsigned));launch(&game);page=FLIGHT;tracked_mission=0;hud_mode=hud_hidden=0;quiet_comms=1;game.voice_time=0;game.message_time=0;cockpit();
    {
-    const char *cue=tracked_hud_cue();int clen=(int)strlen(cue);int cols=W/8,inset=1,left=34,max=cols-inset-left;if(clen>max)clen=max;
-    int start=cols-inset-clen,right_px=(start+clen)*8,gold=0,far=0;
-    for(int y=0;y<8;y++)for(int x=start*8;x<right_px&&x<W;x++)if(pixels[y*STRIDE+x]==GOLD){gold=1;if(x>=W-16)far=1;}
-    INPUT_CHECK(gold&&far&&start>=left,"graphics: mission cue sits flush on the top-right header");
+    /* ART_AMBER objective cue — top-right header with 2-col margin, not flush to the edge. */
+    const char *cue=tracked_hud_cue();int clen=(int)strlen(cue);int cols=W/8,inset=2,left=34,max=cols-inset-left;if(clen>max)clen=max;
+    int start=cols-inset-clen,right_px=(start+clen)*8,seen=0,far=0,flush=0;
+    unsigned ink=RGB(240,180,91);
+    for(int y=0;y<8;y++)for(int x=start*8;x<right_px&&x<W;x++)if(pixels[y*STRIDE+x]==ink){seen=1;if(x>=W-32)far=1;if(x>=W-8)flush=1;}
+    INPUT_CHECK(seen&&far&&!flush&&start>=left,"graphics: mission cue top-right in header with margin");
    }
    memset(pixels,0,STRIDE*H*sizeof(unsigned));add_crime(&game,15);cockpit();
    {
@@ -717,7 +719,7 @@ static void input_tests(void){
    }
    memset(pixels,0,STRIDE*H*sizeof(unsigned));launch(&game);page=HOME;menu_space_view(246,64,218,92);
    {
-    int gold=0;for(int y=65;y<150;y++)for(int x=247;x<460;x++)if(pixels[y*STRIDE+x]==GOLD||((pixels[y*STRIDE+x]&255)>180&&((pixels[y*STRIDE+x]>>8)&255)>140))gold=1;
+    int gold=0;for(int y=65;y<150;y++)for(int x=247;x<460;x++){unsigned p=pixels[y*STRIDE+x];if(p==GOLD||p==RGB(193,139,77)||((p&255)>180&&((p>>8)&255)>130))gold=1;}
     INPUT_CHECK(gold,"graphics: Select deck top-right shows a third-person ship silhouette");
    }
    {

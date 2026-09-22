@@ -189,7 +189,7 @@ Cockpit header shows `Wanted n/5` on the line under `System:` (red when police m
 
 ### 2.5.11 — mission cue top-right
 
-Tracked HUD cue is flush-right on the top header (1-col inset), kept clear of the danger badge, with a longer buffer so the short guide stays readable.
+Tracked HUD cue sits in the top header band, right-aligned with a 2-col margin (not flush to the screen edge), clear of the danger badge. Objective ink is ART amber (`RGB(240,180,91)`).
 
 ### 2.5.10 — Start power on cockpit meters
 

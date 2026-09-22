@@ -227,10 +227,11 @@ static void cockpit(void){
  {int wl=wanted_level(&game);text(1,1,wl?RED:RGB(155,154,165),wl?"Wanted %d/5":"Wanted 0/5",wl);}
  int heading=(int)(game.yaw*57.29578f)%360;if(heading<0)heading+=360;
  text(24,0,RGB(155,154,165),"%03d",heading);danger_badge(224,4,danger_rating(&game,game.system));
- /* Mission cue flush to the top-right (1-col inset). Keep past the danger badge. */
+ /* Mission cue top-right in the header band with a 2-col margin — not flush
+  * to the screen edge. Amber objective ink (ART_AMBER); clear of danger badge. */
  {
   const char *cue=tracked_hud_cue();
-  int cols=W/8,inset=1,left=34,clen=(int)strlen(cue),max=cols-inset-left;
+  int cols=W/8,inset=2,left=34,clen=(int)strlen(cue),max=cols-inset-left;
   if(max<8)max=8;if(clen>max)clen=max;
   text(cols-inset-clen,0,GOLD,"%.*s",clen,cue);
  }
