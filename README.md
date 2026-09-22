@@ -2,7 +2,7 @@
 
 ## New in 2.5.37 — unified playable tip
 
-- **One pack:** MacVenture station (LOOK/SPEAK/GO/TAKE, art-kit soft-FB rooms, clear SHIP return) **and** Open Channel Act I eight-beat page scripts with choice blurbs and locked codas.
+- **One pack:** MacVenture station (LOOK/SPEAK/GO/TAKE, art-kit soft-FB rooms, clear SHIP return) **and** Open Channel Act I–II eight-beat page scripts with choice blurbs and locked codas (through Carry Home).
 - Warmer planets, settlement silhouettes and richer space from ART DIRECTOR's in-game look pass.
 - Post-unify polish targets: `docs/CINEMATIC-MOCKUP-TARGETS.md` (hero focus, fewer frames, warm staging).
 

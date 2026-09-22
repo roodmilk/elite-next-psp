@@ -67,9 +67,10 @@ Important controls:
 
 ### 2.5.37 — unified playable tip
 
-One pack: MacVenture station (art-kit soft-FB, SHIP return, talk/shop/gift/taxi) + Act I eight-beat page scripts/codas. ART DIRECTOR warmer planets / settlement silhouettes / richer space folded in (`planet.h` / `voyage.h`). Post-unify A++ MacVenture polish composition targets: `docs/CINEMATIC-MOCKUP-TARGETS.md` (hero focus, fewer frames, warm staging) — do not edit story saga ownership.
+One pack: MacVenture station (art-kit soft-FB, SHIP return, talk/shop/gift/taxi) + Act I–II eight-beat page scripts/codas (Ch.02–13 through Carry Home). ART DIRECTOR warmer planets / settlement silhouettes / richer space folded in (`planet.h` / `voyage.h`). Post-unify A++ MacVenture polish composition targets: `docs/CINEMATIC-MOCKUP-TARGETS.md` (hero focus, fewer frames, warm staging) — do not edit story saga ownership.
 
-**Story follow-on on this tip (no new tag yet):** Act II (indices 6–11 / Ch.08–13) raised to the same page-script authority; codas extend through Carry Home (`SAGA_ACT2_END`); Nadi/Sable Act I beats pulled closer to screenplay (Voss tape, "do not flinch").
+**Story on this tip:** Act II (indices 6–11 / Ch.08–13) at the same page-script authority; codas extend through Carry Home (`SAGA_ACT2_END`); Nadi/Sable Act I beats pulled closer to screenplay (Voss tape, "do not flinch").
+
 
 ### 2.5.36 — MacVenture + art kit wire
 
