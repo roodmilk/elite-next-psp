@@ -69,6 +69,8 @@ Important controls:
 
 Open Channel briefs are eight ask-then-answer beats (`SAGA_BRIEF_BEATS`). Act I (indices 0–5) carries deepened page-script dialogue from the screenplay; later chapters pad to eight. Permanent decisions show `saga_choice_blurb` under the highlight. Act I completion opens a runtime-locked coda (`saga_coda_pending`) before the next brief — no save-format change.
 
+**Follow-on (branch tip, awaiting unify release):** Act II (indices 6–11 / Ch.08–13) raised to the same page-script authority; codas extend through Carry Home (`SAGA_ACT2_END`); Nadi/Sable Act I beats pulled closer to screenplay (Voss tape, "do not flinch"). Do not tag until the unified tip lands.
+
 ### 2.5.33 — whole-game story manuscript
 
 `docs/ELITE-NEXT-MANUSCRIPT.md` is the Story Manager living bible for missions + campaign + texture. Open Channel theatrical scenes remain in `OPEN-CHANNEL-SCREENPLAY.md`.

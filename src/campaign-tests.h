@@ -40,8 +40,10 @@ static void campaign_tests(FILE *f,int *failures){
  CHECK(saga_ready(&epic)&&saga_advance(&epic)&&epic.saga_trust[1]==1&&(epic.saga_flags&1),"saga: player choice persists as trust and consequence flags");
  CHECK(saga_coda_pending==5&&strstr(saga_choice_blurb(5,1),"Slower"),"saga: Act I choice queues coda and shows consequence blurbs");
  saga_coda_pending=-1;
+ CHECK(saga_has_coda(11)&&strstr(saga_coda_line1(10),"Amplifier")&&strstr(saga_beats[9].talk6,"grammar"),"saga: Act II page scripts and codas reach reunion / giants");
  CHECK(!strcmp(saga_choice_label(5,0),"Publish the ledger now")&&!strcmp(saga_choice_label(11,1),"Verify evidence first")&&!strcmp(saga_choice_label(17,2),"Lawful supervised force"),"saga: choice labels match each permanent decision");
  CHECK(SAGA_BRIEF_BEATS==8&&saga_beats[0].talk8&&saga_beats[0].ask8,"saga: briefs are eight-beat page scripts");
+ CHECK(strstr(saga_beats[4].talk6,"spreadsheet")&&strstr(saga_beats[7].line,"tourists"),"saga: Nadi Voss-tape and Venn archive open from screenplay");
  epic.saga_chapter=11;epic.saga_step=1;epic.saga_choice=3;
  CHECK(saga_ready(&epic)&&saga_advance(&epic)&&epic.saga_trust[3]==1&&(epic.saga_flags&2),"saga: limited-alert choice raises Independent trust");
  epic.docked=1;remove("test-saga.sav");remove("test-saga.sav.bak");

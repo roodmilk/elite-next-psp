@@ -90,32 +90,33 @@ static const SagaBeat saga_beats[]={
   "I will keep the records clean.",
   "Return the records to Iona.",
   "Bring the records to Iona",SAGA_HOME,3},
- /* Act I Ch.06 — page script */
+ /* Act I Ch.06 — Voss tape + Pip key */
  {"The Last Useful Thing","NADI",
   "That wreck still has a recorder worth saving, and scavengers are already arguing about the shiny bits.",
   "Intact enough for a dump if you move before they strip the useful parts. Pip is watching the checklist like a hawk.",
   "A route key buried in maintenance notes like spare gasket stock — and a pointer to the unedited recording underneath.",
   "Meridian amplifying a biological navigation signal and selling the clear lanes. That is the useful thing. Scrap is noise.",
   "No. Scrap is how you become a second wreck. Pull the dump the moment the recorder answers, then leave.",
-  "Pip says the checklist is non-negotiable: power, dump, seal, clear. Humour optional. Leaving is not.",
+  "On the tape Voss calls predictability mercy with a spreadsheet. Pip found the route key under 'recalibrate audience.'",
   "If scavengers crowd you, talk once, then go. Useful truth does not need an audience of jackals.",
   "Next step: recover a fresh scan from the wreck and get clear.",
   "Is the wreck still intact?",
   "What did Pip find in there?",
   "What is on the recorder?",
   "Should I take scrap too?",
-  "What is on Pip's checklist?",
+  "What did Voss say on the tape?",
   "What if scavengers press me?",
   "Dump and pull clear. Got it.",
   "Begin the wreck scan.",
   "Recover a fresh scan from the wreck",SAGA_SCAN,1},
- /* Act I Ch.07 — choice page script */
+
+ /* Act I Ch.07 — Sable bargain staging */
  {"The Price of Silence","SABLE",
-  "Meridian pays well for routes nobody questions, and silence is a product with nicer stationery than most governments manage.",
-  "Safe passage, if you sell me the ledger. Or you keep a conscience and hand it to people who will argue in daylight.",
+  "Do not flinch. If I wanted your hull, you would already be a story people tell wrong.",
+  "Safe passage through Meridian's favourite patrol habits — if the ledger stays dark long enough for my clients to move.",
   "Publish for the public. Peer review through Kei's Guild. Or lodge it with Iona where a badge cannot quietly rewrite the stamp.",
   "Kei wants light. Iona wants a chain of proof. The Guild is slower and, inconveniently, harder to bribe.",
-  "I honour explicit bargains, including a refusal. Public data also reaches pirates — transparency has teeth either way.",
+  "I honour explicit bargains, including a refusal. I do not honour lectures. Public data also reaches pirates.",
   "I am on time for money. You are early for conscience. Cute overlap — choose before poetry invents itself.",
   "Intentions are interior decorating. Outcomes are architecture. Pick who holds the keys, then live in the building.",
   "Next step: choose who receives the route ledger.",
@@ -128,103 +129,115 @@ static const SagaBeat saga_beats[]={
   "I understand the cost.",
   "Make the custody choice.",
   "Choose who receives the route ledger",SAGA_CHOICE,2},
+
+ /* Act II Ch.08 — clinic page script */
  {"No Cargo Is Just Cargo","MARA",
-  "A clinic has power cells sitting on a dock and no open lane — paperwork until someone starts dying on a schedule.",
+  "Clinic is on emergency batteries. The map says the lane is closed. The map is lying with a company accent.",
   "Patients who cannot jump. The cells are already paid for. The lane is the lie that is killing them.",
   "Escort, carry, or clear the interference buoy. Every route keeps them alive; the method only changes who trusts you later.",
   "To them? No. Lights on is lights on. To the rest of us watching? Yes — people remember how you opened a door.",
-  "Open the dock. Treat the cargo like a promise, not a line item. Forms outlive patients if you let them.",
+  "Interference transmitter dressed as a hazard beacon — Meridian subcontract plate. Log the serial if you clear it.",
   "If Meridian offers a faster lane with invoices attached, refuse the invoice. Clinics already paid once.",
-  "I will meet you on the pad with a boring lie about farm sensors if that is what gets the cells through.",
+  "Pick a verb. People are not a debate club. I will meet you on the pad with a boring lie if that opens the dock.",
   "Next step: reach the isolated settlement and open the dock.",
   "Who is stranded out there?",
   "How do I get them power?",
   "Does the method matter?",
-  "What do they need first?",
+  "What is on that buoy?",
   "What about Meridian invoices?",
-  "Will you cover the dock story?",
+  "So I just pick a verb?",
   "I will open that dock.",
   "Set course for the settlement.",
   "Reach the isolated settlement",SAGA_DOCK,0},
+
+ /* Act II Ch.09 — GalCop page script */
  {"Ghosts of GalCop","VENN",
-  "The old GalCop beacons still remember better days, when the seal meant the lane belonged to everyone.",
-  "Near the end it meant nobody knew who was responsible — quieter cruelty than a pirate with a loud radio.",
+  "Welcome to the part of Lave tourists skip. The air tastes like old ink and unfinished apologies.",
+  "Near the end the seal meant the witnesses had been promoted out of honesty — quieter cruelty than a loud pirate.",
   "Corruption, exhaustion, and records nobody could challenge. Institutions fail when the receipts stop meaning anything.",
-  "What still answers under the old seal. I am not asking for nostalgia. I am asking you to listen before neglect finishes the job.",
-  "No. Nostalgia is a berth decoration. This is an inspection: each node, logged, before the signal dies of neglect.",
-  "Label what you find so it cannot walk away. Habits from when the seal meant the lane belonged to everyone.",
-  "If a node is silent, log the silence. Empty is evidence too — do not invent a comforting ping.",
+  "Beacons that still answer. Not for poetry. For continuity. Press the poll. Hear who claims the lane.",
+  "No. Nostalgia is a chemical. This is an inspection: each node, logged, before the signal dies of neglect.",
+  "Meridian did not invent the sin. They leased it from history and called it innovation — same route-move trick, new letterhead.",
+  "On the last morning the seal meant nobody knew who was responsible, and everyone still stamped the form.",
   "Next step: inspect the abandoned GalCop beacon chain.",
-  "What did the seal used to mean?",
+  "Why bring me down here?",
   "Why did GalCop fail, then?",
   "What should I listen for?",
   "Is this just nostalgia?",
-  "How should I log the nodes?",
-  "What if a beacon is dead?",
+  "Did Meridian invent this?",
+  "What did the seal mean when it died?",
   "I will walk the chain.",
   "Begin the beacon survey.",
   "Inspect the abandoned beacon chain",SAGA_SCAN,1},
+
+ /* Act II Ch.10 — mycoid page script */
  {"The Mycoid Ledger","IONA",
-  "INRA won a war and buried the price of it in language careful enough to sound like virtue if you read too quickly.",
+  "This box is not treasure. It is a confession with footnotes — history careful enough to sound like virtue if you read too quickly.",
   "A fungal weapon used against living Thargoid technology — and the pilot who was denied a return. It is history, not a catalogue.",
-  "Because organic relays share a few ugly surface traits with that old work, and they would rather own the research than the guilt.",
+  "Because organic relays share ugly surface traits with that old work, and they would rather own the research than the guilt.",
   "Correct. Mycoid stays history in this ship and every ship after it. We do not craft atrocity into a trade advantage.",
-  "Someone who can be audited. Secure the sealed ledger first; refuse any pitch that turns it into options.",
-  "If Meridian calls it stewardship research, translate: they want a weapon with better branding.",
-  "Bring it sealed. Curiosity is how history becomes a recipe. I will not approve recipes.",
+  "Enough to warn: a weapon sold as a disablement; a pilot denied a return. Enough to forbid repetition. Not enough to repeat.",
+  "If Meridian calls it stewardship research, translate: they want a weapon with better branding. Stamp DENIED and date it.",
+  "Secure the crate sealed. Curiosity is how history becomes a recipe. I will not approve recipes.",
   "Next step: secure the sealed historical record.",
   "What is actually in the ledger?",
   "Why does Meridian want it?",
   "We will not weaponise this?",
-  "Who should be allowed to read it?",
+  "What can we safely know?",
   "What if they call it research?",
   "Sealed — no peeking en route?",
   "I will secure it intact.",
   "Accept the archive run.",
   "Secure the sealed historical record",SAGA_DOCK,3},
+
+ /* Act II Ch.11 — giants page script */
  {"Where the Giants Turn","ORU",
-  "Cut your engines. We are visitors here, and visitors who announce themselves with thrust teach the giants that people are weather.",
-  "So they keep singing instead of scattering. Observation first. Ownership never.",
+  "Cut your engines. We are visitors here. Visitors do not rearrange the furniture — or teach the giants that people are weather.",
+  "They are large. Large is not the same as hostile. Your weapons will not make you larger — only louder.",
   "Three matched migration calls. Ryn wrote a shelter coordinate into their cadence the way other pilots write waypoints.",
-  "Yes — living timing. Brilliant or unbearable, depending on how long you have waited for her to answer a normal radio.",
+  "Yes — living timing. She said patience is the password. Brilliant or unbearable, depending how long you have waited.",
   "By not herding and not firing. Log the matches, leave their road clear, and let patience be the instrument.",
-  "If the calls stutter, wait. Living timing is not a Guild schedule. Patience is still flying.",
-  "When three match, you have a door, not a trophy. Do not announce the door on open band.",
+  "Hear the pause? That pause is grammar. Meridian amplified the grammar until it screamed, then sold maps of the silence.",
+  "When three match, you have a door, not a trophy. The first useful act was making room. Do not announce the door.",
   "Next step: observe the migration signal and log the matched calls.",
   "Why cut the engines?",
-  "What am I matching out there?",
+  "Are they dangerous?",
   "She wrote in their calls?",
   "How do I avoid scaring them?",
-  "What if the calls stutter?",
+  "What am I hearing in the pauses?",
   "Matched calls stay quiet?",
   "Observe only. No force.",
   "Begin the quiet survey.",
   "Observe the migration signal",SAGA_SCAN,1},
+
+ /* Act II Ch.12 — reunion page script */
  {"The Person on the Other End","RYN",
   "I am alive. The clever explanation can wait until you are close enough that Kei can shout at me without a relay.",
-  "Yes. Shelter coordinates are rough because amplifiers scramble polite geometry. Come anyway. Bring tools, not speeches.",
-  "Because the noise is selling our silence as a product. Rough is still better than another forged safe lane.",
-  "Good. She is allowed to be furious. Asking you to find me also put a ship under you — do not spend that gift on drama.",
+  "Yes. Also cold. Also furious. Also slightly proud of my handwriting in whale-song. Come anyway — tools, not speeches.",
+  "Because the noise is selling our silence as a product. I vanished so Meridian would chase a ghost instead of a migration.",
+  "Good. She is allowed to be furious. You do not get to decide alone who I endanger by coming home loud — nor she alone.",
   "The local amplifier. Disable it when you arrive so we can talk in air that is not full of someone else's profit.",
-  "I will not vanish without a note again. Notes can lie. I will try not to. First — kill the noise.",
-  "If Kei over-explains on the way in, she is scared. Translate that gently. Then dock like you mean the return.",
+  "If that dish keeps shouting, the giants turn into traffic hazards and Meridian sells the detour. Rude first. Then tea.",
+  "Thank you for not turning me into a mission-complete screen. Kill the noise. Then we decide what we carry home.",
   "Next step: reach Ryn's shelter and shut the local amplifier down.",
   "You are really alive?",
   "How rough are those coords?",
-  "Kei has been looking for you.",
+  "Why did you go silent?",
   "What do I shut down there?",
-  "Will you stay reachable?",
+  "Amplifier before repairs?",
   "Any advice for Kei?",
   "I am on my way.",
   "Accept the shelter run.",
   "Reach Ryn's shelter",SAGA_DOCK,0},
+
+ /* Act II Ch.13 — volume choice page script */
  {"What We Carry Home","KEI",
   "Ryn is safe — and her evidence makes us dangerous to people who sell maps as cages with reliable schedules.",
   "Yes. Safe, angry, and still herself. That is the win. The evidence is the part that can get us killed politely.",
-  "Settlements prepare loudly, and Meridian hears the volume. Sometimes loud is the only moral speed.",
-  "The law grows teeth later, while some lanes stay hungry in the meantime. Slower justice is still justice — if people survive the wait.",
+  "Publish now and settlements prepare loudly. Verify first and the law grows teeth later. Limited alert is quieter.",
+  "The law grows teeth later, while some lanes stay hungry in the meantime. Slower justice is still justice — if people survive.",
   "Quieter, less public trust, maybe less panic from Meridian before we are ready. I am professionally terrified. Choose the volume.",
-  "I talk too much when I am scared. Treat that as data, not a leadership audition. You choose the volume.",
+  "I talk too much when I am scared. Treat that as data, not a leadership audition. Iona can work with any shape of truth — not a myth.",
   "Whatever you pick, we live with the map afterward. I am practising accepting an answer that is not mine.",
   "Next step: decide how openly to publish Ryn's evidence.",
   "She is really safe?",
@@ -236,6 +249,7 @@ static const SagaBeat saga_beats[]={
   "I understand the stakes.",
   "Make the publication choice.",
   "Decide how openly to publish",SAGA_CHOICE,0},
+
  {"A Map for Everyone","RYN",
   "Three powers want one map, and none of them should own the only copy of how living things move through this sky.",
   "Federation, Empire, Alliance — each with a different smile. Copies go to a neutral archive with doubt and provenance attached.",
@@ -475,9 +489,9 @@ static const char *saga_choice_blurb(int chapter,int option){
   "Slower peer review. Stamp survives. Meridian gains time.",
   "Evidence chain. Charges become possible. Release waits."};
  static const char *carry[3]={
-  "Warn everyone now. Meridian moves; so do the people you love.",
-  "Verify first. Teeth later. Some lanes stay hungry meantime.",
-  "Limited alert. Less trust, fewer fireworks, quieter panic."};
+  "Light the board. Clinics prepare loud — Meridian feels observed.",
+  "Boring vault + chain. Teeth later. Meridian gets spin time.",
+  "Active hazards only. Safer ops, less public trust, quieter counterplay."};
  static const char *flag[3]={
   "Civilian tenders. Working pilots show up when fuel is real.",
   "Guild markers. Survey help without an ownership claim.",
@@ -553,11 +567,11 @@ static const char *saga_close_line(int chapter){
  return c[chapter];
 }
 /* Act I locked completion codas (chs 02-07 / indices 0-5) — Story UI page before next brief. */
-enum { SAGA_ACT1_END = 5 };
+enum { SAGA_ACT1_END = 5, SAGA_ACT2_END = 11 };
 static int saga_coda_pending=-1;
-static int saga_has_coda(int chapter){return chapter>=0&&chapter<=SAGA_ACT1_END;}
+static int saga_has_coda(int chapter){return chapter>=0&&chapter<=SAGA_ACT2_END;}
 static const char *saga_coda_speaker(int chapter){
- static const char *s[]={"KEI","ORU","TAMSIN","IONA","NADI","SABLE"};
+ static const char *s[]={"KEI","ORU","TAMSIN","IONA","NADI","SABLE","MARA","VENN","IONA","ORU","RYN","KEI"};
  if(!saga_has_coda(chapter))return "KEI";
  return s[chapter];
 }
@@ -567,8 +581,14 @@ static const char *saga_coda_line1(int chapter){
   "The pause pattern matches Ryn's receiver. Someone is selling animal songs as clear lanes.",
   "They moved the safe line after we were committed. A timestamp is a weapon if you keep it alive.",
   "Early badges do not get to become tomorrow's truth. Clocks are witnesses. Treat them that way.",
-  "Unedited dump. Route key. No scrap linger. Useful truth does not need an audience of jackals.",
-  "The ledger has a keeper now. Intentions decorate. Outcomes build the house you sleep in."};
+  "On the tape Voss calls predictability mercy with a spreadsheet. Pip hid the key where clerks get bored.",
+  "The ledger has a keeper now. Intentions decorate. Outcomes build the house you sleep in.",
+  "Lane open. Batteries kissing mains. Dock fees waived — pride not. Lights beat paperwork.",
+  "Meridian leased an old sin from history and called it innovation. Walk the chain before you salute ghosts.",
+  "Custody sealed. Meridian stamped DENIED and dated after the denial. History stays history.",
+  "Three matches. Shelter bearing plotted. We observed; we did not herd; we did not fire.",
+  "Amplifier offline. Empty space is what consent sounds like when the universe is big.",
+  "Volume chosen. Settlements, clocks, or quiet lanes — we live with the map we just voted for."};
  if(!saga_has_coda(chapter))return "";
  return a[chapter];
 }
@@ -578,8 +598,14 @@ static const char *saga_coda_line2(int chapter){
   "Leave them the sky. Your engines are weather they did not request.",
   "I can fight a company with a stamp. Anger without evidence is just weather.",
   "Paper is about to get interested in your cargo history. That is a warning, not a threat from us.",
-  "Pip is pleased. Move before scavengers invent a second wreck with your name on it.",
-  "I honour refusals. I update prices. Live with the map you just voted for."};
+  "You have enough for a war of memos. Try not to start the other kind until Iona finishes her coffee.",
+  "I honour refusals. I update prices. Live with the map you just voted for.",
+  "Bless your hold. Curse anyone who seals it. Sable called the open lane weather — she was not wrong.",
+  "Leave a note if you must: records require challengers. Then go home before the ghosts recruit you.",
+  "Serious people built it the first time. We will not reenact the burial.",
+  "Go to her. And remember: the first useful act was making room.",
+  "Stay for tea if your plot allows. Then we decide what we carry home — and how loudly.",
+  "I am over-explaining again. Berth six. Come home when you can."};
  if(!saga_has_coda(chapter))return "";
  return b[chapter];
 }
