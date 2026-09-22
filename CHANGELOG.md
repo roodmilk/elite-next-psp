@@ -12,7 +12,7 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 ## Unreleased — authored Chapter 05 evidence loop
 
 - Added the timestamp comparison at Lave and inspection/protest/open-case choices for the early Meridian filing.
-- Missing records, wrong-system returns, and repeated comparison actions cannot advance the chapter; state reuses existing `saga_flags` without a save-version or `Game` layout change.
+- Both prior records are required; partial evidence, wrong-system returns, and repeated comparison actions cannot advance the chapter. Legacy Chapter 05 saves get an explicit case-reopen recovery. State reuses existing `saga_flags` without a save-version or `Game` layout change.
 
 ## Unreleased — authored Open Channel Chapters 02–04
 

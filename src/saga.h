@@ -798,7 +798,7 @@ static void saga_begin(Game *g){
  /* Dock chapters 02/04 begin at the commander's current port, then bind
   * their authored evidence destination. Scan chapters retain discovery
   * baselines for the generic Codex while using a separate story bit. */
- g->saga_start=(g->saga_chapter==0||g->saga_chapter==2)?g->saga_dest:(b->kind==SAGA_HUNT)?g->npc_kills:g->discoveries;
+ g->saga_start=(g->saga_chapter==0||g->saga_chapter==2)?g->saga_dest:g->saga_chapter==3?-1:(b->kind==SAGA_HUNT)?g->npc_kills:g->discoveries;
  g->saga_step=1;
  message(g,b->objective);speak(g,saga_voice_who(b),b->talk8);
  if(g->saga_chapter>=17)message(g,saga_trust_helper(g));
@@ -814,7 +814,14 @@ static void saga_dock_event(Game *g){
   message(g,"Outbound stamp recovered. Timestamp preserved before the archive is scrubbed.");
   speak(g,VOICE_CONTACT,"Stamp copied. The pods are optional; the record is not.");
  }else if(g->saga_chapter==3&&g->docked&&g->system==7&&!(g->saga_flags&SAGA_TIMESTAMP_FOUND)){
-  if(g->saga_flags&(SAGA_CASE_HELD|SAGA_STAMP_FOUND)){
+  const int evidence=SAGA_CASE_HELD|SAGA_STAMP_FOUND;
+  /* Saves created before the bespoke gate used saga_start as a discovery
+   * baseline. Re-open that case explicitly instead of trapping it forever. */
+  if((g->saga_flags&evidence)!=evidence&&g->saga_start>=0){
+   g->saga_flags|=evidence;
+   message(g,"Iona reopened the old case. Bring both the sealed receiver and port stamp to the desk.");
+  }
+  if((g->saga_flags&evidence)==evidence){
    g->saga_flags|=SAGA_TIMESTAMP_FOUND;
    message(g,"Records received. The filing is eleven minutes early; compare it before you answer.");
    speak(g,VOICE_LAW,"A badge is not evidence. Mine included. Put both clocks on the desk.");
