@@ -112,35 +112,169 @@ static void sc_step(int dir){ /* dir +1 forward, -1 back */
  else {if(sc_x>0&&sc_door_e[sc_y][sc_x-1])nx--;else return;}
  sc_x=nx;sc_y=ny;sc_menu=0;sc_bob=6;game.cue=SFX_UI;
 }
-/* OpenEnroth-inspired corridor frame: depth layers, side portals, tile floor.
- * Grid-step crawler (PSP-safe) — no enemies, station interactions only. */
-static void sc_wall_column(int x0,int x1,int y0,int y1,unsigned wall,unsigned wall2,unsigned trim,int seam){
- if(x1<=x0||y1<=y0)return;
- rect(x0,y0,x1-x0,y1-y0,seam?wall2:wall);
- if(seam){rect(x0,y0+12,2,y1-y0-24,trim);rect(x1-2,y0+12,2,y1-y0-24,trim);}
- /* Panel rivets */
- for(int y=y0+18;y<y1-18;y+=22){pixel(x0+3,y,trim);pixel(x1-4,y,trim);}
+/* MM6-style 3-depth station crawl: riveted panels, labeled doors, portrait NPCs.
+ * Soft-FB only — squeeze clarity from rects/pixels. No enemies; talk/shop/gift/taxi. */
+static void sc_panel(int x0,int y0,int x1,int y1,unsigned wall,unsigned wall2,unsigned trim,int lit){
+ if(x1<=x0+2||y1<=y0+2)return;
+ int w=x1-x0,h=y1-y0;
+ rect(x0,y0,w,h,wall);
+ rect(x0,y0,w,1,mix_rgb(wall,RGB(90,110,130),.35f));
+ rect(x0,y1-1,w,1,mix_rgb(wall,RGB(4,6,10),.45f));
+ rect(x0,y0,1,h,mix_rgb(wall,RGB(70,90,110),.25f));
+ rect(x1-1,y0,1,h,mix_rgb(wall,RGB(4,6,10),.4f));
+ /* Horizontal plate seams */
+ for(int y=y0+10;y<y1-8;y+=14)rect(x0+2,y,w-4,1,wall2);
+ /* Rivets */
+ for(int y=y0+8;y<y1-6;y+=16){pixel(x0+3,y,trim);pixel(x1-4,y,trim);}
+ if(lit){rect(x0+(w>20?w/2-1:2),y0+6,2,h-12,trim);pixel(x0+(w>20?w/2:3),y0+4,GOLD);}
 }
-static void sc_draw_side_portal(int left,int depth,int has_door,int nbr_room,unsigned wall,unsigned trim){
- /* depth 0=near, 1=mid — portals open into neighbour tint like Enroth doorways. */
- int inset=18+depth*42,top=48+depth*28,bot=232-depth*28,w=34-depth*8;
- if(w<16)w=16;
+static void sc_draw_side_door(int left,int depth,int has_door,int nbr_room,unsigned wall,unsigned wall2,unsigned trim){
+ /* depth 0 near, 1 mid — classic MM side alcove / doorway. */
+ int inset=14+depth*46,top=42+depth*26,bot=236-depth*26,w=40-depth*10;
+ if(w<18)w=18;
  int x=left?inset:W-inset-w;
- unsigned dark=RGB(8,12,18),inner=has_door?sc_room_tint2(nbr_room):wall;
- rect(x,top,w,bot-top,dark);
+ unsigned inner=has_door?sc_room_tint(nbr_room):wall2;
+ /* Outer frame */
+ rect(x-2,top-4,w+4,bot-top+8,RGB(6,10,16));
+ sc_panel(x-2,top-4,x+w+2,bot+4,wall,wall2,trim,0);
  if(has_door){
-  rect(x+3,top+8,w-6,bot-top-16,inner);
-  rect(x+6,top+14,w-12,bot-top-28,mix_rgb(inner,RGB(4,8,12),.35f));
-  rect(x+(left?w-5:2),top+20,3,bot-top-40,trim);
-  /* Floor lip into the side room */
-  rect(x+4,bot-18,w-8,6,mix_rgb(inner,RGB(20,24,28),.4f));
+  unsigned far2=sc_room_tint2(nbr_room),ftrim=sc_room_trim(nbr_room);
+  rect(x,top,w,bot-top,RGB(4,8,12));
+  rect(x+3,top+6,w-6,bot-top-14,inner);
+  rect(x+6,top+12,w-12,bot-top-28,far2);
+  /* Door plate */
+  rect(x+w/2-4,top+28,8,bot-top-56,mix_rgb(ftrim,GOLD,.3f));
+  rect(x+(left?w-7:3),top+36,3,10,GOLD);
+  /* Threshold lip */
+  rect(x+2,bot-12,w-4,6,mix_rgb(inner,RGB(40,48,56),.35f));
+  /* Destination label strip */
+  rect(x,top-2,w,10,RGB(8,16,24));
+  rect(x,top-2,w,1,ftrim);
+  {const char *nm=sc_room_name(nbr_room);int col=(x+4)/8;if(col<1)col=1;if(col>52)col=52;
+   text(col,(top)/8,CYAN,"%.7s",nm);}
  }else{
-  for(int k=0;k<4;k++)rect(x+4,top+16+k*28,w-8,2,mix_rgb(wall,RGB(10,14,18),.3f));
+  sc_panel(x,top,x+w,bot,wall2,wall,trim,1);
+  for(int k=0;k<3;k++)rect(x+6,top+18+k*36,w-12,3,mix_rgb(wall,RGB(8,12,16),.35f));
  }
+}
+static void sc_draw_far_door(int nbr_room){
+ unsigned far=sc_room_tint(nbr_room),far2=sc_room_tint2(nbr_room),ftrim=sc_room_trim(nbr_room);
+ int x0=152,y0=58,ww=176,hh=140;
+ /* Recessed arch */
+ rect(x0-6,y0-8,ww+12,hh+16,RGB(2,6,12));
+ rect(x0-4,y0-6,ww+8,hh+12,mix_rgb(ftrim,RGB(12,18,24),.55f));
+ rect(x0,y0,ww,hh,RGB(4,8,14));
+ /* Depth layers into neighbour tint */
+ rect(x0+10,y0+10,ww-20,hh-24,far2);
+ rect(x0+22,y0+22,ww-44,hh-48,far);
+ rect(x0+34,y0+34,ww-68,hh-72,mix_rgb(far,RGB(4,8,12),.4f));
+ /* Heavy jambs */
+ rect(x0,y0,12,hh,ftrim);rect(x0+ww-12,y0,12,hh,ftrim);
+ rect(x0,y0,ww,10,ftrim);rect(x0,y0+hh-10,ww,10,ftrim);
+ rect(x0+12,y0+10,4,hh-20,mix_rgb(ftrim,GOLD,.25f));
+ rect(x0+ww-16,y0+10,4,hh-20,mix_rgb(ftrim,GOLD,.25f));
+ /* Latch plate */
+ rect(x0+ww/2-14,y0+hh/2-22,28,48,mix_rgb(ftrim,GOLD,.4f));
+ rect(x0+ww/2-4,y0+hh/2-4,8,8,RGB(30,24,12));
+ rect(x0+ww/2+6,y0+hh/2+2,4,6,GOLD);
+ /* Threshold */
+ rect(x0+16,y0+hh-16,ww-32,8,mix_rgb(far2,RGB(50,58,68),.35f));
+ /* Big destination label */
+ rect(x0+28,y0+4,ww-56,14,RGB(6,14,22));
+ rect(x0+28,y0+4,ww-56,1,CYAN);
+ text(22,8,CYAN,"TO %.10s",sc_room_name(nbr_room));
+ /* Neighbour prop silhouette */
+ if(nbr_room==SC_ROOM_SHOP){rect(x0+40,y0+90,22,18,RGB(80,58,30));rect(x0+ww-62,y0+90,22,18,RGB(80,58,30));}
+ else if(nbr_room==SC_ROOM_BAR){rect(x0+50,y0+100,76,12,RGB(70,36,58));}
+ else if(nbr_room==SC_ROOM_HUB){rect(x0+ww/2-16,y0+70,32,28,CYAN);}
+ else if(nbr_room==SC_ROOM_CLINIC){rect(x0+ww/2-20,y0+80,40,16,RGB(100,180,190));}
+ else if(nbr_room==SC_ROOM_GUILD){rect(x0+ww/2-24,y0+78,48,20,RGB(40,110,90));}
+ else if(nbr_room==SC_ROOM_BAY){rect(x0+36,y0+96,28,20,RGB(90,78,40));rect(x0+ww-64,y0+96,28,20,RGB(90,78,40));}
+ else if(nbr_room==SC_ROOM_LOCK){rect(x0+ww/2-18,y0+74,36,30,RGB(90,40,40));}
+}
+static void sc_draw_bulkhead(unsigned wall,unsigned wall2,unsigned trim){
+ int x0=148,y0=52,ww=184,hh=156;
+ sc_panel(x0,y0,x0+ww,y0+hh,wall,wall2,trim,0);
+ for(int k=0;k<6;k++)rect(x0+14,y0+18+k*22,ww-28,3,wall2);
+ /* View slit / sealed hatch */
+ rect(x0+48,y0+48,ww-96,52,RGB(8,12,18));
+ rect(x0+56,y0+56,ww-112,36,RGB(4,8,12));
+ rect(x0+ww/2-10,y0+70,20,12,trim);
+ rect(x0+40,y0+4,ww-80,12,RGB(8,14,20));
+ text(22,7,DIM,"BULKHEAD");
+}
+static void sc_draw_props(int room,unsigned trim){
+ if(room==SC_ROOM_SHOP){
+  /* Stock crates + counter */
+  rect(52,150,58,46,RGB(72,52,28));rect(58,142,46,10,RGB(110,84,44));
+  rect(62,156,14,12,GOLD);rect(82,160,18,10,CYAN);
+  rect(370,150,58,46,RGB(72,52,28));rect(376,142,46,10,RGB(110,84,44));
+  rect(190,172,100,22,RGB(56,42,24));rect(198,166,84,8,trim);
+  rect(210,176,16,10,RGB(40,30,18));rect(250,176,16,10,RGB(40,30,18));
+ }else if(room==SC_ROOM_BAR){
+  rect(80,170,320,30,RGB(58,32,46));rect(84,166,312,6,RGB(90,50,70));
+  rect(96,152,40,16,RGB(100,68,54));rect(344,152,40,16,RGB(100,68,54));
+  rect(200,148,80,16,RGB(80,44,60));rect(210,142,60,8,trim);
+  for(int i=0;i<5;i++){rect(110+i*52,176,8,14,mix_rgb(trim,RGB(200,180,120),.35f));pixel(112+i*52,174,GOLD);}
+ }else if(room==SC_ROOM_HUB){
+  rect(198,128,84,62,RGB(28,54,66));rect(206,118,68,12,CYAN);
+  rect(214,140,52,10,RGB(50,100,110));rect(222,156,36,20,RGB(18,36,44));
+  rect(230,122,20,4,GOLD);rect(210,188,60,6,mix_rgb(trim,RGB(40,60,70),.4f));
+ }else if(room==SC_ROOM_GUILD){
+  rect(178,136,124,48,RGB(18,58,46));rect(198,124,84,14,RGB(50,130,100));
+  rect(210,148,60,8,GOLD);rect(220,160,40,12,RGB(12,40,32));
+  rect(186,128,8,8,CYAN);rect(286,128,8,8,CYAN);
+ }else if(room==SC_ROOM_CLINIC){
+  rect(170,148,140,40,RGB(36,68,78));rect(190,136,100,14,RGB(110,190,200));
+  rect(200,156,30,18,WHITE);rect(250,156,30,18,RGB(180,220,230));
+  rect(220,142,40,6,CYAN);
+ }else if(room==SC_ROOM_BAY){
+  rect(58,158,56,40,RGB(78,66,32));rect(66,150,40,10,RGB(110,96,48));
+  rect(366,158,56,40,RGB(78,66,32));rect(374,150,40,10,RGB(110,96,48));
+  rect(150,178,180,18,RGB(54,48,28));rect(160,172,160,8,trim);
+  for(int i=0;i<4;i++)rect(170+i*40,184,24,8,RGB(40,36,20));
+ }else if(room==SC_ROOM_LOCK){
+  rect(190,132,100,58,RGB(78,36,36));rect(210,144,60,28,RGB(18,18,24));
+  rect(230,152,20,12,RED);rect(200,124,80,10,RGB(100,50,50));
+  rect(214,188,52,6,trim);
+ }else{
+  /* Corridor conduit boxes */
+  rect(70,168,36,28,RGB(40,52,62));rect(374,168,36,28,RGB(40,52,62));
+  rect(78,174,20,8,trim);rect(382,174,20,8,trim);
+ }
+}
+static void sc_draw_npc(int i,const ScNpc *p,int selected){
+ int feet=196,cx=168+i*72,bw=44,bh=58;
+ unsigned ink=faction_colors[p->role%FACTION_COUNT];
+ unsigned cloth=mix_rgb(ink,RGB(16,24,32),.45f),boot=mix_rgb(ink,RGB(8,10,14),.55f);
+ int bob=(sc_bob>0&&i==0)?sc_bob/3:0;
+ int top=feet-bh-bob;
+ /* Selection halo */
+ if(selected){rect(cx-bw/2-3,top-4,bw+6,2,GOLD);rect(cx-bw/2-3,feet+2,bw+6,2,GOLD);}
+ /* Boots + legs */
+ rect(cx-12,feet-10,10,10,boot);rect(cx+2,feet-10,10,10,boot);
+ rect(cx-10,feet-28,8,18,cloth);rect(cx+2,feet-28,8,18,cloth);
+ /* Torso */
+ rect(cx-14,feet-48,28,22,cloth);
+ rect(cx-14,feet-48,28,3,mix_rgb(ink,GOLD,.25f));
+ /* Arms */
+ rect(cx-18,feet-46,5,18,cloth);rect(cx+13,feet-46,5,18,cloth);
+ /* Portrait head (pixel art) */
+ {int hx=cx-16,hy=top+2,hs=32;
+  rect(hx-1,hy-1,hs+2,hs+2,RGB(6,12,20));
+  if(!strcmp(p->name,"KEI"))draw_kei(hx,hy,hs,0);
+  else draw_portrait(hx,hy,hs,hs,game.system*37+i*91+p->role*13,p->role);
+  rect(hx,hy+hs-1,hs,1,ink);
+ }
+ /* Name plate under feet */
+ {int nw=(int)strlen(p->name);if(nw>8)nw=8;int px=cx-(nw*4);if(px<4)px=4;
+  rect(px-2,feet+4,nw*8+4,10,RGB(6,12,20));
+  rect(px-2,feet+4,nw*8+4,1,ink);
+  text(px/8,(feet+5)/8,selected?GOLD:WHITE,"%.8s",p->name);}
 }
 static void sc_draw_fp(void){
  rect(0,0,W,H,RGB(4,8,14));
- int mid=120+sc_bob/2,room=sc_map[sc_y][sc_x];
+ int mid=122+sc_bob/2,room=sc_map[sc_y][sc_x];
  unsigned wall=sc_room_tint(room),wall2=sc_room_tint2(room),trim=sc_room_trim(room);
  int left_dir=(sc_face+3)&3,right_dir=(sc_face+1)&3;
  int door_l=sc_door_dir(left_dir),door_r=sc_door_dir(right_dir),door_f=sc_door_ahead();
@@ -148,152 +282,114 @@ static void sc_draw_fp(void){
  int nbr_l=door_l?sc_nbr(left_dir,&nlx,&nly):-1;
  int nbr_r=door_r?sc_nbr(right_dir,&nrx,&nry):-1;
  int nbr_f=door_f?sc_nbr(sc_face,&nfx,&nfy):-1;
- /* Ceiling vault with cross-beams (indoor BLV feel, flat raster) */
+ /* Ceiling vault — brighter near lamp, darker to walls */
  for(int y=28;y<mid;y++){
-  float t=(y-28)/(float)(mid-28);int inset=(int)(t*108);
-  unsigned c=mix_rgb(RGB(54,64,78),RGB(10,14,20),t);
+  float t=(y-28)/(float)(mid-28);int inset=(int)(t*118);
+  unsigned c=mix_rgb(RGB(62,74,90),RGB(8,12,18),t);
+  if(((y+sc_y)&7)==0)c=mix_rgb(c,trim,.18f);
   rect(inset,y,W-2*inset,1,c);
-  if(((y*2)&15)==0)rect(inset+6,y,W-2*inset-12,1,mix_rgb(c,trim,.25f));
  }
- /* Beam ribs converging to vanishing point */
- for(int i=0;i<5;i++){int x=40+i*100;line(x,32,240,mid-2,mix_rgb(trim,RGB(20,24,30),.55f));}
- /* Floor: foreshortened tile grid */
+ /* Converging beam ribs */
+ for(int i=0;i<6;i++){int x=24+i*86;line(x,30,240,mid-1,mix_rgb(trim,RGB(16,20,28),.5f));}
+ /* Ceiling pipes */
+ rect(60,34,360,3,RGB(28,36,46));rect(100,40,280,2,RGB(22,30,40));
+ /* Floor: high-contrast checker foreshortened (MM dungeon tile read) */
  for(int y=mid;y<248;y++){
-  float t=(y-mid)/(float)(248-mid);int inset=(int)((1.f-t)*108);
-  unsigned c=mix_rgb(RGB(22,30,40),RGB(6,8,12),t*.85f);
-  if(((y/3+sc_x)&1)==0)c=mix_rgb(c,trim,.08f);
-  rect(inset,y,W-2*inset,1,c);
+  float t=(y-mid)/(float)(248-mid);int inset=(int)((1.f-t)*118);
+  int span=W-2*inset;if(span<8)span=8;
+  int cells=4+(int)(t*4);if(cells<4)cells=4;if(cells>8)cells=8;
+  int cw=span/cells;if(cw<4)cw=4;
+  for(int k=0;k<cells;k++){
+   int x=inset+k*cw;int ww=(k==cells-1)?(W-inset-x):cw;
+   int check=((k+(y/10)+sc_x+sc_y)&1);
+   unsigned c=check?mix_rgb(RGB(28,38,50),trim,.12f):RGB(14,20,28);
+   c=mix_rgb(c,RGB(4,6,10),t*.7f);
+   rect(x,y,ww,1,c);
+  }
  }
- for(int i=0;i<=6;i++){
-  float t=i/6.f;int inset=(int)((1.f-t)*108);int y=mid+(int)(t*(248-mid));
-  line(inset,y,W-inset,y,RGB(12,16,22));
-  int span=(W-2*inset)/4;for(int k=1;k<4;k++){int x=inset+k*span;line(x,y,240+(x-240)/4,mid,RGB(10,14,18));}
+ /* Tile edge lines */
+ for(int i=0;i<=7;i++){
+  float t=i/7.f;int inset=(int)((1.f-t)*118);int y=mid+(int)(t*(248-mid));
+  line(inset,y,W-inset,y,RGB(10,14,20));
  }
- /* Near wall columns (depth 0) — heavy Enroth panel framing */
- for(int i=0;i<5;i++){
-  int x0=i*10,x1=(i+1)*10;int y0=30+i*10,y1=246-i*10;
-  sc_wall_column(x0,x1,y0,y1,wall,wall2,trim,(i%2)==0);
-  sc_wall_column(W-x1,W-x0,y0,y1,wall,wall2,trim,(i%2)==0);
+ /* Near wall faces (depth 0) — thick MM-style side panels */
+ for(int i=0;i<4;i++){
+  int x0=i*12,x1=(i+1)*12;int y0=28+i*12,y1=248-i*12;
+  sc_panel(x0,y0,x1,y1,wall,wall2,trim,(i%2)==0);
+  sc_panel(W-x1,y0,W-x0,y1,wall,wall2,trim,(i%2)==0);
  }
- /* Mid wall columns (depth 1) */
- for(int i=5;i<9;i++){
-  int x0=i*12,x1=(i+1)*12;int y0=36+i*8,y1=240-i*8;
-  sc_wall_column(x0,x1,y0,y1,wall2,wall,trim,(i%3)==0);
-  sc_wall_column(W-x1,W-x0,y0,y1,wall2,wall,trim,(i%3)==0);
+ /* Mid wall faces (depth 1) */
+ for(int i=4;i<8;i++){
+  int x0=48+(i-4)*14,x1=x0+14;int y0=40+(i-4)*10,y1=236-(i-4)*10;
+  sc_panel(x0,y0,x1,y1,wall2,wall,trim,(i%3)==0);
+  sc_panel(W-x1,y0,W-x0,y1,wall2,wall,trim,(i%3)==0);
  }
- /* Facing-relative side portals (fixed: left/right track turn facing) */
- sc_draw_side_portal(1,0,door_l,nbr_l,wall,trim);
- sc_draw_side_portal(0,0,door_r,nbr_r,wall,trim);
- sc_draw_side_portal(1,1,door_l,nbr_l,wall,trim);
- sc_draw_side_portal(0,1,door_r,nbr_r,wall,trim);
- /* Far wall / passage — portal into next cell tint */
- if(door_f){
-  unsigned far=sc_room_tint(nbr_f),far2=sc_room_tint2(nbr_f),ftrim=sc_room_trim(nbr_f);
-  rect(148,56,184,148,RGB(2,6,10));
-  rect(158,64,164,132,far2);
-  rect(170,76,140,112,far);
-  rect(182,88,116,92,mix_rgb(far,RGB(4,8,12),.4f));
-  /* Arch jambs */
-  rect(158,64,10,132,trim);rect(312,64,10,132,trim);
-  rect(158,64,164,8,trim);rect(158,188,164,8,trim);
-  /* Door plate + latch */
-  rect(222,120,36,56,mix_rgb(ftrim,GOLD,.35f));
-  rect(234,138,8,8,RGB(40,30,10));
-  rect(168,196,144,8,mix_rgb(far2,RGB(30,34,40),.3f));
-  text(23,9,CYAN,"PASSAGE");
-  /* Tiny prop glimpse from neighbour type */
-  if(nbr_f==SC_ROOM_SHOP){rect(200,150,20,16,RGB(70,50,28));rect(260,150,20,16,RGB(70,50,28));}
-  if(nbr_f==SC_ROOM_BAR){rect(210,160,60,12,RGB(60,30,50));}
- }else{
-  rect(150,52,180,156,wall);
-  for(int k=0;k<7;k++)rect(162,66+k*18,156,2,wall2);
-  rect(198,96,84,64,RGB(14,20,26));
-  rect(210,108,60,40,RGB(10,14,18));
-  text(22,9,DIM,"BULKHEAD");
- }
- /* Ceiling lamp / glow */
- circle(240,44-sc_bob/3,6,trim);rect(237,36-sc_bob/3,6,8,GOLD);
- rect(232,50-sc_bob/3,16,2,mix_rgb(trim,RGB(255,220,120),.4f));
- /* Room props — denser furniture silhouettes */
- if(room==SC_ROOM_SHOP){
-  rect(64,148,56,44,RGB(60,45,25));rect(70,140,44,10,RGB(90,70,40));
-  rect(360,148,56,44,RGB(60,45,25));rect(366,140,44,10,RGB(90,70,40));
-  rect(200,170,80,20,RGB(50,38,22));
- }else if(room==SC_ROOM_BAR){
-  rect(90,168,300,28,RGB(50,30,40));rect(100,156,36,12,RGB(90,60,50));
-  rect(340,156,36,12,RGB(90,60,50));rect(200,150,80,14,RGB(70,40,55));
- }else if(room==SC_ROOM_HUB){
-  rect(204,136,72,56,RGB(30,50,60));rect(216,124,48,12,CYAN);
-  rect(220,148,40,8,RGB(50,90,100));
- }else if(room==SC_ROOM_GUILD){
-  rect(190,140,100,40,RGB(20,60,48));rect(210,128,60,12,RGB(60,140,110));
- }else if(room==SC_ROOM_CLINIC){
-  rect(180,150,120,36,RGB(40,70,80));rect(200,140,80,10,RGB(120,200,210));
- }else if(room==SC_ROOM_BAY){
-  rect(70,160,50,36,RGB(70,60,30));rect(360,160,50,36,RGB(70,60,30));
-  rect(160,180,160,16,RGB(50,45,25));
- }else if(room==SC_ROOM_LOCK){
-  rect(200,140,80,50,RGB(70,35,35));rect(220,150,40,20,RGB(20,20,24));
- }
- /* NPC silhouettes mid-corridor */
+ /* Side doors track facing (left / right relative) */
+ sc_draw_side_door(1,0,door_l,nbr_l,wall,wall2,trim);
+ sc_draw_side_door(0,0,door_r,nbr_r,wall,wall2,trim);
+ sc_draw_side_door(1,1,door_l,nbr_l,wall,wall2,trim);
+ sc_draw_side_door(0,1,door_r,nbr_r,wall,wall2,trim);
+ /* Far passage or sealed bulkhead */
+ if(door_f)sc_draw_far_door(nbr_f);else sc_draw_bulkhead(wall,wall2,trim);
+ /* Hanging lamp + soft glow cone */
+ {int ly=40-sc_bob/3;circle(240,ly,7,trim);rect(236,ly-10,8,10,GOLD);
+  rect(232,ly+8,16,2,mix_rgb(trim,RGB(255,220,120),.45f));
+  for(int g=0;g<5;g++)rect(220-g*6,ly+12+g*8,40+g*12,1,mix_rgb(trim,RGB(8,12,16),.08f+g*.02f));}
+ /* Room furniture props */
+ sc_draw_props(room,trim);
+ /* Portrait NPCs standing in the deck */
  ScNpc people[3]; int pn=sc_fill_npcs(sc_x,sc_y,people,3);
- for(int i=0;i<pn;i++){
-  int sx=186+i*52,sy=158; unsigned ink=faction_colors[people[i].role];
-  rect(sx,sy-52,34,52,RGB(12,18,26));
-  rect(sx+3,sy-50,28,48,RGB(20,30,40));
-  rect(sx+8,sy-50,18,16,ink);
-  pixel(sx+12,sy-44,WHITE);pixel(sx+18,sy-44,WHITE);
-  rect(sx+10,sy-30,14,22,ink);
-  rect(sx+6,sy-8,22,8,mix_rgb(ink,RGB(10,14,18),.4f));
-  if(sc_menu==SC_MENU_PERSON&&i==sc_choice)rect(sx-2,sy-54,38,2,GOLD);
- }
+ for(int i=0;i<pn;i++)sc_draw_npc(i,&people[i],sc_menu==SC_MENU_PERSON&&i==sc_choice);
  if(sc_bob>0)sc_bob--;
 }
 static void sc_draw_minimap(void){
- int ox=368,oy=36,cs=14;
- rect(ox-4,oy-4,SC_W*cs+8,SC_H*cs+8,RGB(6,14,20));
- rect(ox-4,oy-4,SC_W*cs+8,1,CYAN); text(46,3,CYAN,"MAP");
- /* Door links first so rooms sit on top */
+ int ox=372,oy=34,cs=13;
+ rect(ox-5,oy-12,SC_W*cs+10,SC_H*cs+18,RGB(4,10,16));
+ rect(ox-5,oy-12,SC_W*cs+10,1,CYAN);
+ text(47,3,CYAN,"MAP");
  for(int y=0;y<SC_H;y++)for(int x=0;x<SC_W;x++){
   int px=ox+x*cs+cs/2-1,py=oy+y*cs+cs/2-1;
-  if(x+1<SC_W&&sc_door_e[y][x])rect(px,py,cs,2,RGB(40,60,70));
-  if(y>0&&sc_door_n[y][x])rect(px,py-cs,2,cs,RGB(40,60,70));
+  if(x+1<SC_W&&sc_door_e[y][x])rect(px,py,cs,2,RGB(48,72,84));
+  if(y>0&&sc_door_n[y][x])rect(px,py-cs,2,cs,RGB(48,72,84));
  }
  for(int y=0;y<SC_H;y++)for(int x=0;x<SC_W;x++){
-  int px=ox+x*cs,py=oy+y*cs; unsigned c=RGB(16,24,32);
-  if(sc_map[y][x]==SC_ROOM_HUB)c=RGB(40,90,100);
-  else if(sc_map[y][x]==SC_ROOM_SHOP)c=RGB(90,70,30);
-  else if(sc_map[y][x]==SC_ROOM_BAR)c=RGB(70,40,80);
-  else if(sc_map[y][x]==SC_ROOM_GUILD)c=RGB(30,80,60);
-  else if(sc_map[y][x]==SC_ROOM_CLINIC)c=RGB(40,70,90);
-  else if(sc_map[y][x]==SC_ROOM_BAY)c=RGB(60,50,30);
-  else if(sc_map[y][x]==SC_ROOM_LOCK)c=RGB(80,40,40);
+  int px=ox+x*cs,py=oy+y*cs; unsigned c=RGB(14,22,30);
+  if(sc_map[y][x]==SC_ROOM_HUB)c=RGB(40,100,112);
+  else if(sc_map[y][x]==SC_ROOM_SHOP)c=RGB(100,78,32);
+  else if(sc_map[y][x]==SC_ROOM_BAR)c=RGB(84,42,92);
+  else if(sc_map[y][x]==SC_ROOM_GUILD)c=RGB(28,92,68);
+  else if(sc_map[y][x]==SC_ROOM_CLINIC)c=RGB(42,88,108);
+  else if(sc_map[y][x]==SC_ROOM_BAY)c=RGB(72,60,32);
+  else if(sc_map[y][x]==SC_ROOM_LOCK)c=RGB(96,40,40);
   rect(px,py,cs-2,cs-2,c);
-  if(x==sc_x&&y==sc_y){rect(px+2,py+2,cs-6,cs-6,GOLD);
-   if(sc_face==SC_N)rect(px+cs/2-1,py+1,2,3,WHITE);
-   if(sc_face==SC_S)rect(px+cs/2-1,py+cs-5,2,3,WHITE);
-   if(sc_face==SC_E)rect(px+cs-5,py+cs/2-1,3,2,WHITE);
-   if(sc_face==SC_WDIR)rect(px+1,py+cs/2-1,3,2,WHITE);
+  if(x==sc_x&&y==sc_y){rect(px+1,py+1,cs-4,cs-4,GOLD);
+   if(sc_face==SC_N)rect(px+cs/2-1,py+1,2,4,WHITE);
+   if(sc_face==SC_S)rect(px+cs/2-1,py+cs-6,2,4,WHITE);
+   if(sc_face==SC_E)rect(px+cs-6,py+cs/2-1,4,2,WHITE);
+   if(sc_face==SC_WDIR)rect(px+1,py+cs/2-1,4,2,WHITE);
   }
  }
 }
 static void sc_draw_ui(void){
  sc_build_map();
  sc_draw_fp();
- rect(0,0,W,28,RGB(8,19,28)); rect(0,26,W,2,GOLD);
- text(1,0,GOLD,"STATION / %.16s",station_name(&game));
- text(28,0,CYAN,"%.12s",sc_room_name(sc_map[sc_y][sc_x]));
+ /* Header chrome — room name owns the center so it never fights station title */
+ rect(0,0,W,28,RGB(6,16,24)); rect(0,26,W,2,GOLD);
+ text(1,0,GOLD,"STATION");
+ text(10,0,WHITE,"%.14s",station_name(&game));
+ {const char *rn=sc_room_name(sc_map[sc_y][sc_x]);unsigned tc=sc_room_trim(sc_map[sc_y][sc_x]);
+  rect(200,4,120,18,RGB(8,20,30));rect(200,4,120,1,tc);text(26,0,CYAN,"%.12s",rn);}
  {const char *d[]={"N","E","S","W"};text(42,0,WHITE,"[%s]",d[sc_face&3]);
   if(sc_door_ahead())text(46,0,CYAN,"DOOR");else text(46,0,DIM,"WALL");}
- text(1,2,DIM,"LEFT/RIGHT TURN   UP MOVE   X ACT   O DECK");
+ text(1,2,DIM,"L/R TURN  UP WALK  X ACT  O DECK");
  sc_draw_minimap();
- rect(0,248,W,24,RGB(8,19,28)); rect(0,248,W,2,CYAN);
+ rect(0,248,W,24,RGB(6,16,24)); rect(0,248,W,2,CYAN);
  ScNpc people[3]; int pn=sc_fill_npcs(sc_x,sc_y,people,3);
  if(sc_menu==SC_MENU_SHOP){
   int list[8],ln=sc_exclusive_catalog(list,8);
-  text(1,31,GOLD,"CHANDLER STOCK");
-  if(!ln)text(18,31,DIM,"Sold out today.");
-  else {int idx=list[sc_shop_row%ln]; text(18,31,WHITE,"%.14s  %.1fU",equipment_list_names[idx],equipment_costs[idx]*.1f);}
+  text(1,31,GOLD,"CHANDLER");
+  if(!ln)text(12,31,DIM,"Sold out today.");
+  else {int idx=list[sc_shop_row%ln]; text(12,31,WHITE,"%.14s  %.1fU",equipment_list_names[idx],equipment_costs[idx]*.1f);}
   text(1,32,DIM,"UP/DOWN pick   X buy   TRI back");
  }else if(sc_menu==SC_MENU_PERSON&&pn>0){
   if(sc_choice<0)sc_choice=0; if(sc_choice>=pn)sc_choice=pn-1;
@@ -302,8 +398,8 @@ static void sc_draw_ui(void){
   text(1,32,AMBER,">"); text_wrap(3,32,55,1,AMBER,p->offer,0);
  }else if(pn>0){
   text(1,31,GOLD,"%d here",pn); text_wrap(12,31,46,1,WHITE,people[0].line,0);
-  text(1,32,DIM,"X talk / trade   face a door to walk");
- }else text(1,31,DIM,"Empty deck. Face a door and press UP.");
+  text(1,32,DIM,"X talk/trade   face DOOR + UP to walk");
+ }else text(1,31,DIM,"Empty deck. Face a DOOR and press UP.");
  if(game.passenger_dest>=0)text(50,2,CYAN,"PAX");
 }
 static void sc_do_act(void){

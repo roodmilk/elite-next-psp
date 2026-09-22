@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.29**.
+Prepared 22 September 2026. Current build: **2.5.30**.
 
 ## Start here
 
@@ -63,6 +63,10 @@ Important controls:
 - Galaxy Map: Triangle switches between nearby jumps and the full 256-system map; D-pad moves between systems; L/R zoom; X plots a multi-jump route and saves the final goal.
 
 ## Recent changes that must be preserved
+
+### 2.5.30 — MM6-style station crawl polish
+
+Crisp three-depth station walkaround: riveted panels, checker floor, destination-labeled doors, portrait NPC sprites, clearer room chrome. Interactions unchanged.
 
 ### 2.5.29 — soft-FB space FX kit
 

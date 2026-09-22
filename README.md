@@ -1,4 +1,9 @@
-# ELITE: NEXT — development build 2.5.29
+# ELITE: NEXT — development build 2.5.30
+
+## New in 2.5.30 — MM6-style station crawl
+
+- First-person station decks read as a classic grid dungeon: riveted panels, checker floor, labeled doors to named rooms, hanging lamp, room props, portrait NPCs with name plates.
+- Talk, shops, gifts and taxis unchanged.
 
 ## New in 2.5.29 — living space backdrop
 
