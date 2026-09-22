@@ -298,6 +298,7 @@ static void draw_bodies(void){
  }
 }
 static void draw_portrait(int x,int y,int w,int h,int system,int role);
+#include "space-fx.h"
 #include "flight-extras.h"
 #include "planet.h"
 #include "pixel-art.h"
@@ -322,7 +323,7 @@ static void space(void){
  if(game.police_stop){if(hud_mode==0)cockpit();police_dialog();return;}
  if(game.dead){death_effect();if(hud_mode==0)cockpit();return;}
  if(game.dock_stage>=2){docking_view();if(hud_mode==0)cockpit();return;}
- sector_background();starfield();celestial_rims();draw_bodies();lens_flares();station_model();secondary_hubs();ambient_space();
+ sector_background();space_fx_nebula();starfield();space_fx_meteors();celestial_rims();draw_bodies();lens_flares();station_model();secondary_hubs();ambient_space();
  int npc_detailed[NPC_COUNT]={0};
  for(int i=0;i<NPC_COUNT;i++){NPC *n=&game.npc[i];if(!n->alive||occluded(n->pos))continue;float distance=length(sub(n->pos,game.pos)),limit=n->freighter?12000.f:5200.f;if(distance>limit)continue;npc_detailed[i]=n->freighter?2:1;unsigned c=n->flash>0?WHITE:faction_colors[n->role];float yaw=atan2f(n->dir.x,n->dir.z);if(npc_detailed[i]==2){capital_model(n,c);continue;}shipmesh(n->mesh,n->pos,yaw,0,n->scale,c,0);}
  for(int i=0;i<DEBRIS_COUNT;i++){Debris *d=&game.debris[i];if(!d->alive||occluded(d->pos))continue;float distance=length(sub(d->pos,game.pos));if(distance>11000)continue;
@@ -690,6 +691,18 @@ static void input_tests(void){
    DrawTri t={{{20,20,30},{30,20,30},{20,30,30}},WHITE,30};triangle(&t);
    int clipped=1;for(int y=0;y<H;y++)for(int x=0;x<W;x++)if(pixels[y*STRIDE+x]&&(x<20||x>=25||y<20||y>=25))clipped=0;
    INPUT_CHECK(clipped,"graphics: odd-sized preview clips contain every raster pixel");
+   /* Soft-FB space FX kit: nebula/clouds paint the canopy; high contrast skips them. */
+   {
+    high_contrast=0;game.system=3;system_bodies(&game);launch(&game);page=FLIGHT;game.jump=0;game.boost=0;
+    memset(pixels,0,STRIDE*H*sizeof(unsigned));sector_background();space_fx_nebula();starfield();
+    int haze=0;for(int y=view_top();y<=view_bot();y++)for(int x=0;x<W;x++){unsigned c=pixels[y*STRIDE+x];if(c&&c!=BG)haze++;}
+    INPUT_CHECK(haze>2000,"graphics: space-fx nebula and starfield paint the canopy");
+    high_contrast=1;memset(pixels,0,STRIDE*H*sizeof(unsigned));sector_background();space_fx_nebula();space_fx_meteors();
+    int plain=0;for(int y=view_top();y<=view_bot();y++)for(int x=0;x<W;x++)if(pixels[y*STRIDE+x])plain++;
+    /* Base wash only — no soft nebula/meteors when high contrast is on. */
+    INPUT_CHECK(plain>1000,"graphics: high contrast keeps the sector wash without decorative FX");
+    high_contrast=0;
+   }
    preview_reset();quiet_comms=old_quiet;fb=saved_fb;free(pixels);TEST_INIT();
   }
  }

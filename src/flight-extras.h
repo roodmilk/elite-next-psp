@@ -127,7 +127,16 @@ static void starfield(void){
  static Vec3 stars[600];static int initialized=0;
  if(!initialized){unsigned seed=91731;for(int i=0;i<600;i++){seed=seed*1664525u+1013904223u;float a=(seed&65535)*6.2831853f/65536;seed=seed*1664525u+1013904223u;float y=(seed&65535)/32767.5f-1;float h=sqrtf(1-y*y);stars[i]=(Vec3){cosf(a)*h,y,sinf(a)*h};}initialized=1;}
  int xt=clipy0>=0?clipx0:1,xb=clipy0>=0?clipx1-1:478,yt=clipy0>=0?clipy0:view_top(),yb=clipy0>=0?clipy1-1:view_bot();
- for(int i=0;i<600;i++){Vec3 p=camera(&game,add(game.pos,mul(stars[i],30000)));if(p.z<100)continue;Point q=project(p); if(q.x<xt||q.x>xb||q.y<yt||q.y>yb)continue;unsigned c=i%7==0?RGB(196,215,255):i%11==0?RGB(240,213,164):RGB(95+i%90,110+i%90,140+i%90);if((i%17)==0){int tw=(int)(sinf(game.time*(1.2f+(i&3)*.25f)+i)*18);c=RGB((int)fmaxf(25,(c&255)+tw),(int)fmaxf(30,((c>>8)&255)+tw),(int)fmaxf(40,((c>>16)&255)+tw));}pixel((int)q.x,(int)q.y,c);if(i%29==0){pixel((int)q.x+1,(int)q.y,c);pixel((int)q.x,(int)q.y+1,c);}}
+ for(int i=0;i<600;i++){
+  Vec3 p=camera(&game,add(game.pos,mul(stars[i],30000)));if(p.z<100)continue;Point q=project(p);
+  if(q.x<xt||q.x>xb||q.y<yt||q.y>yb)continue;
+  unsigned c=i%7==0?RGB(196,215,255):i%11==0?RGB(240,213,164):i%19==0?RGB(255,180,190):RGB(95+i%90,110+i%90,140+i%90);
+  /* Twinkle more stars (and a bright sparkle subset) via space-fx. */
+  if(!high_contrast&&((i%5)==0||(i%17)==0||(i%13)==0))c=space_fx_twinkle(c,i,game.time);
+  pixel((int)q.x,(int)q.y,c);
+  if(i%29==0){pixel((int)q.x+1,(int)q.y,c);pixel((int)q.x,(int)q.y+1,c);}
+  if(!high_contrast&&(i%41)==0){sfx_add((int)q.x,(int)q.y,RGB(40,50,70),yt,yb);}
+ }
  for(int i=0;i<48;i++){Vec3 d={(float)((i*719)%4000)-2000,(float)((i*353)%4000)-2000,(float)((i*991)%4000)-2000};d.x-=game.pos.x;d.y-=game.pos.y;d.z-=game.pos.z;d.x-=floorf((d.x+2000)/4000)*4000;d.y-=floorf((d.y+2000)/4000)*4000;d.z-=floorf((d.z+2000)/4000)*4000;Vec3 p=camera(&game,add(game.pos,d));if(p.z<100)continue;Point q=project(p);if(q.x<xt||q.x>xb||q.y<yt||q.y>yb)continue;if(game.boost){float stretch=.04f;line((int)q.x,(int)q.y,(int)(q.x+(q.x-proj_ox)*stretch),(int)(q.y+(q.y-proj_oy)*stretch),DIM);}else pixel((int)q.x,(int)q.y,RGB(60,80,105));}
 }
 static void station_entrance(void){

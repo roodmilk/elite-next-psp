@@ -2,6 +2,10 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.29 - 2026-09-22
+
+- Soft-framebuffer space FX kit (`space-fx.h`): per-system nebula ribbons, layered space clouds, galactic band haze, stronger star twinkle/sparkle, rare shooting stars. GU particle libs were surveyed and skipped — they do not fit this software renderer; effects stay additive, bounded, and high-contrast safe.
+
 ## 2.5.28 - 2026-09-22
 
 - Station crawl FP view deepened toward OpenEnroth corridor language: depth-layered wall panels, facing-relative side portals with neighbour-room tint, arched passage frames, tile floor grid, ceiling beams, denser room props, minimap door links, step bob.

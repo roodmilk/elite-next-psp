@@ -1,11 +1,10 @@
 static void sector_background(void){
- const unsigned colors[]={RGB(8,12,27),RGB(18,7,26),RGB(5,20,24),RGB(24,12,8),RGB(9,17,32),RGB(16,10,30),RGB(7,13,18),RGB(20,8,18)};unsigned seed=game.bodies[0].seed;float zone=sinf((game.pos.x+game.pos.z)*.00007f+(seed&255)*.03f);unsigned raw=colors[game.system%8];float level=.78f+(zone+1)*.12f;unsigned base=RGB((int)((raw&255)*level),(int)(((raw>>8)&255)*level),(int)(((raw>>16)&255)*level));rect(0,view_top(),W,view_bot()-view_top()+1,base);
- int clouds=2+(seed%4);for(int cloud=0;cloud<clouds;cloud++){float angle=game.system*1.73f+cloud*1.57f;Vec3 direction={sinf(angle),sinf(angle*.73f)*.45f,cosf(angle)};Vec3 v=camera(&game,add(game.pos,mul(direction,50000)));if(v.z<3000)continue;Point p=project(v);float radius=fminf(340,2200000/v.z)*(1+((seed>>(cloud*3))&3)*.12f);unsigned tint=colors[(game.system+cloud+1)%8];unsigned haze=RGB(((base&255)*2+(tint&255))/3,(((base>>8)&255)*2+((tint>>8)&255))/3,(((base>>16)&255)*2+((tint>>16)&255))/3);
-  int density=48+((seed>>(cloud*4))&31);for(int k=0;k<density;k++){float a=k*2.39996f+cloud,radius_k=radius*sqrtf((k+.5f)/density);int x=(int)(p.x+cosf(a)*radius_k),y=(int)(p.y+sinf(a)*radius_k*.48f);if(x<0||x>=W||y<view_top()||y>view_bot())continue;int size=1+((k+(seed&3))&3);rect(x,y,size*2,size,haze);if((k&7)==0)pixel(x+size,y,RGB((haze&255)+8,((haze>>8)&255)+8,((haze>>16)&255)+8));}
- }
- /* Fine dust is tied to large spatial cells, so denser patches appear and
-  * recede naturally while travelling instead of following the HUD. */
- unsigned cell=(unsigned)((int)(game.pos.x/6000))*73856093u^(unsigned)((int)(game.pos.z/6000))*19349663u^seed;int motes=18+(cell&31);for(int i=0;i<motes;i++){cell=cell*1664525u+1013904223u;int x=(cell>>16)%W;cell=cell*1664525u+1013904223u;int y=view_top()+((cell>>16)%(view_bot()-view_top()+1));unsigned c=(i%9==0)?RGB(104,86,125):(i%5==0)?RGB(78,107,116):RGB(48,55,69);pixel(x,y,c);if((cell&15)==0)pixel(x+1,y,c);}
+ /* Flat sector wash only — nebula / clouds / dust live in space-fx.h. */
+ const unsigned colors[]={RGB(8,12,27),RGB(18,7,26),RGB(5,20,24),RGB(24,12,8),RGB(9,17,32),RGB(16,10,30),RGB(7,13,18),RGB(20,8,18)};
+ unsigned seed=game.bodies[0].seed;float zone=sinf((game.pos.x+game.pos.z)*.00007f+(seed&255)*.03f);
+ unsigned raw=colors[game.system%8];float level=.78f+(zone+1)*.12f;
+ unsigned base=RGB((int)((raw&255)*level),(int)(((raw>>8)&255)*level),(int)(((raw>>16)&255)*level));
+ rect(0,view_top(),W,view_bot()-view_top()+1,base);
 }
 static Vec3 station_vertex(Vec3 v){return add(rotate(v,0,station_angle(&game)),(Vec3){0,0,3500});}
 static void station_model(void){
@@ -27,7 +26,7 @@ static void menu_space_view(int x,int y,int w,int h){
   Vec3 ship=game.docked?(Vec3){0,40,3180}:game.planet>=0?add(game.pos,(Vec3){0,80,0}):game.pos;
   float dist=310.f;Vec3 cam=add(ship,(Vec3){sinf(phase)*dist,88.f+sinf(phase*.7f)*36.f,cosf(phase)*dist});
   game.pos=cam;Vec3 aim=norm(sub(ship,cam));game.yaw=atan2f(aim.x,aim.z);float ap=aim.y;if(ap>1)ap=1;if(ap<-1)ap=-1;game.pitch=asinf(ap);game.roll=0;
-  starfield();
+  starfield();space_fx_nebula();space_fx_meteors();
   /* Local scenery so the inset reads as “ship in this system,” not a void studio. */
   if(game.docked||length(sub(ship,(Vec3){0,0,3500}))<14000)station_model();
   else {
@@ -58,7 +57,7 @@ static void secondary_hubs(void){
 }
 static void docking_view(void){
  if(game.dock_stage==3){rect(0,23,W,195,BG);text(22,10,CYAN,"DOCKING COMPLETE");text(12,14,WHITE,"Welcome to %s",station_name(&game));text(17,18,DIM,"Opening station services...");return;}
- Vec3 oldpos=game.pos;float oldyaw=game.yaw,oldpitch=game.pitch,oldroll=game.roll;game.pos=(Vec3){260,120,2820};Vec3 aim=norm(sub((Vec3){0,0,3400},game.pos));game.yaw=atan2f(aim.x,aim.z);game.pitch=asinf(aim.y);game.roll=0;sector_background();starfield();station_model();float t=fminf(1,game.dock_timer/3);shipmesh(mesh_id(player_ships[game.ship].name),(Vec3){0,0,3070+t*470},0,station_angle(&game),.7f,GOLD,0);flush_meshes();station_entrance();text(2,5,CYAN,"ARRIVAL CAMERA / %s",station_name(&game));game.pos=oldpos;game.yaw=oldyaw;game.pitch=oldpitch;game.roll=oldroll;
+ Vec3 oldpos=game.pos;float oldyaw=game.yaw,oldpitch=game.pitch,oldroll=game.roll;game.pos=(Vec3){260,120,2820};Vec3 aim=norm(sub((Vec3){0,0,3400},game.pos));game.yaw=atan2f(aim.x,aim.z);game.pitch=asinf(aim.y);game.roll=0;sector_background();space_fx_nebula();starfield();space_fx_meteors();station_model();float t=fminf(1,game.dock_timer/3);shipmesh(mesh_id(player_ships[game.ship].name),(Vec3){0,0,3070+t*470},0,station_angle(&game),.7f,GOLD,0);flush_meshes();station_entrance();text(2,5,CYAN,"ARRIVAL CAMERA / %s",station_name(&game));game.pos=oldpos;game.yaw=oldyaw;game.pitch=oldpitch;game.roll=oldroll;
 }
 /* Edge-band captions. Body text is word wrapped to actual 8px cell capacity. */
 static void speech_box(int x,int y,int w){

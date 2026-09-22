@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.28**.
+Prepared 22 September 2026. Current build: **2.5.29**.
 
 ## Start here
 
