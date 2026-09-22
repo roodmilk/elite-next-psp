@@ -656,20 +656,40 @@ static int saga_dominant_trust(const Game *g){
  return best;
 }
 static const char *saga_trust_helper(const Game *g){
- /* Visible coalition helpers unlocked by earlier permanent decisions. */
- if(g->saga_trust[SAGA_TRUST_PUBLIC]>=2)return "Civilian fuel tenders are standing by on your route.";
- if(g->saga_trust[SAGA_TRUST_GUILD]>=2)return "Guild survey markers are already painting your next hops.";
- if(g->saga_trust[SAGA_TRUST_LAW]>=2)return "Lawful ceasefire calls are ready against Meridian interceptors.";
- if(g->saga_trust[SAGA_TRUST_INDEPENDENT]>=1)return "Sable's covert corridor is open if you need a quiet road.";
+ /* Flag/coalition helpers — character stake from screenplay Echo 3, not a buff list. */
+ if(g->saga_trust[SAGA_TRUST_PUBLIC]>=2)return "Tamsin's fuel tenders are on your wing — chaos that shares fuel.";
+ if(g->saga_trust[SAGA_TRUST_GUILD]>=2)return "Guild markers are painting truth mid-route. Measurement as courage.";
+ if(g->saga_trust[SAGA_TRUST_LAW]>=2)return "Suspend language is live on Meridian hulls. Often enough is victory.";
+ if(g->saga_trust[SAGA_TRUST_INDEPENDENT]>=1)return "Sable left a quiet corridor open — six minutes of honesty, then interest.";
  return "You fly with the people who decided to trust you.";
 }
 static const char *saga_epilogue_line(const Game *g){
+ /* Dominant-trust closer — one line from the berth-six decision echoes. */
  switch(saga_dominant_trust(g)){
- case SAGA_TRUST_PUBLIC:return "Public relays still answer when your callsign clears the noise.";
- case SAGA_TRUST_GUILD:return "Guild charts still mark your berth as a place worth returning to.";
- case SAGA_TRUST_LAW:return "Iona's audit trail still carries your name where it can be checked.";
- default:return "Independents still leave a warm berth for the pilot who counted them.";
+ case SAGA_TRUST_PUBLIC:return "Your commons is noisy. Noise is harder to forge than silence.";
+ case SAGA_TRUST_GUILD:return "Peer review slowed the knife. Continuity without perfume — stay bored.";
+ case SAGA_TRUST_LAW:return "The chain held. Ugly, legible, enough. That is what a badge is for.";
+ default:return "Quiet warnings kept traffic breathing. Trust came slower. People still docked.";
  }
+}
+/* GalNet / Spacebook colour from Open Channel permanent decisions (short wires). */
+static const char *saga_galnet_desk(const Game *g){
+ if(!g||g->campaign_stage<6)return 0;
+ if(g->saga_chapter>=SAGA_COUNT)return "Open Channel filed: berth six warm. Free flight continues.";
+ if(g->saga_flags&8)return "Custody notice: relay keys under inspection. Losers keep the map.";
+ if(g->saga_flags&4)return "Coalition advisories live — allies on the channel, not owners.";
+ if(g->saga_flags&2)return "Migration hazard bulletin revised after independent verification.";
+ if(g->saga_flags&1)return "Ledger custody still shapes who speaks first on the wire.";
+ if(g->saga_chapter>=12)return "Neutral archive packets in transit — refuse exclusive stamps.";
+ return 0;
+}
+static const char *saga_galnet_kei(const Game *g){
+ if(!g||g->campaign_stage<6)return 0;
+ if(g->saga_chapter>=SAGA_COUNT)return "Berth six is warm. Come back when you are ready — not when I am lonely.";
+ if(g->saga_chapter>=18)return "Lane first. Speeches after. Hold allies, not owners.";
+ if(g->saga_chapter>=12)return "Packets and doubts travel together. That is the point.";
+ if(g->saga_chapter>=6)return "Ryn is on the wire again. Tools before speeches.";
+ return 0;
 }
 static int saga_voice_who(const SagaBeat *b){
  if(!b)return VOICE_CONTACT;

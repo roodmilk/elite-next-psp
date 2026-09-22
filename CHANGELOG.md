@@ -13,6 +13,7 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 - ART DIRECTOR A+++ visual pass plan landed as composition guidance (`docs/A-PLUS-PLUS-VISUAL-PASS.md`) — execution continues on this tip without a micro-tag.
 - Story confirm answers + Who Keeps the Light choice staging tightened from screenplay (PR #19 follow-up).
 - Story Silence/Carry choice staging + spoken prologue asks folded from PR #19 follow-ups.
+- **Story tip batch (untagged):** berth-six epilogue + coalition helpers speak screenplay decision echoes; complete-screen Kei line; GalNet Explorer Guild / Kei posts colour from Open Channel flags — land as one fold, not drip commits.
 
 ## 2.5.38 - 2026-09-22
 

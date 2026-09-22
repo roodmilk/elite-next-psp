@@ -12,7 +12,7 @@ static void campaign_screen(void){
  }
  if(tracked_mission>=2){int ji=tracked_mission-2;if(ji<0||ji>=game.job_n){tracked_mission=0;campaign_screen();return;}Job *j=&game.jobs[ji];text(2,5,GOLD,"CONTRACT / %s",mission_name(j->type));draw_icon(18,63,12+j->type,1);text(6,8,CYAN,"DESTINATION: %.18s",game.systems[j->dest].name);text(6,10,DIM,"TIME %.0fs   REWARD %.1f U",j->time,j->reward*.1f);rect(16,118,448,54,RGB(13,36,43));text(3,15,GOLD,"CURRENT OBJECTIVE");text_wrap(3,17,54,2,WHITE,mission_objective_at(&game,ji),0);text(3,20,DIM,"CHOOSE AN ACTION");narrative_choice(0,21,"Navigate to objective");narrative_choice(1,23,"Return to mission log");narrative_footer();return;}
  if(game.campaign_stage>=6){
-  if(game.saga_chapter>=SAGA_COUNT){text(2,5,GOLD,"THE OPEN CHANNEL / COMPLETE");kei_speech_bubble(54,"The channel is open, Commander.",saga_epilogue_line(&game),2);text(3,16,CYAN,"TRUST  P%d G%d L%d I%d",game.saga_trust[0],game.saga_trust[1],game.saga_trust[2],game.saga_trust[3]);text_wrap(3,18,54,1,DIM,saga_trust_helper(&game),0);text(3,20,CYAN,"FREE FLIGHT CONTINUES");footer("SELECT MISSION LOG   O BACK");return;}
+  if(game.saga_chapter>=SAGA_COUNT){text(2,5,GOLD,"THE OPEN CHANNEL / COMPLETE");kei_speech_bubble(54,"Berth six is warm. The channel stays open.",saga_epilogue_line(&game),2);text(3,16,CYAN,"TRUST  P%d G%d L%d I%d",game.saga_trust[0],game.saga_trust[1],game.saga_trust[2],game.saga_trust[3]);text_wrap(3,18,54,1,DIM,saga_trust_helper(&game),0);text(3,20,CYAN,"FREE FLIGHT CONTINUES");footer("SELECT MISSION LOG   O BACK");return;}
   /* Act I locked coda — page script after chapter complete, before the next brief. */
   if(saga_coda_pending>=0){
    int ch=saga_coda_pending;const SagaBeat *cb=&saga_beats[ch];unsigned ink=saga_speaker_color(cb);

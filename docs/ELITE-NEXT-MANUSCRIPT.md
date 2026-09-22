@@ -519,7 +519,7 @@ Each sheet: **Dramatic question → Playable verb (now) → Ideal bespoke verb (
 6. Ryn reunion multi-page (Ch.12)
 7. Non-lethal blockade (Ch.20)
 8. Voss stand-down / testify / flee (Ch.22)
-9. Trust-coloured epilogue berth scenes (Ch.25)
+9. Trust-coloured epilogue berth scenes (Ch.25) — **shipped on tip:** dominant-trust epilogue + Flag helpers + GalNet Open Channel colour
 
 ---
 
@@ -635,8 +635,9 @@ If fled / testified / stood down: rare GalNet sightings; no revenge fetch quest 
 | 2026-09-22 | (pending unify tip) | Act II (Ch.08–13) raised to matching page-script authority; Act II codas; Sable/Nadi polish from screenplay |
 | 2026-09-22 | 2.5.37 tip | Act III (Ch.14–19) page scripts + Act III codas through No Easy Flag; Flag blurbs from screenplay |
 | 2026-09-22 | 2.5.39 tip (untagged pack) | Dialogue chrome fix (no YOU:/YOU SPOKE); Act IV Ch.20–25 page scripts + codas through berth; ask→answer realigned |
+| 2026-09-22 | 2.5.39 tip batch | Berth-six epilogue + coalition helpers from screenplay echoes; GalNet Open Channel colour from `saga_flags` |
 | (next) | — | Author 3 systemic mission novella chains in board data |
-| (next) | — | GalNet reactive post table wired to `saga_flags` |
+| (next) | — | Expand GalNet reactive table beyond desk/Kei wires |
 
 ---
 
@@ -761,7 +762,7 @@ If a brief cannot answer those three, rewrite it.
 
 Bridge scripts connect playable eight-beat briefs to full screenplay scenes.
 
-## IV.4 Act I–IV playable page scripts (shipped 2.5.35+; Act III–IV pending tip pack)
+## IV.4 Act I–IV playable page scripts (shipped through 2.5.39 tip pack)
 
 Each Act I–IV chapter (saga 0–23 / UI 02–25) is eight ask-then-answer Story beats. Beat N+1 answers the commander's ask on beat N. Beat 7 restates the objective and accepts. After completion, a locked **coda** page plays (runtime only — no save field) before the next brief unlocks. Choice chapters show consequence blurbs under the highlighted option. Story chat shows the spoken line only — no `YOU:` prefix; waiting panel replaces needless `YOU SPOKE` / `YOU ASKED` headers.
 
@@ -828,12 +829,14 @@ Each Act I–IV chapter (saga 0–23 / UI 02–25) is eight ask-then-answer Stor
 
 ## IV.8 Trust helper radio (post choice 3)
 
-| Trust | Helper line |
+| Trust | Helper line (playable) |
 |---|---|
-| Public ≥2 | "Civilian fuel tender on your vector. No speeches. Just fuel." |
-| Guild ≥2 | "Survey markers painted. Follow the dots, not the ads." |
-| Law ≥2 | "Ceasefire call ready if Meridian paints the public lane." |
-| Independent ≥1 | "Sable's corridor is open. Explicit bargain. No surprises." |
+| Public ≥2 | "Tamsin's fuel tenders are on your wing — chaos that shares fuel." |
+| Guild ≥2 | "Guild markers are painting truth mid-route. Measurement as courage." |
+| Law ≥2 | "Suspend language is live on Meridian hulls. Often enough is victory." |
+| Independent ≥1 | "Sable left a quiet corridor open — six minutes of honesty, then interest." |
+
+Epilogue complete screen + GalNet Explorer Guild / Kei Spacebook posts colour from the same decision echoes (screenplay Ch.25).
 
 ---
 

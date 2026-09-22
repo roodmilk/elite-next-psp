@@ -119,5 +119,10 @@
  INPUT_CHECK(strstr(saga_beats[20].talk7,"Crews first")||strstr(saga_beats[20].talk7,"crews first"),"script: Open Channel confirm ask gets crews-first yes");
  INPUT_CHECK(strstr(saga_choice_blurb(22,0),"inspection")&&strstr(saga_choice_reaction(22,1),"method"),"script: Who Keeps Light blurbs/reactions match screenplay custody stakes");
  INPUT_CHECK(strstr(prologue_brief_line1(0),"Ryn")&&strstr(prologue_brief_line2(0),"three"),"script: prologue hook still names Ryn and the three missed calls");
+ {
+  Game echo;game_init(&echo);echo.campaign_stage=6;echo.saga_trust[0]=2;echo.saga_flags=4;echo.saga_chapter=19;
+  INPUT_CHECK(strstr(saga_epilogue_line(&echo),"noisy")&&strstr(saga_trust_helper(&echo),"Tamsin"),"script: epilogue and helpers speak berth-six decision echoes");
+  INPUT_CHECK(saga_galnet_desk(&echo)&&strstr(saga_galnet_desk(&echo),"Coalition")&&saga_galnet_kei(&echo)&&strstr(saga_galnet_kei(&echo),"Lane first"),"script: GalNet desk/Kei posts colour from Open Channel flags");
+ }
  TEST_INIT();
 }
