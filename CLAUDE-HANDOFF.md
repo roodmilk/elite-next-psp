@@ -2,6 +2,13 @@
 
 Prepared 22 September 2026. Current build: **2.5.46**.
 
+## PSP UI/art specialist handoff — native deck readability
+
+Branch `specialist/ui-art` shortens command-deck helper copy to the existing 27-column
+detail pane and bounds the renderer at that width. This is presentation-only: no
+mission, economy, save, input, or audio state changed. Full PSP build/smoke remains
+blocked in the delegated workspace because `../../work/toolchain` is absent.
+
 ## Working tip — equipment modules (shipped in 2.5.46)
 
 Outfitting buys into six hardpoints (`fit[]`); Loadout sells at 50%. Bits still drive the sim; V13 persists slots. Targeting CRT fuzz from 2.5.45 retained.
