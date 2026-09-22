@@ -176,11 +176,13 @@ static void station_glow(void){
 static void npc_engine_glow(void){
  int top=view_top(),bot=view_bot();
  for(int i=0;i<NPC_COUNT;i++){NPC *n=&game.npc[i];if(!n->alive||occluded(n->pos))continue;float d=length(sub(n->pos,game.pos));if(d>9000)continue;
-  Vec3 extent=n->freighter?freight_extent(n):(Vec3){n->radius,n->radius,n->radius*1.7f};
+  Vec3 extent=n->freighter?freight_extent(n):(Vec3){n->radius,n->radius,n->radius};
+  float aft=n->freighter?extent.z:0;if(!n->freighter){const Mesh *m=&meshes[n->mesh];for(int v=0;v<m->vertices;v++)aft=fmaxf(aft,-m->v[v].z*n->scale);if(aft<1)aft=n->radius*.55f;}
   Vec3 side=norm((Vec3){n->dir.z,0,-n->dir.x});int plumes=n->freighter?2:1;
   for(int plume=0;plume<plumes;plume++){
    float offset=n->freighter?(plume?1:-1)*extent.x*.38f:0;
-   Vec3 rear=add(add(n->pos,mul(n->dir,-extent.z)),mul(side,offset));Vec3 rv=camera(&game,rear);if(rv.z<25)continue;Point root=project(rv);if(root.x<3||root.x>477||root.y<top+3||root.y>bot-3)continue;
+   /* Anchor at the mesh aft tip so the flame starts on the hull, not floating behind it. */
+   Vec3 rear=add(add(n->pos,mul(n->dir,-aft*.92f)),mul(side,offset));Vec3 rv=camera(&game,rear);if(rv.z<25)continue;Point root=project(rv);if(root.x<3||root.x>477||root.y<top+3||root.y>bot-3)continue;
    int pulse=1+(int)(fabsf(sinf(game.time*(n->freighter?2.2f:5.5f)+i+plume))*2);world_spark((int)root.x,(int)root.y,n->freighter?2+pulse:1+pulse,RGB(255,218,125));pixel((int)root.x,(int)root.y,WHITE);
    Point last=root;int segments=n->freighter?6:4;float step=n->freighter?30.f:13.f;
    for(int k=1;k<=segments;k++){

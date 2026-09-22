@@ -475,6 +475,8 @@ A new commander starts on Handler Kei's Guild brief. X opens the command deck on
 - Nub / D-pad: steer. Centre the nub after launch. Manual steering cancels auto-alignment.
 - L / R: slow down / accelerate.
 - Double-tap R within 0.32 seconds, holding the second press: boost up to 20 times normal speed. Release R to brake.
+- Double-tap L while moving fast: hard brake that dumps speed quickly.
+- Heat rises from overspeed, boost and flying near the sun. Critical heat locks boost and lasers; max heat destroys the ship. Cool by dropping boost, leaving the star and resting the guns.
 - Hold L + D-pad left/right: roll the ship without changing throttle. Camera, steering and compass respond to roll.
 - X: fire laser.
 - Square: open the targeting computer. The list is grouped under Planets, Ships, Stations, Other and Enemies. L/R tabs those headers, Up/Down selects, Triangle shows details, X locks and auto-aligns, and Circle returns to flight. Hold Square and Left/Right in flight to tab the same five bands. Hold Square and Up/Down to cycle contacts inside the highlighted band. Hold R and press Square to lock the nearest hostile immediately.

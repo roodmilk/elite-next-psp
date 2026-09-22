@@ -147,7 +147,13 @@ static void cockpit(void){
   const char *tail=name+cut;while(*tail==' ')tail++;
   if(*tail)text(1,28,GOLD,"%.18s",tail);
   text(1,30,WHITE,"%d M",(int)length(p));
-  text(1,31,autoaim?CYAN:DIM,"%s",autoaim?"LOCKED / ALIGNING":"HOLD SQ + R: LOCK");
+  if(IS_NPC_ID(id)&&scanner_known(id)){
+   NPC *n=&game.npc[id-BODY_COUNT-1];
+   float mh=n->freighter?900.f:n->role==LAW?110.f:80.f,ms=n->freighter?100.f:n->role==LAW?60.f:40.f;
+   int hull=(int)fmaxf(0,fminf(100,100.f*n->health/mh)),shld=(int)fmaxf(0,fminf(100,100.f*n->shield/fmaxf(1.f,ms)));
+   text(1,31,DIM,"HULL");pip_bar(40,250,70,4,hull,hull<30?RED:(n->freighter?GOLD:CYAN));
+   text(15,31,DIM,"SHLD");pip_bar(128,250,50,4,shld,CYAN);
+  }else text(1,31,autoaim?CYAN:DIM,"%s",autoaim?"LOCKED / ALIGNING":"HOLD SQ + R: LOCK");
  }
  else {text(1,27,DIM,"NO TARGET");text(1,30,WHITE,"SQUARE TO SELECT");}
  text(28,25,DIM,"AHEAD");text(29,31,DIM,"AFT");

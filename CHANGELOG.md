@@ -2,6 +2,12 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.9 - 2026-09-22
+
+- Double-tap L hard-brake and hull heat (speed / boost / sun → cool when clear; critical locks boost; max destroys) covered by regressions; controls docs updated.
+- Targeted ships show compact HULL/SHLD bars on the lower-left target panel; freighters stay tough, return fire when damaged, and raise a heavier local warrant when destroyed.
+- Engine exhaust plumes anchor to each mesh’s aft tip instead of floating behind the silhouette.
+
 ## 2.5.8 - 2026-09-22
 
 - Each system uses a distinct orbital template, world-type permutation and colour set so planets look different from star to star.

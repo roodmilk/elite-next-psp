@@ -526,6 +526,11 @@ static void input_tests(void){
  input(PSP_CTRL_RTRIGGER,PSP_CTRL_RTRIGGER,.016f,0,0);INPUT_CHECK(!game.boost,"single R press does not boost");
  input(0,0,.1f,0,0);input(PSP_CTRL_RTRIGGER,PSP_CTRL_RTRIGGER,.016f,0,0);INPUT_CHECK(game.boost,"double R press starts boost");
  input(0,PSP_CTRL_RTRIGGER,.016f,0,0);INPUT_CHECK(game.boost,"held R maintains boost");input(0,0,.016f,0,0);INPUT_CHECK(!game.boost,"R release cancels boost");
+ TEST_INIT();launch(&game);page=FLIGHT;game.speed=player_ships[game.ship].speed;game.heat=0;hard_brake=0;l_tap=10;
+ input(PSP_CTRL_LTRIGGER,PSP_CTRL_LTRIGGER,.016f,0,0);INPUT_CHECK(hard_brake<=0,"single L press does not hard-brake");
+ input(0,0,.1f,0,0);input(PSP_CTRL_LTRIGGER,PSP_CTRL_LTRIGGER,.016f,0,0);INPUT_CHECK(hard_brake>0,"double L while fast starts hard brake");
+ float braked=game.speed;input(0,0,.05f,0,0);INPUT_CHECK(game.speed<braked,"hard brake dumps speed quickly");
+ game.heat=90;r_tap=0;input(PSP_CTRL_RTRIGGER,PSP_CTRL_RTRIGGER,.016f,0,0);input(0,0,.1f,0,0);input(PSP_CTRL_RTRIGGER,PSP_CTRL_RTRIGGER,.016f,0,0);INPUT_CHECK(!game.boost,"critical heat refuses a boost double-tap");
  change_page(LOCAL);row=2;input(PSP_CTRL_TRIANGLE,0,.016f,0,0);INPUT_CHECK(page==FLIGHT&&selected_target==2&&autoaim,"local menu selects named planet and auto-aligns");
  input(0,0,.016f,1,0);INPUT_CHECK(!autoaim,"manual steering cancels auto-aim");
  game.approach=1;game.pos=add(game.bodies[1].pos,(Vec3){0,0,-game.bodies[1].radius-800});game.yaw=game.pitch=0;Vec3 facing=forward(&game);input(PSP_CTRL_CIRCLE,0,.016f,0,0);INPUT_CHECK(game.approach==-1&&dot(facing,forward(&game))<-.999f,"Circle exits approach and turns around");

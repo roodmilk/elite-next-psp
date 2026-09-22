@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.8**.
+Prepared 22 September 2026. Current build: **2.5.9**.
 
 ## Start here
 
@@ -55,7 +55,9 @@ Important controls:
 - Hold Square + L: cycle contacts currently in front.
 - Hold Square + R: lock highlighted target and engage auto-turn.
 - L + Left/Right: roll.
-- Double-tap and hold R: high boost.
+- Double-tap L while fast: hard brake.
+- Double-tap and hold R: high boost (blocked when heat is critical).
+- Heat: speed / boost / sun raise HEAT; cool when not boosting and clear of the star; max heat destroys the ship.
 - Galaxy Map: Triangle switches between nearby jumps and the full 256-system map; D-pad moves between systems; L/R zoom; X plots a multi-jump route and saves the final goal.
 
 ## Recent changes that must be preserved
@@ -75,6 +77,10 @@ The currently playable chapter actions are deliberately compact: dock, scan, def
 The nearby list only shows local candidates. Triangle opens a spatial overview of all 256 systems. It marks the current system in cyan, the tracked mission destination in gold, and caches/draws every intermediate jump. L/R zoom from 1× to 4×. X converts the selected long route into its first reachable jump. This logic is generic; **Quator has no special code or significance** and was only the system that exposed the old UI flaw.
 
 Story navigation plans against the fitted drive even if the tank is empty, then marks the next hop as low-fuel until the player refuels. The story screen distinguishes `NEXT` from `FINAL`, and the cockpit names the next reachable hop.
+
+### 2.5.9 — hard brake / heat polish, target bars, freighter fight-back
+
+Double-tap L hard brake and heat rules keep their regressions. Target panel shows HULL/SHLD bars. Damaged freighters return fire and destroying non-pirates raises extra local warrant. Engine plumes attach at mesh aft.
 
 ### 2.5.8 — per-system skies and far warp-in
 

@@ -74,7 +74,17 @@ static void freight_update(Game *g,float dt){
  int active=0;
  for(int i=8;i<36;i+=12){NPC *n=&g->npc[i];if(!n->freighter)continue;
   if(!n->alive){n->freight_timer=fmaxf(0,n->freight_timer-dt);continue;}active++;
-  n->target=-1;n->flash=fmaxf(0,n->flash-dt);if(n->flash<=0)n->shield=fminf(100,n->shield+dt*.8f);
+  n->flash=fmaxf(0,n->flash-dt);n->cooldown=fmaxf(0,n->cooldown-dt);if(n->flash<=0)n->shield=fminf(100,n->shield+dt*.8f);
+  /* Damaged freighters break schedule and return fire with heavy turrets. */
+  int defending=n->health<880||n->target==-2;
+  if(defending&&g->jump<=0&&!g->dead&&!g->docked){
+   float pd=length(sub(g->pos,n->pos));n->target=-2;
+   Vec3 desired=norm(sub(g->pos,n->pos));n->dir=norm(add(mul(n->dir,1-dt*1.1f),mul(desired,dt*1.1f)));
+   if(pd>420)n->pos=add(n->pos,mul(n->dir,dt*fminf(n->cruise+40.f,140.f)));
+   if(pd<3200&&dot(n->dir,desired)>.72f&&n->cooldown<=0){n->cooldown=1.1f;n->flash=.12f;g->energy-=7;g->attacked=3;g->cue=SFX_HIT;}
+   continue;
+  }
+  n->target=-1;
   if(n->freight_state==FREIGHT_ARRIVING){n->freight_timer-=dt;if(n->freight_timer<=0)n->freight_state=FREIGHT_INBOUND;continue;}
   if(n->freight_state==FREIGHT_SERVICE){
    n->freight_timer-=dt;

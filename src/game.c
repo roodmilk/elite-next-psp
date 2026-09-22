@@ -328,10 +328,11 @@ static float npc_max_shield(const NPC *n){return n->freighter?100:n->role==LAW?6
 static void hit(Game *g,int i,float damage,int player);
 static void ram_contact(Game *g,int i){NPC *n=&g->npc[i];int rescue=0;for(int s=0;s<g->job_n;s++)if(g->jobs[s].dest==g->system&&g->jobs[s].target==i&&g->jobs[s].type==MISSION_RESCUE)rescue=1;if(rescue){n->health=1;return;}hit(g,i,0,1);}
 static void hit(Game *g,int i,float damage,int player){NPC *n=&g->npc[i];if(!n->alive)return;if(n->shield>0){float absorbed=fminf(n->shield,damage);n->shield-=absorbed;damage-=absorbed;}n->health-=damage;n->flash=.12f;if(player)g->cue=SFX_HIT;
- if(player&&n->role!=2){add_crime(g,5);message(g,"Assault reported. Police alert.");}
+ if(player&&n->role!=PIRATES){add_crime(g,n->freighter?8:5);message(g,n->freighter?"Freighter returns fire. Heavy police alert.":"Assault reported. Police alert.");}
+ if(player&&(n->freighter||n->role==TRADERS||n->role==EXPLORERS||n->role==LAW)){n->target=-2;if(n->freighter)n->cooldown=0;}
  jobs_from_legacy(g);int protect=0;for(int s=0;s<g->job_n;s++){Job *j=&g->jobs[s];if(j->dest!=g->system||j->target!=i)continue;if(j->type==MISSION_RESCUE)protect=1;if(!player&&(j->type==MISSION_BOUNTY||j->type==MISSION_RESCUE))protect=1;}
  if(n->health<=0&&protect){n->health=1;if(player)message(g,"That's a rescue beacon. Don't fire.");return;}
- if(n->health<=0){n->alive=0;if(n->freighter){n->freight_state=FREIGHT_ABSENT;n->freight_timer=240;}wreck_from_npc(g,i);if(player){g->kills++;if(n->role==2){g->credits+=150;message(g,"Pirate destroyed. Bounty 15 units. Cargo released.");}else message(g,"Contact destroyed. Cargo canisters released.");for(int s=0;s<g->job_n;){if(g->jobs[s].dest==g->system&&g->jobs[s].type==MISSION_BOUNTY&&g->jobs[s].target==i){g->job_sel=s;mission_finish_slot(g,s,"Pirate-hunt complete. Payment received.");}else s++;}}else g->npc_kills++;}
+ if(n->health<=0){n->alive=0;if(n->freighter){n->freight_state=FREIGHT_ABSENT;n->freight_timer=240;}wreck_from_npc(g,i);if(player){g->kills++;if(n->role!=PIRATES)add_crime(g,n->freighter?25:10);if(n->role==PIRATES){g->credits+=150;message(g,"Pirate destroyed. Bounty 15 units. Cargo released.");}else message(g,n->freighter?"Freighter destroyed. Heavy warrant filed. Cargo released.":"Contact destroyed. Cargo canisters released.");for(int s=0;s<g->job_n;){if(g->jobs[s].dest==g->system&&g->jobs[s].type==MISSION_BOUNTY&&g->jobs[s].target==i){g->job_sel=s;mission_finish_slot(g,s,"Pirate-hunt complete. Payment received.");}else s++;}}else g->npc_kills++;}
 }
 int salvage(Game *g,int id){
  if(g->docked||g->dead||g->jump>0||g->planet>=0||!IS_DEBRIS_ID(id))return 0;
@@ -468,7 +469,7 @@ void game_tick(Game *g,float dt,float turn,float pitch,int throttle,int fire){
   else if(n->waypoint>=8){aim=add(n->pos,mul(n->dir,4000));if(length(n->pos)>24000){n->alive=0;n->cooldown=12+i;continue;}}
   else {aim=stn;if(length(sub(n->pos,stn))<520){n->waypoint=8;n->dir=norm((Vec3){n->pos.x,0,n->pos.z-3500});}}
   if(n->role==LAW||n->role==PIRATES)for(int j=0;j<NPC_COUNT;j++)if(i!=j&&g->npc[j].alive){NPC *o=&g->npc[j];if((n->role==LAW&&o->role==PIRATES)||(n->role==PIRATES&&(o->role==TRADERS||o->role==LAW))){float d=length(sub(o->pos,n->pos));if(d<best){target=j;best=d;aim=o->pos;}}}
-  float pd=length(sub(g->pos,n->pos));if(((n->role==PIRATES&&g->system!=7)||(n->role==LAW&&g->legal>0))&&pd<best){target=-2;best=pd;aim=g->pos;}
+  float pd=length(sub(g->pos,n->pos));if(((n->role==PIRATES&&g->system!=7)||(n->role==LAW&&g->legal>0)||((n->role==TRADERS||n->role==EXPLORERS)&&n->health<npc_max_health(n)-.5f))&&pd<best){target=-2;best=pd;aim=g->pos;}
   if(n->role==LAW&&g->legal>0&&pd<650&&g->jump<=0&&g->police_grace<=0){n->target=-2;g->police_stop=1;g->speed=0;g->boost=0;g->approach=-1;g->cue=SFX_ALERT;message(g,"Local Law: stop and settle your warrant.");speak(g,VOICE_LAW,"Commander, your vessel is under local arrest.");return;}
   if((n->role==TRADERS&&!n->freighter)||n->role==EXPLORERS){float danger=1100;int threat=-1;for(int j=0;j<NPC_COUNT;j++)if(g->npc[j].alive&&g->npc[j].role==PIRATES){float d=length(sub(n->pos,g->npc[j].pos));if(d<danger){danger=d;threat=j;}}if(threat>=0)aim=add(n->pos,mul(norm(sub(n->pos,g->npc[threat].pos)),2000));}
   n->target=target;Vec3 desired=norm(sub(aim,n->pos));for(int b=0;b<BODY_COUNT;b++){Vec3 toward=sub(g->bodies[b].pos,n->pos);float along=dot(toward,desired),radius=g->bodies[b].radius+n->radius+300;if(along>0&&along<radius+1800&&length(sub(toward,mul(desired,along)))<radius){Vec3 outward=norm(mul(toward,-1));desired=norm(add(desired,add(mul(outward,2),(Vec3){.15f,.4f,0})));}}for(int cap=8;cap<36;cap+=12){NPC *c=&g->npc[cap];if(!c->alive||!c->freighter)continue;Vec3 toward=sub(c->pos,n->pos);float along=dot(toward,desired),clear=c->radius+n->radius+220;if(along>0&&along<clear+1000&&length(sub(toward,mul(desired,along)))<clear)desired=norm(add(desired,add(mul(norm(mul(toward,-1)),2),(Vec3){.15f,.6f,0})));}
@@ -562,6 +563,13 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  launch(&g);for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;g.pos=(Vec3){0,0,-20000};g.speed=0;g.boost=1;
  for(int i=0;i<60;i++){game_tick(&g,1.f/60,0,0,1,0);}CHECK(g.speed>3000,"boost accelerates beyond normal speed");
  g.boost=0;game_tick(&g,.016f,0,0,0,0);CHECK(g.speed<=player_ships[g.ship].speed,"boost release brakes to normal speed");
+ game_init(&g);launch(&g);g.boost=0;g.heat=0;g.speed=player_ships[g.ship].speed*3.f;g.pos=(Vec3){0,0,25000};
+ for(int i=0;i<180;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.heat>8,"over-speed cruise builds hull heat");
+ float hot=g.heat;g.speed=0;g.boost=0;for(int i=0;i<120;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.heat<hot,"idle clear of the star vents heat");
+ g.heat=0;g.pos=add(g.bodies[0].pos,(Vec3){0,0,g.bodies[0].radius+800});g.speed=0;
+ for(int i=0;i<180;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.heat>10,"sun proximity cooks the hull");
+ g.heat=99.5f;g.boost=1;game_tick(&g,.05f,0,0,0,0);CHECK(g.dead&&g.heat>=100&&!g.boost,"critical overheat destroys the ship and cuts boost");
+ g.dead=0;g.energy=100;g.heat=92;g.boost=1;game_tick(&g,.016f,0,0,0,0);CHECK(!g.boost,"heat above ninety locks boost");
  Vec3 before={0,0,3100};g.pos=(Vec3){0,0,3900};g.energy=100;world_collision(&g,before);CHECK(g.pos.z<3340&&g.energy<100,"swept collision blocks station tunnelling");
  CHECK(g.dead&&g.energy==0,"station impact destroys the player ship");g.dead=0;g.energy=100;
  Body *b=&g.bodies[1];before=add(b->pos,(Vec3){0,0,-b->radius-200});g.pos=add(b->pos,(Vec3){0,0,b->radius+200});float energy_before=g.energy;world_collision(&g,before);CHECK(length(sub(g.pos,b->pos))>b->radius&&g.approach==1,"planet boundary offers approach without impact");CHECK(g.energy==energy_before&&g.collision==0,"planet approach causes no collision damage");
