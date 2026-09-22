@@ -61,26 +61,26 @@ static void draw_life_billboard(const Lifeform *l){
 static void planet_view(void){
  Body *b=&game.bodies[game.planet];
  int top=view_top(),bottom=view_bot()+1;
- unsigned sky_hi=b->type==OCEAN?RGB(78,150,220):RGB(210,150,88);
- unsigned sky_lo=b->type==OCEAN?RGB(186,216,240):RGB(236,196,130);
+ unsigned sky_hi=b->type==OCEAN?mix_rgb(b->color,RGB(78,150,220),.55f):mix_rgb(b->color,RGB(210,150,88),.4f);
+ unsigned sky_lo=b->type==OCEAN?mix_rgb(b->accent,RGB(186,216,240),.5f):mix_rgb(b->accent,RGB(236,196,130),.45f);
  for(int y=top;y<bottom;y++){
   float t=(y-top)/(float)fmaxf(1,bottom-top);
   unsigned c=mix_rgb(sky_hi,sky_lo,t);
   for(int x=0;x<W;x++)fb[y*STRIDE+x]=c;
  }
  int suny=top+28-(int)(game.pitch*40);if(suny<top+8)suny=top+8;if(suny>bottom-40)suny=bottom-40;
- circle(370,suny,14,RGB(255,230,120));circle(370,suny,8,RGB(255,255,200));
+ circle(370,suny,14,mix_rgb(b->color,RGB(255,230,120),.25f));circle(370,suny,8,RGB(255,255,200));
  if(b->type==OCEAN)for(int i=0;i<3;i++){int cx=70+i*90,cy=top+18+(i%2)*10;planet_cliprect(cx,cy,50,8,RGB(230,236,242));planet_cliprect(cx+10,cy-6,34,8,RGB(242,246,250));}
- else for(int i=0;i<2;i++){int cx=90+i*140,cy=top+16+(i%2)*8;planet_cliprect(cx,cy,42,4,RGB(228,186,140));}
+ else for(int i=0;i<2;i++){int cx=90+i*140,cy=top+16+(i%2)*8;planet_cliprect(cx,cy,42,4,mix_rgb(b->accent,RGB(228,186,140),.35f));}
  Vec3 pad=surface_site(&game,1);
- unsigned grass=b->type==OCEAN?RGB(74,140,68):mix_rgb(b->color,RGB(90,130,60),.55f);
- unsigned waterc=RGB(52,118,168);
+ unsigned grass=b->type==OCEAN?mix_rgb(b->color,RGB(74,140,68),.5f):mix_rgb(b->color,RGB(90,130,60),.62f);
+ unsigned waterc=mix_rgb(b->color,RGB(52,118,168),.4f);
  int horizon=110+(int)(game.pitch*150.f);
  if(horizon<top+24)horizon=top+24;
  if(horizon>bottom-36)horizon=bottom-36;
  for(int y=horizon;y<bottom;y++){
   float t=(y-horizon)/(float)fmaxf(1,bottom-horizon);
-  unsigned c=b->type==OCEAN&&t<.12f?waterc:mix_rgb(grass,RGB(48,78,40),t*.45f);
+  unsigned c=b->type==OCEAN&&t<.12f?waterc:mix_rgb(grass,mix_rgb(b->accent,RGB(48,78,40),.4f),t*.45f);
   for(int x=0;x<W;x++)fb[y*STRIDE+x]=c;
  }
  int cell=game.surface==2?40:56,span=5;
@@ -91,7 +91,7 @@ static void planet_view(void){
   Vec3 mid=camera(&game,(Vec3){cx,24.f,cz});if(mid.z<20||mid.z>620)continue;
   if(terrain_is_water(&game,cx,cz))continue;
   int checker=((gx0+ix)+(gz0+iz))&1;
-  unsigned col=checker?grass:mix_rgb(grass,RGB(120,150,70),.28f);
+  unsigned col=checker?grass:mix_rgb(grass,b->accent,.28f);
   planet_quad((Vec3){x0,24,z0},(Vec3){x1,24,z0},(Vec3){x1,24,z1},(Vec3){x0,24,z1},col);
  }
  {
@@ -139,12 +139,16 @@ static void planet_view(void){
   float hx=px+48,hz=pz-20,hh=terrain_height(&game,hx,hz);
   Vec3 A={hx-14,hh,hz-10},B={hx+14,hh,hz-10},C={hx+14,hh,hz+10},D0={hx-14,hh,hz+10};
   Vec3 E={hx-14,hh+16,hz-10},F={hx+14,hh+16,hz-10},G={hx+14,hh+16,hz+10},I={hx-14,hh+16,hz+10};
-  planet_quad(A,B,F,E,RGB(150,110,70));planet_quad(B,C,G,F,RGB(120,86,54));planet_quad(E,F,G,I,RGB(170,70,50));
+  unsigned wall=mix_rgb(b->accent,RGB(150,110,70),.35f),roof=mix_rgb(b->color,RGB(170,70,50),.4f);
+  planet_quad(A,B,F,E,wall);planet_quad(B,C,G,F,mix_rgb(wall,RGB(40,30,20),.3f));planet_quad(E,F,G,I,roof);
   (void)D0;
   flush_meshes();
  }
  if(game.surface)shipwire_stretched(mesh_id(player_ships[game.ship].name),game.surface==1?game.pos:game.ship_pos,game.surface==1?game.yaw:0,.85f,1.f,GOLD);
  for(int i=0;i<LIFE_COUNT;i++)if(game.life[i].alive)draw_life_billboard(&game.life[i]);
  if(game.surface!=2){line(227,110,236,110,CYAN);line(244,110,253,110,CYAN);line(240,97,240,106,CYAN);line(240,114,240,123,CYAN);}
- if(hud_mode==1){float alt=game.pos.y-terrain_height(&game,game.pos.x,game.pos.z);text(1,1,CYAN,"%s",b->name);text(36,1,WHITE,game.surface==2?"EVA":"ALT %d",(int)alt);}
+ if(game.surface==2){
+  rect(0,top,W,18,RGB(6,16,24));rect(0,top+17,W,1,CYAN);
+  text(1,top/8,CYAN,"EVA / %.14s",b->name);text(28,top/8,GOLD,"SQ SCAN");text(40,top/8,WHITE,"O BOARD");
+ }else if(hud_mode==1){float alt=game.pos.y-terrain_height(&game,game.pos.x,game.pos.z);text(1,1,CYAN,"%s",b->name);text(36,1,WHITE,game.surface==2?"EVA":"ALT %d",(int)alt);}
 }

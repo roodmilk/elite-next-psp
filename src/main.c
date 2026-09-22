@@ -371,18 +371,41 @@ static void space(void){
 #include "comms-panel.h"
 #include "intro.h"
 static void walk_screen(void){
- int horizon=92+(int)(sinf(preview_time*.45f)*2);rect(0,0,W,H,walk_kind==2?RGB(3,8,16):RGB(7,12,18));
- for(int i=0;i<18;i++){int y=horizon+i*9;int inset=i*7;line(0,y,W/2-inset,horizon,RGB(20+i*2,32+i*2,42+i*2));line(W,y,W/2+inset,horizon,RGB(20+i*2,32+i*2,42+i*2));}
- line(0,horizon,W,horizon,CYAN);line(112,272,240,horizon,DIM);line(368,272,240,horizon,DIM);
- rect(0,0,W,24,RGB(8,19,28));rect(0,22,W,2,GOLD);
+ static const struct {float x,z;int role;const char *name;const char *line;} folk[]={
+  {-90,80,TRADERS,"DOCKHAND","Berths are tight today. Watch the freighter lane."},
+  {70,140,LAW,"PATROL","Keep your warrant clean and we stay friendly."},
+  {-40,260,EXPLORERS,"SURVEYOR","Guild charts need fresh surface samples."},
+  {110,40,TRADERS,"TRADER","Market board is live. Food moves fast here."},
+  {20,320,EXPLORERS,"KEI","When you are ready, open Tracked Mission."}
+ };
+ int horizon=96+(int)(sinf(preview_time*.45f+walk_yaw)*.5f);rect(0,0,W,H,walk_kind==2?RGB(3,8,16):RGB(10,16,24));
+ for(int y=horizon;y<H;y++){unsigned c=mix_rgb(RGB(28,40,52),RGB(12,18,26),(y-horizon)/(float)fmaxf(1,H-horizon));for(int x=0;x<W;x++)fb[y*STRIDE+x]=c;}
+ for(int i=0;i<14;i++){int y=horizon+i*12;int inset=i*9;line(0,y,W/2-inset,horizon,RGB(36+i,52+i,66+i));line(W,y,W/2+inset,horizon,RGB(36+i,52+i,66+i));}
+ line(0,horizon,W,horizon,CYAN);
+ rect(0,0,W,28,RGB(8,19,28));rect(0,26,W,2,GOLD);
  const char *place=walk_kind==0?station_name(&game):walk_kind==1?"SHIP / PERSONAL DECK":"DERELICT / AIRLOCK";
- text(2,1,GOLD,"FIRST PERSON / %s",place);text(2,3,DIM,walk_kind==2?"NUB LOOK   D-PAD MOVE   X SALVAGE   O AIRLOCK":"NUB LOOK   D-PAD MOVE   X INTERACT   O EXIT");
- int sway=(int)(sinf(walk_x*.04f)*2);rect(196+sway,104,88,70,RGB(24,43,52));rect(205+sway,112,70,54,RGB(10,24,34));
- rect(220+sway,126,40,22,walk_kind==0?RGB(35,120,124):walk_kind==2?RGB(88,56,45):RGB(90,64,40));rect(226+sway,132,28,3,walk_kind==2?RED:CYAN);
- rect(42,128,80,46,RGB(17,30,38));rect(358,128,80,46,RGB(17,30,38));rect(52,138,60,10,walk_kind==0?GOLD:RED);rect(368,138,60,10,walk_kind==0?CYAN:GOLD);
- text(6,20,walk_kind==0?GOLD:CYAN,walk_kind==0?"ARRIVALS / SERVICES":walk_kind==2?"SALVAGE SOCKET":"AIRLOCK / WORKSHOP");text(39,20,WHITE,"%s",walk_kind==0?"CONCOURSE":walk_kind==2?"TETHER ATTACHED":"PERSONAL DECK");
- if(walk_kind==2){rect(8,224,180,10,RGB(22,28,36));rect(8,224,(int)(1.8f*walk_oxygen),10,CYAN);rect(8,237,180,10,RGB(36,22,26));rect(8,237,(int)(1.8f*walk_integrity),10,RED);text(25,27,WHITE,"OXYGEN %d   SUIT %d",(int)walk_oxygen,(int)walk_integrity);}
- else text(2,31,DIM,"POSITION %d,%d   %s",(int)walk_x,(int)walk_z,walk_kind==0?"STATION DECK":"PERSONAL DECK");
+ text(1,0,GOLD,"ON FOOT / %.18s",place);text(1,2,DIM,walk_kind==2?"NUB LOOK  D-PAD MOVE  X SALVAGE  O EXIT":"NUB LOOK  D-PAD MOVE  X TALK  O EXIT");
+ int nearest=-1;float best=999;
+ if(walk_kind==0)for(int i=0;i<5;i++){
+  float dx=folk[i].x-walk_x,dz=folk[i].z-walk_z;float d=sqrtf(dx*dx+dz*dz);if(d<best){best=d;nearest=i;}
+  float relx=dx*cosf(-walk_yaw)-dz*sinf(-walk_yaw),relz=dx*sinf(-walk_yaw)+dz*cosf(-walk_yaw);
+  if(relz<20||relz>420)continue;
+  int sx=240+(int)(relx*180.f/relz),sy=horizon+(int)(42.f*180.f/relz);int h=(int)fmaxf(18,fminf(70,5200.f/relz));
+  if(sx<-20||sx>500)continue;
+  unsigned ink=faction_colors[folk[i].role];
+  rect(sx-h/5,sy-h,h/2,h,RGB(22,34,44));rect(sx-h/6,sy-h,h/3,h/4,ink);pixel(sx,sy-h+h/8,WHITE);
+  if(i==nearest&&best<70){rect(sx-18,sy+4,36,3,GOLD);text((sx-20)/8,(sy+8)/8,GOLD,"X");}
+ }
+ int sway=(int)(sinf(walk_x*.04f)*2);
+ rect(188+sway,horizon-8,104,78,RGB(24,43,52));rect(198+sway,horizon,84,62,RGB(10,24,34));
+ rect(220+sway,horizon+18,40,24,walk_kind==0?RGB(35,120,124):walk_kind==2?RGB(88,56,45):RGB(90,64,40));
+ rect(42,horizon+20,70,40,RGB(17,30,38));rect(368,horizon+20,70,40,RGB(17,30,38));
+ text(6,(horizon+28)/8,walk_kind==0?GOLD:CYAN,walk_kind==0?"ARRIVALS":walk_kind==2?"SALVAGE":"AIRLOCK");
+ text(40,(horizon+28)/8,WHITE,"%s",walk_kind==0?"CONCOURSE":walk_kind==2?"TETHER":"DECK");
+ rect(0,248,W,24,RGB(8,19,28));rect(0,248,W,2,CYAN);
+ if(walk_kind==2){rect(8,252,180,8,RGB(22,28,36));rect(8,252,(int)(1.8f*walk_oxygen),8,CYAN);rect(8,262,180,8,RGB(36,22,26));rect(8,262,(int)(1.8f*walk_integrity),8,RED);text(25,32,WHITE,"O2 %d  SUIT %d",(int)walk_oxygen,(int)walk_integrity);}
+ else if(walk_kind==0&&nearest>=0&&best<70){text(1,32,GOLD,"%.12s",folk[nearest].name);text(16,32,WHITE,"%.40s",folk[nearest].line);}
+ else text(1,32,DIM,"Walk toward people. X talks. O returns to deck.");
 }
 static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
  static unsigned in_held=0;static int sq_arm=0;
@@ -394,7 +417,21 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
   if(walk_kind==2){walk_oxygen-=dt*2.2f;if(walk_x>185||walk_x<-185||walk_z>385||walk_z<-45)walk_integrity-=dt*3.f;if(walk_oxygen<=0||walk_integrity<=0){walk_oxygen=0;page=FLIGHT;message(&game,"Suit reserve exhausted. Emergency tether return.");return;}}
   if(pressed&PSP_CTRL_TRIANGLE&&walk_kind==0){walk_kind=1;walk_x=walk_z=walk_yaw=0;message(&game,"Ship deck unlocked. X inspects the workshop.");}
   else if(pressed&PSP_CTRL_CIRCLE){page=walk_kind==2?FLIGHT:HOME;message(&game,walk_kind==2?"Airlock sealed. Back aboard the ship.":"Back on the command deck.");}
-  else if(pressed&PSP_CTRL_CROSS){if(walk_kind==2&&!walk_salvaged){walk_salvaged=1;game.credits+=500;game.discoveries++;message(&game,"Salvage secured: relay core +500 units.");}else message(&game,walk_kind==0?"Concourse services are ready. Open the station deck.":"Workshop inspection complete.");}
+  else if(pressed&PSP_CTRL_CROSS){
+   if(walk_kind==2&&!walk_salvaged){walk_salvaged=1;game.credits+=500;game.discoveries++;message(&game,"Salvage secured: relay core +500 units.");}
+   else if(walk_kind==0){
+    static const struct {float x,z;int role;const char *name;const char *line;} folk[]={
+     {-90,80,TRADERS,"DOCKHAND","Berths are tight today. Watch the freighter lane."},
+     {70,140,LAW,"PATROL","Keep your warrant clean and we stay friendly."},
+     {-40,260,EXPLORERS,"SURVEYOR","Guild charts need fresh surface samples."},
+     {110,40,TRADERS,"TRADER","Market board is live. Food moves fast here."},
+     {20,320,EXPLORERS,"KEI","When you are ready, open Tracked Mission."}
+    };
+    int nearest=-1;float best=999;for(int i=0;i<5;i++){float dx=folk[i].x-walk_x,dz=folk[i].z-walk_z,d=sqrtf(dx*dx+dz*dz);if(d<best){best=d;nearest=i;}}
+    if(nearest>=0&&best<70){speak(&game,folk[nearest].role==LAW?VOICE_LAW:folk[nearest].role==EXPLORERS?VOICE_KEI:VOICE_DOCK,folk[nearest].line);message(&game,folk[nearest].line);game.cue=SFX_UI;}
+    else message(&game,"Move closer to someone, then press X.");
+   }else message(&game,"Workshop inspection complete.");
+  }
   return;}
  if(page==FLIGHT&&!paused&&!game.police_stop&&!game.dock_stage&&game.jump<=0&&game.approach<0&&!game.dead){
   if((pressed&PSP_CTRL_TRIANGLE)&&(held&PSP_CTRL_TRIANGLE)){triangle_arm=1;triangle_hold=0;}
@@ -458,7 +495,7 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
     else {int next=game.story<STORY_FREE?story_home_row(&game):0;change_page(HOME);row=next;deck_last=next;}
    }
    else if(page==GUILD&&(pressed&PSP_CTRL_CROSS)){if(row==0)narrative_do(GUILD);else change_page(STORY);}
-   else if(page==HOME&&(pressed&PSP_CTRL_CROSS)){int pages[]={FLIGHT,MARKET,CHART,YARD,EQUIP,STATUS,HELP,FACTIONS,TARGETING,DEBUG,COMMS,DETAILS,MISSIONS,MISSIONLOG,GALNET,CODEX,RADIO,CAMPAIGN,GUILD,COMFORT};if(row<0||row>=DECK_ITEMS)return;int opened=row,next=pages[row];if(!story_menu_ok(&game,opened)){message(&game,story_task(&game));game.cue=SFX_UI;return;}if(!game.docked&&(next==YARD||next==EQUIP||next==MISSIONS)){message(&game,"Dock at a station to open this service.");game.cue=SFX_UI;return;}if(next==FLIGHT){int leaving=game.docked;int keep=(selected_target>=0&&selected_target<=BODY_COUNT)?selected_target:0;analog_ready=0;ax=ay=0;launch(&game);if(leaving){selected_target=keep;autoaim=0;if(valid_target(keep))scan_cat=target_category(keep);}}change_page(next);story_on_open(&game,opened);if(!game.cue)game.cue=SFX_UI;}
+   else if(page==HOME&&(pressed&PSP_CTRL_CROSS)){if(row==20){if(game.docked){walk_kind=0;walk_x=walk_z=walk_yaw=0;page=WALK;message(&game,"Station deck. Walk to people and press X to talk.");}else message(&game,"Dock first to walk the station deck.");return;}int pages[]={FLIGHT,MARKET,CHART,YARD,EQUIP,STATUS,HELP,FACTIONS,TARGETING,DEBUG,COMMS,DETAILS,MISSIONS,MISSIONLOG,GALNET,CODEX,RADIO,CAMPAIGN,GUILD,COMFORT};if(row<0||row>=20)return;int opened=row,next=pages[row];if(!story_menu_ok(&game,opened)){message(&game,story_task(&game));game.cue=SFX_UI;return;}if(!game.docked&&(next==YARD||next==EQUIP||next==MISSIONS)){message(&game,"Dock at a station to open this service.");game.cue=SFX_UI;return;}if(next==FLIGHT){int leaving=game.docked;int keep=(selected_target>=0&&selected_target<=BODY_COUNT)?selected_target:0;analog_ready=0;ax=ay=0;launch(&game);if(leaving){selected_target=keep;autoaim=0;if(valid_target(keep))scan_cat=target_category(keep);}}change_page(next);story_on_open(&game,opened);if(!game.cue)game.cue=SFX_UI;}
    else if(page==LOCAL&&contact_count>0&&row>=0&&row<contact_count&&(pressed&(PSP_CTRL_CROSS|PSP_CTRL_TRIANGLE))){selected_target=contact_ids[row];scan_cat=target_category(selected_target);nav_body=selected_target>0&&selected_target<=BODY_COUNT?selected_target-1:-1;autoaim=(pressed&PSP_CTRL_TRIANGLE)!=0;story_event(&game,STORY_EV_TARGET);if(selected_target==0)campaign_event(&game,CP_LOCK);message(&game,"Target set.");if(!game.docked)change_page(FLIGHT);}
    else if(page==DETAILS&&(pressed&(PSP_CTRL_CROSS|PSP_CTRL_TRIANGLE))){int id=row==0?0:row;if(valid_target(id)){selected_target=id;scan_cat=target_category(id);nav_body=id>0&&id<=BODY_COUNT?id-1:-1;autoaim=(pressed&PSP_CTRL_TRIANGLE)!=0;story_event(&game,STORY_EV_TARGET);if(selected_target==0)campaign_event(&game,CP_LOCK);message(&game,id==0?"Station locked.":id==1?"Sun locked. No landing.":"Body locked.");if(!game.docked)change_page(FLIGHT);}}
   else if(page==COMMS&&(pressed&PSP_CTRL_TRIANGLE)){comms_rescue_confirm=!comms_rescue_confirm;}else if(page==COMMS&&(pressed&PSP_CTRL_CROSS)){if(comms_rescue_confirm){if(emergency_rescue(&game)){selected_target=0;autoaim=0;change_page(HOME);}return;}if(game.docked){message(&game,"Already docked.");game.cue=SFX_UI;}else if(dock(&game)){selected_target=0;autoaim=0;change_page(FLIGHT);}}

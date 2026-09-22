@@ -2,7 +2,7 @@ static void home(void){
  int group=deck_group(row);
  header(game.docked?"STATION / COMMAND DECK":"COCKPIT / PAUSED");
  for(int i=0;i<5;i++){int x=8+i*94;rect(x,30,90,20,i==group?RGB(25,65,77):RGB(10,23,33));if(i==group)rect(x,48,90,2,GOLD);text((x+8)/8,4,i==group?WHITE:DIM,"%s",deck_groups[i]);}
- const char *labels[]={game.docked?"Launch":"Resume flight","Cargo & market","Galaxy map","Shipyard","Outfitting","Save / status","Controls","Factions","Targeting computer","Debug tools","Comms / docking","System details","Mission board","Mission log","GalacticNet","Discovery Codex","Radio & audio","Tracked mission","Explorers Guild","Display & chatter"};
+ const char *labels[]={game.docked?"Launch":"Resume flight","Cargo & market","Galaxy map","Shipyard","Outfitting","Save / status","Controls","Factions","Targeting computer","Debug tools","Comms / docking","System details","Mission board","Mission log","GalacticNet","Discovery Codex","Radio & audio","Tracked mission","Explorers Guild","Display & chatter","Walk station deck"};
  static const char *hints[][2]={
  {"Return to your cockpit.","Fly at your own pace."},{"Your hold and local goods.","Station prices while docked."},{"Choose your next system.","Check range before jumping."},
  {"Compare and exchange hulls.","Requires station services."},{"Refuel and improve the ship.","Requires station services."},{"Save, load and view records.","Save at a station."},
@@ -10,9 +10,9 @@ static void home(void){
  {"Change cash or world state.","Debug changes affect saves."},{"Hail the station or get help.","Request guided docking."},{"Economy, risk and planets.","Know where you are flying."},
  {"Find work at this station.","Dock to accept a contract."},{"Review jobs and set a route.","Reading pauses job clocks."},{"News and local SpaceBook.","Take a break from flying."},
  {"Review your discoveries.","Keep a record of your travels."},{"Five offline music stations.","Set music and effects levels."},{"Guide for the tracked mission.","Choose tracking in Mission Log."},
- {"Optional Guild assignments.","Also listed in Mission Log."},{"Choose HUD and text chatter.","Keep the view comfortable."}};
+ {"Optional Guild assignments.","Also listed in Mission Log."},{"Choose HUD and text chatter.","Keep the view comfortable."},{"Walk the concourse on foot.","Talk to people around the hub."}};
  panel(8,58,222,132);panel(238,58,234,132);
- for(int i=0;i<deck_sizes[group];i++){int id=deck_rows[group][i],y=8+i*2;int locked=!game.docked&&(id==3||id==4||id==12);
+ for(int i=0;i<deck_sizes[group];i++){int id=deck_rows[group][i],y=8+i*2;int locked=!game.docked&&(id==3||id==4||id==12||id==20);
   if(id==row){rect(10,y*8-2,218,15,RGB(25,65,77));rect(10,y*8-2,3,15,GOLD);}
   int story_row=id==17&&(game.campaign_stage<6||game.guild_chapter<4||game.job_n>0);unsigned ink=id==row?WHITE:locked?DIM:story_row?GOLD:WHITE;
   text(3,y,ink,"%s%s%.21s",id==row?">":" ",story_row?"! ":"",labels[id]);
@@ -21,7 +21,7 @@ static void home(void){
  int is_story=row==17&&(game.campaign_stage<6||game.guild_chapter<4||game.job_n>0);
  text(31,17,is_story?GOLD:GOLD,"%.27s",labels[row]);
  text(31,19,WHITE,"%s",hints[row][0]);
- if(!game.docked&&(row==3||row==4||row==12))text(31,21,AMBER,"Dock first to open this.");
+ if(!game.docked&&(row==3||row==4||row==12||row==20))text(31,21,AMBER,"Dock first to open this.");
  if(is_story){rect(246,178,218,2,GOLD);text(31,23,GOLD,"Open to see your next step.");}
  text(2,25,CYAN,"System: %.12s",game.systems[game.system].name);
  {int wl=wanted_level(&game);text(2,26,wl?RED:DIM,wl?"Wanted [%s]":"Clear warrant",stars(wl));}

@@ -130,8 +130,8 @@ int enter_planet(Game *g){
  g->planet=body;g->approach=-1;g->surface=0;g->boost=0;
  float px,pz;site_xz(g,1,&px,&pz);g->pos=(Vec3){px-220,0,pz-60};g->pos.y=terrain_height(g,g->pos.x,g->pos.z)+170;
  g->yaw=atan2f(px-g->pos.x,pz-g->pos.z);g->pitch=-.22f;g->roll=0;g->speed=48;g->hazard=0;g->cue=SFX_LAND;
- for(int i=0;i<LIFE_COUNT;i++){Lifeform *l=&g->life[i];l->alive=1;l->scanned=0;l->kind=i%3;float a=i*.95f;l->pos=(Vec3){px+cosf(a)*(110+i*32),0,pz+sinf(a)*(100+i*28)};l->pos.y=terrain_height(g,l->pos.x,l->pos.z)+(l->kind==LIFE_FAUNA?16:7);}
- message(g,"Atmosphere. Fly to the cyan pad. Triangle returns to orbit.");speak(g,VOICE_COMP,"Atmosphere. Cyan pad in the trees ahead.");story_event(g,STORY_EV_WORLD);return 1;
+ for(int i=0;i<LIFE_COUNT;i++){Lifeform *l=&g->life[i];l->alive=1;l->scanned=0;unsigned h=sector_hash(g->bodies[body].seed+i*131u);l->kind=g->bodies[body].type==OCEAN?(i%5==0?LIFE_MINERAL:(i&1?LIFE_FLORA:LIFE_FAUNA)):(h%3);float a=i*.95f+(h%7)*.1f;float rad=100.f+(h%90)+i*18;l->pos=(Vec3){px+cosf(a)*rad,0,pz+sinf(a)*rad};if(terrain_is_water(g,l->pos.x,l->pos.z)){l->pos.x=px+cosf(a)*140;l->pos.z=pz+sinf(a)*140;}l->pos.y=terrain_height(g,l->pos.x,l->pos.z)+(l->kind==LIFE_FAUNA?16:7);}
+ message(g,"Atmosphere. Fly to the cyan pad. Triangle returns to orbit.");speak(g,VOICE_COMP,g->bodies[body].type==OCEAN?"Ocean world. Island pad ahead.":"Rocky surface. Cyan pad in the scrub ahead.");story_event(g,STORY_EV_WORLD);return 1;
 }
 void leave_planet(Game *g){
  if(g->planet<0)return;
