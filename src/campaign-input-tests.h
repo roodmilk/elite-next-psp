@@ -43,8 +43,8 @@
  input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(game.saga_step==1&&!saga_brief_locked(),"saga brief: accept sets the next mission step and unlocks exit");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
- INPUT_CHECK(game.saga_step==1,"saga brief: after accept, Cross sets course instead of replaying dialogue");
- game.guild_chapter=0;game.guild_flags=0;row=0;
+ INPUT_CHECK(game.saga_step==1&&page==CHART,"saga brief: after accept, Cross sets course instead of replaying dialogue");
+ change_page(CAMPAIGN);game.guild_chapter=0;game.guild_flags=0;row=0;
  INPUT_CHECK(narrative_action(GUILD)==NA_FLY,"assignments: unfinished flight offers Launch instead of Claim");
  game.guild_flags=GUILD_LAUNCH|GUILD_DOCK;
  INPUT_CHECK(narrative_action(GUILD)==NA_REWARD,"assignments: completed docked work offers Claim");

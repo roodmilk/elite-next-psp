@@ -419,8 +419,8 @@ void game_tick(Game *g,float dt,float turn,float pitch,int throttle,int fire){
   if(speed_ratio>1.15f)g->heat=fminf(100,g->heat+dt*(speed_ratio-1.f)*10.f);
   if(g->boost)g->heat=fminf(100,g->heat+dt*14.f);
   if(near_sun)g->heat=fminf(100,g->heat+dt*(6.f+(safe-sun_d)/safe*10.f));
-  if(!g->boost&&!near_sun)g->heat=fmaxf(0,g->heat-dt*((g->upgrades&4)?38:22));
-  else if(!near_sun)g->heat=fmaxf(0,g->heat-dt*4.f);
+  if(!g->boost&&!near_sun&&speed_ratio<=1.15f)g->heat=fmaxf(0,g->heat-dt*((g->upgrades&4)?38:22));
+  else if(g->boost&&!near_sun)g->heat=fmaxf(0,g->heat-dt*4.f);
   if(g->heat>=100){g->heat=100;g->energy=0;g->dead=1;g->jump=0;g->boost=0;g->explosion=0;g->cue=SFX_DEATH;message(g,"Hull overheat. Ship destroyed. START to recover.");}
   else if(g->heat>=90){g->boost=0;if(g->message_time<=0)message(g,"CRITICAL HEAT — boost locked. Break off and cool.");}
  }
@@ -563,14 +563,17 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  launch(&g);for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;g.pos=(Vec3){0,0,-20000};g.speed=0;g.boost=1;
  for(int i=0;i<60;i++){game_tick(&g,1.f/60,0,0,1,0);}CHECK(g.speed>3000,"boost accelerates beyond normal speed");
  g.boost=0;game_tick(&g,.016f,0,0,0,0);CHECK(g.speed<=player_ships[g.ship].speed,"boost release brakes to normal speed");
- game_init(&g);launch(&g);g.boost=0;g.heat=0;g.speed=player_ships[g.ship].speed*3.f;g.pos=(Vec3){0,0,25000};
- for(int i=0;i<180;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.heat>8,"over-speed cruise builds hull heat");
+ game_init(&g);launch(&g);g.boost=0;g.heat=0;g.pip_eng=4;g.pip_sys=2;g.pip_wep=2;
+ g.pos=add(g.bodies[0].pos,(Vec3){0,0,-(g.bodies[0].radius+20000.f)});
+ g.speed=player_ships[g.ship].speed*(0.70f+0.15f*g.pip_eng);
+ for(int i=0;i<180;i++)game_tick(&g,1.f/60,0,0,1,0);CHECK(g.heat>8,"over-speed cruise builds hull heat");
  float hot=g.heat;g.speed=0;g.boost=0;for(int i=0;i<120;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.heat<hot,"idle clear of the star vents heat");
  g.heat=0;g.pos=add(g.bodies[0].pos,(Vec3){0,0,g.bodies[0].radius+800});g.speed=0;
  for(int i=0;i<180;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.heat>10,"sun proximity cooks the hull");
  g.heat=99.5f;g.boost=1;game_tick(&g,.05f,0,0,0,0);CHECK(g.dead&&g.heat>=100&&!g.boost,"critical overheat destroys the ship and cuts boost");
  g.dead=0;g.energy=100;g.heat=92;g.boost=1;game_tick(&g,.016f,0,0,0,0);CHECK(!g.boost,"heat above ninety locks boost");
- Vec3 before={0,0,3100};g.pos=(Vec3){0,0,3900};g.energy=100;world_collision(&g,before);CHECK(g.pos.z<3340&&g.energy<100,"swept collision blocks station tunnelling");
+ game_init(&g);launch(&g);for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;
+ Vec3 before={80,0,3100};g.pos=(Vec3){80,0,3900};g.energy=100;g.speed=400;g.roll=1.2f;world_collision(&g,before);CHECK(g.pos.z<3340&&g.energy<100,"swept collision blocks station tunnelling");
  CHECK(g.dead&&g.energy==0,"station impact destroys the player ship");g.dead=0;g.energy=100;
  Body *b=&g.bodies[1];before=add(b->pos,(Vec3){0,0,-b->radius-200});g.pos=add(b->pos,(Vec3){0,0,b->radius+200});float energy_before=g.energy;world_collision(&g,before);CHECK(length(sub(g.pos,b->pos))>b->radius&&g.approach==1,"planet boundary offers approach without impact");CHECK(g.energy==energy_before&&g.collision==0,"planet approach causes no collision damage");
  g.approach=-1;g.pos=add(b->pos,(Vec3){0,0,-b->radius-400});g.yaw=g.pitch=0;CHECK(approach_planet(&g,1)&&g.speed==0,"explicit planet approach stops ship and opens choice");
