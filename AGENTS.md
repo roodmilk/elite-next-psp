@@ -26,7 +26,7 @@ Chat history is useful context but is **not** project memory — update Git and 
 2. Update `VERSION`, the version string in `build.ps1` (and `build.sh` if present), `CHANGELOG.md`, and `CLAUDE-HANDOFF.md` together. Refresh the handoff **Highest-priority remaining work** list so the next bot knows what to do.
 3. Copy the tested `EBOOT.PBP` to `dist/ELITE-NEXT-PSP/EBOOT.PBP`.
 4. Commit and push the source and documentation. Never leave the newest work only in a chat or local folder.
-5. For a public downloadable build, tag the tested commit as `v<version>` and push the tag. The GitHub workflow creates the Release page and ZIP automatically.
+5. **Always** tag the tested commit as `v<version>` and push the tag (`git tag v…` then `git push origin v…`). The GitHub workflow creates the Release page with `ELITE-NEXT-PSP-v….zip` and `EBOOT.PBP` so the commander can download and play. A branch tip alone is not enough — Releases is the playable download.
 
 ## Multi-AI safety
 
