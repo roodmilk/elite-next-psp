@@ -129,15 +129,14 @@ The build compiles `game.c`, `ships.c` and `main.c`, links PSP libraries and pro
 - radio checks;
 - performance checks.
 
-The last verified 2.5.5 source built cleanly; full PPSSPP smoke is deferred until the remaining UI queue lands. PPSSPP success does not replace physical PSP testing.
+The last verified 2.5.5 run passed every group under PPSSPP (game, input, steering, radio, performance). PPSSPP success does not replace physical PSP testing.
 
 ## Highest-priority remaining work
 
 1. **Confirm 2.5.4 sleep/resume on physical PSP.** Put the handheld to sleep mid-flight and mid-radio for several hours, then wake — screen and audio must return. Also re-check 20+ minute MP3 playback across sample rates.
-2. **Galacticnet / Discovery Codex.** Messages tab directly right of Spacebook; Spacebook parody logo; Codex Systems (visited) and Planets (discovered when a system is visited).
-3. **Radio tuner page.** Station dial with static between stations and an off position.
-4. **Per-system visual variety.** Distinct planet looks, ship placement, and warp-in farther from the station.
-5. **Deepen the 24 chapters.** Implement bespoke convoy rescue, evidence comparison, shelter repair, quiet migration observation, non-lethal blockade paths, relay nodes and epilogues incrementally.
+2. **Deepen the 24 chapters further.** Briefings are now three-beat locked conversations; many bible set-pieces still resolve through generic dock/scan/hunt actions.
+3. **Visually inspect the full galaxy map at 480×272** and the new Select-deck ship preview / radio tuner on hardware.
+4. **Physical performance and memory audit** of galaxy routing and the 64 KB MP3 buffer.
 
 ## Known limitations and honest status
 
