@@ -228,12 +228,12 @@ static void cockpit(void){
  int heading=(int)(game.yaw*57.29578f)%360;if(heading<0)heading+=360;
  text(24,0,RGB(155,154,165),"%03d",heading);danger_badge(224,4,danger_rating(&game,game.system));
  /* Mission cue top-right in the header band with a 2-col margin — not flush
-  * to the screen edge. Amber objective ink (ART_AMBER); clear of danger badge. */
+  * to the screen edge. ART_AMBER objective ink (ART DIRECTOR palette); clear of danger badge. */
  {
   const char *cue=tracked_hud_cue();
   int cols=W/8,inset=2,left=34,clen=(int)strlen(cue),max=cols-inset-left;
   if(max<8)max=8;if(clen>max)clen=max;
-  text(cols-inset-clen,0,GOLD,"%.*s",clen,cue);
+  text(cols-inset-clen,0,RGB(240,180,91),"%.*s",clen,cue);
  }
  if(game.dock_stage==1){rect(8,24,464,16,RGB(21,28,39));rect(8,24,464,1,RGB(193,139,77));text(2,4,RGB(85,212,212),"DOCKING GUIDANCE ACTIVE");}
  else if(square_held){rect(8,24,464,32,RGB(21,28,39));rect(8,24,464,1,RGB(193,139,77));for(int i=0;i<5;i++)text(1+i*11,4,i==scan_cat?RGB(240,180,91):RGB(155,154,165),"%s",scan_cat_names[i]);text(2,6,RGB(85,212,212),"D-PAD BANDS   L CYCLE VIEW");text(35,6,RGB(240,180,91),"R LOCK");}
