@@ -2,6 +2,12 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.20 - 2026-09-22
+
+- Feature-length Open Channel screenplay (`docs/OPEN-CHANNEL-SCREENPLAY.md`): cast bible, full scenes, branching trees, lore ledger.
+- Choice UI labels now match each permanent decision; trust drives helpers, rewards and epilogue colour.
+- Retained IMMEDIATE framebuffer present (anti-strobe) and re-checked in campaign tests.
+
 ## 2.5.19 - 2026-09-22
 
 - Fixed screen strobing / black flashes on hardware: framebuffer flip is IMMEDIATE again after vblank (2.5.4 NEXTFRAME painted the live buffer).

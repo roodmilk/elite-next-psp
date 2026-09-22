@@ -1,4 +1,9 @@
-# ELITE: NEXT — development build 2.5.19
+# ELITE: NEXT — development build 2.5.20
+
+## New in 2.5.20 — Open Channel feature screenplay
+
+- Full movie-length campaign screenplay with characters, branches, missions and Elite-lore research ledger.
+- Permanent decisions use distinct choice labels; trust colours helpers and the epilogue.
 
 ## New in 2.5.19 — stop hardware screen flash
 

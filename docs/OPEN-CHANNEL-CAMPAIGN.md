@@ -1,12 +1,16 @@
 # ELITE: NEXT — THE OPEN CHANNEL CAMPAIGN BIBLE
 
-Status: playable 24-chapter campaign introduced in 2.5.0. This document expands the short first-flight chapter and is subordinate to the safety, UI and performance rules in `DESIGN-BIBLE.md`.
+Status: playable 24-chapter campaign (plus first-flight prologue). **Full movie-length screenplay, character bible, branching trees and lore ledger:** [`OPEN-CHANNEL-SCREENPLAY.md`](OPEN-CHANNEL-SCREENPLAY.md). This file remains the short operational summary; the screenplay is story authority for dialogue and branches.
 
 ## Promise and length
 
 The first flight is the prologue. The Open Channel then runs for 24 chapters across four acts, with travel, trade, survey, salvage, interception, quiet observation and four permanent decisions. A direct critical-path run is designed for roughly ten hours; exploration, contracts and optional character calls extend it. Every chapter has a stable destination saved with the commander. Every required action has a recovery route and no chapter depends on a randomly available contract.
 
 The campaign is an original story told against established Elite history. Lave and the remains of GalCop, the Federation, Empire and Alliance, INRA's mycoid atrocity, independent pilots, Aegis and the uncertainty around Thargoid motives inform the world. Existing dialogue, novels and GalNet copy are reference material, never text to reproduce. Thargoids remain rare: the player encounters traces and one remote signal, not a disposable procession of alien enemies.
+
+## Playable trust (2.5.20+)
+
+Four permanent decisions write `saga_trust[]` (Public / Guild / Law / Independent). From chapter 19 onward, Tracked Mission and chapter-start messages surface coalition helpers. Completion shows an epilogue line coloured by dominant trust. Choice UI labels differ per decision — see screenplay §20 and `saga_choice_label()`.
 
 ## Main cast
 

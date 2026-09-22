@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.19**.
+Prepared 22 September 2026. Current build: **2.5.20**.
 
 ## Start here
 
@@ -63,6 +63,10 @@ Important controls:
 - Galaxy Map: Triangle switches between nearby jumps and the full 256-system map; D-pad moves between systems; L/R zoom; X plots a multi-jump route and saves the final goal.
 
 ## Recent changes that must be preserved
+
+### 2.5.20 — Open Channel screenplay + trust
+
+Canonical long-form story is `docs/OPEN-CHANNEL-SCREENPLAY.md` (characters, full scenes, branching, lore ledger). `saga_choice_label` distinguishes the four permanent decisions; `saga_trust` surfaces helpers from chapter 19 and colours the epilogue. Display flip remains IMMEDIATE after vblank.
 
 ### 2.5.19 — hardware display flip
 
@@ -194,7 +198,7 @@ The last verified 2.5.8 run passed every group under PPSSPP (game, input, steeri
 ## Highest-priority remaining work
 
 1. **Confirm 2.5.4 sleep/resume on physical PSP.** Put the handheld to sleep mid-flight and mid-radio for several hours, then wake — screen and audio must return. Also re-check 20+ minute MP3 playback across sample rates.
-2. **Deepen the 24 chapters further.** Briefings are now three-beat locked conversations; many bible set-pieces still resolve through generic dock/scan/hunt actions.
+2. **Deepen the 24 chapters further.** Briefings are now six-beat locked conversations; many bible set-pieces still resolve through generic dock/scan/hunt actions.
 3. **Visually inspect the full galaxy map at 480×272** and the new Select-deck ship preview / radio tuner on hardware.
 4. **Physical performance and memory audit** of galaxy routing and the 64 KB MP3 buffer.
 

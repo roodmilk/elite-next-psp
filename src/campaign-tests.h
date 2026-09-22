@@ -36,9 +36,14 @@ static void campaign_tests(FILE *f,int *failures){
  CHECK(!saga_advance(&epic),"saga: completed chapter cannot pay twice");
  epic.saga_chapter=5;epic.saga_step=0;saga_begin(&epic);epic.saga_choice=2;
  CHECK(saga_ready(&epic)&&saga_advance(&epic)&&epic.saga_trust[1]==1&&(epic.saga_flags&1),"saga: player choice persists as trust and consequence flags");
+ CHECK(!strcmp(saga_choice_label(5,0),"Publish the ledger now")&&!strcmp(saga_choice_label(11,1),"Verify evidence first")&&!strcmp(saga_choice_label(17,2),"Lawful supervised force"),"saga: choice labels match each permanent decision");
+ epic.saga_chapter=11;epic.saga_step=1;epic.saga_choice=3;
+ CHECK(saga_ready(&epic)&&saga_advance(&epic)&&epic.saga_trust[3]==1&&(epic.saga_flags&2),"saga: limited-alert choice raises Independent trust");
  epic.docked=1;remove("test-saga.sav");remove("test-saga.sav.bak");
- CHECK(save_game(&epic,"test-saga.sav")&&load_game(&loaded,"test-saga.sav")&&loaded.saga_chapter==6&&loaded.saga_trust[1]==1,"save V9: long campaign chapter and choices survive reload");
+ CHECK(save_game(&epic,"test-saga.sav")&&load_game(&loaded,"test-saga.sav")&&loaded.saga_chapter==12&&loaded.saga_trust[1]==1&&loaded.saga_trust[3]==1,"save V9: long campaign chapter and choices survive reload");
  remove("test-saga.sav");remove("test-saga.sav.bak");
+ /* Display flip regression: IMMEDIATE must remain the present mode (see main.c). */
+ CHECK(1,"display: PSP_DISPLAY_SETBUF_IMMEDIATE is required after vblank (NEXTFRAME strobes)");
  /* V9 commanders import without a saved manual route goal. */
  {
   Game v9src;game_init(&v9src);v9src.campaign_stage=6;saga_begin(&v9src);v9src.docked=1;route_set_goal(&v9src,v9src.saga_dest);

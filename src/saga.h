@@ -1,7 +1,9 @@
 /* The Open Channel: compact, data-driven main campaign.  Briefings run a
- * locked six-beat conversation before the player can leave for the objective. */
+ * locked six-beat conversation before the player can leave for the objective.
+ * Full movie-length script: docs/OPEN-CHANNEL-SCREENPLAY.md */
 enum { SAGA_DOCK, SAGA_SCAN, SAGA_HUNT, SAGA_HOME, SAGA_CHOICE };
 enum { SAGA_BRIEF_BEATS = 6 };
+enum { SAGA_TRUST_PUBLIC=0, SAGA_TRUST_GUILD=1, SAGA_TRUST_LAW=2, SAGA_TRUST_INDEPENDENT=3 };
 typedef struct {
  const char *title,*speaker;
  const char *line,*talk2,*talk3,*talk4,*talk5,*talk6;
@@ -82,6 +84,44 @@ static const SagaBeat saga_beats[]={
   "Return to Lave System Hub",SAGA_HOME,0}
 };
 #define SAGA_COUNT ((int)(sizeof(saga_beats)/sizeof(saga_beats[0])))
+/* Choice chapters: 5 Silence, 11 Carry Home, 17 No Easy Flag, 22 Who Keeps Light. */
+static const char *saga_choice_label(int chapter,int option){
+ static const char *silence[3]={"Publish the ledger now","Give ledger to the Guild","Lodge ledger with Iona"};
+ static const char *carry[3]={"Broadcast evidence now","Verify evidence first","Alert only active hazards"};
+ static const char *flag[3]={"Public convoy network","Guild survey teams","Lawful supervised force"};
+ static const char *light[3]={"Public custody + inspection","Explorers Guild custody","Lawful independent archive"};
+ const char **table=light;
+ if(chapter==5)table=silence;
+ else if(chapter==11)table=carry;
+ else if(chapter==17)table=flag;
+ else if(chapter==22)table=light;
+ if(option<0||option>2)option=0;
+ return table[option];
+}
+static int saga_trust_total(const Game *g){
+ return g->saga_trust[0]+g->saga_trust[1]+g->saga_trust[2]+g->saga_trust[3];
+}
+static int saga_dominant_trust(const Game *g){
+ int best=0,v=g->saga_trust[0];
+ for(int i=1;i<4;i++)if(g->saga_trust[i]>v){v=g->saga_trust[i];best=i;}
+ return best;
+}
+static const char *saga_trust_helper(const Game *g){
+ /* Visible coalition helpers unlocked by earlier permanent decisions. */
+ if(g->saga_trust[SAGA_TRUST_PUBLIC]>=2)return "Civilian fuel tenders standing by.";
+ if(g->saga_trust[SAGA_TRUST_GUILD]>=2)return "Guild survey markers on your route.";
+ if(g->saga_trust[SAGA_TRUST_LAW]>=2)return "Lawful ceasefire calls on Meridian.";
+ if(g->saga_trust[SAGA_TRUST_INDEPENDENT]>=1)return "Sable's covert corridor is open.";
+ return "You fly with the people who trust you.";
+}
+static const char *saga_epilogue_line(const Game *g){
+ switch(saga_dominant_trust(g)){
+ case SAGA_TRUST_PUBLIC:return "Public relays still answer your callsign.";
+ case SAGA_TRUST_GUILD:return "Guild charts mark your berth as home.";
+ case SAGA_TRUST_LAW:return "Iona's audit trail still carries your name.";
+ default:return "Independents still leave a warm berth.";
+ }
+}
 static int saga_system(const Game *g,int chapter){
  int want=(chapter*37+19)&255,best=7,score=999999;
  for(int i=0;i<256;i++){if(i==7)continue;int d=(int)(distance_ly(g,7,i)*10);int s=abs(i-want)+d/4;if(d>=25&&d<=180&&s<score){score=s;best=i;}}
@@ -99,6 +139,7 @@ static void saga_begin(Game *g){
  const SagaBeat *b=&saga_beats[g->saga_chapter];g->saga_dest=(b->kind==SAGA_HOME)?7:saga_system(g,g->saga_chapter);
  g->saga_start=(b->kind==SAGA_HUNT)?g->npc_kills:g->discoveries;g->saga_step=1;
  message(g,b->objective);speak(g,b->role==0?VOICE_KEI:b->role==3?VOICE_LAW:VOICE_CONTACT,b->talk6);
+ if(g->saga_chapter>=17)message(g,saga_trust_helper(g));
 }
 static int saga_ready(const Game *g){
  if(!g->saga_step||g->saga_chapter>=SAGA_COUNT)return 0;
@@ -112,8 +153,21 @@ static int saga_ready(const Game *g){
 static int saga_advance(Game *g){
  if(!saga_ready(g))return 0;
  const SagaBeat *b=&saga_beats[g->saga_chapter];
- if(b->kind==SAGA_CHOICE){int c=g->saga_choice-1;if(c<4)g->saga_trust[c]++;g->saga_flags|=1u<<(g->saga_chapter==5?0:g->saga_chapter==11?1:g->saga_chapter==17?2:3);}
- int reward=1800+g->saga_chapter*120;if(g->credits<=100000000-reward)g->credits+=reward;
+ if(b->kind==SAGA_CHOICE){
+  int c=g->saga_choice-1;
+  /* Map each choice chapter onto a trust bucket: Public / Guild / Law.
+   * Carry-Home option 2 (limited alert) also nudges Independent trust. */
+  if(g->saga_chapter==11&&c==2)g->saga_trust[SAGA_TRUST_INDEPENDENT]++;
+  else if(c>=0&&c<3)g->saga_trust[c]++;
+  g->saga_flags|=1u<<(g->saga_chapter==5?0:g->saga_chapter==11?1:g->saga_chapter==17?2:3);
+ }
+ /* Prior trust softens later payouts into tangible coalition support. */
+ int reward=1800+g->saga_chapter*120+saga_trust_total(g)*80;
+ if(g->credits<=100000000-reward)g->credits+=reward;
  g->saga_chapter++;g->saga_step=0;g->saga_choice=0;g->cue=SFX_SELECT;
- message(g,g->saga_chapter>=SAGA_COUNT?"The Open Channel complete. Free flight continues.":"Chapter complete. The next briefing is ready.");return 1;
+ if(g->saga_chapter>=SAGA_COUNT){
+  message(g,"The Open Channel complete. Free flight continues.");
+  speak(g,VOICE_KEI,saga_epilogue_line(g));
+ }else message(g,"Chapter complete. The next briefing is ready.");
+ return 1;
 }
