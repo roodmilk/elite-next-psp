@@ -74,7 +74,7 @@ static inline int story_home_row(const Game *g){
 }
 static __attribute__((unused)) const char *story_hint(const Game *g){
  if(g->planet>=0){
-  if(g->surface==2)return "R walks. 2xR jumps. Square scans.";
+  if(g->surface==2)return "D-pad moves. Hold R lifts. Triangle faces ship.";
   if(g->surface==1)return "O to walk. Triangle to take off.";
   return "Land on the cyan pad, then press O.";
  }

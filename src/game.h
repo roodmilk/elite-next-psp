@@ -18,6 +18,8 @@ static inline Vec3 station_port_corner(int i){
 #define DEBRIS_COUNT 64
 #define ANOMALY_COUNT 4
 #define LIFE_COUNT 8
+#define SURFACE_CELL 40
+#define EVA_FIELD_RADIUS 480.f
 #define GOODS 17
 #define NPC_ID_MIN (BODY_COUNT+1)
 #define NPC_ID_MAX (BODY_COUNT+NPC_COUNT)
@@ -121,6 +123,8 @@ void police_begin(Game *g,int phase);
 int approach_planet(Game *g,int body);
 int enter_planet(Game *g); void leave_planet(Game *g);
 int land_planet(Game *g); int takeoff_planet(Game *g); int eva_toggle(Game *g);
+int eva_can_board(const Game *g);
+void game_eva_tick(Game *g,float dt,float turn,float pitch,int walk,float strafe,int jet);
 float terrain_height(const Game *g,float x,float z);
 int terrain_is_water(const Game *g,float x,float z);
 Vec3 surface_site(const Game *g,int i);

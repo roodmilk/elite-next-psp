@@ -32,17 +32,19 @@ static void home(void){
  footer("LEFT/RIGHT TAB   UP/DOWN   X OPEN   O BACK");
 }
 static void help(void){
- static const char *titles[]={"FLIGHT","TARGETS / TRAVEL","STATIONS / SURFACES","MENUS / COMFORT"};
+ static const char *titles[]={"FLIGHT","TARGETS / TRAVEL","STATIONS / SURFACES","MENUS / COMFORT","PLANET EVA"};
  static const char *keys[][6]={{"D-pad / analog","R / L","2xR boost / 2xL brake","L + Left / Right","X / L + X","Start + D-pad"},
  {"Tap Square","Square + Left/Right","Square + Up/Down","Square + R","Steer manually","Circle"},
  {"Hold Triangle","Circle near a hub","Circle near a world","X / Circle prompt","Circle on surface","Triangle on surface"},
- {"Select in flight","Left / Right on deck","X / Circle","Hold Triangle","L + Select in flight","L on this screen"}};
+ {"Select in flight","Left / Right on deck","X / Circle","Hold Triangle","L + Select in flight","L on this screen"},
+ {"Nub / L + D-pad","D-pad Up / Down","D-pad Left / Right","Hold R / release","Triangle / Circle","Square"}};
  static const char *actions[][6]={{"Steer the ship","Accelerate / slow down","Boost or hard brake","Roll the ship","Laser / locked missile","Power banks SYS/ENG/WEP"},
  {"Open target list","Change target category","Choose target","Lock + auto-turn","Cancel auto-turn","Use the object ahead"},
  {"Comms and docking request","Request guided docking","Ask to approach","Enter / turn away","Land or leave the ship","Take off / return to orbit"},
- {"Open the paused deck","Change service category","Open / return","Chatter and comms options","Full / minimal / scenic HUD","Toggle analog steering"}};
+ {"Open the paused deck","Change service category","Open / return","Chatter and comms options","Full / minimal / scenic HUD","Toggle analog steering"},
+ {"Look (L stops walking)","Walk forward / back","Strafe left / right","Jet lift / fall","Face ship / board on ground","Survey nearby life"}};
  header("COMMANDER / CONTROLS");panel(8,32,464,190);
- text(3,5,RGB(240,180,91),"%d / 4   %s",help_tab+1,titles[help_tab]);
+ text(3,5,RGB(240,180,91),"%d / 5   %s",help_tab+1,titles[help_tab]);
  for(int i=0;i<6;i++){int y=8+i*3;text(3,y,RGB(85,212,212),"%s",keys[help_tab][i]);text(29,y,RGB(229,210,163),"%s",actions[help_tab][i]);}
  text(3,29,RGB(155,154,165),"Analog %s. Centre the nub after enabling.",analog_enabled?"ON":"OFF");
  footer("LEFT/RIGHT PAGE   L ANALOG ON/OFF   O BACK");
