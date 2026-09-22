@@ -4,6 +4,8 @@
 **Revision:** 22 September 2026  
 **Status:** active production plan
 
+**Release cadence:** BIG RELEASES ONLY. This lane batches visual upgrades into coherent art drops for the release agent. It does not create micro playable version tags or independently bump release versions.
+
 This roadmap turns the visual identity direction into a sequence of evidence-based handoffs. It is intentionally implementation-aware but does not change station-crawl or ship code. Runtime art enters the game only after its native-size, performance and provenance gates pass.
 
 ## Definition of done
@@ -161,6 +163,10 @@ Implementation lanes provide:
 - native captures and regression results.
 
 When the two disagree, preserve gameplay clarity and the focal silhouette first. Record the compromise in the relevant visual handoff instead of silently changing the art language.
+
+## Release batching rule
+
+Art work stays in `PROPOSED` or handoff form until a meaningful group is ready: a room kit, a celestial pass, a cinematic composition set, or a complete screen-family polish. The release agent owns version bumps, builds, smoke tests, packaging and tags. A visual PR may land documentation and source art together, but it should not produce a standalone micro-release.
 
 ## Immediate next actions
 
