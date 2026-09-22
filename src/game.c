@@ -222,15 +222,17 @@ static void wreck_from_npc(Game *g,int i){
 #include "freight.h"
 static void place_civilian(Game *g,NPC *n,int i){
  Vec3 stn={0,0,3500};
- /* Spin and stretch traffic layout per system so each star feels differently occupied. */
- float spin=g->system*.41f,spread=0.85f+((g->system*7)%40)*.01f;
+ /* Spin, stretch and lift traffic per system so each star feels differently occupied. */
+ unsigned layout=sector_hash((g->system+1)*0x85ebca6bu+i*97u);
+ float spin=g->system*.41f+(layout&255)*.004f,spread=0.72f+((g->system*7+layout)%55)*.012f;
+ float lift=((int)((layout>>8)%900)-450)*.08f;
  n->target=-1;n->flash=0;n->dir=(Vec3){0,0,1};
  if(n->freighter){n->alive=0;return;}
- if(n->role==EXPLORERS){Body *b=&g->bodies[1+(g->system%3)];int wing=0;for(int j=0;j<i;j++)if(g->npc[j].alive&&g->npc[j].role==EXPLORERS)wing++;float a=.35f*wing+spin;n->waypoint=1;n->pos=add(b->pos,(Vec3){cosf(a)*(b->radius+2400*spread)+wing*210.f,280+((g->system+wing)%5)*40.f,sinf(a)*(b->radius+2400*spread)});n->dir=norm((Vec3){-sinf(a),0,cosf(a)});return;}
- if(n->role==PIRATES){int world=1+(g->system+i)%3;if(world>=BODY_COUNT)world=2;n->waypoint=world;if(i==2){float a=spin+1.1f;n->pos=(Vec3){cosf(a)*2200.f,180,3500+sinf(a)*2200.f};n->dir=norm(sub(stn,n->pos));return;}Body *b=&g->bodies[world];n->pos=add(b->pos,(Vec3){b->radius+2100*spread+(i%3)*180,160+((g->system+i)%4)*50.f,300+(i%2)*220});n->dir=(Vec3){0,0,-1};return;}
- if(n->role==LAW){float a=spin+(i%4)*.7f;n->waypoint=0;n->pos=(Vec3){cosf(a)*900.f*spread,90+(i%3)*40.f,3500+sinf(a)*900.f*spread};n->dir=norm(sub(stn,n->pos));return;}
- if(i==0||i==4){float a=spin+(i?1.2f:-.4f);n->waypoint=0;n->pos=(Vec3){cosf(a)*1400.f,60,3500+sinf(a)*1400.f};n->dir=norm(sub(stn,n->pos));return;}
- float a=i*1.31f+g->system*.19f;n->waypoint=0;n->pos=(Vec3){cosf(a)*15000.f*spread,180.f+((g->system+i)%6)*60.f,3500+sinf(a)*15000.f*spread}; n->dir=norm(sub(stn,n->pos));
+ if(n->role==EXPLORERS){Body *b=&g->bodies[1+(g->system+i+(layout&3))%4];if(b->type==SUN)b=&g->bodies[1];int wing=0;for(int j=0;j<i;j++)if(g->npc[j].alive&&g->npc[j].role==EXPLORERS)wing++;float a=.35f*wing+spin;float ring=b->radius+1800*spread+((layout>>12)%900);n->waypoint=1;n->pos=add(b->pos,(Vec3){cosf(a)*ring+wing*210.f,280+lift+((g->system+wing)%5)*40.f,sinf(a)*ring});n->dir=norm((Vec3){-sinf(a),0,cosf(a)});return;}
+ if(n->role==PIRATES){int world=1+(g->system+i+(layout&3))%4;if(world>=BODY_COUNT)world=2;n->waypoint=world;if(i==2){float a=spin+1.1f;float ring=1600.f+spread*900.f;n->pos=(Vec3){cosf(a)*ring,180+lift,3500+sinf(a)*ring};n->dir=norm(sub(stn,n->pos));return;}Body *b=&g->bodies[world];n->pos=add(b->pos,(Vec3){b->radius+1600*spread+(i%3)*220,160+lift+((g->system+i)%4)*70.f,((layout>>4)%800)-400});n->dir=(Vec3){0,0,-1};return;}
+ if(n->role==LAW){float a=spin+(i%4)*.7f;float ring=(700.f+((layout>>6)%500))*spread;n->waypoint=0;n->pos=(Vec3){cosf(a)*ring,90+lift+(i%3)*40.f,3500+sinf(a)*ring};n->dir=norm(sub(stn,n->pos));return;}
+ if(i==0||i==4){float a=spin+(i?1.2f:-.4f);float ring=1100.f+spread*600.f;n->waypoint=0;n->pos=(Vec3){cosf(a)*ring,60+lift,3500+sinf(a)*ring};n->dir=norm(sub(stn,n->pos));return;}
+ float a=i*1.31f+g->system*.19f+(layout&127)*.01f;float ring=(11000.f+((layout>>10)%8000))*spread;n->waypoint=0;n->pos=(Vec3){cosf(a)*ring,180.f+lift+((g->system+i)%6)*80.f,3500+sinf(a)*ring}; n->dir=norm(sub(stn,n->pos));
 }
 void game_spawn(Game *g){
  jobs_from_legacy(g);
@@ -247,12 +249,12 @@ void game_spawn(Game *g){
    if(slot>=0){Debris *d=&g->debris[slot];d->rock=band?2:1;d->radius=45+(h%66);d->health=36+(h%3)*18;d->life=20000;d->qty=1+(h%3);}
   }
  }
- spawn_debris(g,(Vec3){180,50,2400},(Vec3){6,1,-4},9,1,1);
- spawn_debris(g,(Vec3){-420,80,2100},(Vec3){-3,1,5},0,1,0);
- spawn_debris(g,(Vec3){520,-40,2800},(Vec3){4,0,-2},8,1,0);
+ spawn_debris(g,(Vec3){180+((int)g->system%9)*90.f,50+((int)g->system%5)*20.f,1800.f+(g->system%11)*140.f},(Vec3){6,1,-4},9,1,1);
+ spawn_debris(g,(Vec3){-420-((int)g->system%7)*70.f,80-((int)g->system%4)*15.f,1600.f+(g->system%13)*110.f},(Vec3){-3,1,5},0,1,0);
+ spawn_debris(g,(Vec3){520-((int)g->system%6)*55.f,-40+((int)g->system%3)*25.f,2200.f+(g->system%9)*160.f},(Vec3){4,0,-2},8,1,0);
  for(int i=0;i<ANOMALY_COUNT;i++)g->anomaly[i].alive=0;
  int ac=0;if(g->system==7||g->system%11==0)ac=1;if(danger_rating(g,g->system)>=4)ac++;if(g->system%23==0)ac=2;if(ac>ANOMALY_COUNT)ac=ANOMALY_COUNT;
- for(int i=0;i<ac;i++){Anomaly *a=&g->anomaly[i];a->alive=1;a->scanned=0;a->kind=i&1;float ang=i*2.15f+g->system*.27f;a->pos=(Vec3){cosf(ang)*4800,280+i*90,sinf(ang)*3600+900};}
+ for(int i=0;i<ac;i++){Anomaly *a=&g->anomaly[i];a->alive=1;a->scanned=0;a->kind=i&1;unsigned h=sector_hash(g->system*401u+i*9973u);float ang=i*2.15f+g->system*.27f+(h%400)*.001f;float ring=3200.f+((h>>8)%4200);a->pos=(Vec3){cosf(ang)*ring,((int)((h>>16)%1600)-800),sinf(ang)*ring*.75f+(int)((h>>20)%900)-200};}
  mark_visited(g);
  int budget=traffic_budget(g);
  for(int i=0;i<NPC_COUNT;i++){
@@ -485,8 +487,9 @@ void game_tick(Game *g,float dt,float turn,float pitch,int throttle,int fire){
  for(int i=0;i<DEBRIS_COUNT;i++){Debris *d=&g->debris[i];if(!d->alive)continue;d->flash=fmaxf(0,d->flash-dt);d->life-=dt;if(d->life<=0){d->alive=0;continue;}d->pos=add(d->pos,mul(d->vel,dt));Vec3 stn={0,0,3500};if(length(sub(d->pos,stn))<200)d->pos=add(stn,mul(norm(sub(d->pos,stn)),210));}
  if(g->energy<=0){g->dead=1;g->jump=0;g->cue=SFX_DEATH;message(g,"Ship destroyed. START for a new commander.");}
  if(g->jump>0){g->jump-=dt;if(g->jump<=0){float spent=distance_ly(g,g->system,g->destination)*10;g->fuel-=spent;if(g->fuel<0)g->fuel=0;g->wanted[g->system]=g->legal;g->system=g->destination;g->legal=g->wanted[g->system];
-  /* Arrive well short of the hub, from a system-unique bearing. */
-  {float ang=g->system*1.918f+0.55f;float dist=6400.f+(g->system%13)*520.f;g->pos=(Vec3){sinf(ang)*dist*.55f,((int)(g->system%9)-4)*340.f,-dist*.72f};g->yaw=atan2f(-g->pos.x,STATION_Z-g->pos.z);g->pitch=0;g->speed=100;}
+  /* Arrive well short of the hub, from a system-unique bearing — always farther than a normal launch. */
+  {unsigned h=sector_hash((g->system+1)*0xc2b2ae35u);float ang=g->system*1.918f+0.55f+((h&1023)*.001f);float dist=11000.f+(g->system%17)*780.f+((h>>10)%900);
+   g->pos=(Vec3){sinf(ang)*dist*.62f,((int)((h>>18)%11)-5)*420.f,-dist*.78f};g->yaw=atan2f(-g->pos.x,STATION_Z-g->pos.z);g->pitch=0;g->speed=100;}
   market(g);game_spawn(g);route_refresh_destination(g);g->cue=SFX_WARP;char note[80];snprintf(note,sizeof(note),"Hyperspace complete. Fuel %.1f LY left.",g->fuel*.1f);message(g,note);speak(g,VOICE_COMP,"Hyperspace complete. Station ahead.");}}
 }
 /* Versioned commander file. Load into a temporary struct; reject before mutation. */
@@ -571,6 +574,9 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  game_init(&g);launch(&g);g.pos=add(g.bodies[1].pos,(Vec3){0,0,-g.bodies[1].radius-800});g.yaw=g.pitch=0;CHECK(approach_planet(&g,1),"nearby facing planet can be approached");Vec3 nearPlanet=g.pos;turn_back(&g);CHECK(length(sub(g.pos,nearPlanet))==0&&dot(forward(&g),norm(sub(g.bodies[1].pos,g.pos)))<-.99f,"planet turn-back keeps position and faces away");CHECK(!approach_planet(&g,1),"planet cannot immediately re-prompt while facing away");
  game_init(&g);launch(&g);g.speed=0;for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;g.npc[2].alive=1;g.npc[2].pos=(Vec3){0,0,300};g.npc[2].dir=(Vec3){0,0,-1};g.npc[2].cooldown=0;game_tick(&g,.016f,0,0,0,0);CHECK(danger_rating(&g,7)==1&&g.npc[2].target!=-2&&g.attacked==0,"Lave is peaceful and pirates never target player");
  game_init(&g);Body original=g.bodies[1];system_bodies(&g);CHECK(original.seed==g.bodies[1].seed&&length(sub(original.pos,g.bodies[1].pos))==0,"system generation repeats deterministically");g.system=0;system_bodies(&g);CHECK(original.seed!=g.bodies[1].seed&&original.radius!=g.bodies[1].radius,"other systems have distinct planets");
+ {Body a=g.bodies[1];g.system=19;system_bodies(&g);Body b=g.bodies[1];CHECK(a.type!=b.type||a.color!=b.color||length(sub(a.pos,b.pos))>800,"distant systems diverge in planet type, colour or orbit");}
+ game_init(&g);g.system=0;game_spawn(&g);Vec3 traffic0=g.npc[0].alive?g.npc[0].pos:(Vec3){99999,0,0};g.system=15;game_spawn(&g);CHECK(g.npc[0].alive&&length(sub(traffic0,g.npc[0].pos))>400,"ship traffic occupies a different layout in another system");
+ game_init(&g);launch(&g);{int dest=-1;for(int i=0;i<256;i++)if(i!=g.system&&distance_ly(&g,g.system,i)*10<=g.fuel){dest=i;break;}g.destination=dest;CHECK(jump_start(&g),"warp starts for arrival-distance check");for(int i=0;i<310;i++)game_tick(&g,1.f/60,0,0,0,0);float hub=length(sub(g.pos,(Vec3){0,0,STATION_Z}));CHECK(g.system==dest&&hub>8500.f,"hyperspace drops the ship well outside the local hub");}
  game_init(&g);int large=0,models[64]={0},unique=0;for(int i=0;i<36;i++){large+=g.npc[i].freighter;models[g.npc[i].mesh]=1;}for(int i=0;i<64;i++)unique+=models[i];CHECK(large>=3&&unique>=9,"system traffic includes capital freighters and varied ship models");CHECK(g.npc[8].cruise<g.npc[0].cruise&&freight_extent(&g.npc[8]).z>g.npc[0].radius*2&&fabsf(g.npc[8].radius-length(freight_extent(&g.npc[8])))<.1f,"freighters use large shared hull dimensions and lower cruise speeds");
  g.system=0;g.systems[0].economy=0;int rich=mission_count(&g);g.systems[0].economy=2;CHECK(rich>mission_count(&g),"prosperous systems offer more mission jobs");
  game_init(&g);int types=0;for(int i=0;i<5;i++)types|=1<<mission_type_for_offer(&g,i);CHECK(types==31,"mission board rotates through five job types");CHECK(accept_mission(&g,0)&&g.contract>=0&&g.mission_type==MISSION_EXPLORATION,"exploration mission acceptance records objective type");

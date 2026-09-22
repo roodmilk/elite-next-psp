@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.7**.
+Prepared 22 September 2026. Current build: **2.5.8**.
 
 ## Start here
 
@@ -76,6 +76,10 @@ The nearby list only shows local candidates. Triangle opens a spatial overview o
 
 Story navigation plans against the fitted drive even if the tank is empty, then marks the next hop as low-fuel until the player refuels. The story screen distinguishes `NEXT` from `FINAL`, and the cockpit names the next reachable hop.
 
+### 2.5.8 — per-system skies and far warp-in
+
+Orbital templates, world-type permutations and seeded traffic make each system look different. Hyperspace drops you farther from the hub.
+
 ### 2.5.7 — radio chassis and audible static
 
 Radio UI is a dial chassis (OFF + 1–5). Retune injects audible static; OFF is silence. SHIPS lists all contacts; ENEMIES stays hostiles-only.
@@ -137,7 +141,7 @@ The build compiles `game.c`, `ships.c` and `main.c`, links PSP libraries and pro
 - radio checks;
 - performance checks.
 
-The last verified 2.5.7 run passed every group under PPSSPP (game, input, steering, radio, performance). PPSSPP success does not replace physical PSP testing.
+The last verified 2.5.8 source strengthens system variety and far warp-in; full PPSSPP smoke follows packaging. PPSSPP success does not replace physical PSP testing.
 
 ## Highest-priority remaining work
 

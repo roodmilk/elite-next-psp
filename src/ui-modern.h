@@ -54,11 +54,11 @@ static void debug_action(void){
  if(row==7){if(selected_target<2||selected_target>BODY_COUNT){message(&game,"Select a planet in Contacts first.");return;}Body *b=&game.bodies[selected_target-1];if(b->type==GAS||b->type==SUN){message(&game,"Gas giants and suns have no atmosphere flight.");return;}game.docked=0;game.pos=add(b->pos,(Vec3){0,0,-b->radius-800});game.yaw=game.pitch=game.roll=0;game.approach=selected_target-1;if(enter_planet(&game)){autoaim=0;change_page(FLIGHT);}else message(&game,"Could not enter atmosphere.");}
 }
 static void body_tint(int sys,int i,unsigned *col,unsigned *acc,int *type){
- const int world_cycle[4]={OCEAN,ROCKY,GAS,ROCKY};
- const unsigned suns[]={0x80dfff,0xffd8ac,0x5088ff,0xc4f4ff};
- const unsigned worlds[]={0xc97535,0x91b45c,0x8763b5,0x7ebfc4,0xb87775,0xadc2ce,0xd4a574,0x5a8f6a};
- unsigned h=art_hash((sys+1)*911u+i*65537u);int type_rot=(int)((art_hash((sys+1)*0x9e3779b9u)>>4)%4);
- *type=i==0?SUN:world_cycle[(i-1+type_rot)&3];*col=i==0?suns[h%4]:worlds[(h>>8)%8];*acc=worlds[(h>>16)%8];
+ const int world_perm[6][4]={{OCEAN,ROCKY,GAS,ROCKY},{ROCKY,GAS,OCEAN,ROCKY},{GAS,OCEAN,ROCKY,ROCKY},{ROCKY,OCEAN,ROCKY,GAS},{OCEAN,GAS,ROCKY,ROCKY},{ROCKY,ROCKY,OCEAN,GAS}};
+ const unsigned suns[]={0x80dfff,0xffd8ac,0x5088ff,0xc4f4ff,0xffc88a,0xc88cff};
+ const unsigned worlds[]={0xc97535,0x91b45c,0x8763b5,0x7ebfc4,0xb87775,0xadc2ce,0xd4a574,0x5a8f6a,0x6b5b95,0xc45c5c};
+ unsigned h=art_hash((sys+1)*911u+i*65537u);int perm=(int)((art_hash((sys+1)*0x9e3779b9u)>>6)%6);
+ *type=i==0?SUN:world_perm[perm][(i-1)&3];*col=i==0?suns[h%6]:worlds[(h>>8)%10];*acc=worlds[(h>>16)%10];
  if(sys==7&&i==1){*type=OCEAN;*col=0xc35f23;*acc=0x4b9137;}
 }
 static void chart_system_preview(int dest){

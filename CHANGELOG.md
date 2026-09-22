@@ -2,6 +2,11 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.8 - 2026-09-22
+
+- Each system uses a distinct orbital template, world-type permutation and colour set so planets look different from star to star.
+- Ship, debris and anomaly placement is system-seeded; hyperspace arrival is farther from the hub on a unique bearing.
+
 ## 2.5.7 - 2026-09-22
 
 - Radio page looks like a chassis with speaker grille, frequency dial (OFF + stations 1–5), and needle; retune plays audible static; Triangle / left-of-1 turns radio off.

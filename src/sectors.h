@@ -1,17 +1,35 @@
 static unsigned sector_hash(unsigned x){x^=x>>16;x*=0x7feb352du;x^=x>>15;x*=0x846ca68bu;return x^(x>>16);}
 int prosperity(const Game *g,int system){const int wealth[8]={5,4,2,3,3,5,4,2};return wealth[g->systems[system].economy];}
 void system_bodies(Game *g){
- const Vec3 positions[BODY_COUNT]={{18000,7000,42000},{-5000,2500,14000},{8500,-2000,23000},{-22000,-4000,38000},{12000,5000,-24000}};
+ /* Four orbital templates so neighbouring systems do not share the same skyline. */
+ const Vec3 templates[4][BODY_COUNT]={
+  {{18000,7000,42000},{-5000,2500,14000},{8500,-2000,23000},{-22000,-4000,38000},{12000,5000,-24000}},
+  {{22000,-3000,28000},{6000,4000,9000},{-14000,1000,18000},{8000,-6000,32000},{-18000,2000,-16000}},
+  {{12000,9000,36000},{-9000,-1500,11000},{16000,500,19000},{-6000,3500,44000},{4000,-4500,-28000}},
+  {{25000,2000,30000},{3000,5500,16000},{-11000,-3500,25000},{19000,1000,12000},{-8000,6000,-22000}}
+ };
  const float radii[BODY_COUNT]={4200,1700,1100,3600,1400};
- /* World-type order rotates per system so neighbouring stars don't share the same skyline. */
- const int world_cycle[4]={OCEAN,ROCKY,GAS,ROCKY};
- /* Eight stellar classes: amber, gold, red, blue-white, ice-blue, rose,
-  * pale yellow and warm white. The system seed makes each sky memorable. */
- const unsigned suns[]={0x80dfff,0x66c8ff,0x526eff,0xf4f4ff,0xffc88a,0xc88cff,0x9ee8ff,0xd8e8ff};
- const unsigned worlds[]={0xc97535,0x91b45c,0x8763b5,0x7ebfc4,0xb87775,0xadc2ce,0xd4a574,0x5a8f6a,0x6b5b95,0xc45c5c};
- unsigned sys=sector_hash((g->system+1)*0x9e3779b9u);float system_scale=.72f+((sys>>8)%55)*.01f;float system_tilt=((int)((sys>>20)%3200)-1600)*.00012f;
- int type_rot=(int)((sys>>4)%4);
- for(int i=0;i<BODY_COUNT;i++){Body *b=&g->bodies[i];unsigned h=sector_hash((g->system+1)*911u+i*65537u);b->seed=h;b->pos=positions[i];float angle=(h%6283)*.001f+(sys%2400)*.001f+i*.21f+g->system*.07f;float radial=system_scale*(.82f+((h>>12)%40)*.01f);b->pos.x*=radial;b->pos.z*=radial;float c=cosf(angle),s=sinf(angle);b->pos=(Vec3){b->pos.x*c+b->pos.z*s,b->pos.y*radial+(int)((h>>18)%9000)-4500+system_tilt*b->pos.z,-b->pos.x*s+b->pos.z*c};b->radius=radii[i]*(g->system==7?1:.68f+((h>>12)%78)*.01f);b->type=i==0?SUN:world_cycle[(i-1+type_rot)&3];b->color=i==0?suns[h%8]:worlds[(h>>8)%10];b->accent=worlds[(h>>16)%10];if(g->system==7&&i==1){b->type=OCEAN;b->color=0xc35f23;b->accent=0x4b9137;}snprintf(b->name,sizeof(b->name),"%s %s",g->systems[g->system].name,i==0?"SUN":i==1?"I":i==2?"II":i==3?"III":"IV");}
+ /* World-type permutations so each system cycles ocean/rocky/gas differently. */
+ const int world_perm[6][4]={{OCEAN,ROCKY,GAS,ROCKY},{ROCKY,GAS,OCEAN,ROCKY},{GAS,OCEAN,ROCKY,ROCKY},{ROCKY,OCEAN,ROCKY,GAS},{OCEAN,GAS,ROCKY,ROCKY},{ROCKY,ROCKY,OCEAN,GAS}};
+ const unsigned suns[]={0x80dfff,0x66c8ff,0x526eff,0xf4f4ff,0xffc88a,0xc88cff,0x9ee8ff,0xd8e8ff,0xffa060,0xb0ffe0};
+ const unsigned worlds[]={0xc97535,0x91b45c,0x8763b5,0x7ebfc4,0xb87775,0xadc2ce,0xd4a574,0x5a8f6a,0x6b5b95,0xc45c5c,0x3d7a5a,0xd0a040,0x5a90c0,0xa05070,0x708050};
+ unsigned sys=sector_hash((g->system+1)*0x9e3779b9u);float system_scale=.68f+((sys>>8)%70)*.01f;float system_tilt=((int)((sys>>20)%3200)-1600)*.00014f;
+ int tmpl=(int)((sys>>2)%4),perm=(int)((sys>>6)%6);
+ for(int i=0;i<BODY_COUNT;i++){
+  Body *b=&g->bodies[i];unsigned h=sector_hash((g->system+1)*911u+i*65537u);b->seed=h;
+  b->pos=templates[tmpl][i];
+  float angle=(h%6283)*.001f+(sys%2800)*.001f+i*.27f+g->system*.11f;
+  float radial=system_scale*(.78f+((h>>12)%48)*.01f);
+  b->pos.x*=radial;b->pos.z*=radial;
+  float c=cosf(angle),s=sinf(angle);
+  b->pos=(Vec3){b->pos.x*c+b->pos.z*s,b->pos.y*radial+(int)((h>>18)%11000)-5500+system_tilt*b->pos.z,-b->pos.x*s+b->pos.z*c};
+  b->radius=radii[i]*(g->system==7?1:.62f+((h>>12)%90)*.01f);
+  b->type=i==0?SUN:world_perm[perm][(i-1)&3];
+  b->color=i==0?suns[h%10]:worlds[(h>>8)%15];
+  b->accent=worlds[(h>>16)%15];
+  if(g->system==7&&i==1){b->type=OCEAN;b->color=0xc35f23;b->accent=0x4b9137;}
+  snprintf(b->name,sizeof(b->name),"%s %s",g->systems[g->system].name,i==0?"SUN":i==1?"I":i==2?"II":i==3?"III":"IV");
+ }
 }
 int mission_destination(const Game *g,int offer){int n=0;for(int i=0;i<256;i++)if(i!=g->system&&distance_ly(g,g->system,i)<=10.0f){if(n++==offer)return i;}return -1;}
 int mission_count(const Game *g){int max=1+prosperity(g,g->system),n=0;while(n<max&&mission_destination(g,n)>=0)n++;return n;}
@@ -34,9 +52,9 @@ int mission_interact(Game *g,int id){int n=id-BODY_COUNT-1;if(n<0||n>=NPC_COUNT)
 int mission_offer_active(const Game *g,int offer){int dest=mission_destination(g,offer),type=mission_type_for_offer(g,offer);if(dest<0)return 0;for(int i=0;i<g->job_n;i++)if(g->jobs[i].dest==dest&&g->jobs[i].type==type)return 1;return 0;}
 int abandon_mission(Game *g,int slot){jobs_from_legacy(g);if(slot<0||slot>=g->job_n)return 0;g->mission_result=-1;g->last_mission_type=g->jobs[slot].type;g->last_mission_system=g->jobs[slot].dest;int crate=g->jobs[slot].type==MISSION_DELIVERY?0:g->jobs[slot].type==MISSION_SMUGGLING?6:-1;if(crate>=0&&g->cargo[crate]>0)g->cargo[crate]--;g->credits+=100;char note[96];snprintf(note,sizeof(note),"Abandoned: %s. Crate/deposit returned.",mission_name(g->jobs[slot].type));job_remove(g,slot);message(g,note);g->cue=SFX_UI;return 1;}
 int accept_mission(Game *g,int offer){if(!g->docked){message(g,"Dock to accept mission work.");return 0;}jobs_from_legacy(g);if(g->job_n>=MISSION_SLOTS){message(g,"Mission log full (5/5). Complete a job first.");return 0;}int destination=mission_destination(g,offer);if(offer<0||offer>=mission_count(g)||destination<0)return 0;int type=mission_type_for_offer(g,offer);if(mission_offer_active(g,offer)){message(g,"Mission in progress.");return 0;}if(g->credits<100){message(g,"Contract deposit: 10 units.");return 0;}if((type==MISSION_DELIVERY||type==MISSION_SMUGGLING)&&cargo_used(g)>=cargo_capacity(g)){message(g,"Hold is full. Free a tonne first.");return 0;}g->credits-=100;Job *j=&g->jobs[g->job_n];
- /* Prefer a landable world at the destination; type rotation can make body 1 a gas giant. */
- int item=1;{unsigned sys=sector_hash((destination+1)*0x9e3779b9u);int type_rot=(int)((sys>>4)%4);const int world_cycle[4]={OCEAN,ROCKY,GAS,ROCKY};const int prefer[]={1,2,4,3};
-  for(int i=0;i<4;i++){int b=prefer[(destination+i)%4];if(destination==7&&b==1){item=1;break;}if(world_cycle[(b-1+type_rot)&3]!=GAS){item=b;break;}}}
+ /* Prefer a landable world at the destination; type permutations can make body 1 a gas giant. */
+ int item=1;{unsigned sys=sector_hash((destination+1)*0x9e3779b9u);int perm=(int)((sys>>6)%6);const int world_perm[6][4]={{OCEAN,ROCKY,GAS,ROCKY},{ROCKY,GAS,OCEAN,ROCKY},{GAS,OCEAN,ROCKY,ROCKY},{ROCKY,OCEAN,ROCKY,GAS},{OCEAN,GAS,ROCKY,ROCKY},{ROCKY,ROCKY,OCEAN,GAS}};const int prefer[]={1,2,4,3};
+  for(int i=0;i<4;i++){int b=prefer[(destination+i)%4];if(destination==7&&b==1){item=1;break;}if(world_perm[perm][(b-1)&3]!=GAS){item=b;break;}}}
  j->dest=destination;j->type=type;j->origin=g->system;j->stage=0;j->target=-1;j->item=item;j->time=300;j->reward=mission_reward(g,offer);g->job_sel=g->job_n;g->job_n++;g->destination=destination;if(type==MISSION_DELIVERY)g->cargo[0]++;else if(type==MISSION_SMUGGLING){g->cargo[6]++;add_crime(g,1);}jobs_sync(g);char note[96];snprintf(note,sizeof(note),"%s accepted. Risk %d/5. Log %d/%d.",mission_name(j->type),mission_risk(g,offer),g->job_n,MISSION_SLOTS);message(g,note);g->cue=SFX_SELECT;return 1;}
 static void npc_blueprint(Game *g,NPC *n,int i){
  const char *traders[]={"COBRA MK 3","PYTHON","BOA","TRANSPORTER","SHUTTLE","MORAY"};
