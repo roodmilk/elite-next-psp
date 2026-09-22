@@ -9,9 +9,9 @@ static void intro_screen(void){
  draw_next_art(next_logo,320,72,80,45,320,72);
  int glint=80+(int)(intro_time*30)%320;rect(80,122,320,1,RGB(19,74,95));rect(glint,122,3,1,CYAN);
  text(12,17,GOLD,"A SIGNAL WORTH FOLLOWING");
- if(intro_time>.8f)text(5,20,WHITE,"Ryn followed a signal beyond the trade lanes.");
- if(intro_time>2.0f)text(5,22,WHITE,"Then her ship went silent.");
- if(intro_time>3.2f)text(5,24,WHITE,"Kei kept her channel open. Now you have a ship.");
+ if(intro_time>.8f)text(5,20,WHITE,"Ryn followed a quiet signal beyond the trade lanes.");
+ if(intro_time>2.0f)text(5,22,WHITE,"Then her ship went silent — and three calls went with it.");
+ if(intro_time>3.2f)text(5,24,WHITE,"Kei kept the channel open. Now the berth, and the ship, are yours.");
  if(intro_time>4.4f)text(5,27,CYAN,"Trade. Explore. Bring someone home.");
  footer("X BEGIN   TRIANGLE LOAD COMMANDER   START SKIP");
  if(game.message_time>0)text(5,29,GOLD,"%.50s",game.message);

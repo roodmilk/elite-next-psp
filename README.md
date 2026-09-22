@@ -1,4 +1,144 @@
-# ELITE: NEXT — development build 2.5.2
+# ELITE: NEXT — development build 2.5.39
+
+## New in 2.5.39 — MacVenture cinematic polish
+
+- Station rooms restaged: one hero focus, three depth planes, warm ochre/cream staging.
+- Side hatch doors; thinner cream/cyan MacVenture chrome so MAIN owns the eye.
+- Composition from `docs/CINEMATIC-MOCKUP-TARGETS.md` + ART DIRECTOR kit grammar.
+- Working tip also carries Act III–IV + dialogue flow + space animation kit — next GitHub Release only with a bigger combined drop.
+
+## New in 2.5.38 — soft-FB Wave A canopy FX
+
+- Denser engine plumes, boost heat shimmer, hit sparks and explosion embers on the unified tip.
+- Soft-framebuffer only (fixed pools, canopy-clipped); high contrast skips decorative sparks.
+
+## New in 2.5.37 — unified playable tip
+
+- **One pack:** MacVenture station (LOOK/SPEAK/GO/TAKE, art-kit soft-FB rooms, clear SHIP return) **and** Open Channel Act I–III eight-beat page scripts with choice blurbs and locked codas (through No Easy Flag).
+- Warmer planets, settlement silhouettes and richer space from ART DIRECTOR's in-game look pass.
+- Post-unify polish targets: `docs/CINEMATIC-MOCKUP-TARGETS.md` (hero focus, fewer frames, warm staging).
+
+## New in 2.5.36 — MacVenture station + art kit wire
+
+- Soft-FB rooms pull ART DIRECTOR palette/styles from `station-art-kit.h` (bake path PR #12).
+- Clearer hotspots, talk tips, dead-clear SHIP return.
+
+## New in 2.5.35 — Act I page scripts
+
+- Open Channel Act I briefs (Ch.02–07) deepen to eight ask-then-answer page-script beats.
+- Permanent decisions show consequence blurbs; Act I completions open a locked coda before the next brief.
+
+## New in 2.5.34 — MacVenture station deck
+
+- Illustrated station rooms with LOOK / SPEAK / GO / TAKE (Shadowgate-style windows).
+- Dense hotspots; EXITS names doors; TRI or YOUR SHIP returns to the command deck.
+
+## New in 2.5.30 — MM6-style station crawl
+
+- First-person station decks read as a classic grid dungeon: riveted panels, checker floor, labeled doors to named rooms, hanging lamp, room props, portrait NPCs with name plates.
+- Talk, shops, gifts and taxis unchanged.
+
+## New in 2.5.29 — living space backdrop
+
+- Nebula, space clouds, twinkling stars and rare shooting stars via a soft-framebuffer FX kit (no heavy GU library — fits this engine).
+- High contrast mode still strips decorative haze.
+
+## New in 2.5.28 — deeper station crawl corridors
+
+- OpenEnroth-style FP depth: side portals track facing, arched passages show the next room tint, tile floors and ceiling beams.
+- Talk, shops, gifts and taxis unchanged.
+
+## New in 2.5.27 — ask-then-answer story chat
+
+- You speak first (orange YOU bubble); Kei answers on the next Cross.
+- Saga briefs no longer ask questions the screen already answered.
+
+## New in 2.5.26 — clearer GalNet WANTED board
+
+- Page 2 is obvious (gold banner + DOWN cue); posters show five wear styles including rips and holes.
+- Larger `<L` / `R>` sit farther from the tab names.
+
+## New in 2.5.25 — animated pixel-art suns and bloom
+
+- Eight system sun looks with looping pixel frames in every view.
+- Soft corona bloom and lens streaks without a second framebuffer.
+
+## New in 2.5.24 — chat flow, WANTED board, suns, richer station crawl
+
+- Story replies ask before the answer beat lands.
+- GalNet WANTED has page cues and torn posters; L/R sit clear of the tabs.
+- System suns animate with bloom; station crawl looks more like a classic FP dungeon.
+
+## New in 2.5.23 — clearer menu ship, full speech, battle talk
+
+- Command deck ship inset is zoomed farther out.
+- Speech and notice text wraps inside its boxes instead of cutting off.
+- Combat opens a battle-talk radio cue with short engagement chatter.
+
+## New in 2.5.22 — station crawl, shops, loadout
+
+- First-person station map with characters, exclusive shops, free gifts, taxi passengers and quest tips.
+- Outfitting shows only in-stock gear; Ship Loadout tracks fitted slots and hold.
+
+## New in 2.5.21 — full Act I–IV screenplay authority
+
+- Screenplay merged to complete character bible, lore ledger, and full scene scripts for every chapter and branch.
+
+## New in 2.5.20 — Open Channel feature screenplay
+
+- Full movie-length campaign screenplay with characters, branches, missions and Elite-lore research ledger.
+- Permanent decisions use distinct choice labels; trust colours helpers and the epilogue.
+
+## New in 2.5.19 — stop hardware screen flash
+
+- Framebuffer presents with IMMEDIATE after vblank again so the canopy no longer strobes black on a real PSP.
+
+## New in 2.5.18 — varied landings and clearer on-foot play
+
+- Surfaces follow each planet’s orbit-sprite biome and body colours for ground, flora and fauna.
+- Planet walking uses the same ON FOOT chrome as the station; docked Fly → Disembark / walk station talks to concourse locals.
+
+## New in 2.5.17 — engine trails sit on the stern
+
+- NPC exhaust plumes and aft glints start at the mesh stern (freighter nozzles), so the flame no longer floats behind the ship.
+
+## New in 2.5.16 — SHIPS includes hostiles; ENEMIES is engage-only
+
+- SHIPS lists every contact, including ships attacking you.
+- ENEMIES lists only ships currently going after the player.
+
+## New in 2.5.15 — clearer RED ALERT and ENEMIES band
+
+- Under attack: compact **RED ALERT** at the bottom of the canopy; character speech stays at the top.
+- Hold Square + Left/Right always includes **ENEMIES** (ships currently attacking you).
+
+## New in 2.5.14 — locked, expanded story conversations
+
+- First flight and every Open Channel chapter use a six-beat locked briefing: finish the conversation before Circle or Select can leave Tracked Mission.
+- The last beat restates the next mission step; after accept, dialogue no longer loops old options.
+- Chapter lines expanded with character-specific talk drawn from the campaign bible.
+
+## New in 2.5.5 — speaker chips, clearer menus, radio tuner, system variety
+
+- `NAME SAYS` labels sit on a colour chip; Tracked Mission shows speaker faces.
+- Outfitting explains tech gates (in stock / fitted / hub tech too low).
+- Galacticnet: Messages sits beside Spacebook; Spacebook logo; Codex Systems + Planets.
+- Radio tuner dial with OFF, station notches, retune static, and power off.
+- Systems look and place traffic differently; warp arrives farther from the hub.
+
+## New in 2.5.4 — wake from long sleep without a black screen
+
+- Freezes MP3/file I/O as soon as the PSP begins suspending so the audio worker cannot hang on a spun-down Memory Stick.
+- On resume, rebuilds display mode, both framebuffers, clock, controls and radio instead of only restarting audio.
+- Frame present is `IMMEDIATE` after vblank (2.5.19); `NEXTFRAME` painted the live buffer and strobed the whole screen.
+- Still confirm on a real PSP after sleeping for several hours mid-flight with custom radio playing.
+
+## New in 2.5.3 — persistent multi-jump route goals
+
+- Plotting a route on the full galaxy map now saves the final destination separately from the next hyperspace hop.
+- After each jump the next hop toward that goal is refreshed until you arrive (then the goal clears).
+- Nearby jump list and galaxy overview show `FINAL` / route-goal labels for manual routes as well as tracked story destinations.
+- Save format 10 stores the route goal; older commanders still import.
 
 ## New in 2.5.2 — full galaxy route planner
 
@@ -289,7 +429,7 @@ Validation: PSP cross-compile, game/input/steering regression suites and the PPS
 ## New in 1.3.7
 
 - Triangle is OK on the speech box, then hail: talk to ships, Venn at the hub, and pick up a rescue by talking to them. It is no longer the warp button. Jump from the Galaxy map.
-- Hold Square and Left/Right to tab Planets, Ships, Stations and Other (rocks, wrecks, echoes). Square+Up/Down are free. The targeting computer uses the same four headers.
+- Hold Square and Left/Right to tab Planets, Ships, Stations, Other and Enemies. Square+Up/Down are free. The targeting computer uses the same five headers.
 
 ## New in 1.3.6
 
@@ -453,9 +593,11 @@ A new commander starts on Handler Kei's Guild brief. X opens the command deck on
 - Nub / D-pad: steer. Centre the nub after launch. Manual steering cancels auto-alignment.
 - L / R: slow down / accelerate.
 - Double-tap R within 0.32 seconds, holding the second press: boost up to 20 times normal speed. Release R to brake.
+- Double-tap L while moving fast: hard brake that dumps speed quickly.
+- Heat rises from overspeed, boost and flying near the sun. Critical heat locks boost and lasers; max heat destroys the ship. Cool by dropping boost, leaving the star and resting the guns.
 - Hold L + D-pad left/right: roll the ship without changing throttle. Camera, steering and compass respond to roll.
 - X: fire laser.
-- Square: open the targeting computer. The list is grouped under Planets, Ships, Stations and Other. L/R tabs those headers, Up/Down selects, Triangle shows details, X locks and auto-aligns, and Circle returns to flight. Hold Square and Left/Right in flight to tab the same four bands. Hold Square and Up/Down to cycle contacts inside the highlighted band. Hold R and press Square to lock the nearest hostile immediately.
+- Square: open the targeting computer. The list is grouped under Planets, Ships, Stations, Other and Enemies. L/R tabs those headers, Up/Down selects, Triangle shows details, X locks and auto-aligns, and Circle returns to flight. Hold Square and Left/Right in flight to tab the same five bands. Hold Square and Up/Down to cycle contacts inside the highlighted band. Hold R and press Square to lock the nearest hostile immediately.
 - Hold L and press X: launch a missile at a locked hostile within 12,000 metres. Ordinary X fire remains the laser. Boost above four times normal speed to evade an incoming missile before its countdown expires.
 - Circle while looking at or targeting a nearby solid planet: approach from within 1,000 metres of its surface. Proximity alone does not open the approach screen. X enters atmosphere flight; Circle turns back to space from that prompt. On the surface, Circle lands or walks; Triangle takes off or returns to orbit.
 - Circle near the station opens guided docking. For manual docking, match the cyan rotating entrance, keep speed at or below 200, and fly through the slot. Flying into the surrounding hull destroys your ship and triggers a 3D wireframe debris explosion. Press Start for a new commander after destruction.
@@ -487,7 +629,7 @@ Each system contains a sun, ocean world, gas giant and two rocky planets. Rock b
 
 ## Planet exploration
 
-Circle opens the approach choice near an ocean or rocky planet. X enters a flat surface: grass, trees, bushes and a cyan pad with a cross. Descend onto the pad and press Circle to land, Circle again to walk. Ocean worlds keep a grassy island around the pad and water beyond it. Square on foot surveys flora, fauna and minerals. Board the parked ship, Triangle to take off, Triangle again for orbit. Double-tap R while walking uses the jetpack. Walking too far from the pad still builds environmental hazard.
+Circle opens the approach choice near an ocean or rocky planet. X enters a biome surface tinted from that world’s orbit sprite and colours (ocean island, arid, ice, volcanic or forest) with a cyan pad. Descend onto the pad and press Circle to land, Circle again to walk. Square on foot surveys flora, fauna and minerals coloured for that world. Board the parked ship, Triangle to take off, Triangle again for orbit. On foot: nub look, D-pad move, double-tap R for jetpack. Walking too far from the pad still builds environmental hazard. Docked: Fly → Disembark / walk station to talk on the concourse.
 
 Suns and gas giants have no landing approach. You cannot land on water. Quiet systems stay sparsely populated; Atlas echoes and extra life appear in rarer or more dangerous stars.
 

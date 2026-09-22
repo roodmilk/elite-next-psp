@@ -33,37 +33,9 @@ static unsigned race_skin(int system){
  return pal[art_hash((unsigned)system*4243u)%8];
 }
 static void draw_planet_disc(int cx,int cy,int r,unsigned land,unsigned accent,int seed,int type){
- if(type!=SUN){draw_planet_sprite(cx,cy,r,(unsigned)seed,type,0,0,W,H);return;}int r2=r*r;unsigned ocean=RGB(28,82,156),ice=RGB(214,228,238),cloud=RGB(186,208,226),green=RGB(52,128,72);
- if(type==SUN)fill_disc(cx,cy,r,art_mix(GOLD,land,80));
- for(int y=-r;y<=r;y++){
-  int span=0;while(span*span+y*y<=r2)span++;
-  int yy=cy+y;if(yy<0||yy>=H||span<1)continue;
-  int light=10-(y*8)/ (r?r:1);if(light<0)light=0;if(light>16)light=16;
-  if(type==GAS||type==SUN){
-   unsigned c=type==SUN?art_mix(GOLD,land,(y+r)*6):(((y+seed)&4)?land:accent);
-   rect(cx-span,yy,span*2+1,1,art_tint(c,light,light/2,0));
-   continue;
-  }
-  for(int x=-span;x<=span;x+=2){
-   unsigned n=art_hash((unsigned)((x+97)*(y+53)+(unsigned)seed*19u));
-   unsigned c=land;
-   if(type==OCEAN){
-    int qx=(x+r)/6,qy=(y+r)/5,blob=qx*13+qy*7+seed;
-    int landish=((blob*blob+blob*17)&31)<8;
-    if(y<-r*3/5||y>r*11/16)c=ice;
-    else if(landish)c=art_mix(green,accent,90);
-    else if(((n>>8)&31)==0)c=cloud;
-    else c=ocean;
-   }else{
-    if(((n>>4)&7)==0)c=accent;
-    else if(((n>>8)&15)==0)c=art_tint(land,-35,-22,-12);
-   }
-   int shade=light-(span+x)*6/(span*2+1);if(shade<0)shade=0;
-   rect(cx+x,yy,x+1<=span?2:1,1,art_tint(c,shade,shade*3/4,shade/2));
-  }
- }
- if(type==GAS){rect(cx-r+2,cy-2,r*2-4,3,art_tint(accent,20,10,0));rect(cx-r+4,cy+4,r*2-8,2,art_tint(land,-20,-10,10));}
- if(type==SUN){rect(cx-1,cy-r-2,3,r*2+5,GOLD);rect(cx-r-2,cy-1,r*2+5,3,GOLD);}
+ (void)accent;
+ if(type==SUN){draw_sun_sprite(cx,cy,r,land,(unsigned)seed,game.time,0,0,W,H);return;}
+ draw_planet_sprite(cx,cy,r,(unsigned)seed,type,0,0,W,H);
 }
 static int faction_portrait_index(unsigned seed,int role){return (role>=0&&role<FACTION_COUNT?role:EXPLORERS)+4*(art_hash(seed*9973u)&1);}
 static void draw_next_art_fit(const uint16_t *data,int sw,int sh,int x,int y,int w,int h){

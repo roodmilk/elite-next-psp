@@ -60,6 +60,8 @@
  CHECK(n->freight_state==FREIGHT_INBOUND,"freight: arrival animation transitions into physical flight");
  n->shield=0;hit(&g,8,1000,1);g.freight_next=0;g.freight_gap=0;freight_update(&g,.1f);
  CHECK(!n->alive&&n->freight_timer>230,"freight: destroying a hull delays its replacement");
+ game_init(&g);launch(&g);n=&g.npc[8];n->alive=1;n->freighter=1;n->health=850;n->shield=0;n->target=-2;n->cooldown=0;n->pos=(Vec3){0,0,800};n->dir=(Vec3){0,0,-1};g.pos=(Vec3){0,0,0};g.energy=100;g.attacked=0;
+ freight_update(&g,.05f);CHECK(n->target==-2&&g.attacked>0&&g.energy<100,"freight: damaged hauler returns fire on the attacker");
  int shape_ok=1;
  for(int style=0;style<3;style++){
   n->freight_style=style;n->pos=(Vec3){200,300,400};n->dir=norm((Vec3){1,0,1});Vec3 e=freight_extent(n);

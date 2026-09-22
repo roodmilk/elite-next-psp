@@ -15,7 +15,8 @@ design bible stays ambitious without becoming an unbounded promise.
 | Meet memorable people | Kei, Venn and authored actors with faction-coded portraits and dialogue | Identity records survive NPC slot reuse |
 | Feel cinematic | Warp tunnel, lens flare, speed lines, engine plume, target pulse, CRT dust and station rings | Effects stay behind warnings/telemetry and pass performance smoke |
 | Always know what to do | Story `!` marker, `STORY NEXT` breadcrumb, selected mission brief, risk/payout column and plain-language prompts | Pair symbols with words; never rely on color alone |
-| Relax with a radio | Five procedural stations, layered ambience and Far Horizons alien chatter; CC0 source manifest | Integer mixer; decoder is a separate budgeted milestone |
+| Plan a long journey | Full 256-system galaxy overview, cached multi-jump path, saved `route_goal` separate from the next hop (save V10) | Generic for every destination; no special-cased systems |
+| Relax with a radio | Five procedural stations, layered ambience and Far Horizons alien chatter; CC0 source manifest; optional user MP3 folders | Integer mixer; hardware decoder with large stream buffer |
 
 Modern inspirations contribute loops, not wholesale feature counts. No Man’s
 Sky’s exploration, bases, settlements and evolving missions; Starfield’s crew,
