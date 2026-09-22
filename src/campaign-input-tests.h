@@ -128,6 +128,8 @@
   INPUT_CHECK(saga_galnet_mira(&echo)&&strstr(saga_galnet_mira(&echo),"chart dump")&&saga_galnet_sable(&echo)&&strstr(saga_galnet_sable(&echo),"corridor"),"script: GalNet Mira/Sable posts colour from Silence + Independent");
   echo.system=0;INPUT_CHECK(mission_type_for_offer(&echo,0)==MISSION_DELIVERY&&strstr(mission_brief(&echo,0),"Protein"),"script: mission briefs use authored Vol II Hungry Pad bank");
   INPUT_CHECK(!!strstr(guild_line(&echo,0),"Borrowed hulls"),"script: Guild opening line keeps manuscript expanded dialogue");
+  INPUT_CHECK(!!strstr(faction_lore_tag(TRADERS),"Margins")&&!!strstr(faction_lore_line(LAW,0,0),"Patrols"),"script: faction lore tags stay distinct voices without YOU chrome");
+  INPUT_CHECK(gazette_wants_tabloid(0,0)&&!!strstr(gazette_tabloid_author(0,0),"CITY")&&!!strstr(gazette_dek(0,0),"Sources"),"script: Gazette tabloid masthead and dek banks stay authored");
  }
  TEST_INIT();
 }

@@ -568,6 +568,8 @@ Posts should feel local and slightly wrong when Meridian is active.
 - Dockhand: slapstick safety.
 - "DefinitelyNotAPirate": offers that are jokes until they aren't.
 - Mission Network: clocks, slots, markers — diegetic UI.
+- **Galactic Gazette** (`src/gazette-lore.h`): sometimes tabloid / joke headlines that still leak lore (Meridian stationery, whale-song, berth gossip); dek lines match tone. Straight desk copy still rotates.
+- **Factions screen:** rotating lore tags + two detail lines per faction from the same file — distinct voices, no `YOU:` chrome.
 
 ### Campaign-reactive GalNet seeds
 | Flag | Post seed | Playable |
@@ -637,6 +639,7 @@ If fled / testified / stood down: rare GalNet sightings; no revenge fetch quest 
 | 2026-09-22 | 2.5.39 tip (untagged pack) | Dialogue chrome fix (no YOU:/YOU SPOKE); Act IV Ch.20–25 page scripts + codas through berth; ask→answer realigned |
 | 2026-09-22 | 2.5.39 tip batch | Berth-six epilogue + coalition helpers from screenplay echoes; GalNet Open Channel colour from `saga_flags` |
 | 2026-09-22 | 2.5.39 tip batch | Vol II mission brief banks + expanded GalNet reactive Spacebook/Network; Guild Vol III opening dialogue |
+| 2026-09-22 | 2.5.40 tip batch | Gazette tabloid/joke banks + rotating faction lore voices (`gazette-lore.h`) |
 | (next) | — | Wire true multi-job novella chain state (MN-A/B/C) beyond flavour-linked singles |
 | (next) | — | Author remaining bespoke set-piece backlog (Ch.02 seal, pods, courtroom, recorder) |
 
