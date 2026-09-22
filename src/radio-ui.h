@@ -46,7 +46,7 @@ static void radio_screen(void){
   text(41,y,WHITE,"%-7s %2d",i?"FX":"MUSIC",volume);
   rect(330,y*8+10,120,5,DIM);rect(330,y*8+10,volume*12,5,i?AMBER:CYAN);
  }
- text(41,17,DIM,"Notches 1-5 = stations");
+ text(41,17,DIM,"1-5 = station locks");
  text(41,19,DIM,"Left of 1 = OFF");
  text(41,21,DIM,"Triangle: power");
  text(41,23,DIM,radio_off?"":(radio_track_count[radio_station]?"FOLDER MP3":"GENERATED"));
