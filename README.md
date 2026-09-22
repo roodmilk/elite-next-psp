@@ -1,4 +1,11 @@
-# ELITE: NEXT — development build 2.5.3
+# ELITE: NEXT — development build 2.5.4
+
+## New in 2.5.4 — wake from long sleep without a black screen
+
+- Freezes MP3/file I/O as soon as the PSP begins suspending so the audio worker cannot hang on a spun-down Memory Stick.
+- On resume, rebuilds display mode, both framebuffers, clock, controls and radio instead of only restarting audio.
+- Presents frames with `NEXTFRAME` after vblank for more reliable hardware display recovery.
+- Still confirm on a real PSP after sleeping for several hours mid-flight with custom radio playing.
 
 ## New in 2.5.3 — persistent multi-jump route goals
 

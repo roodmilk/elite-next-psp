@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.3**.
+Prepared 22 September 2026. Current build: **2.5.4**.
 
 ## Start here
 
@@ -76,6 +76,10 @@ The nearby list only shows local candidates. Triangle opens a spatial overview o
 
 Story navigation plans against the fitted drive even if the tank is empty, then marks the next hop as low-fuel until the player refuels. The story screen distinguishes `NEXT` from `FINAL`, and the cockpit names the next reachable hop.
 
+### 2.5.4 — sleep/resume recovery
+
+Long PSP sleep could leave the MP3 decoder blocked on Memory Stick I/O and the LCD framebuffer unrestored, producing a permanent black screen on wake. Suspend now freezes MP3 sampling from the power callback; resume rebuilds display mode, both framebuffers, controls, clock and audio. Frame presentation uses `NEXTFRAME` after vblank. Emulator smoke covers a double recover path; confirm on physical hardware after multi-hour sleep.
+
 ### 2.5.3 — manual route persistence
 
 `Game.route_goal` stores the final destination of a manually plotted multi-jump route separately from `destination` (the immediate hop). Save format 10 appends that goal and still imports V1–V9 commanders. After hyperspace, `route_refresh_destination` advances the next hop toward the saved goal, or clears the goal on arrival. The galaxy overview labels a saved manual goal in amber when no story destination is tracked. Contract “next step” navigation also sets `route_goal`.
@@ -121,11 +125,11 @@ The build compiles `game.c`, `ships.c` and `main.c`, links PSP libraries and pro
 - radio checks;
 - performance checks.
 
-The last verified 2.5.3 run passed every group under PPSSPP. PPSSPP success does not replace physical PSP testing.
+The last verified 2.5.4 run passed every group under PPSSPP. PPSSPP success does not replace physical PSP testing.
 
 ## Highest-priority remaining work
 
-1. **Test 2.5.3 on physical PSP hardware.** Verify MP3 playback for at least 20 minutes across 32, 44.1 and 48 kHz files, suspend/resume, station changes, combat SFX and track boundaries.
+1. **Confirm 2.5.4 sleep/resume on physical PSP.** Put the handheld to sleep mid-flight and mid-radio for several hours, then wake — screen and audio must return. Also re-check 20+ minute MP3 playback across sample rates.
 2. **Visually inspect the full galaxy map at 480×272.** Confirm labels, route lines, saved amber route goals, 1× density, 2–4× cursor behaviour and mission destination visibility. Add panning polish only if it remains readable.
 3. **Deepen the 24 chapters.** The state machine and chapter spine are playable, but many design-bible scenes currently resolve through generic dock/scan/hunt actions. Implement bespoke convoy rescue, evidence comparison, shelter repair, quiet migration observation, non-lethal blockade paths, relay nodes and epilogues incrementally.
 4. **Add chapter-specific dialogue pages.** Preserve the short flight HUD while making conversations, player replies and consequences available in the Mission Log transcript.
@@ -138,7 +142,8 @@ The last verified 2.5.3 run passed every group under PPSSPP. PPSSPP success does
 - Only one galaxy seed of 256 classic Elite-style systems is active.
 - The full-galaxy chart shows all systems, a cached route and a saved manual route goal, but has not yet had user testing on a physical PSP.
 - The audio fix passed PPSSPP with the user's files; intermittent real-hardware behaviour still requires listening tests.
-- Manual route persistence is playable in 2.5.3; chapter deepening and bespoke dialogue pages remain design-ahead of the executable.
+- Manual route persistence is playable in 2.5.3; sleep/resume black-screen recovery is in 2.5.4 but still needs multi-hour hardware confirmation.
+- Chapter deepening and bespoke dialogue pages remain design-ahead of the executable.
 
 ## Safe continuation workflow
 

@@ -2,6 +2,13 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.4 - 2026-09-22
+
+- Fixed black screen after PSP sleep/standby (especially long sleeps): freeze MP3 I/O on suspend, then fully rebuild display, controls and radio on resume.
+- Switched framebuffer presentation to `NEXTFRAME` after vblank for more reliable hardware display recovery.
+- Shortened audio teardown timeout and terminate-delete the worker if it is stuck on Memory Stick wake.
+- Smoke exercises a double suspend/resume recover path; physical PSP confirmation still required.
+
 ## 2.5.3 - 2026-09-22
 
 - Saved the final galaxy-map route goal separately from the immediate hyperspace hop (save format 10; older commanders still import).

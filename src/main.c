@@ -37,7 +37,7 @@ PSP_HEAP_SIZE_KB(8192);
 #define BG RGB(6,12,22)
 #define RED RGB(244,85,88)
 static volatile int running=1;
-static volatile int resume_requested=0;
+static volatile int resume_requested=0,suspend_requested=0;
 static unsigned *fb;
 static Game game;
 static int page=0,row=0,paused=0,smoke=0,visual_hold=0,hud_hidden=0,hud_mode=0,high_contrast=0;
@@ -52,6 +52,26 @@ static int analog_enabled=1,analog_ready=0,fire_blocked=0;
 static float preview_time=0;
 static int nearby[256],near_count,chart_mode=0,chart_cursor=7,chart_zoom=1;
 static int view_top(void){return hud_hidden?0:(hud_mode==0?0:23);}
+static int buffer=0;
+static void display_recover(void){
+ /* After sleep the LCD/framebuffer pairing can be invalid; rebuild both planes. */
+ sceDisplaySetMode(0,W,H);
+ for(int b=0;b<2;b++){unsigned *plane=(unsigned*)(0x44000000u+(unsigned)b*STRIDE*H*4);for(int i=0;i<STRIDE*H;i++)plane[i]=BG;}
+ fb=(unsigned*)(0x44000000u+(unsigned)buffer*STRIDE*H*4);
+ pspDebugScreenInit();pspDebugScreenEnableBackColor(0);pspDebugScreenSetOffset(buffer*STRIDE*H*4);
+ sceDisplayWaitVblankStart();
+ sceDisplaySetFrameBuf((void*)fb,STRIDE,PSP_DISPLAY_PIXEL_FORMAT_8888,PSP_DISPLAY_SETBUF_NEXTFRAME);
+}
+static void runtime_recover_from_sleep(void){
+ /* Tear down audio left over from a long suspend, then restore display/input/radio. */
+ audio_stop();
+ scePowerSetClockFrequency(333,333,166);
+ display_recover();
+ sceCtrlSetSamplingCycle(0);sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
+ analog_ready=0;
+ audio_init();
+ message(&game,"PSP resumed. Display, controls and radio restored.");
+}
 static int view_bot(void){return hud_hidden?H-1:(hud_mode==0?191:247);}
 enum { HOME,FLIGHT,MARKET,CHART,YARD,EQUIP,STATUS,HELP,FACTIONS,LOCAL,DEBUG,COMMS,DETAILS,MISSIONS,MISSIONLOG,TARGETING,GALNET,CODEX,STORY,GUILD,RADIO,COMMS_PANEL,INTRO,CAMPAIGN,COMFORT,WALK };
 #include "deck-nav.h"
@@ -61,7 +81,13 @@ static const unsigned faction_colors[]={GOLD,RGB(90,165,255),RED,RGB(100,235,150
 static int nav_body=-1;
 static int proj_ox=240,proj_oy=110,clipx0=0,clipx1=W,clipy0=-1,clipy1=-1;
 static int exit_callback(int a,int b,void *c){(void)a;(void)b;(void)c;running=0;return 0;}
-static int power_callback(int a,int flags,void *c){(void)a;(void)c;if(flags&PSP_POWER_CB_RESUME_COMPLETE)resume_requested=1;return 0;}
+static int power_callback(int a,int flags,void *c){
+ (void)a;(void)c;
+ /* Freeze MP3 I/O immediately so a long Memory Stick wake cannot hang the audio worker. */
+ if(flags&(PSP_POWER_CB_SUSPENDING|PSP_POWER_CB_STANDBY)){audio_prepare_suspend();suspend_requested=1;}
+ if(flags&(PSP_POWER_CB_RESUME_COMPLETE|PSP_POWER_CB_RESUMING))resume_requested=1;
+ return 0;
+}
 static int callback_thread(SceSize a,void *b){(void)a;(void)b;int id=sceKernelCreateCallback("Exit",exit_callback,0);sceKernelRegisterExitCallback(id);id=sceKernelCreateCallback("Power",power_callback,0);scePowerRegisterCallback(0,id);sceKernelSleepThreadCB();return 0;}
 static void rect(int x,int y,int w,int h,unsigned color){
  int x0=x<0?0:x,y0=y<0?0:y,x1=x+w>W?W:x+w,y1=y+h>H?H:y+h;
@@ -599,9 +625,10 @@ int main(void){
  FILE *lflag=fopen("open-log.flag","r");if(lflag){fclose(lflag);game.credits=20000;accept_mission(&game,0);accept_mission(&game,2);change_page(MISSIONLOG);}
  int dump_native=0,audit_all=0;FILE *dflag=fopen("dump-native.flag","r");if(dflag){fclose(dflag);dump_native=1;}FILE *aflag=fopen("audit-all.flag","r");if(aflag){fclose(aflag);audit_all=1;}
  FILE *radioflag=fopen("open-radio.flag","r");if(radioflag){fclose(radioflag);game.voice_time=0;story_complete(&game);change_page(RADIO);}audio_init();
- unsigned previous=0;int buffer=0,frames=0,frame_samples=0,slow_frames=0,scene_frames[43]={0};double frame_seconds=0,scene_seconds[43]={0};float worst_frame=0;uint64_t last,now;sceRtcGetCurrentTick(&last);float frequency=(float)sceRtcGetTickResolution();
+ unsigned previous=0;int frames=0,frame_samples=0,slow_frames=0,scene_frames[43]={0};double frame_seconds=0,scene_seconds[43]={0};float worst_frame=0;uint64_t last,now;sceRtcGetCurrentTick(&last);float frequency=(float)sceRtcGetTickResolution();
  while(running){
-  if(resume_requested){resume_requested=0;audio_stop();audio_init();previous=0;analog_ready=0;sceCtrlSetSamplingCycle(0);sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);scePowerSetClockFrequency(333,333,166);sceRtcGetCurrentTick(&last);message(&game,"PSP resumed. Flight controls and radio restored.");}
+  if(suspend_requested){suspend_requested=0;audio_prepare_suspend();}
+  if(resume_requested){resume_requested=0;runtime_recover_from_sleep();previous=0;sceRtcGetCurrentTick(&last);}
   sceRtcGetCurrentTick(&now);float raw_dt=(now-last)/frequency,dt=raw_dt;last=now;if(smoke&&frames>30&&raw_dt<.25f){int scene=frames/10;if(scene>42)scene=42;frame_seconds+=raw_dt;frame_samples++;scene_seconds[scene]+=raw_dt;scene_frames[scene]++;if(raw_dt>worst_frame)worst_frame=raw_dt;if(raw_dt>.025f)slow_frames++;}if(dt>.05f)dt=.05f;if(dt<.001f)dt=.001f;
   SceCtrlData pad={0};pad.Lx=pad.Ly=128;
   int valid=sceCtrlPeekBufferPositive(&pad,1)>0;
@@ -618,7 +645,8 @@ int main(void){
   if(page!=FLIGHT&&!paused){game.message_time-=dt;if(game.message_time<0)game.message_time=0;}
   if(game.cue){if(!quiet_comms||game.cue!=SFX_COMM)audio_play(game.cue);game.cue=0;}
   audio_duck=(!quiet_comms&&game.voice_time>0)||game.police_stop;audio_scene_set(game.planet>=0?1:(game.attacked>0||game.incoming_missile>0)?2:game.docked||page!=FLIGHT?3:0);
-  if(smoke&&frames==20)resume_requested=1;
+  if(smoke&&frames==20){suspend_requested=1;resume_requested=1;}
+  if(smoke&&frames==21){suspend_requested=1;resume_requested=1;}
   if(smoke&&frames>0&&frames%80==0)radio_tune((frames/80)%RADIO_STATION_COUNT);
   if(smoke&&frames>0&&frames<=90&&frames%10==0){
    if(page!=HOME)input(PSP_CTRL_CIRCLE,0,.016f,0,0);
@@ -673,7 +701,7 @@ int main(void){
   if(dump_native&&frames==6)dump_native_bmp("native-480x272.bmp");
   if(dump_native&&smoke&&(frames==95||frames==125||frames==205||frames==215||frames==255||frames==275||frames==355||frames==365||frames==385||frames==425)){char capture[64];snprintf(capture,sizeof(capture),"scene-%03d.bmp",frames);dump_native_bmp(capture);}
   if(dump_native&&smoke&&audit_all&&frames>=160&&frames<=420&&frames%10==5){char capture[64];snprintf(capture,sizeof(capture),"audit-%03d.bmp",frames);dump_native_bmp(capture);}
-  sceDisplayWaitVblankStart();sceDisplaySetFrameBuf((void*)fb,STRIDE,PSP_DISPLAY_PIXEL_FORMAT_8888,PSP_DISPLAY_SETBUF_IMMEDIATE);buffer^=1;frames++;
+  sceDisplayWaitVblankStart();sceDisplaySetFrameBuf((void*)fb,STRIDE,PSP_DISPLAY_PIXEL_FORMAT_8888,PSP_DISPLAY_SETBUF_NEXTFRAME);buffer^=1;frames++;
   if(smoke&&!visual_hold&&frames==425){double fps=frame_seconds>0?frame_samples/frame_seconds:0;FILE *log=fopen("boot-check.txt","a");if(log){fprintf(log,"Rendered 42 scenes in 425 frames, including landing, EVA, ship compass, Codex and anomaly scan.\n");fprintf(log,"Performance: %.2f average FPS, %.2f ms worst frame, %d frames over 25 ms.\n",fps,worst_frame*1000,slow_frames);fclose(log);}FILE *perf=fopen("performance-check.txt","w");if(perf){int planet_fail=0;for(int i=36;i<=39;i++)if(scene_frames[i]&&scene_frames[i]/scene_seconds[i]<24)planet_fail=1;int fail=fps<50||planet_fail;fprintf(perf,"%s average frame rate >= 50 FPS (%.2f FPS)\n",fps>=50?"PASS":"FAIL",fps);fprintf(perf,"%s planetary flight/EVA scenes remain >= 24 FPS\n",planet_fail?"FAIL":"PASS");fprintf(perf,"INFO worst frame %.2f ms; %d frames over 25 ms\n",worst_frame*1000,slow_frames);for(int i=3;i<43;i++)if(scene_frames[i])fprintf(perf,"SCENE %02d %.2f FPS\n",i,scene_frames[i]/scene_seconds[i]);fprintf(perf,"RESULT %d failures\n",fail);fclose(perf);}running=0;}
  }
  audio_stop();

@@ -15,7 +15,7 @@ Treat current source and newest user feedback as authoritative when older design
 
 ## Current build
 
-- Version: see `VERSION` (2.5.3 at time of writing)
+- Version: see `VERSION` (2.5.4 at time of writing)
 - Save format: 10 (imports V1–V9). New persistent fields need a new version, validation, migration and tests.
 - Packaged game: `dist/ELITE-NEXT-PSP/EBOOT.PBP`
 
@@ -33,9 +33,9 @@ Treat current source and newest user feedback as authoritative when older design
 
 ## What to work on next
 
-Continue from the **Highest-priority remaining work** section in `CLAUDE-HANDOFF.md`. At 2.5.3 that is:
+Continue from the **Highest-priority remaining work** section in `CLAUDE-HANDOFF.md`. At 2.5.4 that is:
 
-1. Physical PSP hardware validation (audio/suspend/resume) — cannot be faked in emulator-only environments; document if blocked
+1. Confirm sleep/resume + long MP3 playback on physical PSP hardware — cannot be faked in emulator-only environments; document if blocked
 2. Visual 480×272 galaxy-map inspection (including amber saved route goals)
 3. Deepen Open Channel chapters beyond generic dock/scan/hunt actions
 4. Chapter-specific dialogue pages in the Mission Log transcript

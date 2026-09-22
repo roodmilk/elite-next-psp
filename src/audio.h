@@ -8,6 +8,7 @@
 #include "radio-files.h"
 static volatile int audio_run=0,audio_sfx=SFX_NONE,audio_scene=0,audio_ch=-1;
 static volatile int audio_duck=0;
+static volatile int mp3_frozen=0;
 static int audio_thread=-1;
 #define AUDIO_FRAMES 2048
 /* A large encoded reservoir avoids audible gaps when the Memory Stick pauses
@@ -33,13 +34,13 @@ static int mp3_shuffle_track(int station){
  for(int tries=0;tries<count;tries++){mp3_shuffle=mp3_shuffle*1664525u+1013904223u;int slot=(mp3_shuffle>>8)%count;if(count>1&&slot==previous)slot=(slot+1)%count;if(mp3_open_track(station,slot))return 1;}return 0;
 }
 static int mp3_decode_block(void){
- if(mp3_handle<0)return 0;
+ if(mp3_frozen||mp3_handle<0)return 0;
  if(sceMp3CheckStreamDataNeeded(mp3_handle)>0)mp3_fill();
  short *decoded=0;int bytes=sceMp3Decode(mp3_handle,&decoded);if(bytes<=0)return 0;
  mp3_pcm=decoded;mp3_frames=bytes/(2*mp3_channels);mp3_frame=0;return mp3_frames>0;
 }
 static int mp3_source_frame(int station,int *left,int *right){
- if(!radio_track_count[station])return 0;
+ if(mp3_frozen||!radio_track_count[station])return 0;
  if(radio_file_station!=station&&!mp3_shuffle_track(station))return 0;
  if(mp3_frame>=mp3_frames&&!mp3_decode_block()){if(!mp3_shuffle_track(station)||!mp3_decode_block())return 0;}
  int i=mp3_frame*mp3_channels;*left=mp3_pcm[i];*right=mp3_channels==2?mp3_pcm[i+1]:mp3_pcm[i];
@@ -55,7 +56,7 @@ static int mp3_cubic(int xm1,int x0,int x1,int x2,int t){
  return (int)y;
 }
 static int mp3_sample(int station,int *left,int *right){
- if(!radio_track_count[station])return 0;
+ if(mp3_frozen||!radio_track_count[station])return 0;
  if(radio_file_station!=station){if(!mp3_shuffle_track(station))return 0;mp3_resample_ready=0;}
  if(!mp3_resample_ready){if(!mp3_source_frame(station,&mp3_l0,&mp3_r0)||!mp3_source_frame(station,&mp3_l1,&mp3_r1)||!mp3_source_frame(station,&mp3_l2,&mp3_r2))return 0;mp3_lm1=mp3_l0;mp3_rm1=mp3_r0;mp3_phase=0;mp3_resample_ready=1;}
  *left=mp3_cubic(mp3_lm1,mp3_l0,mp3_l1,mp3_l2,mp3_phase);*right=mp3_cubic(mp3_rm1,mp3_r0,mp3_r1,mp3_r2,mp3_phase);
@@ -128,6 +129,7 @@ static int audio_worker(SceSize n,void *a){
  return 0;
 }
 static void audio_init(void){
+ mp3_frozen=0;
  radio_load_settings("radio.cfg");
  radio_scan_music();int custom=0;for(int i=0;i<RADIO_STATION_COUNT;i++)custom+=radio_track_count[i];if(custom){if(!mp3_modules_loaded){if(sceUtilityLoadModule(PSP_MODULE_AV_AVCODEC)>=0&&sceUtilityLoadModule(PSP_MODULE_AV_MP3)>=0)mp3_modules_loaded=1;}if(mp3_modules_loaded&&!mp3_resource_ready&&sceMp3InitResource()>=0)mp3_resource_ready=1;if(!mp3_resource_ready)for(int i=0;i<RADIO_STATION_COUNT;i++)radio_track_count[i]=0;}
  audio_ch=sceAudioChReserve(PSP_AUDIO_NEXT_CHANNEL,AUDIO_FRAMES,PSP_AUDIO_FORMAT_STEREO);if(audio_ch<0){audio_run=0;return;}
@@ -136,11 +138,15 @@ static void audio_init(void){
 }
 static void audio_play(int id){if(id)audio_sfx=id;}
 static void audio_scene_set(int scene){audio_scene=scene;}
+/* Signal the worker to leave MP3/file I/O before the PSP finishes sleeping.
+ * Safe from the power callback: no waits, no frees. */
+static void audio_prepare_suspend(void){mp3_frozen=1;audio_run=0;}
 static void audio_stop(void){
- audio_run=0;
- if(audio_thread>=0){SceUInt timeout=500000;if(sceKernelWaitThreadEnd(audio_thread,&timeout)<0)sceKernelTerminateThread(audio_thread);sceKernelDeleteThread(audio_thread);audio_thread=-1;}
+ mp3_frozen=1;audio_run=0;
+ if(audio_thread>=0){SceUInt timeout=100000;if(sceKernelWaitThreadEnd(audio_thread,&timeout)<0)sceKernelTerminateDeleteThread(audio_thread);else sceKernelDeleteThread(audio_thread);audio_thread=-1;}
  if(audio_ch>=0)sceAudioChRelease(audio_ch);
  audio_ch=-1;
  mp3_close_track();if(mp3_resource_ready){sceMp3TermResource();mp3_resource_ready=0;}
  if(radio_dirty)radio_save_settings("radio.cfg");
+ mp3_frozen=0;
 }

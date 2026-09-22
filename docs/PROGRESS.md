@@ -1,5 +1,11 @@
 # Design-bible implementation ledger
 
+## ELITE: NEXT 2.5.4 — sleep/resume black-screen recovery
+
+- Power callback freezes MP3 sampling on suspend; resume rebuilds display, controls and audio.
+- Framebuffer flip uses NEXTFRAME after vblank. Smoke double-recovers mid-run.
+- Physical multi-hour sleep confirmation remains the acceptance gate.
+
 ## ELITE: NEXT 2.5.3 — persistent manual route goals
 
 - Added `Game.route_goal` so a galaxy-map plot keeps the final destination while `destination` remains the next hyperspace hop.
