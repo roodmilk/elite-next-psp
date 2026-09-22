@@ -2,6 +2,14 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## Unreleased — native art pipeline and benchmark scenes
+
+- Added a manifest and validator for 480×272, ARGB1555, nearest-neighbour,
+  palette-limited runtime art.
+- Registered Station Arrivals, Planet Approach and Campaign Dialogue as the
+  first native composition contracts and wired station viewport geometry to the
+  shared layout header.
+
 ## Unreleased — shared painted cover field
 
 - Flight, docking, and command-deck previews now share a deterministic stepped
