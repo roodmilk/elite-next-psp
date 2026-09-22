@@ -103,10 +103,11 @@ static int saga_brief_beat=0,saga_brief_chapter=-1,prologue_brief_beat=0;
 /* echo=1: player just asked; next Cross reveals the NPC answer (never answer-before-ask). */
 static int prologue_brief_echo=0,saga_brief_echo=0;
 static void saga_brief_reset(int chapter){if(saga_brief_chapter!=chapter){saga_brief_chapter=chapter;saga_brief_beat=0;saga_brief_echo=0;}}
+static int saga_coda_locked(void){return saga_coda_pending>=0;}
 /* Locked until the player finishes every beat and accepts the next step. */
-static int saga_brief_locked(void){return game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT&&!game.saga_step;}
+static int saga_brief_locked(void){return game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT&&!game.saga_step&&saga_coda_pending<0;}
 static int prologue_brief_locked(void){return tracked_mission==0&&game.campaign_stage==0&&game.system==7&&game.docked;}
-static int story_brief_locked(void){return prologue_brief_locked()||saga_brief_locked();}
+static int story_brief_locked(void){return prologue_brief_locked()||saga_brief_locked()||saga_coda_locked();}
 static const char *saga_brief_line(const SagaBeat *b,int beat){
  if(!b)return "";
  switch(beat){
@@ -115,7 +116,9 @@ static const char *saga_brief_line(const SagaBeat *b,int beat){
  case 2:return b->talk3;
  case 3:return b->talk4;
  case 4:return b->talk5;
- default:return b->talk6;
+ case 5:return b->talk6;
+ case 6:return b->talk7;
+ default:return b->talk8;
  }
 }
 static const char *saga_brief_reply(const SagaBeat *b,int beat){
@@ -127,7 +130,9 @@ static const char *saga_brief_reply(const SagaBeat *b,int beat){
  case 2:return b->ask3;
  case 3:return b->ask4;
  case 4:return b->ask5;
- default:return b->ask6;
+ case 5:return b->ask6;
+ case 6:return b->ask7;
+ default:return b->ask8;
  }
 }
 static const char *prologue_brief_line1(int beat){

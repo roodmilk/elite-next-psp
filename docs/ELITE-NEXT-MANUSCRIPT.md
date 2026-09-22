@@ -341,7 +341,7 @@ Optional track (`src/guild.h`). Parallel to Open Channel; teaches verbs without 
 # VOLUME IV — THE OPEN CHANNEL (MAIN CAMPAIGN)
 
 **Authority scenes:** `docs/OPEN-CHANNEL-SCREENPLAY.md`  
-**Playable binding:** `src/saga.h` (24 chapters × 6 ask-then-answer beats + closes/reactions)  
+**Playable binding:** `src/saga.h` (24 chapters × 8 ask-then-answer beats; Act I codas + choice blurbs)  
 **Ops summary:** `docs/OPEN-CHANNEL-CAMPAIGN.md`
 
 This volume is the **mission & verb manuscript** for the campaign. Full theatrical scenes live in the screenplay; here we bind story → playable action → recovery → trust.
@@ -631,7 +631,7 @@ If fled / testified / stood down: rare GalNet sightings; no revenge fetch quest 
 | Date | Build | Change |
 |---|---|---|
 | 2026-09-22 | 2.5.32 | Manuscript begun: Vols I–VI scaffold + mission banks + campaign verb sheets |
-| (next) | — | Expand Ch.02–07 full scenes into playable page scripts |
+| 2026-09-22 | 2.5.35 | Act I (Ch.02–07) expanded to 8-beat playable page scripts + locked codas + choice blurbs |
 | (next) | — | Author 3 systemic mission novella chains in board data |
 | (next) | — | GalNet reactive post table wired to `saga_flags` |
 
@@ -756,7 +756,24 @@ If a brief cannot answer those three, rewrite it.
 
 # VOLUME IV (EXPANDED) — OPEN CHANNEL SCENE BRIDGES
 
-Bridge scripts connect playable six-beat briefs to full screenplay scenes. Use when Story UI gains pages.
+Bridge scripts connect playable eight-beat briefs to full screenplay scenes.
+
+## IV.4 Act I playable page scripts (shipped 2.5.35)
+
+Each Act I chapter (saga 0–5 / UI 02–07) is eight ask-then-answer Story beats. Beat N+1 answers the commander's ask on beat N. Beat 7 restates the objective and accepts. After completion, a locked **coda** page plays (runtime only — no save field) before the next brief unlocks. Choice chapter 07 shows consequence blurbs under the highlighted option.
+
+| Beat | Role |
+|---|---|
+| 0 | Hook |
+| 1–6 | Answer previous ask + deepen toward screenplay |
+| 7 | Objective reinforce + Accept |
+
+**Ch.02 Something Worth Carrying** — Mara's sealed trust; forged hazard; seal over bravery.  
+**Ch.03 Quiet Between Pings** — road-song in the pauses; no fire; amplification as shouting.  
+**Ch.04 All Hands Accounted For** — stamp before shrug; optional pods; polite auditors.  
+**Ch.05 A Lawful Mistake** — clocks as witnesses; refuse quiet settlements.  
+**Ch.06 The Last Useful Thing** — Pip checklist; dump over scrap; jackals.  
+**Ch.07 The Price of Silence** — architecture over intentions; permanent custody choice + blurbs.
 
 ## IV.5 Bridge — Ch.02 Mara handoff (excerpt)
 **MARA:** Guild, or just the person Kei trusts with sealed things?  

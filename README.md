@@ -1,4 +1,10 @@
-# ELITE: NEXT — development build 2.5.33
+# ELITE: NEXT — development build 2.5.35
+
+## New in 2.5.35 — Act I page scripts
+
+- Open Channel Act I briefs (Ch.02–07) deepen to eight ask-then-answer page-script beats.
+- Permanent decisions show consequence blurbs; Act I completions open a locked coda before the next brief.
+- Manuscript Volume IV documents the Act I page-script binding.
 
 ## New in 2.5.33 — whole-game story manuscript
 

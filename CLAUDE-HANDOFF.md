@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.33**.
+Prepared 22 September 2026. Current build: **2.5.35**.
 
 ## Start here
 
@@ -64,6 +64,10 @@ Important controls:
 - Galaxy Map: Triangle switches between nearby jumps and the full 256-system map; D-pad moves between systems; L/R zoom; X plots a multi-jump route and saves the final goal.
 
 ## Recent changes that must be preserved
+
+### 2.5.35 — Act I page scripts + codas
+
+Open Channel briefs are eight ask-then-answer beats (`SAGA_BRIEF_BEATS`). Act I (indices 0–5) carries deepened page-script dialogue from the screenplay; later chapters pad to eight. Permanent decisions show `saga_choice_blurb` under the highlight. Act I completion opens a runtime-locked coda (`saga_coda_pending`) before the next brief — no save-format change.
 
 ### 2.5.33 — whole-game story manuscript
 
@@ -143,7 +147,7 @@ Combat status uses a bottom-of-canopy **RED ALERT** strip so top speech stays fr
 
 ### 2.5.14 — locked story conversations
 
-First-flight and Open Channel briefs are six-beat linear conversations. Circle and Select cannot leave Tracked Mission until the player accepts the next step. The last beat restates the objective; after accept, old dialogue options are gone and chatter only reinforces the current mission step. `src/saga.h` stores `line` plus `talk2`–`talk6` per chapter.
+First-flight and Open Channel briefs are linear locked conversations (prologue six beats; saga eight). Circle and Select cannot leave Tracked Mission until the player accepts the next step. The last beat restates the objective; after accept, old dialogue options are gone and chatter only reinforces the current mission step. `src/saga.h` stores `line` plus `talk2`–`talk8` per chapter.
 
 ### 2.5.0 — The Open Channel
 
