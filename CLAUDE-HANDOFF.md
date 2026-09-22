@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.44**.
+Prepared 22 September 2026. Current build: **2.5.45**.
 
 ## Start here
 
@@ -80,6 +80,10 @@ Station interiors restaged from `docs/CINEMATIC-MOCKUP-TARGETS.md` + ART DIRECTO
 **ART LOOK FREEZE (Commander: one bug-fixed EBOOT):** Look freeze base remains `3f0dc20` (ART_AMBER — do not restore GOLD). Post-v2.5.42 ART tip on PR #11: HUD lock hint off; soft cosmic oceans; no text bloom; GalNet tab neatness; MacVenture options-list disembark (no verb row / pack). No tag until Systems smoke.
 
 **Working tip (Commander: BIG RELEASES ONLY):** **v2.5.42** shipped quiet FX. Next Systems pack waits on ART tip smoke after this look pass.
+
+### 2.5.45 — Targeting monitor fuzz
+
+Art tip `178d34a` faint CRT static on targeting computer. Smoke-green Commander pack.
 
 ### 2.5.44 — Law rewrite scan/settle/clear
 

@@ -17,6 +17,10 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 - Menu 3D ship viewport camera orbits much slower.
 - Factions screen: X cycles Story channel lore (saga helpers only); Triangle locks nearest ship of that colour.
 
+## 2.5.45 - 2026-09-22
+
+- **ART targeting monitor fuzz:** faint CRT static on the targeting computer (`targeting_screen` in `ui-modern.h`, tip `178d34a`) on the v2.5.44 law tip.
+
 ## 2.5.44 - 2026-09-22
 
 - **Law rewrite pack:** scan → settle → clear loop from PR #29 (`4fea6f2`) on the v2.5.43 tip.
