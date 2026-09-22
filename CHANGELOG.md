@@ -13,6 +13,10 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 
 - Added the timestamp comparison at Lave and inspection/protest/open-case choices for the early Meridian filing.
 - Both prior records are required; partial evidence, wrong-system returns, and repeated comparison actions cannot advance the chapter. Legacy Chapter 05 saves get an explicit case-reopen recovery. State reuses existing `saga_flags` without a save-version or `Game` layout change.
+## Unreleased — pilot rescue control guidance
+
+- Generic pilot-rescue objectives now explain locking the rescue ship and using Triangle to hail within 600 m; Circle locks the contact rather than collecting the pilot.
+- Added input regressions for rescue acceptance, tracking, pickup boundaries, unrelated contacts, guided hub return, single contract/Guild payment, and expiry/retry. Rewards, timers and saves are unchanged.
 
 ## Unreleased — authored Open Channel Chapters 02–04
 
