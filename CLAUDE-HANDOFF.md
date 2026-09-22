@@ -85,6 +85,10 @@ Station interiors restaged from `docs/CINEMATIC-MOCKUP-TARGETS.md` + ART DIRECTO
 
 **Working tip (Commander: BIG RELEASES ONLY):** **v2.5.42** shipped quiet FX. Next Systems pack waits on ART tip smoke after this look pass.
 
+### 2.5.46 — Equipment modules change ship stats
+
+PR #32 on v2.5.45 tip. Smoke-green Commander pack.
+
 ### 2.5.45 — Targeting monitor fuzz
 
 Art tip `178d34a` faint CRT static on targeting computer. Smoke-green Commander pack.
