@@ -164,10 +164,10 @@ When the two disagree, preserve gameplay clarity and the focal silhouette first.
 
 ## Immediate next actions
 
-1. Build a native 480×272 room-kit sheet for the eight station rooms.
+1. **Done:** Build a native 480×272 room-kit sheet for the eight station rooms.
 2. Capture the current station crawl once PSP input is available in the emulator or on hardware.
-3. Produce six planet silhouette variants and compare them against the existing seeded body families.
+3. **Done:** Produce six planet silhouette variants and compare them against the existing seeded body families.
 4. Produce three station exterior silhouettes with docking apertures.
 5. Review each proposed sheet with the station implementation lane before runtime integration.
 
-The next implementation-facing artifact should be a small, measurable room kit—not a large asset dump.
+Execution artifacts and bake notes are in `docs/ART-KIT-HANDOFF.md`. The next implementation-facing artifact should be three compact station exterior silhouettes with docking apertures—not a large asset dump.
