@@ -28,15 +28,15 @@ static void space_fx_nebula(void){
   float ang=((seed&255)/255.f)*1.2f+.4f;
   float ca=cosf(ang),sa=sinf(ang);
   unsigned band=sfx_tint(seed,0);
-  unsigned haze=RGB((band&255)/5,((band>>8)&255)/5,((band>>16)&255)/6);
-  int samples=high_contrast?0:90;
+  unsigned haze=RGB((band&255)/3,((band>>8)&255)/3,((band>>16)&255)/4);
+  int samples=high_contrast?0:110;
   for(int i=0;i<samples;i++){
    float t=(i+.5f)/samples;
-   float along=(t-.5f)*520.f;
-   float wobble=sinf(t*6.2831853f*2.f+game.time*.05f+(seed&31))*.35f;
-   int x=(int)(240+ca*along-sa*wobble*40);
-   int y=(int)((top+bot)/2+sa*along*.55f+ca*wobble*28);
-   int rad=2+((i+seed)&3);
+   float along=(t-.5f)*540.f;
+   float wobble=sinf(t*6.2831853f*2.f+game.time*.05f+(seed&31))*.45f;
+   int x=(int)(240+ca*along-sa*wobble*48);
+   int y=(int)((top+bot)/2+sa*along*.55f+ca*wobble*32);
+   int rad=3+((i+seed)&3);
    for(int dy=-rad;dy<=rad;dy++)for(int dx=-rad;dx<=rad;dx++){
     if(dx*dx+dy*dy>rad*rad)continue;
     sfx_add(x+dx,y+dy,haze,top,bot);
@@ -51,11 +51,11 @@ static void space_fx_nebula(void){
   Vec3 v=camera(&game,add(game.pos,mul(direction,48000)));
   if(v.z<2500)continue;
   Point p=project(v);
-  float radius=fminf(300,2000000/v.z)*(1.f+((seed>>(cloud*3))&3)*.14f);
+  float radius=fminf(320,2100000/v.z)*(1.f+((seed>>(cloud*3))&3)*.16f);
   unsigned tint=sfx_tint(seed,cloud+1);
-  unsigned soft=RGB((tint&255)/4,((tint>>8)&255)/4,((tint>>16)&255)/5);
-  unsigned bright=RGB((tint&255)/2,((tint>>8)&255)/2,((tint>>16)&255)/3);
-  int density=36+((seed>>(cloud*4))&24);
+  unsigned soft=RGB((tint&255)/2,((tint>>8)&255)/2,((tint>>16)&255)/3);
+  unsigned bright=RGB((tint&255)*2/3,((tint>>8)&255)*2/3,((tint>>16)&255)/2);
+  int density=48+((seed>>(cloud*4))&28);
   for(int k=0;k<density;k++){
    float a=k*2.39996f+cloud+game.time*.01f;
    float rk=radius*sqrtf((k+.35f)/density);
