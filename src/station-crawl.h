@@ -128,6 +128,20 @@ static void sc_panel(int x0,int y0,int x1,int y1,unsigned wall,unsigned wall2,un
  for(int y=y0+8;y<y1-6;y+=16){pixel(x0+3,y,trim);pixel(x1-4,y,trim);}
  if(lit){rect(x0+(w>20?w/2-1:2),y0+6,2,h-12,trim);pixel(x0+(w>20?w/2:3),y0+4,GOLD);}
 }
+static const char *sc_room_short(int t){
+ static const char *n[]={"HALL","HUB","SHOP","BAR","BAY","MED","GUILD","LOCK"};
+ return t>=0&&t<8?n[t]:"ROOM";
+}
+static void sc_door_label(int x,int y,int w,unsigned ink,const char *label){
+ /* Pixel-backed strip so side labels stay crisp and never fight the far door text. */
+ if(w<20||y<30||y>230)return;
+ int len=0;while(label[len]&&len<6)len++;
+ int tw=len*8;if(tw>w-4){len=(w-4)/8;if(len<1)return;tw=len*8;}
+ int lx=x+(w-tw)/2;if(lx<2)lx=2;if(lx+tw>W-2)lx=W-2-tw;
+ rect(lx-2,y,tw+4,10,RGB(4,10,16));
+ rect(lx-2,y,tw+4,1,ink);
+ text(lx/8,y/8,CYAN,"%.*s",len,label);
+}
 static void sc_draw_side_door(int left,int depth,int has_door,int nbr_room,unsigned wall,unsigned wall2,unsigned trim){
  /* depth 0 near, 1 mid — classic MM side alcove / doorway. */
  int inset=14+depth*46,top=42+depth*26,bot=236-depth*26,w=40-depth*10;
@@ -147,11 +161,8 @@ static void sc_draw_side_door(int left,int depth,int has_door,int nbr_room,unsig
   rect(x+(left?w-7:3),top+36,3,10,GOLD);
   /* Threshold lip */
   rect(x+2,bot-12,w-4,6,mix_rgb(inner,RGB(40,48,56),.35f));
-  /* Destination label strip */
-  rect(x,top-2,w,10,RGB(8,16,24));
-  rect(x,top-2,w,1,ftrim);
-  {const char *nm=sc_room_name(nbr_room);int col=(x+4)/8;if(col<1)col=1;if(col>52)col=52;
-   text(col,(top)/8,CYAN,"%.7s",nm);}
+  /* Label only the near alcove — mid depth is visual only */
+  if(depth==0)sc_door_label(x,top+2,w,ftrim,sc_room_short(nbr_room));
  }else{
   sc_panel(x,top,x+w,bot,wall2,wall,trim,1);
   for(int k=0;k<3;k++)rect(x+6,top+18+k*36,w-12,3,mix_rgb(wall,RGB(8,12,16),.35f));
@@ -180,9 +191,11 @@ static void sc_draw_far_door(int nbr_room){
  /* Threshold */
  rect(x0+16,y0+hh-16,ww-32,8,mix_rgb(far2,RGB(50,58,68),.35f));
  /* Big destination label */
- rect(x0+28,y0+4,ww-56,14,RGB(6,14,22));
- rect(x0+28,y0+4,ww-56,1,CYAN);
- text(22,8,CYAN,"TO %.10s",sc_room_name(nbr_room));
+ rect(x0+36,y0+6,ww-72,12,RGB(6,14,22));
+ rect(x0+36,y0+6,ww-72,1,CYAN);
+ {char tip[24];snprintf(tip,sizeof(tip),"TO %s",sc_room_short(nbr_room));
+  int len=(int)strlen(tip);int tw=len*8;int lx=x0+(ww-tw)/2;if(lx<x0+40)lx=x0+40;
+  text(lx/8,(y0+7)/8,CYAN,"%s",tip);}
  /* Neighbour prop silhouette */
  if(nbr_room==SC_ROOM_SHOP){rect(x0+40,y0+90,22,18,RGB(80,58,30));rect(x0+ww-62,y0+90,22,18,RGB(80,58,30));}
  else if(nbr_room==SC_ROOM_BAR){rect(x0+50,y0+100,76,12,RGB(70,36,58));}
@@ -267,10 +280,11 @@ static void sc_draw_npc(int i,const ScNpc *p,int selected){
   rect(hx,hy+hs-1,hs,1,ink);
  }
  /* Name plate under feet */
- {int nw=(int)strlen(p->name);if(nw>8)nw=8;int px=cx-(nw*4);if(px<4)px=4;
-  rect(px-2,feet+4,nw*8+4,10,RGB(6,12,20));
-  rect(px-2,feet+4,nw*8+4,1,ink);
-  text(px/8,(feet+5)/8,selected?GOLD:WHITE,"%.8s",p->name);}
+ {int nw=(int)strlen(p->name);if(nw>8)nw=8;int px=cx-(nw*4);if(px<4)px=4;if(px+nw*8>W-4)px=W-4-nw*8;
+  int py=feet+3;if(py>236)py=236;
+  rect(px-2,py,nw*8+4,10,RGB(6,12,20));
+  rect(px-2,py,nw*8+4,1,ink);
+  text(px/8,py/8,selected?GOLD:WHITE,"%.8s",p->name);}
 }
 static void sc_draw_fp(void){
  rect(0,0,W,H,RGB(4,8,14));
@@ -301,16 +315,16 @@ static void sc_draw_fp(void){
   int cw=span/cells;if(cw<4)cw=4;
   for(int k=0;k<cells;k++){
    int x=inset+k*cw;int ww=(k==cells-1)?(W-inset-x):cw;
-   int check=((k+(y/10)+sc_x+sc_y)&1);
-   unsigned c=check?mix_rgb(RGB(28,38,50),trim,.12f):RGB(14,20,28);
-   c=mix_rgb(c,RGB(4,6,10),t*.7f);
+   int check=((k+(y/8)+sc_x+sc_y)&1);
+   unsigned c=check?mix_rgb(RGB(42,54,68),trim,.22f):RGB(16,22,30);
+   c=mix_rgb(c,RGB(6,8,12),t*.55f);
    rect(x,y,ww,1,c);
   }
  }
  /* Tile edge lines */
  for(int i=0;i<=7;i++){
   float t=i/7.f;int inset=(int)((1.f-t)*118);int y=mid+(int)(t*(248-mid));
-  line(inset,y,W-inset,y,RGB(10,14,20));
+  line(inset,y,W-inset,y,RGB(18,24,32));
  }
  /* Near wall faces (depth 0) — thick MM-style side panels */
  for(int i=0;i<4;i++){
