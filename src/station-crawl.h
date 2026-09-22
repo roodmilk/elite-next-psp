@@ -693,7 +693,7 @@ static void sc_draw_text_box(void){
   int list[8],ln=sc_exclusive_catalog(list,8);
   text(1,row,SC_AMBER,"CHANDLER STOCK");
   if(!ln)text(1,row+1,SC_LAV,"Sold out today.");
-  else {int idx=list[sc_shop_row%ln];text(1,row+1,SC_CREAM,"%.18s  %.1fU",equipment_list_names[idx],equipment_costs[idx]*.1f);
+  else {int idx=list[sc_shop_row%ln];text(1,row+1,SC_CREAM,"%.18s  %.1fU",equipment_data[idx].short_name,equipment_data[idx].cost*.1f);
    text(1,row+3,SC_LAV,"UP/DOWN  X buy  TRI back");}
   return;
  }

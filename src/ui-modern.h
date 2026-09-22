@@ -199,39 +199,8 @@ static void yard(void){
  footer("UP/DOWN   X EXCHANGE   O BACK");
 }
 /* Expanded outfitting: only list items this hub actually stocks. */
-enum { EQUIP_COUNT = 24 };
-static const char *equipment_names[EQUIP_COUNT]={
- "REFUEL TANK","PULSE LASER","BEAM LASER","MISSILE RESTOCK","DOCKING COMPUTER","NAV BEACON",
- "SHIELD BOOSTER","MILITARY SHIELD","LASER COOLING","HEAT SINK","CARGO BAY +8T","FREIGHT RACK +16T",
- "LONG-RANGE SCANNER","PLANET SCANNER","FUEL SCOOP","AGRI SCOOP","ECM SUITE","CHAFF DISPENSER",
- "ESCAPE POD","AUTO-REPAIR KIT","MINING LASER","REFINERY UNIT","PASSENGER CABIN","EXCLUSIVE CLAMP"
-};
-static const char *equipment_list_names[EQUIP_COUNT]={
- "REFUEL","PULSE LASER","BEAM LASER","MISSILE +1","DOCK COMP","NAV BEACON",
- "SHIELD BOOST","MIL SHIELD","LASER COOL","HEAT SINK","CARGO +8T","FREIGHT +16T",
- "LONG SCAN","PLANET SCAN","FUEL SCOOP","AGRI SCOOP","ECM SUITE","CHAFF",
- "ESCAPE POD","AUTO-REPAIR","MINING LASER","REFINERY","PAX CABIN","EXCL CLAMP"
-};
-static const char *equipment_details[EQUIP_COUNT]={
- "Fill hyperspace tank.","Solid starter pulse.","Twice laser damage.","Load one missile.","Dock from 8,000 m.","Clearer next-hop marks.",
- "Twice shield recharge.","Even faster shields.","Laser cools faster.","Dump heat in a hurry.","Adds eight tonnes.","Adds sixteen tonnes.",
- "IDs distant contacts.","Surface scan assist.","Skim fuel near a sun.","Scoop near agri belts.","Break missile locks.","Decoy flare burst.",
- "One free emergency tow.","Slow hull patching.","Faster rock mining.","Ore→alloys onboard.","+1 passenger berth.","Chandler deck clamp."
-};
-static const char *equipment_effects[EQUIP_COUNT]={
- "Tank: now -> ship max","Laser 18 -> 24","Laser 18 -> 36","Missiles +1","Dock 2500 -> 8000 m","Next-hop mark+",
- "Shield 1.5 -> 3.0 /s","Shield 3.0 -> 4.5 /s","Cool 22 -> 38 /s","Dump when lasers overheat","Hold +8 tonnes","Hold +16 tonnes",
- "IDs beyond 2500 m","Survey range +","Fuel +0.5 /s at sun","Fuel +0.75 /s at sun","50% break missile lock","Break missile lock",
- "Consume on ship loss","Hull +2 /s","Mine rocks 1.5x","Minerals -> alloys","Taxi berth required","Cargo clamp+"
-};
+#include "equipment-data.h"
 #include "equipment-fit.h"
-static const int equipment_costs[EQUIP_COUNT]={0,2200,4000,1000,2500,1800,6000,9000,4500,3200,3500,7000,3000,2800,7500,5000,5500,2000,4000,3600,4200,4800,2500,1500};
-/* Minimum displayed tech (systems[].tech+1). 0 = always if economy allows. */
-static const int equipment_tech[EQUIP_COUNT]={0,2,4,2,5,3,6,8,5,4,3,6,4,3,7,4,6,3,4,5,4,5,3,2};
-/* Economy bands that stock the item: bit0 poor ind … bit7 poor agri. 0xff = all. */
-static const unsigned equipment_econ[EQUIP_COUNT]={
- 0xff,0xff,0x0f,0xff,0xff,0xf0,0x1f,0x07,0x0f,0x1f,0xff,0x0e,0xff,0xf0,0x0f,0xf0,0x0f,0xff,0xff,0x1f,0x0e,0x0e,0xff,0x00
-};
 static const char *equip_cat_name(int i){
  static const char *c[]={"FUEL","WPN","WPN","WPN","NAV","NAV","DEF","DEF","DEF","DEF","HOLD","HOLD","NAV","NAV","FUEL","FUEL","DEF","DEF","UTIL","UTIL","UTIL","UTIL","HOLD","HOLD"};
  return i>=0&&i<EQUIP_COUNT?c[i]:"UTIL";
@@ -243,15 +212,15 @@ static int equipment_owned(int i){
  for(int s=0;s<FIT_SLOTS;s++)if(game.fit[s]==(uint8_t)i)return 1;
  return 0;
 }
-static const char *equipment_label(int i){return i>=0&&i<EQUIP_COUNT?equipment_list_names[i]:"INVALID";}
+static const char *equipment_label(int i){return i>=0&&i<EQUIP_COUNT?equipment_data[i].short_name:"INVALID";}
 static int equipment_in_stock(int i){
  if(i<0||i>=EQUIP_COUNT)return 0;
  if(i==0)return 1;
- if(equipment_econ[i]==0)return 0; /* exclusive — chandler only */
+ if(equipment_data[i].economy==0)return 0; /* exclusive — chandler only */
  int have=game.systems[game.system].tech+1;
- if(have<equipment_tech[i])return 0;
+ if(have<equipment_data[i].tech)return 0;
  unsigned mask=1u<<(game.systems[game.system].economy&7);
- return (equipment_econ[i]&mask)!=0;
+ return (equipment_data[i].economy&mask)!=0;
 }
 static int equipment_stock_list(int *out,int maxn){
  int n=0; for(int i=0;i<EQUIP_COUNT&&n<maxn;i++)if(equipment_in_stock(i))out[n++]=i;
@@ -259,11 +228,11 @@ static int equipment_stock_list(int *out,int maxn){
 }
 static int sc_exclusive_catalog(int *out,int maxn){
  int n=0; unsigned h=game.system*17u;
- for(int i=0;i<EQUIP_COUNT&&n<maxn;i++)if(equipment_econ[i]==0&&!equipment_owned(i))out[n++]=i;
- int extras[]={7,11,16,19,22}; for(int k=0;k<5&&n<maxn;k++){int i=extras[(h+k)%5];if(!equipment_owned(i)&&game.systems[game.system].tech+1>=equipment_tech[i]){int dupe=0;for(int j=0;j<n;j++)if(out[j]==i)dupe=1;if(!dupe)out[n++]=i;}}
+ for(int i=0;i<EQUIP_COUNT&&n<maxn;i++)if(equipment_data[i].economy==0&&!equipment_owned(i))out[n++]=i;
+ int extras[]={7,11,16,19,22}; for(int k=0;k<5&&n<maxn;k++){int i=extras[(h+k)%5];if(!equipment_owned(i)&&game.systems[game.system].tech+1>=equipment_data[i].tech){int dupe=0;for(int j=0;j<n;j++)if(out[j]==i)dupe=1;if(!dupe)out[n++]=i;}}
  return n;
 }
-static int equip_sell_price(int i){if(i<=0||i>=EQUIP_COUNT)return 0;return equipment_costs[i]/2;}
+static int equip_sell_price(int i){if(i<=0||i>=EQUIP_COUNT)return 0;return equipment_data[i].cost/2;}
 static int unequip_slot(int slot,int refund){
  if(slot<0||slot>=FIT_SLOTS)return 0;
  int old=game.fit[slot];if(old==FIT_EMPTY)return 0;
@@ -272,7 +241,7 @@ static int unequip_slot(int slot,int refund){
   game.fit[slot]=(uint8_t)old;fit_rebuild(&game);
   message(&game,"Unload cargo before removing the hold.");return 0;
  }
- if(refund&&fit_value_valid(slot,old)){int back=equip_sell_price(old);game.credits+=back;char note[72];snprintf(note,sizeof(note),"Sold %s for %.1f U.",equipment_list_names[old],back*.1f);message(&game,note);}
+ if(refund&&fit_value_valid(slot,old)){int back=equip_sell_price(old);game.credits+=back;char note[72];snprintf(note,sizeof(note),"Sold %s for %.1f U.",equipment_data[old].short_name,back*.1f);message(&game,note);}
  else message(&game,"Module removed.");
  game.cue=SFX_UI;return 1;
 }
@@ -280,17 +249,17 @@ static void buy_equipment(int i){
  if(!game.docked){message(&game,"Dock to buy equipment.");return;}
  if(i<0||i>=EQUIP_COUNT)return;
  if(i==0){int cost=(int)ceilf(player_ships[game.ship].range-game.fuel)*2;if(cost<=0){message(&game,"Tank is already full.");return;}if(game.credits<cost){message(&game,"Not enough units.");return;}game.credits-=cost;game.fuel=player_ships[game.ship].range;game.cue=SFX_UI;message(&game,"Tank full.");return;}
- if(i==3){if(game.missiles>=4){message(&game,"Missile rack full.");return;}if(!equipment_in_stock(i)&&equipment_econ[i]!=0){message(&game,"Not stocked at this hub.");return;}if(game.credits<equipment_costs[i]){message(&game,"Not enough units.");return;}game.credits-=equipment_costs[i];game.missiles++;game.cue=SFX_UI;message(&game,"Missile loaded.");return;}
+ if(i==3){if(game.missiles>=4){message(&game,"Missile rack full.");return;}if(!equipment_in_stock(i)&&equipment_data[i].economy!=0){message(&game,"Not stocked at this hub.");return;}if(game.credits<equipment_data[i].cost){message(&game,"Not enough units.");return;}game.credits-=equipment_data[i].cost;game.missiles++;game.cue=SFX_UI;message(&game,"Missile loaded.");return;}
  if(equipment_owned(i)){message(&game,"Already fitted.");return;}
- if(!equipment_in_stock(i)&&equipment_econ[i]!=0){message(&game,"Not stocked at this hub.");return;}
+ if(!equipment_in_stock(i)&&equipment_data[i].economy!=0){message(&game,"Not stocked at this hub.");return;}
  int slot=equip_slot_for(i);if(slot<0){message(&game,"Cannot fit that.");return;}
- int cost=equipment_costs[i],refund=0,old=game.fit[slot];
+ int cost=equipment_data[i].cost,refund=0,old=game.fit[slot];
  if(old!=FIT_EMPTY){refund=equip_sell_price(old);cost-=refund;if(cost<0)cost=0;}
  if(game.credits<cost){message(&game,"Not enough units.");return;}
  {uint8_t prev=game.fit[slot];game.fit[slot]=(uint8_t)i;fit_rebuild(&game);
   if(cargo_used(&game)>cargo_capacity(&game)){game.fit[slot]=prev;fit_rebuild(&game);message(&game,"Cargo will not fit that hold.");return;}}
  game.credits-=cost;game.cue=SFX_UI;
- if(old!=FIT_EMPTY){char note[80];snprintf(note,sizeof(note),"Fitted %s (traded in %.1f).",equipment_list_names[i],refund*.1f);message(&game,note);}
+ if(old!=FIT_EMPTY){char note[80];snprintf(note,sizeof(note),"Fitted %s (traded in %.1f).",equipment_data[i].short_name,refund*.1f);message(&game,note);}
  else message(&game,"Module fitted.");
 }
 static void sell_equipment_row(int i){
@@ -302,7 +271,7 @@ static void sell_equipment_row(int i){
 }
 static int equip_row_count(void){int list[EQUIP_COUNT];return equipment_stock_list(list,EQUIP_COUNT);}
 static void equipment(void){
- header("OUTFITTING");if(!game.docked){text(3,8,DIM,"Dock to view equipment and fuel.");footer("O BACK");return;}
+ header("OUTFITTING");if(!equipment_data_valid()){text(3,8,RED,"EQUIPMENT DATA INVALID");footer("O BACK");return;}if(!game.docked){text(3,8,DIM,"Dock to view equipment and fuel.");footer("O BACK");return;}
  panel(8,32,225,156);panel(241,32,231,156);
  int list[EQUIP_COUNT],n=equipment_stock_list(list,EQUIP_COUNT);
  if(n<1){text(2,8,DIM,"No stock today.");footer("O BACK");return;}
@@ -311,15 +280,15 @@ static void equipment(void){
  text(2,5,CYAN,"IN STOCK");page_number_at(18,5,row/6+1,(n+5)/6);
  for(int j=0;j<6&&first+j<n;j++){int disp=first+j,i=list[disp],y=7+j*3;if(disp==row)rect(10,y*8-3,220,15,RGB(25,65,77));text(2,y,equipment_owned(i)?CYAN:disp==row?WHITE:DIM,"%-4s %-14s%s",equip_cat_name(i),equipment_label(i),equipment_owned(i)?" *":"");}
  int i=list[row],slot=equip_slot_for(i);
- text(31,5,GOLD,"%.22s",equipment_names[i]);
+ text(31,5,GOLD,"%.22s",equipment_data[i].name);
  text(31,7,CYAN,"%.22s",i==0||i==3?"SERVICE":(slot>=0?((const char*[]){"WPN","DEF","NAV","HOLD","FUEL","UTIL"})[slot]:equip_cat_name(i)));
- text(31,9,WHITE,"%.28s",equipment_details[i]);
- text(31,12,CYAN,"%.28s",equipment_effects[i]);
+ text(31,9,WHITE,"%.28s",equipment_data[i].details);
+ text(31,12,CYAN,"%.28s",equipment_data[i].effects);
  if(equipment_owned(i))text(31,15,CYAN,i==3?"Missile rack full":i==0?"Fuel tank full":"Fitted — Square sells 50%");
- else if(slot>=0&&game.fit[slot]!=FIT_EMPTY)text(31,15,AMBER,"Replaces %.14s",equipment_list_names[game.fit[slot]]);
+ else if(slot>=0&&game.fit[slot]!=FIT_EMPTY)text(31,15,AMBER,"Replaces %.14s",equipment_data[game.fit[slot]].short_name);
  else text(31,15,CYAN,"In stock at this hub");
  text(31,17,DIM,"Hub tech %d",game.systems[game.system].tech+1);
- {int price=i==0?fuelcost:equipment_costs[i],show=price;
+ {int price=i==0?fuelcost:equipment_data[i].cost,show=price;
   if(!equipment_owned(i)&&slot>=0&&game.fit[slot]!=FIT_EMPTY&&i>0&&i!=3){show=price-equip_sell_price(game.fit[slot]);if(show<0)show=0;}
   text(31,19,equipment_owned(i)?DIM:WHITE,equipment_owned(i)?"--":"%.1f units",show*.1f);}
  text(31,21,DIM,"Balance %.1f",game.credits*.1f);
@@ -333,7 +302,7 @@ static void inventory_screen(void){
  for(int i=0;i<6;i++){
   int y=7+i*2,mod=game.fit[i];
   if(!fit_value_valid(i,mod))mod=FIT_EMPTY;
-  const char *name=mod==FIT_EMPTY?(i==FIT_HOLD?"BASE HOLD":i==FIT_FUEL?"TANK ONLY":"NONE"):equipment_list_names[mod];
+  const char *name=mod==FIT_EMPTY?(i==FIT_HOLD?"BASE HOLD":i==FIT_FUEL?"TANK ONLY":"NONE"):equipment_data[mod].short_name;
   if(i==row)selected(y);text(2,y,i==row?GOLD:WHITE,"%-4s %.18s",slot[i],name);
  }
  text(2,20,CYAN,"MISSILES %d",game.missiles);

@@ -4,6 +4,11 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 
 ## Unreleased — Systems/QA V13 bounds hardening
 
+## Unreleased — Compile-time equipment content pack
+
+- Outfitting definitions now use one validated table for names, descriptions, costs, tech gates, and economy bands.
+- Catalog IDs remain stable for V13 commander saves.
+
 - Loadout display and module refunds validate fitted catalog indexes before using equipment arrays.
 - Added V13 slot-value regression checks; save version and V12 migration remain unchanged.
 

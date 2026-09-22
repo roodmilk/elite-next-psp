@@ -8,6 +8,8 @@ Outfitting buys into six hardpoints (`fit[]`); Loadout sells at 50%. Bits still 
 
 Systems/QA follow-up hardens fitted catalog bounds in Loadout and refund paths and adds V13 slot-value regression checks. Save format remains V13; V12 migration remains unchanged. Full PPSSPP smoke is green on the specialist/systems-qa branch.
 
+The first expansion-roadmap milestone is also landed locally: outfitting content is centralized in `src/equipment-data.h`, with stable catalog IDs and runtime table validation. Full smoke remains green.
+
 ## Start here
 
 This is a native PSP homebrew game inspired by Elite-A and the wider Elite lineage. It is no longer a literal port: it has a new flight/world simulation, 256 seeded systems, modern PSP interface, multi-body systems, factions, missions, planetary flight/EVA, custom radio folders and an original Kei/Ryn campaign called **The Open Channel**.
