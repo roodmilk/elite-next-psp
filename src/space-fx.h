@@ -298,6 +298,23 @@ static void sfx_planet_bloom_one(const Body *b,int top,int bot){
    if((i&2)==0)sfx_add(x,y-1,RGB(30,120,90),top,bot);
   }
  }
+ /* Night-side city lights — tiny warm sparks on the anti-sun half. */
+ if(b->type!=GAS&&r>22&&sv.z>100){
+  Point sp=project(sv);
+  float sdx=sp.x-p.x,sdy=sp.y-p.y,slen=sqrtf(sdx*sdx+sdy*sdy);if(slen<1)slen=1;
+  float nx=-sdx/slen,ny=-sdy/slen; /* night hemisphere direction */
+  unsigned seed=b->seed^0xC17Fu;
+  int lights=8+(r/12);if(lights>18)lights=18;
+  for(int i=0;i<lights;i++){
+   seed=seed*1664525u+1013904223u;
+   float a=((seed&255)/255.f)*3.14159f-1.57f;
+   float rad=r*(.25f+((seed>>8)&255)/400.f);
+   int x=(int)(p.x+nx*r*.35f+cosf(a)*rad),y=(int)(p.y+ny*r*.35f+sinf(a)*rad*.9f);
+   unsigned ink=(i&1)?RGB(255,180,80):RGB(255,220,140);
+   sfx_add(x,y,ink,top,bot);
+   if((i&3)==0)pixel(x,y,GOLD);
+  }
+ }
 }
 static void sfx_planet_beauty(void){
  if(sfx_fx_muted())return;
@@ -370,4 +387,108 @@ static void sfx_engine_plume_mask(int x,int y,int boostish){
  int frame=((int)(game.time*(boostish?12.f:7.f)))&3;
  unsigned ink=boostish?CYAN:RGB(255,185,70);
  space_anim_draw(SPACE_ANIM_PLUME,x,y,frame,ink);
+}
+/* ---- Wave C: denser fun travel FX (still soft-FB / fixed cost) ---- */
+/* Coronal streamers + rainbow diffraction near the sun limb. */
+static void sfx_solar_wind(void){
+ if(sfx_fx_muted())return;
+ Vec3 v=camera(&game,game.bodies[0].pos);if(v.z<100)return;
+ Point p=project(v);
+ int r=(int)fminf(200,240*game.bodies[0].radius/v.z);if(r<12)return;
+ int top=view_top(),bot=view_bot();
+ unsigned tint=game.bodies[0].color;
+ for(int i=0;i<10;i++){
+  float a=game.time*.2f+i*.63f+game.bodies[0].seed*.01f;
+  int x0=(int)(p.x+cosf(a)*(r+2)),y0=(int)(p.y+sinf(a)*(r+2)*.9f);
+  int x1=(int)(p.x+cosf(a)*(r+18+i)),y1=(int)(p.y+sinf(a)*(r+18+i)*.9f);
+  if(y0>=top&&y0<=bot&&y1>=top&&y1<=bot)line(x0,y0,x1,y1,RGB((tint&255)/4,((tint>>8)&255)/5,((tint>>16)&255)/6));
+  sfx_add(x1,y1,RGB((tint&255)/3,((tint>>8)&255)/4,((tint>>16)&255)/5),top,bot);
+ }
+ /* Soft prism fringe when the sun is large in frame. */
+ if(r>50){
+  for(int k=0;k<12;k++){
+   float a=k*.52f+game.time*.4f;
+   int x=(int)(p.x+cosf(a)*(r+6)),y=(int)(p.y+sinf(a)*(r+6)*.9f);
+   unsigned ink=(k%3==0)?RGB(80,40,60):(k%3==1)?RGB(40,70,90):RGB(50,60,40);
+   sfx_add(x,y,ink,top,bot);
+  }
+ }
+}
+/* Soft wakes behind nearby traffic. */
+static void sfx_traffic_wakes(void){
+ if(sfx_fx_muted())return;
+ int top=view_top(),bot=view_bot();
+ for(int i=0;i<NPC_COUNT;i++){
+  NPC *n=&game.npc[i];if(!n->alive)continue;
+  float d=length(sub(n->pos,game.pos));if(d>5500||d<80)continue;
+  Vec3 facing=n->freighter?n->dir:(Vec3){n->dir.x,0,n->dir.z};
+  float L=length(facing);if(L>.001f)facing=mul(facing,1.f/L);else facing=(Vec3){0,0,1};
+  Point last={0,0};int have=0;
+  for(int k=0;k<5;k++){
+   Vec3 trail=add(n->pos,mul(facing,-(20.f+k*28.f)));
+   Vec3 tv=camera(&game,trail);if(tv.z<25)break;Point q=project(tv);
+   if(q.x<2||q.x>478||q.y<top+2||q.y>bot-2)break;
+   unsigned ink=k<2?RGB(80,110,140):RGB(35,50,70);
+   sfx_add((int)q.x,(int)q.y,ink,top,bot);
+   if(have&&(int)last.y>=top&&(int)last.y<=bot)line((int)last.x,(int)last.y,(int)q.x,(int)q.y,ink);
+   last=q;have=1;
+  }
+ }
+}
+/* Asteroid / debris dust motes when close to rocks. */
+static void sfx_debris_dust(void){
+ if(sfx_fx_muted())return;
+ int top=view_top(),bot=view_bot(),drawn=0;
+ for(int i=0;i<DEBRIS_COUNT&&drawn<40;i++){
+  Debris *d=&game.debris[i];if(!d->alive||!d->rock)continue;
+  float dist=length(sub(d->pos,game.pos));if(dist>2800)continue;
+  Vec3 v=camera(&game,d->pos);if(v.z<30||v.z>4000)continue;Point p=project(v);
+  unsigned seed=(unsigned)(i*7919u)^(unsigned)(game.system*131u);
+  int motes=4+(int)(1800.f/dist);if(motes>10)motes=10;
+  for(int k=0;k<motes;k++){
+   seed=seed*1664525u+1013904223u;
+   int x=(int)p.x+((int)(seed&15)-7),y=(int)p.y+((int)((seed>>4)&15)-7);
+   sfx_add(x,y,d->rock==2?RGB(120,150,170):RGB(90,70,50),top,bot);
+   drawn++;
+  }
+ }
+}
+/* Approach corridor — cyan path lights toward the hub mouth. */
+static void sfx_dock_corridor(void){
+ if(sfx_fx_muted()||game.dock_stage)return;
+ float dz=STATION_ENTRY_Z-game.pos.z;if(dz<200||dz>9000)return;
+ if(fabsf(game.pos.x)>900||fabsf(game.pos.y)>900)return;
+ int top=view_top(),bot=view_bot();
+ for(int i=0;i<12;i++){
+  float t=i/11.f;
+  Vec3 w={(i&1?-1:1)*40.f*(1.f-t),((i&2)?1:-1)*28.f*(1.f-t),STATION_ENTRY_Z-t*dz*.85f};
+  Vec3 v=camera(&game,w);if(v.z<20)continue;Point p=project(v);
+  int frame=((int)(game.time*6)+i)&3;
+  space_anim_draw(SPACE_ANIM_BEACON,(int)p.x,(int)p.y,frame,CYAN);
+  sfx_add((int)p.x,(int)p.y,RGB(40,120,160),top,bot);
+ }
+}
+/* Anomaly pulse rings when a rift is on-screen. */
+static void sfx_anomaly_pulse(void){
+ if(sfx_fx_muted())return;
+ int top=view_top(),bot=view_bot();
+ for(int i=0;i<ANOMALY_COUNT;i++)if(game.anomaly[i].alive){
+  float d=length(sub(game.anomaly[i].pos,game.pos));if(d>12000)continue;
+  Vec3 v=camera(&game,game.anomaly[i].pos);if(v.z<40)continue;Point p=project(v);
+  int rad=6+(int)(sinf(game.time*3.f+i)*4)+((int)(game.time*2)+i)%5;
+  unsigned ink=game.anomaly[i].kind?CYAN:GOLD;
+  for(int s=0;s<24;s++){
+   float a=s*6.2831853f/24;
+   sfx_add((int)p.x+(int)(cosf(a)*rad),(int)p.y+(int)(sinf(a)*rad*.7f),ink,top,bot);
+  }
+ }
+}
+/* Bundle denser travel pass — call after sfx_travel_beauty. */
+static void sfx_travel_fun(void){
+ if(sfx_fx_muted())return;
+ sfx_solar_wind();
+ sfx_traffic_wakes();
+ sfx_debris_dust();
+ sfx_dock_corridor();
+ sfx_anomaly_pulse();
 }

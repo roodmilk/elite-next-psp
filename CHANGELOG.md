@@ -4,8 +4,9 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 
 ## Unreleased — soft-FB space beauty (PR; no micro-tag)
 
-- Wave B soft-FB: planet atmosphere bloom, sun-side specular, ocean reflection bands, ice aurora ribbons, near-planet haze.
+- Wave B soft-FB: planet atmosphere bloom, sun-side specular, ocean reflection bands, ice aurora ribbons, near-planet haze, night-side city lights.
 - Travel beauty: denser cruise glitter, boost motion streaks, nebula filaments, sun canopy wash; ART DIRECTOR `space-animation-kit.h` plume/beacon/spark masks.
+- Wave C fun travel: solar wind streamers, traffic wakes, debris dust, dock corridor beacons, anomaly pulse rings, richer hyperspace tunnel.
 - Atmosphere flight: sun bloom streak + water/ice specular glitter + volcanic embers; gas-giant ring sparkle.
 
 ## 2.5.39 - 2026-09-22

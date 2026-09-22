@@ -299,7 +299,6 @@ static void draw_bodies(void){
  }
 }
 static void draw_portrait(int x,int y,int w,int h,int system,int role);
-#include "space-animation-kit.h"
 #include "space-fx.h"
 #include "flight-extras.h"
 #include "planet.h"
@@ -325,7 +324,8 @@ static void space(void){
  if(game.police_stop){if(hud_mode==0)cockpit();police_dialog();return;}
  if(game.dead){death_effect();sfx_maybe_death_embers();sfx_explosion_embers_draw(1.f/60);if(hud_mode==0)cockpit();return;}
  if(game.dock_stage>=2){docking_view();if(hud_mode==0)cockpit();return;}
- sector_background();space_fx_nebula();starfield();space_fx_meteors();celestial_rims();draw_bodies();sfx_planet_beauty();lens_flares();sfx_sun_canopy_wash();station_model();station_window_animation();secondary_hubs();ambient_space();sfx_travel_beauty(); int npc_detailed[NPC_COUNT]={0};
+ sector_background();space_fx_nebula();starfield();space_fx_meteors();celestial_rims();draw_bodies();sfx_planet_beauty();lens_flares();sfx_sun_canopy_wash();station_model();station_window_animation();secondary_hubs();ambient_space();sfx_travel_beauty();sfx_travel_fun();
+ int npc_detailed[NPC_COUNT]={0};
  for(int i=0;i<NPC_COUNT;i++){NPC *n=&game.npc[i];if(!n->alive||occluded(n->pos))continue;float distance=length(sub(n->pos,game.pos)),limit=n->freighter?12000.f:5200.f;if(distance>limit)continue;npc_detailed[i]=n->freighter?2:1;unsigned c=n->flash>0?WHITE:faction_colors[n->role];float yaw=atan2f(n->dir.x,n->dir.z);if(npc_detailed[i]==2){capital_model(n,c);continue;}shipmesh(n->mesh,n->pos,yaw,0,n->scale,c,0);}
  for(int i=0;i<DEBRIS_COUNT;i++){Debris *d=&game.debris[i];if(!d->alive||occluded(d->pos))continue;float distance=length(sub(d->pos,game.pos));if(distance>11000)continue;
   int mesh=mesh_id(d->rock==2?"BOULDER":d->rock?"ASTEROID":d->wreck?"BOULDER":"CANISTER");

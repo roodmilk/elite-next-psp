@@ -110,7 +110,7 @@
  INPUT_CHECK(strstr(saga_coda_line1(0),"evidence")&&strstr(saga_coda_line2(1),"sky"),"script: Act I codas keep screenplay aftermath voice");
  INPUT_CHECK(strstr(saga_beats[5].line,"flinch")&&strstr(saga_beats[6].line,"Clinic"),"script: Act I Sable staging and Act II Mara clinic open from screenplay");
  INPUT_CHECK(strstr(saga_beats[10].ask2,"silent")&&strstr(saga_beats[10].talk3,"ghost")&&saga_has_coda(11),"script: Ryn reunion asks why she vanished; Act II coda range reaches Carry Home");
- INPUT_CHECK(strstr(saga_choice_blurb(11,0),"Light")||strstr(saga_choice_blurb(11,0),"board"),"script: Carry Home blurbs name the broadcast stakes");
+ INPUT_CHECK(strstr(saga_choice_blurb(11,0),"Broadcast")||strstr(saga_choice_blurb(11,0),"Meridian"),"script: Carry Home blurbs name the broadcast stakes");
  INPUT_CHECK(strstr(saga_beats[12].line,"Three copies")&&strstr(saga_beats[13].line,"does not need your map")&&saga_has_coda(17),"script: Act III map/Federal open from screenplay; codas reach No Easy Flag");
  INPUT_CHECK(strstr(saga_beats[16].line,"curiosity without munitions")&&strstr(saga_choice_blurb(17,2),"Watchers"),"script: Coldest Signal and Flag blurbs keep screenplay stakes");
  INPUT_CHECK(strstr(saga_beats[18].talk2,"Pale Meridian")&&strstr(saga_beats[21].talk4,"No pursuit")&&strstr(saga_beats[22].talk5,"Tone"),"script: Act IV ask-then-answer pairs answer the prior ask");
