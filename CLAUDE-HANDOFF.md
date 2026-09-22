@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.39**.
+Prepared 22 September 2026. Current build: **2.5.40**.
 
 ## Start here
 
@@ -65,13 +65,17 @@ Important controls:
 
 ## Recent changes that must be preserved
 
+### 2.5.40 — Tip + ART visual-style playable pack
+
+Combined tip `#18` with ART DIRECTOR McQuarrie visual-style runtime from `#11`. Soft-FB beauty FX included. Tagged for Commander download.
+
 ### 2.5.39 — MacVenture A++ cinematic polish
 
 Station interiors restaged from `docs/CINEMATIC-MOCKUP-TARGETS.md` + ART DIRECTOR kit grammar: one hero per room, three floor/sky planes, warm ochre/cream staging, side hatch doors (no top door chrome over the focal object), thinner cream/cyan window chrome. Verb/hotspot/SHIP return behaviour unchanged; TAKE→deal / GO hatch snap tightened for fun.
 
 **ART DIRECTOR visual style implementation (this tip, untagged):** all MacVenture rooms draw wall plates/rivets/floor seams; ARRIVALS berth window gets void stars + beacon sparkle; deck/UI panels drop gold corner brackets for charcoal + cream/ochre instrument rules; Wave B/C soft-FB planet bloom, travel FX, denser warp and docking beacon masks folded in. Story/saga manuscripts untouched. BIG RELEASES ONLY — no micro-tag.
 
-**Working tip (Commander: BIG RELEASES ONLY):** Unify tip shipped (`v2.5.37`+; working tip **2.5.39** with MacVenture + Act I–IV). Story deepens in **larger PR batches** into `cursor/macventure-cinematic-polish-fe9e` — do not drip-fold every small pass. Do not micro-tag — next GitHub Release only when a substantial story+fun combined drop is ready.
+**Working tip (Commander: BIG RELEASES ONLY):** Unify tip shipped (`v2.5.37`+; working tip **2.5.40** with MacVenture + Act I–IV). Story deepens in **larger PR batches** into `cursor/macventure-cinematic-polish-fe9e` — do not drip-fold every small pass. Do not micro-tag — next GitHub Release only when a substantial story+fun combined drop is ready.
 
 ### 2.5.38 — soft-FB Wave A canopy FX
 

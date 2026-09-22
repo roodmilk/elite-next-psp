@@ -2,12 +2,11 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
-## Unreleased — soft-FB space beauty (PR; no micro-tag)
+## 2.5.40 - 2026-09-22
 
-- Wave B soft-FB: planet atmosphere bloom, sun-side specular, ocean reflection bands, ice aurora ribbons, near-planet haze, night-side city lights.
-- Travel beauty: denser cruise glitter, boost motion streaks, nebula filaments, sun canopy wash; ART DIRECTOR `space-animation-kit.h` plume/beacon/spark masks.
-- Wave C fun travel: solar wind streamers, traffic wakes, debris dust, dock corridor beacons, anomaly pulse rings, richer hyperspace tunnel.
-- Atmosphere flight: sun bloom streak + water/ice specular glitter + volcanic embers; gas-giant ring sparkle.
+- **Commander playable pack:** tip #18 (MacVenture + Story folds + Systems soft-FB beauty) plus ART DIRECTOR McQuarrie visual-style runtime from #11 (station crawl/UI/voyage polish, art direction docs).
+- Wave B/C soft-FB space beauty retained: planet bloom/specular/aurora/city lights, travel wakes/solar wind/dock beacons/warp tunnel, atmosphere glitter.
+- Station art kit bake path remains honest (`station-art-kit.h` matches source kits). Smoke-tested EBOOT for immediate download.
 
 ## 2.5.39 - 2026-09-22
 
