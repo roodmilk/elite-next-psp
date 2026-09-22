@@ -1,0 +1,203 @@
+{
+  "generator": "tools/bake-station-art.py",
+  "art_authority": "docs/ART-KIT-HANDOFF.md (PR #11) + ART DIRECTOR kits",
+  "kit_source": "assets/source/station-art/station-room-kit-proposed.png",
+  "palette": {
+    "VOID": "#080D18",
+    "CHARCOAL": "#151C27",
+    "SLATE": "#293646",
+    "OLIVE": "#5A604C",
+    "RUST": "#8B4B37",
+    "OCHRE": "#C18B4D",
+    "CREAM": "#E5D2A3",
+    "LAVENDER": "#9B9AA5",
+    "CYAN": "#55D4D4",
+    "AMBER": "#F0B45B",
+    "DANGER": "#C85A4B"
+  },
+  "rooms": [
+    {
+      "id": "hall",
+      "title": "HALL",
+      "keywords": "FAR DOOR / ROUTE",
+      "crop": [
+        4,
+        28,
+        114,
+        116
+      ],
+      "png": "assets/preview/station-art/room-hall.png",
+      "thumb32": "assets/preview/station-art/room-hall-thumb32.png",
+      "sc_enum": "SC_ROOM_EMPTY",
+      "anchors": [
+        "far_door",
+        "side_alcove_l",
+        "side_alcove_r"
+      ],
+      "bytes_rgba_full": 52896,
+      "note": "composition target \u2014 not a runtime fullscreen background"
+    },
+    {
+      "id": "hub",
+      "title": "HUB",
+      "keywords": "ARRIVALS / BERTH",
+      "crop": [
+        123,
+        28,
+        114,
+        116
+      ],
+      "png": "assets/preview/station-art/room-hub.png",
+      "thumb32": "assets/preview/station-art/room-hub-thumb32.png",
+      "sc_enum": "SC_ROOM_HUB",
+      "anchors": [
+        "arrivals_board",
+        "berth_window",
+        "venn",
+        "dockhand"
+      ],
+      "bytes_rgba_full": 52896,
+      "note": "composition target \u2014 not a runtime fullscreen background"
+    },
+    {
+      "id": "shop",
+      "title": "SHOP",
+      "keywords": "PARTS / COUNTER",
+      "crop": [
+        242,
+        28,
+        114,
+        116
+      ],
+      "png": "assets/preview/station-art/room-shop.png",
+      "thumb32": "assets/preview/station-art/room-shop-thumb32.png",
+      "sc_enum": "SC_ROOM_SHOP",
+      "anchors": [
+        "counter",
+        "exclusive_item",
+        "mechanic",
+        "clamp_crate"
+      ],
+      "bytes_rgba_full": 52896,
+      "note": "composition target \u2014 not a runtime fullscreen background"
+    },
+    {
+      "id": "bar",
+      "title": "BAR",
+      "keywords": "RUMOUR / PASSENGER",
+      "crop": [
+        361,
+        28,
+        115,
+        116
+      ],
+      "png": "assets/preview/station-art/room-bar.png",
+      "thumb32": "assets/preview/station-art/room-bar-thumb32.png",
+      "sc_enum": "SC_ROOM_BAR",
+      "anchors": [
+        "bartender",
+        "rumour_table",
+        "traveller",
+        "taxi_prompt"
+      ],
+      "bytes_rgba_full": 53360,
+      "note": "composition target \u2014 not a runtime fullscreen background"
+    },
+    {
+      "id": "bay",
+      "title": "BAY",
+      "keywords": "CRATES / LIFT",
+      "crop": [
+        4,
+        150,
+        114,
+        116
+      ],
+      "png": "assets/preview/station-art/room-bay.png",
+      "thumb32": "assets/preview/station-art/room-bay-thumb32.png",
+      "sc_enum": "SC_ROOM_BAY",
+      "anchors": [
+        "loader",
+        "marked_crate",
+        "manifest",
+        "lift"
+      ],
+      "bytes_rgba_full": 52896,
+      "note": "composition target \u2014 not a runtime fullscreen background"
+    },
+    {
+      "id": "clinic",
+      "title": "CLINIC",
+      "keywords": "MEDIC / BENCH",
+      "crop": [
+        123,
+        150,
+        114,
+        116
+      ],
+      "png": "assets/preview/station-art/room-clinic.png",
+      "thumb32": "assets/preview/station-art/room-clinic-thumb32.png",
+      "sc_enum": "SC_ROOM_CLINIC",
+      "anchors": [
+        "medic",
+        "bench",
+        "medkit",
+        "diagnostic"
+      ],
+      "bytes_rgba_full": 52896,
+      "note": "composition target \u2014 not a runtime fullscreen background"
+    },
+    {
+      "id": "guild",
+      "title": "GUILD",
+      "keywords": "EVIDENCE / DESK",
+      "crop": [
+        242,
+        150,
+        114,
+        116
+      ],
+      "png": "assets/preview/station-art/room-guild.png",
+      "thumb32": "assets/preview/station-art/room-guild-thumb32.png",
+      "sc_enum": "SC_ROOM_GUILD",
+      "anchors": [
+        "kei",
+        "surveyor",
+        "evidence",
+        "mission_terminal"
+      ],
+      "bytes_rgba_full": 52896,
+      "note": "composition target \u2014 not a runtime fullscreen background"
+    },
+    {
+      "id": "customs",
+      "title": "CUSTOMS",
+      "keywords": "SCAN / LAW",
+      "crop": [
+        361,
+        150,
+        115,
+        116
+      ],
+      "png": "assets/preview/station-art/room-customs.png",
+      "thumb32": "assets/preview/station-art/room-customs-thumb32.png",
+      "sc_enum": "SC_ROOM_LOCK",
+      "anchors": [
+        "officer",
+        "scanner",
+        "restricted_sign",
+        "inspect_terminal"
+      ],
+      "bytes_rgba_full": 53360,
+      "note": "composition target \u2014 not a runtime fullscreen background"
+    }
+  ],
+  "header": "src/station-art-kit.h",
+  "coordination": {
+    "does_not_edit": "src/station-crawl.h",
+    "owner_crawl": "Continue ELITE NEXT release",
+    "owner_look": "ART DIRECTOR",
+    "owner_bake": "Elite psp agent"
+  },
+  "memory_note": "Do not embed 8\u00d7480\u00d7272 bitmaps; use style tables + small props."
+}
