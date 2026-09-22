@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.31**.
+Prepared 22 September 2026. Current build: **2.5.32**.
 
 ## Start here
 
@@ -63,6 +63,10 @@ Important controls:
 - Galaxy Map: Triangle switches between nearby jumps and the full 256-system map; D-pad moves between systems; L/R zoom; X plots a multi-jump route and saves the final goal.
 
 ## Recent changes that must be preserved
+
+### 2.5.32 — ask-then-answer chapter conversations
+
+Saga briefs answer the commander's last question on the next beat. Chapter complete and permanent choices speak character-voiced closers/reactions via `saga_close_line` / `saga_choice_reaction`.
 
 ### 2.5.31 — playable script quality pass
 

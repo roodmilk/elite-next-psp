@@ -7,7 +7,7 @@
 
 **Assembly:** Merged full Act I–IV drafts (character bible, lore ledger, branching scenes) into one shippable authority document.
 
-**Playable prose (2.5.31):** Brief lines are full spoken sentences that wrap on the Story screen (three lines). Player replies are chapter-specific questions, not generic “Continue” acks. Radio captions use the same beats with a 160-char voice buffer.
+**Playable prose (2.5.31–2.5.32):** Brief lines are full spoken sentences that wrap on the Story screen (three lines). Player replies are chapter-specific questions; beat N+1 answers the ask on beat N. Chapter closers and permanent-choice reactions are character-voiced. Radio captions use a 160-char voice buffer.
 
 ---
 

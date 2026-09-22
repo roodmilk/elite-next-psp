@@ -1,4 +1,9 @@
-# ELITE: NEXT — development build 2.5.31
+# ELITE: NEXT — development build 2.5.32
+
+## New in 2.5.32 — conversations that answer you
+
+- Open Channel briefs use real ask-then-answer rhythm: Kei, Ryn and the cast reply to what you just asked.
+- Finishing a chapter or making a permanent choice plays a character-voiced closer, not a menu status blip.
 
 ## New in 2.5.31 — better character writing
 

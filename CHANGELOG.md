@@ -2,6 +2,11 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.32 - 2026-09-22
+
+- Open Channel chapter briefs now follow true ask-then-answer: each NPC beat answers the commander's previous question, matching the prologue rhythm.
+- Chapter completion and permanent decisions speak character-voiced closers and choice reactions instead of a generic status line.
+
 ## 2.5.31 - 2026-09-22
 
 - Rewrote Open Channel playable dialogue into full spoken sentences with distinct character voice (Kei, Ryn, Venn, Iona, Oru, Tamsin, Nadi/Pip, Sable, Mara).
