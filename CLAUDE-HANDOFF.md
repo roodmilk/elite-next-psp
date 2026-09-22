@@ -241,7 +241,7 @@ The build compiles `game.c`, `ships.c` and `main.c`, links PSP libraries and pro
 - radio checks;
 - performance checks.
 
-The last verified 2.5.31 run passed every group under PPSSPP (game, input, steering, radio, performance), including new script-quality checks. PPSSPP success does not replace physical PSP testing.
+The last verified 2.5.32 run passed every group under PPSSPP (game, input, steering, radio, performance), including ask-then-answer script checks. PPSSPP success does not replace physical PSP testing.
 
 ## Highest-priority remaining work
 
@@ -253,7 +253,7 @@ The last verified 2.5.31 run passed every group under PPSSPP (game, input, steer
 ## Known limitations and honest status
 
 - The design bible describes a far larger game than the current executable. Interiors, planetary exploration and spacewalks are bounded prototypes rather than Starfield-scale simulations.
-- The campaign has 24 playable chapter records with stronger spoken briefs (2.5.31), but does not yet contain ten hours of unique bespoke mechanics. Travel and ordinary play contribute to its intended duration.
+- The campaign has 24 playable chapter records with ask-then-answer briefs and voiced closers (2.5.32), but does not yet contain ten hours of unique bespoke mechanics. Travel and ordinary play contribute to its intended duration.
 - Only one galaxy seed of 256 classic Elite-style systems is active.
 - The full-galaxy chart shows all systems, a cached route and a saved manual route goal, but has not yet had user testing on a physical PSP.
 - The audio fix passed PPSSPP with the user's files; intermittent real-hardware behaviour still requires listening tests.
