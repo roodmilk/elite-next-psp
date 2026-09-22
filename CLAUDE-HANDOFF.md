@@ -1,10 +1,10 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-## Gameplay & Story specialist handoff (22 September 2026)
+## Integrated Gameplay & Story pass — Chapters 02–04
 
-Branch `specialist/gameplay-story` adds a bounded Chapter 02–04 slice on top of v2.5.46. Chapter 02 now requires the authored sealed receiver pickup at Mara's bound port before returning to Lave; Chapter 03 requires the authored signal scan and resets it when the commander fires; Chapter 04 requires the outbound port stamp, with an optional first-anomaly lifeboat scan that adds one Independent trust. State reuses reserved bits in the existing `saga_flags` word (`0x10`–`0x200`), so no `Game` layout or save-version change is present. Generic scans, kills, cargo, and unrelated docking do not satisfy these objectives.
+Chapter 02 now requires the authored sealed receiver pickup at Mara's bound port before returning to Lave. Chapter 03 requires the authored signal scan; firing or overheating resets the observation, blocks completion, and requires a clean re-entry. Chapter 04 requires the outbound port stamp, with an optional first-anomaly lifeboat scan that adds one Independent trust. State reuses reserved bits in the existing `saga_flags` word (`0x10`–`0x200`), so no `Game` layout or save-version change is present. Generic scans, kills, cargo, and unrelated docking do not satisfy these objectives.
 
-Verified with the provided PSP toolchain and PPSSPP smoke: game, input, steering, radio, and performance checks all passed. The branch intentionally does not update release versioning or publish a package; the lead task should review and integrate it.
+Manager integration passed the PSP build and all five PPSSPP smoke groups: game, input, steering, radio and performance.
 
 Prepared 22 September 2026. Current build: **2.5.46**.
 
