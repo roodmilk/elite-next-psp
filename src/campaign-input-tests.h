@@ -130,6 +130,9 @@
   INPUT_CHECK(!!strstr(guild_line(&echo,0),"Borrowed hulls"),"script: Guild opening line keeps manuscript expanded dialogue");
   INPUT_CHECK(!!strstr(faction_lore_tag(TRADERS),"Margins")&&!!strstr(faction_lore_line(LAW,0,0),"Patrols"),"script: faction lore tags stay distinct voices without YOU chrome");
   INPUT_CHECK(gazette_wants_tabloid(0,0)&&!!strstr(gazette_tabloid_author(0,0),"CITY")&&!!strstr(gazette_dek(0,0),"Sources"),"script: Gazette tabloid masthead and dek banks stay authored");
+  echo.saga_chapter=21;echo.saga_trust[1]=2;echo.system=0;
+  INPUT_CHECK(living_voss_sighting(&echo)&&!!strstr(living_law_hail(&echo),"Clear"),"script: living texture Voss sightings and Law hails stay authored");
+  INPUT_CHECK(!!strstr(living_trader_hail(&echo),"Chart dump")||!!strstr(living_dockhand_post(3),"boost"),"script: trader hail / dockhand posts keep living texture");
  }
  TEST_INIT();
 }

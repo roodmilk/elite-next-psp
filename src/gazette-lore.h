@@ -47,9 +47,22 @@ static const char *gazette_tabloid_body(int system,int slot){
   "Market tip: hunger is never out of season. Margins disagree.",
   "Pirate hail: 'This is a toll.' Pilot: 'This is a no.' Both correct.",
   "Lave Hub gossip tax remains unpaid. Venn files it under weather.",
-  "Explorer Guild seeks boring pilots. Drama applicants redirected."
+  "Explorer Guild seeks boring pilots. Drama applicants redirected.",
+  /* living texture expansion */
+  "OPINION: Dependence is not consent. Letters page flooded.",
+  "Voss called predictability mercy. Clinics called it a spreadsheet.",
+  "Lost: one amplifier. Found: empty space that sounds like consent.",
+  "Society note: Lysara's perfume denied at customs. Soft monopoly intact.",
+  "Sport: docking contest won by the pilot who bored Venn most.",
+  "Weather: forged hazard notices. Bring a clock, not an umbrella.",
+  "Classifieds: quiet corridor, six minutes, interest thereafter.",
+  "Obituary postponed: Meridian 'clear lane' ad still twitching.",
+  "Puzzle: three copies, same doubts. Solution refuses exclusives.",
+  "Horoscope: Mercury in retrograde; so is your jump fuel maths.",
+  "Review: peer review slower than a knife. Still preferred.",
+  "Travel: public ribbons are not private paint. Ask any convoy."
  };
- return bank[(system*13+slot*7)%24];
+ return bank[(system*13+slot*7)%36];
 }
 
 /* Secondary dek under the headline on the paper layout. */

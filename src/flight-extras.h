@@ -1,4 +1,5 @@
 /* Flight presentation and target selection. Target IDs: station, bodies, NPCs, debris. */
+#include "living-texture.h"
 static int selected_target=0,look_target=-1,autoaim=0,scan_cat=2,square_held=0,police_choice=0;
 static float r_tap=10,l_tap=10,hard_brake=0;
 static const char *scan_cat_names[]={"PLANETS","SHIPS","STATIONS","OTHER","ENEMIES"};
@@ -104,15 +105,15 @@ static void hail_target(void){
   if(mission_interact(&game,id))return;
   NPC *n=&game.npc[id-BODY_COUNT-1];
   selected_target=id;scan_cat=target_category(id);autoaim=0;story_event(&game,STORY_EV_TARGET);
-  if(n->role==PIRATES){speak(&game,VOICE_COMP,"No reply. They're painting us.");game.cue=SFX_TALK;}
-  else if(n->role==LAW)contact_speak(LAW,game.legal?"Stop. Pay the fine or take custody.":"Clear. Keep the lane clean.");
-  else if(n->role==TRADERS){if(n->freighter){char cargo[80];snprintf(cargo,sizeof(cargo),"%s %s. %d%c %s. %s.",n->freight_state<=FREIGHT_INBOUND?"From":"To",game.systems[n->freight_peer].name,n->freight_qty,goods[n->freight_good].unit,goods[n->freight_good].name,freight_status(n));contact_speak(TRADERS,cargo);}else contact_speak(TRADERS,"Market's open at the hub. Don't scrape the paint.");}
-  else contact_speak(EXPLORERS,"Survey channel. We are mapping this sky.");
+  if(n->role==PIRATES){const char *taunt=living_pirate_hail(&game);if(taunt)contact_speak(PIRATES,taunt);else{speak(&game,VOICE_COMP,"No reply. They're painting us.");game.cue=SFX_TALK;}}
+  else if(n->role==LAW)contact_speak(LAW,living_law_hail(&game));
+  else if(n->role==TRADERS){if(n->freighter){const char *mood=living_freight_hail(&game);if(mood)contact_speak(TRADERS,mood);else{char cargo[80];snprintf(cargo,sizeof(cargo),"%s %s. %d%c %s. %s.",n->freight_state<=FREIGHT_INBOUND?"From":"To",game.systems[n->freight_peer].name,n->freight_qty,goods[n->freight_good].unit,goods[n->freight_good].name,freight_status(n));contact_speak(TRADERS,cargo);}}else contact_speak(TRADERS,living_trader_hail(&game));}
+  else contact_speak(EXPLORERS,living_explorer_hail(&game));
   return;
  }
- if(id==0){selected_target=0;scan_cat=2;speak(&game,VOICE_VENN,"Tower. Need a docking slot?");return;}
+ if(id==0){selected_target=0;scan_cat=2;speak(&game,VOICE_VENN,living_tower_hail(&game));return;}
  if(id>0&&id<=BODY_COUNT){speak(&game,VOICE_COMP,"No one lives on that body.");return;}
- if(IS_ANOMALY_ID(id)){speak(&game,VOICE_KEI,"That's an echo. Close in and scan.");return;}
+ if(IS_ANOMALY_ID(id)){speak(&game,VOICE_KEI,living_anomaly_hail(&game));return;}
  speak(&game,VOICE_COMP,"Salvage doesn't talk. Circle to collect.");
 }
 static int occluded(Vec3 pos){Vec3 delta=sub(pos,game.pos);float distance=length(delta);Vec3 ray=norm(delta);for(int i=0;i<BODY_COUNT;i++){Vec3 d=sub(game.bodies[i].pos,game.pos);float along=dot(d,ray);if(along>0&&along<distance&&length(sub(d,mul(ray,along)))<game.bodies[i].radius)return 1;}return 0;}

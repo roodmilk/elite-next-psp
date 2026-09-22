@@ -570,6 +570,8 @@ Posts should feel local and slightly wrong when Meridian is active.
 - Mission Network: clocks, slots, markers — diegetic UI.
 - **Galactic Gazette** (`src/gazette-lore.h`): sometimes tabloid / joke headlines that still leak lore (Meridian stationery, whale-song, berth gossip); dek lines match tone. Straight desk copy still rotates.
 - **Factions screen:** rotating lore tags + two detail lines per faction from the same file — distinct voices, no `YOU:` chrome.
+- **Living texture** (`src/living-texture.h`): Triangle hails (trader/law/pirate/explorer/tower/anomaly) and freighter mood colour from Open Channel flags; Spacebook Dockhand/Spotters rotate; rare **Voss sightings** on Spotters after Ch.22 (Seed E6).
+
 
 ### Campaign-reactive GalNet seeds
 | Flag | Post seed | Playable |
@@ -615,7 +617,9 @@ Iona optional cases: forged notices, early filings, badge theatre — systemic "
 Independent trust high → grey jobs that never require betraying Open Channel ethics; bargains stay explicit.
 
 ### Seed E6 — Voss epilogue variants
-If fled / testified / stood down: rare GalNet sightings; no revenge fetch quest required.
+If fled / testified / stood down: rare GalNet sightings; no revenge fetch quest required.  
+**Shipped (sparse):** `living_voss_sighting` on Lave Spotters Spacebook after saga chapter ≥21; tone follows Law / Public / Independent trust (testify / evacuate / surface) without a revenge mission.
+
 
 ## VI.3 Implementation map (story → code)
 
@@ -640,6 +644,7 @@ If fled / testified / stood down: rare GalNet sightings; no revenge fetch quest 
 | 2026-09-22 | 2.5.39 tip batch | Berth-six epilogue + coalition helpers from screenplay echoes; GalNet Open Channel colour from `saga_flags` |
 | 2026-09-22 | 2.5.39 tip batch | Vol II mission brief banks + expanded GalNet reactive Spacebook/Network; Guild Vol III opening dialogue |
 | 2026-09-22 | 2.5.40 tip batch | Gazette tabloid/joke banks + rotating faction lore voices (`gazette-lore.h`) |
+| 2026-09-22 | 2.5.40 tip batch | Living texture: Open Channel–echoing hails/freight + Spacebook Dockhand/Spotters + rare Voss sightings (`living-texture.h`) |
 | (next) | — | Wire true multi-job novella chain state (MN-A/B/C) beyond flavour-linked singles |
 | (next) | — | Author remaining bespoke set-piece backlog (Ch.02 seal, pods, courtroom, recorder) |
 
