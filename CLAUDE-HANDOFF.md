@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.23**.
+Prepared 22 September 2026. Current build: **2.5.24**.
 
 ## Start here
 
@@ -63,6 +63,10 @@ Important controls:
 - Galaxy Map: Triangle switches between nearby jumps and the full 256-system map; D-pad moves between systems; L/R zoom; X plots a multi-jump route and saves the final goal.
 
 ## Recent changes that must be preserved
+
+### 2.5.24 — chat flow, GalNet wanted, sun bloom, station FP
+
+Prologue asks then answers. WANTED board pages and poster variety. Animated system suns + bloom. Station crawl FP closer to OpenEnroth corridor style.
 
 ### 2.5.23 — menu zoom, speech wrap, battle talk
 

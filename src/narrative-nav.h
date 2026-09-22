@@ -109,20 +109,22 @@ static const char *saga_brief_line(const SagaBeat *b,int beat){
  }
 }
 static const char *saga_brief_reply(int beat){
- static const char *r[SAGA_BRIEF_BEATS]={"Continue","Go on","I understand","What do you need?","Confirm the next step","Accept next step"};
+ /* Reply is the commander's next ask/ack — never the answer to the line on screen. */
+ static const char *r[SAGA_BRIEF_BEATS]={"What happened?","Go on","I understand","What do you need?","Confirm the next step","Accept next step"};
  return r[beat>=0&&beat<SAGA_BRIEF_BEATS?beat:SAGA_BRIEF_BEATS-1];
 }
 static const char *prologue_brief_line1(int beat){
  static const char *a[PROLOGUE_BRIEF_BEATS]={
-  "Ryn is missing. Help me find her.","I will not send you into combat yet.","Ryn flew a ship like this one.","Analog or D-pad — pick what feels true.","Launch, clear the station, then dock again.","First flight: launch, fly, return to Lave Hub."};
+  "Ryn is missing. Help me find her.","The catch is simple: come back alive.","Ryn flew a ship like this one.","Analog or D-pad - pick what feels true.","Launch, clear the station, then dock again.","First flight: launch, fly, return to Lave Hub."};
  return a[beat>=0&&beat<PROLOGUE_BRIEF_BEATS?beat:PROLOGUE_BRIEF_BEATS-1];
 }
 static const char *prologue_brief_line2(int beat){
  static const char *b[PROLOGUE_BRIEF_BEATS]={
-  "She missed three calls. That is not like her.","The catch is simple: come back alive.","Borrow it. Learn its habits. Bring it home.","Select opens the deck when you need air.","That proves you can carry the next job.","Accept when you are ready to begin."};
+  "She missed three calls. That is not like her.","I will not send you into combat yet.","Borrow it. Learn its habits. Bring it home.","Select opens the deck when you need air.","That proves you can carry the next job.","Accept when you are ready to begin."};
  return b[beat>=0&&beat<PROLOGUE_BRIEF_BEATS?beat:PROLOGUE_BRIEF_BEATS-1];
 }
 static const char *prologue_brief_reply(int beat){
- static const char *r[PROLOGUE_BRIEF_BEATS]={"Continue","What is the catch?","Tell me about Ryn's ship.","How do the controls work?","Confirm first flight","Accept first flight"};
+ /* Ask first, then hear the answer on the next beat. Final beat is accept. */
+ static const char *r[PROLOGUE_BRIEF_BEATS]={"What is the catch?","Tell me about Ryn's ship.","How do the controls work?","Confirm first flight","I'm ready to accept","Accept first flight"};
  return r[beat>=0&&beat<PROLOGUE_BRIEF_BEATS?beat:PROLOGUE_BRIEF_BEATS-1];
 }

@@ -294,25 +294,7 @@ static void draw_bodies(void){
   int yt=clipy0>=0?clipy0:view_top(),yb=clipy1>=0?clipy1:view_bot(),xt=clipy0>=0?clipx0:0,xb=clipy0>=0?clipx1:W;
   if(p.x+radius<xt||p.x-radius>=xb)continue;
   if(b->type!=SUN){draw_planet_sprite(p.x,p.y,(int)radius,b->seed,b->type,xt,yt,xb,yb);continue;}
-  /* Sparse corona, rays and prominences form a crisp PSP-scale star sprite. */
-  unsigned corona=RGB((b->color&255)*3/5,((b->color>>8)&255)*3/5,((b->color>>16)&255)*3/5);int style=b->seed&3;
-  for(int k=0;k<96;k++){float a=k*6.2831853f/96,r=radius+2+(k%5);int x=(int)(p.x+cosf(a)*r),y=(int)(p.y+sinf(a)*r);if(x>=xt&&x<xb&&y>=yt&&y<=yb)pixel(x,y,corona);}
-  for(int k=0;k<12+style*3;k++){float a=(k*6.2831853f/(12+style*3))+(b->seed%100)*.01f;float reach=radius*(1.08f+.05f*((k*7+style)%4));int x0=(int)(p.x+cosf(a)*(radius+1)),y0r=(int)(p.y+sinf(a)*(radius+1)),x1=(int)(p.x+cosf(a)*reach),y1r=(int)(p.y+sinf(a)*reach);if(y0r>=yt&&y0r<=yb&&y1r>=yt&&y1r<=yb)line(x0,y0r,x1,y1r,corona);}
-  if(radius>10)for(int k=0;k<2+style;k++){float a=(k*2.1f+(b->seed&31)*.07f);int r=(int)radius;int x0=(int)p.x+(int)(cosf(a)*r),y0r=(int)p.y+(int)(sinf(a)*r),xm=(int)p.x+(int)(cosf(a+.12f)*(r+5+style*2)),ym=(int)p.y+(int)(sinf(a+.12f)*(r+5+style*2)),x1=(int)p.x+(int)(cosf(a+.25f)*r),y1r=(int)p.y+(int)(sinf(a+.25f)*r);if(y0r>=yt&&y0r<=yb&&ym>=yt&&ym<=yb&&y1r>=yt&&y1r<=yb){line(x0,y0r,xm,ym,corona);line(xm,ym,x1,y1r,corona);}}
-  int y0=(int)fmaxf(yt,p.y-radius),y1=(int)fminf(yb,p.y+radius);
-  for(int y=y0;y<=y1;y++){float yy=(y-p.y)/radius,z=sqrtf(fmaxf(0,1-yy*yy)),light=.3f+.7f*fmaxf(0,-yy*.35f+z*.8f);int width=(int)(radius*z),x0=(int)fmaxf(xt,p.x-width),x1=(int)fminf(xb-1,p.x+width);unsigned tint=b->color;
-   if(b->type==OCEAN&&(((y+(int)b->seed)/6)&3)==0)tint=b->accent;
-   float texture=b->type==GAS?.68f+.08f*((y+(int)b->seed)/5%4):b->type==SUN?.92f:.78f+.16f*z;
-   if(b->type==SUN){light=.82f+.18f*z;texture=.92f;}
-   /* Coarse, stable solar granulation. No full-frame shader or texture. */
-   for(int x=x0;x<=x1;x+=2){
-    float xx=(x-p.x)/radius;float centre=fmaxf(0,1-xx*xx-yy*yy);
-    int grain=((int)((x-p.x+radius)*24/fmaxf(1,radius))+(int)((y-p.y+radius)*19/fmaxf(1,radius))*7+(int)(b->seed&15))&7;
-    float plasma=.92f+.08f*sinf((x+y*2+(int)(b->seed&255))*0.19f+game.time*.18f);float shade=(.66f+.34f*centre)*(grain==0?.86f:grain==3?1.06f:1.f)*texture*plasma;
-    rect(x,y,x<x1?2:1,1,RGB((int)((tint&255)*shade),(int)(((tint>>8)&255)*shade),(int)(((tint>>16)&255)*shade)));
-   }
-   (void)light;
-  }
+  draw_sun_sprite((int)p.x,(int)p.y,(int)radius,b->color,b->seed,game.time,xt,yt,xb,yb);
  }
 }
 static void draw_portrait(int x,int y,int w,int h,int system,int role);

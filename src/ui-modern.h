@@ -405,8 +405,46 @@ static void galnet_avatar(int x,int y,int size,int i){
 #include "spacebook.h"
 static void news_screen(void){unsigned paper=RGB(194,184,145),ink=RGB(27,31,31),rule=RGB(91,80,58);rect(6,43,468,205,paper);rect(9,45,462,2,ink);text(16,6,ink,"THE GALACTIC GAZETTE");text(3,8,rule,"SYSTEM: %.15s          LOCAL EDITION",game.systems[game.system].name);rect(14,75,452,2,ink);int first=(row/2)*2;for(int j=0;j<2&&first+j<5;j++){int i=first+j,y=88+j*72;char author[40],body[96];galnet_post(i,author,sizeof(author),body,sizeof(body));if(i==row){rect(12,y-3,4,62,RGB(130,67,42));text(49,y/8,RGB(130,67,42),"SELECTED");}text(3,y/8,ink,"%.28s",author);rect(22,y+13,438,1,rule);text(3,(y+22)/8,ink,"%.53s",body);text(3,(y+38)/8,ink,"%.53s",i==0?"Pilots are advised to check routes before launch.":i==1?"Scanner reports update throughout the local day.":i==2?"Dock control asks commanders to approach at safe speed.":i==3?"Prices remain available only at a docked terminal.":"Guild observers invite verified field reports.");text(3,(y+54)/8,rule,"CONTINUED ON GALACTICNET");}text(48,29,ink,"%d/3",row/2+1);footer("L/R SECTION   UP/DOWN SCROLL   O BACK");}
 static void galnet_market(void){rect(0,42,W,206,RGB(5,16,18));text(2,6,CYAN,"MARKET EXCHANGE / DELAYED PRICES");text(2,8,DIM,"SYMBOL       LOCAL      GAL AVG      TREND");for(int i=0;i<5;i++){int item=(game.system*3+i*5)%GOODS,y=82+i*29,diff=game.price[item]-galactic_price(item);if(i==row)rect(8,y-5,464,24,RGB(15,47,47));text(2,y/8,i==row?WHITE:DIM,"%-12.12s %7.1f %10.1f",goods[item].name,game.price[item]*.1f,galactic_price(item)*.1f);unsigned c=diff>0?RED:CYAN;int x=360,base=y+8;for(int k=0;k<7;k++){int a=((item*13+k*17)%11)-5,b=((item*13+(k+1)*17)%11)-5;line(x+k*14,base-a,x+(k+1)*14,base-b,c);}text(56,y/8,c,diff>0?"UP":"DOWN");}text(2,29,GOLD,game.docked?"LIVE TERMINAL: LEFT SELL / RIGHT BUY":"DOCK FOR LIVE TRADING");footer("L/R SECTION   UP/DOWN TICKER   O BACK");}
-static void galnet_bounties(void){rect(0,42,W,206,RGB(26,19,16));int first=row/3*3;for(int j=0;j<3&&first+j<5;j++){int i=first+j,x=10+j*157;unsigned paper=i==row?RGB(215,185,125):RGB(166,147,108);rect(x,50,146,188,paper);rect(x+4,54,138,3,RGB(74,43,32));text(x/8+2,8,RGB(70,35,27),"WANTED");draw_portrait(x+38,78,70,60,game.system*31+i*19,PIRATES);char name[32],body[96];galnet_post(i,name,sizeof(name),body,sizeof(body));text(x/8+2,18,RGB(70,35,27),"RAIDER %c-%02d",'A'+(i*7+game.system)%26,(i*31+game.system)%100);text(x/8+2,20,RGB(70,35,27),"BOUNTY %d.0 U",15+i*5);text(x/8+2,22,RGB(70,35,27),"RISK %d/5",danger_rating(&game,game.system));text(x/8+2,25,RGB(55,42,32),"LAST SEEN");text(x/8+2,27,RGB(55,42,32),"%.13s",game.systems[game.system].name);}footer("L/R SECTION   UP/DOWN POSTER   O BACK");}
-static void galnet_chrome(void){header("GALACTICNET // LIVE NETWORK");rect(0,22,W,20,RGB(11,25,35));const char *shorts[]={"NEWS","MARKET","WANTED","SPACEBOOK","MESSAGES","JOBS"};for(int i=0;i<6;i++){int x=i*80;if(i==galnet_tab){rect(x,22,80,20,RGB(25,65,77));rect(x,40,80,2,GOLD);}text(x/8+1,3,i==galnet_tab?WHITE:DIM,"%.9s",shorts[i]);}text(0,3,CYAN,"L");text(59,3,CYAN,"R");}
+static void galnet_bounties(void){
+ rect(0,42,W,206,RGB(26,19,16));
+ int posters=5,pages=(posters+2)/3,page=row/3,first=page*3;
+ text(2,6,GOLD,"WANTED BOARD");page_number_at(18,6,page+1,pages);
+ text(28,6,DIM,page+1<pages?"UP/DOWN for more posters":"End of board");
+ for(int j=0;j<3&&first+j<posters;j++){
+  int i=first+j,x=10+j*157;
+  unsigned paper=i==row?RGB(215,185,125):RGB(166,147,108);
+  int rip=i%3; /* 0 clean, 1 corner tear, 2 edge fray */
+  if(rip==1){rect(x,54,146,184,paper);rect(x+120,50,26,12,RGB(26,19,16));rect(x+4,58,138,3,RGB(74,43,32));}
+  else if(rip==2){rect(x+2,50,142,188,paper);rect(x,50,4,40,RGB(26,19,16));rect(x+140,160,8,50,RGB(26,19,16));rect(x+6,54,134,3,RGB(74,43,32));}
+  else {rect(x,50,146,188,paper);rect(x+4,54,138,3,RGB(74,43,32));}
+  /* Tape / staple accents so posters don't look identical. */
+  if(i&1){rect(x+8,52,10,4,RGB(120,90,50));rect(x+128,52,10,4,RGB(120,90,50));}
+  else {rect(x+70,48,6,6,RGB(90,90,90));}
+  text(x/8+2,8,RGB(70,35,27),rip?"WANTED!":"WANTED");
+  draw_portrait(x+38,78,70,60,game.system*31+i*19+(rip*97),PIRATES);
+  char name[32],body[96];galnet_post(i,name,sizeof(name),body,sizeof(body));
+  text(x/8+2,18,RGB(70,35,27),"RAIDER %c-%02d",'A'+(i*7+game.system)%26,(i*31+game.system)%100);
+  text(x/8+2,20,RGB(70,35,27),"BOUNTY %d.0 U",15+i*5);
+  text(x/8+2,22,RGB(70,35,27),"RISK %d/5",danger_rating(&game,game.system));
+  text(x/8+2,25,RGB(55,42,32),rip==1?"TORN COPY":rip==2?"WEATHERED":"LAST SEEN");
+  text(x/8+2,27,RGB(55,42,32),"%.13s",game.systems[game.system].name);
+ }
+ if(pages>1){rect(8,232,464,12,RGB(40,28,22));text(2,29,page+1<pages?GOLD:DIM,"PAGE %d/%d  %s",page+1,pages,page+1<pages?"more posters below":"board complete");}
+ footer("L/R SECTION   UP/DOWN POSTER   O BACK");
+}
+static void galnet_chrome(void){
+ header("GALACTICNET // LIVE NETWORK");rect(0,22,W,20,RGB(11,25,35));
+ /* L/R sit outside the tab strip so they never crowd NEWS / JOBS. */
+ rect(0,22,22,20,RGB(8,18,28));rect(458,22,22,20,RGB(8,18,28));
+ rect(2,24,18,16,RGB(25,65,77));rect(460,24,18,16,RGB(25,65,77));
+ text(1,3,CYAN,"L");text(58,3,CYAN,"R");
+ const char *shorts[]={"NEWS","MARKET","WANTED","SPACEBOOK","MESSAGES","JOBS"};
+ for(int i=0;i<6;i++){
+  int x=24+i*72;
+  if(i==galnet_tab){rect(x,22,70,20,RGB(25,65,77));rect(x,40,70,2,GOLD);}
+  text((x+6)/8,3,i==galnet_tab?WHITE:DIM,"%.9s",shorts[i]);
+ }
+}
 static void galnet_screen(void){if(galnet_tab==3||galnet_tab==4)spacebook_screen(galnet_tab==4);else if(galnet_tab==0)news_screen();else if(galnet_tab==1)galnet_market();else if(galnet_tab==2)galnet_bounties();else {int count=galnet_rows(),pages=(count+2)/3,first=row/3*3;rect(0,42,W,206,BG);text(2,6,CYAN,"MISSION FEED");page_number_at(20,6,row/3+1,pages);for(int j=0;j<3&&first+j<count;j++){int i=first+j,y=8+j*5;char author[40],body[96];galnet_post(i,author,sizeof(author),body,sizeof(body));panel(8,y*8-3,464,34);if(i==row)rect(8,y*8-3,3,34,GOLD);galnet_avatar(14,y*8-1,28,i);text(7,y,i==row?GOLD:CYAN,"%s",author);text(7,y+2,WHITE,"%.50s",body);}footer("L/R SECTION   UP/DOWN   O BACK");}galnet_chrome();}
 static void story_screen(void){
  header("FLIGHT GUIDE / OPTIONAL");panel(8,32,464,190);

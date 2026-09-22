@@ -1,4 +1,10 @@
-# ELITE: NEXT — development build 2.5.23
+# ELITE: NEXT — development build 2.5.24
+
+## New in 2.5.24 — chat flow, WANTED board, suns, richer station crawl
+
+- Story replies ask before the answer beat lands.
+- GalNet WANTED has page cues and torn posters; L/R sit clear of the tabs.
+- System suns animate with bloom; station crawl looks more like a classic FP dungeon.
 
 ## New in 2.5.23 — clearer menu ship, full speech, battle talk
 

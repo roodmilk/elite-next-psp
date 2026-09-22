@@ -2,6 +2,13 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.24 - 2026-09-22
+
+- Prologue / saga replies ask first, then hear the answer on the next beat.
+- GalNet WANTED board shows page 2 cue, varied torn/weathered posters; L/R sit farther from tab names.
+- Per-system animated sun sprites with soft bloom rings (flight, cards, codex); sparse canopy bloom + lens streaks.
+- Station crawl first-person view uses OpenEnroth-style layered walls, tile floor, door frames and room props.
+
 ## 2.5.23 - 2026-09-22
 
 - Command deck third-person ship inset pulls the camera farther out so the full hull silhouette reads clearly.

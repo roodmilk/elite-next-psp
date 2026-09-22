@@ -73,8 +73,8 @@ static void speech_box(int x,int y,int w){
  static const char *names[]={"","KEI","VENN","DOCKHAND","LOCAL LAW","COMPUTER","CONTACT"};
  unsigned ink=who==VOICE_COMP?CYAN:faction_colors[role];
  int portrait=who!=VOICE_COMP,tx=x+(portrait?40:8),col=tx/8,cap=(x+w-8-tx)/8;
- /* Three body rows so 80-char voice / 96-char messages never clip inside the band. */
- int box_h=40;
+ /* Three body rows under the name plate stay inside the top caption band (y<56). */
+ int box_h=32;
  rect(x,y,w,box_h,RGB(8,18,28));rect(x,y,2,box_h,ink);
  if(portrait){if(who==VOICE_KEI)draw_kei(x+4,y,32,0);else draw_portrait(x+4,y,32,32,who==VOICE_CONTACT?game.voice_seed:who*37,role);}
  speaker_name_tag(col,y/8,who==VOICE_CONTACT?faction_names[role]:names[who],ink);
@@ -94,13 +94,24 @@ static unsigned dim_rgb(unsigned c,int num,int den){
  return RGB(r,g,b);
 }
 /* Applied to the world before any UI. Keep pixel art and text crisp:
- * a light edge vignette replaces the old dirty CRT/scanline overlay. */
+ * edge vignette plus a sparse bright-pixel bloom (no second framebuffer). */
 static void hud_postfx(void){
  if(high_contrast)return;
  int top=view_top(),bot=view_bot();
  for(int y=top;y<=bot;y++)for(int x=0;x<8;x++){
   fb[y*STRIDE+x]=dim_rgb(fb[y*STRIDE+x],24+x,32);
   fb[y*STRIDE+W-1-x]=dim_rgb(fb[y*STRIDE+W-1-x],24+x,32);
+ }
+ /* Sparse bloom: every 4th scanline, lift neighbours of very bright pixels. */
+ for(int y=top+2;y<=bot-2;y+=4)for(int x=2;x<W-2;x+=4){
+  unsigned c=fb[y*STRIDE+x];int r=c&255,g=(c>>8)&255,b=(c>>16)&255;
+  if(r+g+b<520)continue;
+  for(int dy=-1;dy<=1;dy++)for(int dx=-1;dx<=1;dx++){
+   if(!dx&&!dy)continue;
+   int yy=y+dy,xx=x+dx;unsigned d=fb[yy*STRIDE+xx];
+   int nr=((d&255)*5+r)/6,ng=(((d>>8)&255)*5+g)/6,nb=(((d>>16)&255)*5+b)/6;
+   fb[yy*STRIDE+xx]=RGB(nr>255?255:nr,ng>255?255:ng,nb>255?255:nb);
+  }
  }
 }
 static void danger_badge(int x,int y,int level){

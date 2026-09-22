@@ -74,32 +74,60 @@ static void sc_step(int dir){ /* dir +1 forward, -1 back */
  sc_x=nx;sc_y=ny;sc_menu=0;game.cue=SFX_UI;
 }
 static void sc_draw_fp(void){
- /* NES-style corridor: left/right walls taper, floor/ceiling, door or wall ahead. */
- rect(0,0,W,H,RGB(8,12,18));
- int mid=118;
- /* ceiling */
- for(int y=28;y<mid;y++){float t=(y-28)/(float)(mid-28);int inset=(int)(t*90);rect(inset,y,W-2*inset,1,mix_rgb(RGB(40,52,64),RGB(14,20,28),t));}
- /* floor */
- for(int y=mid;y<248;y++){float t=(y-mid)/(float)(248-mid);int inset=(int)((1.f-t)*90);rect(inset,y,W-2*inset,1,mix_rgb(RGB(22,30,40),RGB(10,14,20),t));}
- /* left wall */
- for(int i=0;i<10;i++){int x0=i*9,x1=(i+1)*9;int y0=28+i*9,y1=248-i*9;rect(x0,y0,x1-x0+2,y1-y0,RGB(28+i*2,38+i,48+i));}
- /* right wall */
- for(int i=0;i<10;i++){int x0=W-(i+1)*9,x1=W-i*9;int y0=28+i*9,y1=248-i*9;rect(x0,y0,x1-x0+2,y1-y0,RGB(28+i*2,38+i,48+i));}
+ /* OpenEnroth / Might & Magic style first-person: layered walls, tile floor,
+  * door jambs and room props. No combat — only station interactions. */
+ rect(0,0,W,H,RGB(6,10,16));
+ int mid=118,room=sc_map[sc_y][sc_x];
+ unsigned wall=RGB(36,48,58),wall2=RGB(28,38,48),trim=RGB(70,92,104);
+ if(room==SC_ROOM_SHOP){wall=RGB(52,42,28);wall2=RGB(40,32,20);trim=RGB(120,90,40);}
+ else if(room==SC_ROOM_BAR){wall=RGB(48,28,52);wall2=RGB(34,18,40);trim=RGB(120,70,130);}
+ else if(room==SC_ROOM_GUILD){wall=RGB(24,52,44);wall2=RGB(16,36,30);trim=RGB(60,140,110);}
+ else if(room==SC_ROOM_CLINIC){wall=RGB(32,52,64);wall2=RGB(22,38,50);trim=RGB(90,160,180);}
+ else if(room==SC_ROOM_LOCK){wall=RGB(56,32,32);wall2=RGB(40,22,22);trim=RGB(140,70,70);}
+ else if(room==SC_ROOM_BAY){wall=RGB(44,40,28);wall2=RGB(30,28,18);trim=RGB(110,100,50);}
+ /* Ceiling plates */
+ for(int y=28;y<mid;y++){float t=(y-28)/(float)(mid-28);int inset=(int)(t*100);unsigned c=mix_rgb(RGB(50,60,72),RGB(12,16,22),t);rect(inset,y,W-2*inset,1,c);if(((y+sc_x*3)&7)==0)rect(inset+8,y,W-2*inset-16,1,mix_rgb(c,trim,.2f));}
+ /* Floor tiles (grid foreshortening) */
+ for(int y=mid;y<248;y++){float t=(y-mid)/(float)(248-mid);int inset=(int)((1.f-t)*100);unsigned c=mix_rgb(RGB(18,24,32),RGB(8,10,14),t);rect(inset,y,W-2*inset,1,c);if(((y+sc_y)&11)==0)rect(inset,y,W-2*inset,1,mix_rgb(c,trim,.15f));}
+ for(int i=1;i<6;i++){float t=i/6.f;int inset=(int)((1.f-t)*100);int y=mid+(int)(t*(248-mid));line(inset,y,W-inset,y,RGB(14,18,24));}
+ /* Left / right wall columns with panel seams (MM dungeon look) */
+ for(int i=0;i<12;i++){
+  int x0=i*8,x1=(i+1)*8;int y0=28+i*8,y1=248-i*8;
+  rect(x0,y0,x1-x0+1,y1-y0,i&1?wall:wall2);
+  rect(W-(i+1)*8,y0,x1-x0+1,y1-y0,i&1?wall:wall2);
+  if((i%3)==2){rect(x0,y0+20,2,y1-y0-40,trim);rect(W-x1,y0+20,2,y1-y0-40,trim);}
+ }
+ /* Side alcove hints (neighbours) */
+ if(sc_x>0&&sc_door_e[sc_y][sc_x-1]){rect(8,90,36,70,RGB(10,14,20));rect(12,96,28,58,RGB(20,32,40));}
+ if(sc_x+1<SC_W&&sc_door_e[sc_y][sc_x]){rect(W-44,90,36,70,RGB(10,14,20));rect(W-40,96,28,58,RGB(20,32,40));}
  int door=sc_door_ahead();
  if(door){
-  rect(170,70,140,120,RGB(6,10,16));
-  rect(178,78,124,104,RGB(18,36,44));
-  rect(230,110,20,48,GOLD);
-  text(24,12,CYAN,"DOOR");
+  /* Deep door frame like Enroth corridor portals */
+  rect(156,62,168,140,RGB(4,8,12));
+  rect(164,70,152,124,wall2);
+  rect(178,82,124,104,RGB(10,18,24));
+  rect(186,90,108,88,RGB(16,28,36));
+  rect(228,118,24,52,GOLD);rect(232,122,16,12,RGB(40,30,10));
+  text(24,11,CYAN,"PASSAGE");
  }else{
-  rect(160,60,160,140,RGB(32,44,56));
-  text(23,12,DIM,"BULKHEAD");
+  rect(150,54,180,152,wall);
+  for(int k=0;k<6;k++)rect(160,70+k*22,160,2,wall2);
+  rect(200,100,80,60,RGB(18,24,30));
+  text(22,11,DIM,"BULKHEAD");
  }
- /* NPC silhouettes in room */
+ /* Ceiling lamp */
+ circle(240,48,5,trim);rect(236,40,8,8,GOLD);
+ /* Room props by type */
+ if(room==SC_ROOM_SHOP){rect(70,150,50,40,RGB(60,45,25));rect(360,150,50,40,RGB(60,45,25));}
+ if(room==SC_ROOM_BAR){rect(100,160,280,30,RGB(50,30,40));rect(110,150,40,10,RGB(90,60,50));}
+ if(room==SC_ROOM_HUB){rect(210,140,60,50,RGB(30,50,60));rect(220,130,40,10,CYAN);}
+ /* NPC silhouettes mid-corridor */
  ScNpc people[3]; int pn=sc_fill_npcs(sc_x,sc_y,people,3);
  for(int i=0;i<pn;i++){
-  int sx=200+i*40,sy=150; unsigned ink=faction_colors[people[i].role];
-  rect(sx,sy-40,28,40,RGB(20,30,40)); rect(sx+6,sy-40,16,14,ink); pixel(sx+14,sy-34,WHITE);
+  int sx=190+i*48,sy=155; unsigned ink=faction_colors[people[i].role];
+  rect(sx,sy-48,32,48,RGB(16,24,32)); rect(sx+2,sy-48,28,46,RGB(22,32,42));
+  rect(sx+8,sy-48,16,16,ink); pixel(sx+12,sy-42,WHITE); pixel(sx+18,sy-42,WHITE);
+  rect(sx+10,sy-28,12,20,ink);
  }
 }
 static void sc_draw_minimap(void){
