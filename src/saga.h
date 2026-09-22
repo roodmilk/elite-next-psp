@@ -726,6 +726,33 @@ static const char *saga_galnet_network(const Game *g){
  if(g->saga_chapter>=12)return "Side jobs may echo the channel — forged notices, sealed crates, pauses.";
  return 0;
 }
+/* Factions dossier cards — Story colour only (galnet/trust helpers). card cycles ops → channel → stake. */
+static const char *saga_faction_channel(const Game *g,int role,int card){
+ if(!g||role<0||role>=FACTION_COUNT)return 0;
+ if(card<=0)return 0;
+ if(role==TRADERS){
+  if(card==1){const char *m=saga_galnet_mira(g);return m?m:"Clinic docks and freighter lanes keep this colour honest.";}
+  {const char *f=saga_galnet_freighter(g);if(f)return f;}
+  if(g->saga_trust[SAGA_TRUST_PUBLIC]>=2)return saga_trust_helper(g);
+  return "Traders remember who kept the clinics lit.";
+ }
+ if(role==LAW){
+  if(card==1){const char *i=saga_galnet_iona(g);return i?i:"Timestamps or it did not happen — Law's whole religion.";}
+  if(g->saga_trust[SAGA_TRUST_LAW]>=2)return saga_trust_helper(g);
+  if(g->saga_flags&8)return "Inspection calendars stay public. Distrust is part of the design.";
+  return "Suspend language works often enough to matter.";
+ }
+ if(role==PIRATES){
+  if(card==1){const char *s=saga_galnet_sable(g);return s?s:"Independent crews sell weather, not loyalty.";}
+  if(g->saga_trust[SAGA_TRUST_INDEPENDENT]>=1)return saga_trust_helper(g);
+  return "Quiet corridors cost interest. Always.";
+ }
+ /* EXPLORERS */
+ if(card==1){const char *k=saga_galnet_kei(g);return k?k:"Survey wings chart the quiet lanes, not the loud ones.";}
+ if(g->saga_trust[SAGA_TRUST_GUILD]>=2)return saga_trust_helper(g);
+ if(g->saga_chapter>=SAGA_COUNT)return saga_epilogue_line(g);
+ return "Guild markers paint truth mid-route when someone earns them.";
+}
 static int saga_voice_who(const SagaBeat *b){
  if(!b)return VOICE_CONTACT;
  if(b->role==0)return VOICE_KEI;

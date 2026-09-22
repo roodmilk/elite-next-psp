@@ -85,6 +85,8 @@ Station interiors restaged from `docs/CINEMATIC-MOCKUP-TARGETS.md` + ART DIRECTO
 
 Quiet space FX (`b0a97e1`) on the combined tip. Smoke-green Commander pack.
 
+**Commander play fixes (untagged tip):** undocked deck hides Shipyard / Outfitting / Mission board; menu ship viewport orbit slowed; Factions X cycles Story channel lore, Triangle locks nearest contact. Station disembark layout stays ART-owned (no verb-bar restore).
+
 ### 2.5.41 — Art freeze + living-galaxy pack
 
 ART tip `3f0dc20` (ART_AMBER) + galaxy `bc56842`. Smoke-green Commander download. Follow-on: MacVenture PACK/EXITS overlap removed; space meteors + station sparkle glitter dropped for soft haze.

@@ -76,7 +76,7 @@ static void runtime_recover_from_sleep(void){
 static int view_bot(void){return hud_hidden?H-1:(hud_mode==0?191:247);}
 enum { HOME,FLIGHT,MARKET,CHART,YARD,EQUIP,STATUS,HELP,FACTIONS,LOCAL,DEBUG,COMMS,DETAILS,MISSIONS,MISSIONLOG,TARGETING,GALNET,CODEX,STORY,GUILD,RADIO,COMMS_PANEL,INTRO,CAMPAIGN,COMFORT,WALK,INVENTORY };
 #include "deck-nav.h"
-static int pip_sel=1,comms_rescue_confirm=0,abandon_confirm=0;
+static int pip_sel=1,comms_rescue_confirm=0,abandon_confirm=0,faction_lore_card=0;
 static const char *faction_names[]={"TRADERS","LAW","PIRATES","EXPLORERS GUILD"};
 static const unsigned faction_colors[]={GOLD,RGB(90,165,255),RED,RGB(100,235,150)};
 static int nav_body=-1;
@@ -283,6 +283,8 @@ static void change_page(int p){
  comms_rescue_confirm=0;abandon_confirm=0;game.boost=0;page=p;row=p==HOME?deck_last:0;game.message_time=0;
  if(p==CHART){update_nearby();if(tracked_mission==0&&game.campaign_stage>=6&&game.saga_step&&game.saga_chapter<SAGA_COUNT)chart_cursor=game.saga_dest;else if(game.route_goal>=0)chart_cursor=game.route_goal;else chart_cursor=game.destination;for(int i=0;i<near_count;i++)if(nearby[i]==game.destination)row=i;}
  if(p==MISSIONLOG){int max=2+game.job_n;if(tracked_mission>=max)tracked_mission=0;row=tracked_mission;}
+ if(p==HOME)deck_clamp_row();
+ if(p==FACTIONS)faction_lore_card=0;
 }
 static void menu_back(void){
  int p=HOME,r=deck_last;if(nav_depth){nav_depth--;p=nav_pages[nav_depth];r=nav_rows[nav_depth];}
@@ -482,8 +484,8 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
   if(page==MARKET&&!game.docked&&(pressed&(PSP_CTRL_LEFT|PSP_CTRL_RIGHT))){message(&game,"Dock to buy or sell. Market controls are locked.");game.cue=SFX_UI;return;}
   if(count<1)count=1;
   if(pressed&(PSP_CTRL_UP|PSP_CTRL_DOWN))game.cue=SFX_SELECT;
-  if(pressed&PSP_CTRL_UP){if(page==HOME)deck_step(-1);else if(page==CHART&&chart_mode)chart_move_cursor(0,-1);else row=(row+count-1)%count;}
-  if(pressed&PSP_CTRL_DOWN){if(page==HOME)deck_step(1);else if(page==CHART&&chart_mode)chart_move_cursor(0,1);else row=(row+1)%count;}
+  if(pressed&PSP_CTRL_UP){if(page==HOME)deck_step(-1);else if(page==CHART&&chart_mode)chart_move_cursor(0,-1);else {row=(row+count-1)%count;if(page==FACTIONS)faction_lore_card=0;}}
+  if(pressed&PSP_CTRL_DOWN){if(page==HOME)deck_step(1);else if(page==CHART&&chart_mode)chart_move_cursor(0,1);else {row=(row+1)%count;if(page==FACTIONS)faction_lore_card=0;}}
  if(page==CHART&&chart_mode&&(pressed&PSP_CTRL_LEFT))chart_move_cursor(-1,0);
  if(page==CHART&&chart_mode&&(pressed&PSP_CTRL_RIGHT))chart_move_cursor(1,0);
  if(page==HOME&&(pressed&(PSP_CTRL_LEFT|PSP_CTRL_RIGHT)))deck_tab(pressed&PSP_CTRL_RIGHT?1:-1);
@@ -502,6 +504,12 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
    else if(page==HOME&&(pressed&PSP_CTRL_CROSS)){if(row==20){if(game.docked){walk_kind=0;walk_x=walk_z=walk_yaw=0;sc_built_for=-1;page=WALK;message(&game,"Station deck. L/R verb, U/D highlight, X do, TRI ship.");}else message(&game,"Dock first to walk the station deck.");return;}if(row==21){change_page(INVENTORY);return;}int pages[]={FLIGHT,MARKET,CHART,YARD,EQUIP,STATUS,HELP,FACTIONS,TARGETING,DEBUG,COMMS,DETAILS,MISSIONS,MISSIONLOG,GALNET,CODEX,RADIO,CAMPAIGN,GUILD,COMFORT};if(row<0||row>=20)return;int opened=row,next=pages[row];if(!story_menu_ok(&game,opened)){message(&game,story_task(&game));game.cue=SFX_UI;return;}if(!game.docked&&(next==YARD||next==EQUIP||next==MISSIONS)){message(&game,"Dock at a station to open this service.");game.cue=SFX_UI;return;}if(next==FLIGHT){int leaving=game.docked;int keep=(selected_target>=0&&selected_target<=BODY_COUNT)?selected_target:0;analog_ready=0;ax=ay=0;launch(&game);if(leaving){selected_target=keep;autoaim=0;if(valid_target(keep))scan_cat=target_category(keep);}}change_page(next);story_on_open(&game,opened);if(!game.cue)game.cue=SFX_UI;}
    else if(page==LOCAL&&contact_count>0&&row>=0&&row<contact_count&&(pressed&(PSP_CTRL_CROSS|PSP_CTRL_TRIANGLE))){selected_target=contact_ids[row];scan_cat=target_category(selected_target);nav_body=selected_target>0&&selected_target<=BODY_COUNT?selected_target-1:-1;autoaim=(pressed&PSP_CTRL_TRIANGLE)!=0;story_event(&game,STORY_EV_TARGET);if(selected_target==0)campaign_event(&game,CP_LOCK);message(&game,"Target set.");if(!game.docked)change_page(FLIGHT);}
    else if(page==DETAILS&&(pressed&(PSP_CTRL_CROSS|PSP_CTRL_TRIANGLE))){int id=row==0?0:row;if(valid_target(id)){selected_target=id;scan_cat=target_category(id);nav_body=id>0&&id<=BODY_COUNT?id-1:-1;autoaim=(pressed&PSP_CTRL_TRIANGLE)!=0;story_event(&game,STORY_EV_TARGET);if(selected_target==0)campaign_event(&game,CP_LOCK);message(&game,id==0?"Station locked.":id==1?"Sun locked. No landing.":"Body locked.");if(!game.docked)change_page(FLIGHT);}}
+   else if(page==FACTIONS&&(pressed&PSP_CTRL_CROSS)){faction_lore_card=faction_lore_card>=2?0:faction_lore_card+1;game.cue=SFX_SELECT;message(&game,faction_lore_card?"Faction channel open.":"Faction ops brief.");}
+   else if(page==FACTIONS&&(pressed&PSP_CTRL_TRIANGLE)){
+    int best=-1;float best_d=1e9f;for(int i=0;i<NPC_COUNT;i++)if(game.npc[i].alive&&game.npc[i].role==row){float d=length(sub(game.npc[i].pos,game.pos));if(d<best_d){best_d=d;best=i;}}
+    if(best<0){message(&game,"No ships of that colour on scanner.");game.cue=SFX_UI;}
+    else {selected_target=BODY_COUNT+1+best;scan_cat=target_category(selected_target);autoaim=!game.docked;message(&game,"Faction contact locked.");if(!game.docked)change_page(FLIGHT);game.cue=SFX_SELECT;}
+   }
   else if(page==COMMS&&(pressed&PSP_CTRL_TRIANGLE)){comms_rescue_confirm=!comms_rescue_confirm;}else if(page==COMMS&&(pressed&PSP_CTRL_CROSS)){if(comms_rescue_confirm){if(emergency_rescue(&game)){selected_target=0;autoaim=0;change_page(HOME);}return;}if(game.docked){message(&game,"Already docked.");game.cue=SFX_UI;}else if(dock(&game)){selected_target=0;autoaim=0;change_page(FLIGHT);}}
    else if(page==CAMPAIGN&&(pressed&PSP_CTRL_SELECT)){if(story_brief_locked()){message(&game,"Finish this conversation first.");game.cue=SFX_UI;return;}change_page(MISSIONLOG);}
    else if(page==MISSIONS&&(pressed&PSP_CTRL_SELECT))change_page(MISSIONLOG);
@@ -610,6 +618,8 @@ static void input_tests(void){
  TEST_INIT();{int far=-1,hops=0,first=-1;for(int i=0;i<256;i++){int hop=route_next_hop(&game,i,&hops);if(hop>=0&&hops>1){far=i;first=hop;break;}}INPUT_CHECK(far>=0&&first>=0,"manual route test finds a multi-jump destination");change_page(CHART);chart_mode=1;chart_cursor=far;chart_zoom=1;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.route_goal==far&&game.destination==first&&game.destination!=far,"manual galaxy plot keeps final goal separate from the next hop");}
  TEST_INIT();launch(&game);page=FLIGHT;selected_target=2;Body *body=&game.bodies[1];game.pos=add(body->pos,(Vec3){0,0,-body->radius-800});game.speed=0;game.yaw=game.pitch=0;input(PSP_CTRL_CIRCLE,0,.016f,0,0);INPUT_CHECK(game.approach==1,"Circle approaches the nearby targeted planet");input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.planet==1&&game.approach<0,"X from approach enters atmosphere flight");input(PSP_CTRL_CIRCLE,0,.016f,0,0);INPUT_CHECK(game.planet==1&&game.surface==0,"Circle does not leave orbit while flying high");input(PSP_CTRL_TRIANGLE,0,.016f,0,0);input(PSP_CTRL_TRIANGLE,0,.016f,0,0);INPUT_CHECK(game.planet<0,"Triangle returns from atmosphere to orbit");
  change_page(HOME);row=3;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(page==HOME,"ship shop cannot open in flight");row=4;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(page==HOME,"equipment shop cannot open in flight");
+ {int vis[6],n=deck_fill(1,vis),saw=0;for(int i=0;i<n;i++)if(vis[i]==3||vis[i]==4)saw=1;INPUT_CHECK(!saw,"undocked Ship tab omits Shipyard and Outfitting");}
+ {int vis[6],n=deck_fill(2,vis),saw=0;for(int i=0;i<n;i++)if(vis[i]==12)saw=1;INPUT_CHECK(!saw,"undocked Work tab omits Mission board");}
  game.cargo[0]=2;game.cargo[7]=1;INPUT_CHECK(cargo_rows()==2&&cargo_item(1)==7,"flight inventory lists only owned cargo");contacts_refresh();INPUT_CHECK(contact_count>=BODY_COUNT+1&&contact_ids[BODY_COUNT]==BODY_COUNT,"contacts include station and every celestial body");
  page=FLIGHT;game.pos=(Vec3){0,0,-20000};float speed=game.speed;input(0,PSP_CTRL_LTRIGGER|PSP_CTRL_RIGHT,.016f,1,0);INPUT_CHECK(game.roll>0&&game.speed==speed,"L and right rolls without changing throttle");
  change_page(DEBUG);row=0;int cash=game.credits;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.credits==cash+10000,"debug adds 1000 displayed units");
