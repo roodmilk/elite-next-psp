@@ -27,6 +27,7 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 ## Unreleased — Opt-in ad-hoc convoy transport
 
 - Added a `convoy.flag`-gated PSP Adhoc transport foundation with bounded peer snapshots and stale-peer expiry.
+- Added a compact in-flight convoy status overlay showing link state, peer count, system and range.
 - Added packet validation regression coverage without requiring a second PSP or network during smoke tests.
 - Convoy pairing and real-hardware radio/suspend behavior remain physical-PSP validation items.
 

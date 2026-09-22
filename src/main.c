@@ -122,6 +122,14 @@ static void text(int x,int y,unsigned c,const char *fmt,...){
   }
  }
 }
+static void convoy_status_overlay(void){
+ if(!convoy_mode)return;
+ text(1,1,convoy_running?CYAN:RED,"CONVOY %s %d/%d",convoy_running?"LINK":"OFFLINE",convoy_peer_count,CONVOY_MAX_PEERS);
+ for(int i=0;i<convoy_peer_count&&i<CONVOY_MAX_PEERS;i++){
+  ConvoySnapshot *s=&convoy_peers[i].snapshot;float dx=s->x-game.pos.x,dy=s->y-game.pos.y,dz=s->z-game.pos.z;
+  text(1,2+i,WHITE,"P%d SYS%03d %4dm",i+1,(int)s->system,(int)sqrtf(dx*dx+dy*dy+dz*dz));
+ }
+}
 /* Word-wrap into a fixed column width. Returns rows used; leftover returns via *left. */
 static int text_wrap(int col,int rowy,int cols,int max_rows,unsigned ink,const char *s,const char **left){
  int used=0;if(cols<4)cols=4;if(left)*left=s;
@@ -391,8 +399,9 @@ static void space(void){
  hud_postfx();
  if(hud_mode==0)target_overlay();else if(hud_mode==1)minimal_overlay();
  warp_effect();planet_prompt();police_dialog();death_effect();
- if(hud_mode==0||game.dock_stage||game.dead||game.police_stop||game.approach>=0)cockpit();
- else if(hud_mode==2)combat_alert_banner(); /* scenic: still show bottom RED ALERT */
+  if(hud_mode==0||game.dock_stage||game.dead||game.police_stop||game.approach>=0)cockpit();
+  else if(hud_mode==2)combat_alert_banner(); /* scenic: still show bottom RED ALERT */
+  convoy_status_overlay();
 }
 #include "ship-preview.h"
 #include "ui-modern.h"
@@ -917,5 +926,4 @@ int main(void){
  audio_stop();gu_accel_stop();convoy_stop();
  sceKernelExitGame();return 0;
 }
-
 
