@@ -1,4 +1,9 @@
-# ELITE: NEXT — development build 2.5.30
+# ELITE: NEXT — development build 2.5.31
+
+## New in 2.5.31 — better character writing
+
+- Open Channel chapter briefs speak in full sentences with distinct voices; you ask chapter-specific questions instead of “Continue.”
+- Prologue, intro, flight coach and tower radio match the same realistic tone; speech wraps cleanly on the Story screen.
 
 ## New in 2.5.30 — MM6-style station crawl
 

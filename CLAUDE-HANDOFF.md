@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.30**.
+Prepared 22 September 2026. Current build: **2.5.31**.
 
 ## Start here
 
@@ -63,6 +63,10 @@ Important controls:
 - Galaxy Map: Triangle switches between nearby jumps and the full 256-system map; D-pad moves between systems; L/R zoom; X plots a multi-jump route and saves the final goal.
 
 ## Recent changes that must be preserved
+
+### 2.5.31 — playable script quality pass
+
+`src/saga.h` chapter briefs and `src/narrative-nav.h` prologue lines use full spoken sentences with chapter-authored player asks. Story bubbles wrap three lines; radio captions use a 160-char voice buffer. Authority screenplay remains `docs/OPEN-CHANNEL-SCREENPLAY.md`.
 
 ### 2.5.30 — MM6-style station crawl polish
 
@@ -233,25 +237,25 @@ The build compiles `game.c`, `ships.c` and `main.c`, links PSP libraries and pro
 - radio checks;
 - performance checks.
 
-The last verified 2.5.8 run passed every group under PPSSPP (game, input, steering, radio, performance). PPSSPP success does not replace physical PSP testing.
+The last verified 2.5.31 run passed every group under PPSSPP (game, input, steering, radio, performance), including new script-quality checks. PPSSPP success does not replace physical PSP testing.
 
 ## Highest-priority remaining work
 
 1. **Confirm 2.5.4 sleep/resume on physical PSP.** Put the handheld to sleep mid-flight and mid-radio for several hours, then wake — screen and audio must return. Also re-check 20+ minute MP3 playback across sample rates.
-2. **Deepen the 24 chapters further.** Briefings are now six-beat locked conversations; many bible set-pieces still resolve through generic dock/scan/hunt actions.
+2. **Deepen the 24 chapters further.** Briefings now carry full spoken sentences and authored asks; many bible set-pieces still resolve through generic dock/scan/hunt actions rather than unique scenes.
 3. **Visually inspect the full galaxy map at 480×272** and the new Select-deck ship preview / radio tuner on hardware.
 4. **Physical performance and memory audit** of galaxy routing and the 64 KB MP3 buffer.
 
 ## Known limitations and honest status
 
 - The design bible describes a far larger game than the current executable. Interiors, planetary exploration and spacewalks are bounded prototypes rather than Starfield-scale simulations.
-- The campaign has 24 playable chapter records and persistent choices, but does not yet contain ten hours of unique bespoke mechanics and dialogue. Travel and ordinary play contribute to its intended duration.
+- The campaign has 24 playable chapter records with stronger spoken briefs (2.5.31), but does not yet contain ten hours of unique bespoke mechanics. Travel and ordinary play contribute to its intended duration.
 - Only one galaxy seed of 256 classic Elite-style systems is active.
 - The full-galaxy chart shows all systems, a cached route and a saved manual route goal, but has not yet had user testing on a physical PSP.
 - The audio fix passed PPSSPP with the user's files; intermittent real-hardware behaviour still requires listening tests.
 - Manual route persistence is playable in 2.5.3; sleep/resume black-screen recovery is in 2.5.4 but still needs multi-hour hardware confirmation.
 - Speaker colour chips and clearer Outfitting tech copy shipped in 2.5.5.
-- Chapter deepening and bespoke dialogue pages remain design-ahead of the executable.
+- Full movie-length scenes still live in `docs/OPEN-CHANNEL-SCREENPLAY.md`; the executable binds six spoken beats per chapter.
 
 ## Safe continuation workflow
 

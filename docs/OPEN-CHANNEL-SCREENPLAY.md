@@ -1,11 +1,13 @@
 # THE OPEN CHANNEL — Feature Screenplay & Campaign Design
 
-**Status:** Canonical story authority for ELITE: NEXT 2.5.21+  
+**Status:** Canonical story authority for ELITE: NEXT 2.5.21+ (playable prose quality pass 2.5.31)  
 **Form:** Feature-length interactive screenplay (approx. 110–130 script pages / ~10 hours critical path)  
-**Playable binding:** `src/saga.h` (six-beat PSP briefs) · `docs/OPEN-CHANNEL-CAMPAIGN.md` (summary bible)  
+**Playable binding:** `src/saga.h` (six-beat PSP briefs with chapter-authored player asks) · prologue lines in `src/narrative-nav.h` · `docs/OPEN-CHANNEL-CAMPAIGN.md` (summary bible)  
 **Rule:** GalNet, novels and tourist-beacon text are **reference only** — never reproduced. All dialogue below is original.
 
 **Assembly:** Merged full Act I–IV drafts (character bible, lore ledger, branching scenes) into one shippable authority document.
+
+**Playable prose (2.5.31):** Brief lines are full spoken sentences that wrap on the Story screen (three lines). Player replies are chapter-specific questions, not generic “Continue” acks. Radio captions use the same beats with a 160-char voice buffer.
 
 ---
 
@@ -57,7 +59,7 @@ Tone: working pilots, moral ambiguity, quiet dread. Thargoids remain rare and un
 - Do not reorder `saga_beats[]`. Saves store chapter indices.
 - Choice UI: `saga_choice_label(chapter, option)`.
 - Framebuffer present: `PSP_DISPLAY_SETBUF_IMMEDIATE` after vblank (NEXTFRAME strobes on hardware).
-- PSP brief lines stay ≤43 chars; this document holds full speech.
+- PSP Story briefs wrap spoken sentences (three lines, ~46 glyphs); this document still holds full scene scripts beyond the six-beat binding.
 
 ---
 

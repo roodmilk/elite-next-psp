@@ -88,5 +88,9 @@
  INPUT_CHECK(prologue_brief_echo&&strstr(prologue_brief_reply(0),"catch"),"chat flow: first Cross shows the commander ask about the catch");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(!prologue_brief_echo&&prologue_brief_beat==1&&strstr(prologue_brief_line1(1),"catch"),"chat flow: Kei's catch answer arrives only after the ask");
+ /* Prose quality: chapter asks are authored, and first beats are full sentences. */
+ INPUT_CHECK(strstr(saga_beats[0].ask1,"Mara")&&strlen(saga_beats[0].line)>60,"script: chapter 02 opens with a long Kei sentence and a Mara ask");
+ INPUT_CHECK(strstr(saga_beats[10].ask1,"alive")&&strstr(saga_beats[10].line,"alive"),"script: Ryn reunion keeps living voice on both sides");
+ INPUT_CHECK(strstr(prologue_brief_line1(0),"Ryn")&&strstr(prologue_brief_line2(0),"three"),"script: prologue hook still names Ryn and the three missed calls");
  TEST_INIT();
 }

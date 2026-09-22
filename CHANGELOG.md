@@ -2,6 +2,13 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.31 - 2026-09-22
+
+- Rewrote Open Channel playable dialogue into full spoken sentences with distinct character voice (Kei, Ryn, Venn, Iona, Oru, Tamsin, Nadi/Pip, Sable, Mara).
+- Chapter briefs now use authored player asks instead of generic “Continue” acknowledgments; Story speech bubbles wrap three lines.
+- Prologue, intro crawl, optional flight coach, and tower radio captions follow the same realistic tone.
+- Voice caption buffer expanded to 160 characters so longer lines are not truncated mid-thought.
+
 ## 2.5.30 - 2026-09-22
 
 - Station crawl FP view rebuilt as a crisp MM6-style space dungeon: riveted wall panels, high-contrast checker floor, hanging lamp glow, labeled side/front doors showing destination room names, denser room props, and portrait NPC sprites with name plates.

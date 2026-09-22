@@ -317,8 +317,8 @@ void game_spawn(Game *g){
  }
  jobs_sync(g);
 }
-void game_init(Game *g){memset(g,0,sizeof(*g));g->rng=0x19841991;g->ai_phase=-1;galaxy(g->systems);g->system=7;g->destination=129;g->route_goal=-1;g->passenger_dest=-1;g->credits=1000;g->fuel=60;g->energy=100;g->docked=1;g->contract=-1;g->mission_target=-1;g->missile_target=-1;g->incoming_source=-1;g->approach=-1;g->planet=-1;g->missiles=1;g->pip_sys=2;g->pip_eng=2;g->pip_wep=4;market(g);game_spawn(g);g->cargo[0]=2;message(g,"X opens the deck.");speak(g,VOICE_KEI,"Kei. Ryn's missing. Welcome aboard.");}
-void launch(Game *g){if(!g->docked)return;guild_event(g,GUILD_LAUNCH);g->docked=0;g->pos=(Vec3){0,0,0};g->yaw=g->pitch=0;g->speed=100;game_spawn(g);int before=g->story;story_event(g,STORY_EV_LAUNCH);if(g->story==before)message(g,"Station ahead. Select opens the deck.");if(g->story==STORY_SIGHT||g->story==STORY_RETURN)speak(g,VOICE_VENN,"Tower. Cleared. Come home in one piece.");if(!g->cue)g->cue=SFX_DOCK;campaign_event(g,CP_LAUNCH);}
+void game_init(Game *g){memset(g,0,sizeof(*g));g->rng=0x19841991;g->ai_phase=-1;galaxy(g->systems);g->system=7;g->destination=129;g->route_goal=-1;g->passenger_dest=-1;g->credits=1000;g->fuel=60;g->energy=100;g->docked=1;g->contract=-1;g->mission_target=-1;g->missile_target=-1;g->incoming_source=-1;g->approach=-1;g->planet=-1;g->missiles=1;g->pip_sys=2;g->pip_eng=2;g->pip_wep=4;market(g);game_spawn(g);g->cargo[0]=2;message(g,"X opens the deck.");speak(g,VOICE_KEI,"Kei Aven. Ryn is missing — and this berth is yours until we find her.");}
+void launch(Game *g){if(!g->docked)return;guild_event(g,GUILD_LAUNCH);g->docked=0;g->pos=(Vec3){0,0,0};g->yaw=g->pitch=0;g->speed=100;game_spawn(g);int before=g->story;story_event(g,STORY_EV_LAUNCH);if(g->story==before)message(g,"Station ahead. Select opens the deck.");if(g->story==STORY_SIGHT||g->story==STORY_RETURN)speak(g,VOICE_VENN,"Tower. Cleared. Soft launch — come home in one piece.");if(!g->cue)g->cue=SFX_DOCK;campaign_event(g,CP_LAUNCH);}
 #include "docking.h"
 #include "journey.h"
 int trade(Game *g,int i,int buy){if(!g->docked||i<0||i>=GOODS)return 0;
