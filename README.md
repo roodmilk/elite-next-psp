@@ -1,4 +1,8 @@
-# ELITE: NEXT — development build 2.5.18
+# ELITE: NEXT — development build 2.5.19
+
+## New in 2.5.19 — stop hardware screen flash
+
+- Framebuffer presents with IMMEDIATE after vblank again so the canopy no longer strobes black on a real PSP.
 
 ## New in 2.5.18 — varied landings and clearer on-foot play
 
@@ -37,7 +41,7 @@
 
 - Freezes MP3/file I/O as soon as the PSP begins suspending so the audio worker cannot hang on a spun-down Memory Stick.
 - On resume, rebuilds display mode, both framebuffers, clock, controls and radio instead of only restarting audio.
-- Presents frames with `NEXTFRAME` after vblank for more reliable hardware display recovery.
+- Frame present is `IMMEDIATE` after vblank (2.5.19); `NEXTFRAME` painted the live buffer and strobed the whole screen.
 - Still confirm on a real PSP after sleeping for several hours mid-flight with custom radio playing.
 
 ## New in 2.5.3 — persistent multi-jump route goals

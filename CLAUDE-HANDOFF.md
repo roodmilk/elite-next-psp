@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.18**.
+Prepared 22 September 2026. Current build: **2.5.19**.
 
 ## Start here
 
@@ -63,6 +63,10 @@ Important controls:
 - Galaxy Map: Triangle switches between nearby jumps and the full 256-system map; D-pad moves between systems; L/R zoom; X plots a multi-jump route and saves the final goal.
 
 ## Recent changes that must be preserved
+
+### 2.5.19 — hardware display flip
+
+Main-loop `sceDisplaySetFrameBuf` uses `PSP_DISPLAY_SETBUF_IMMEDIATE` after vblank. Do not switch back to `NEXTFRAME` for ordinary frames — that caused live-buffer painting and black strobing on PSP. Sleep/resume still rebuilds both planes.
 
 ### 2.5.18 — varied planet landings + on-foot chrome
 
@@ -138,7 +142,7 @@ Dialogue name plates use `speaker_name_tag` so `NAME SAYS` sits on a faction-col
 
 ### 2.5.4 — sleep/resume recovery
 
-Long PSP sleep could leave the MP3 decoder blocked on Memory Stick I/O and the LCD framebuffer unrestored, producing a permanent black screen on wake. Suspend now freezes MP3 sampling from the power callback; resume rebuilds display mode, both framebuffers, controls, clock and audio. Frame presentation uses `NEXTFRAME` after vblank. Emulator smoke covers a double recover path; confirm on physical hardware after multi-hour sleep.
+Long PSP sleep could leave the MP3 decoder blocked on Memory Stick I/O and the LCD framebuffer unrestored, producing a permanent black screen on wake. Suspend now freezes MP3 sampling from the power callback; resume rebuilds display mode, both framebuffers, controls, clock and audio. Frame presentation uses IMMEDIATE after vblank (NEXTFRAME was reverted in 2.5.19 — it strobed on hardware). Emulator smoke covers a double recover path; confirm on physical hardware after multi-hour sleep.
 
 ### 2.5.3 — manual route persistence
 
