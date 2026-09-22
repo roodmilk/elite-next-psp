@@ -660,6 +660,11 @@ static void input_tests(void){
     for(int y=8;y<16;y++)for(int x=8;x<120;x++)if(pixels[y*STRIDE+x]==RED)seen=1;
     INPUT_CHECK(wl==3&&seen,"graphics: local wanted level sits under the system name when police may pursue");
    }
+   memset(pixels,0,STRIDE*H*sizeof(unsigned));launch(&game);page=HOME;menu_space_view(246,64,218,92);
+   {
+    int gold=0;for(int y=65;y<150;y++)for(int x=247;x<460;x++)if(pixels[y*STRIDE+x]==GOLD||((pixels[y*STRIDE+x]&255)>180&&((pixels[y*STRIDE+x]>>8)&255)>140))gold=1;
+    INPUT_CHECK(gold,"graphics: Select deck top-right shows a third-person ship silhouette");
+   }
    memset(pixels,0,STRIDE*H*sizeof(unsigned));preview_clip(240,110,20,20,25,25);
    DrawTri t={{{20,20,30},{30,20,30},{20,30,30}},WHITE,30};triangle(&t);
    int clipped=1;for(int y=0;y<H;y++)for(int x=0;x<W;x++)if(pixels[y*STRIDE+x]&&(x<20||x>=25||y<20||y>=25))clipped=0;

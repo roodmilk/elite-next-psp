@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.12**.
+Prepared 22 September 2026. Current build: **2.5.13**.
 
 ## Start here
 
@@ -77,6 +77,10 @@ The currently playable chapter actions are deliberately compact: dock, scan, def
 The nearby list only shows local candidates. Triangle opens a spatial overview of all 256 systems. It marks the current system in cyan, the tracked mission destination in gold, and caches/draws every intermediate jump. L/R zoom from 1× to 4×. X converts the selected long route into its first reachable jump. This logic is generic; **Quator has no special code or significance** and was only the system that exposed the old UI flaw.
 
 Story navigation plans against the fitted drive even if the tank is empty, then marks the next hop as low-fuel until the player refuels. The story screen distinguishes `NEXT` from `FINAL`, and the cockpit names the next reachable hop.
+
+### 2.5.13 — Select deck third-person ship
+
+Command deck top-right inset orbits the fitted hull in local space (stars + station or planet), large enough to read the silhouette.
 
 ### 2.5.12 — local wanted under system name
 

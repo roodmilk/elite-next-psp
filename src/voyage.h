@@ -17,20 +17,29 @@ static void station_model(void){
 }
 static void secondary_hubs(void);
 static void menu_space_view(int x,int y,int w,int h){
- rect(x,y,w,h,RGB(8,12,28));
+ rect(x,y,w,h,RGB(4,8,18));
+ rect(x,y,w,1,CYAN);rect(x,y+h-1,w,1,RGB(32,57,69));
  Vec3 oldpos=game.pos;float oldyaw=game.yaw,oldpitch=game.pitch,oldroll=game.roll;
- preview_clip(x+w/2,y+h/2+4,x+1,y+1,x+w-1,y+h-1);
- /* Third-person orbit of the commander's ship against local space. */
+ preview_clip(x+w/2,y+h/2+2,x+1,y+1,x+w-1,y+h-1);
+ /* Third-person orbit of the fitted hull against local space — close enough to read the silhouette. */
  {
-  float phase=preview_time*.35f;Vec3 ship=game.docked?(Vec3){0,0,3200}:game.pos;
-  Vec3 cam=add(ship,(Vec3){sinf(phase)*420.f,140.f+sinf(phase*.6f)*60.f,cosf(phase)*420.f});
-  game.pos=cam;Vec3 aim=norm(sub(ship,cam));game.yaw=atan2f(aim.x,aim.z);game.pitch=asinf(fmaxf(-1,fminf(1,aim.y)));game.roll=0;
+  float phase=preview_time*.4f;
+  Vec3 ship=game.docked?(Vec3){0,40,3180}:game.planet>=0?add(game.pos,(Vec3){0,80,0}):game.pos;
+  float dist=195.f;Vec3 cam=add(ship,(Vec3){sinf(phase)*dist,72.f+sinf(phase*.7f)*28.f,cosf(phase)*dist});
+  game.pos=cam;Vec3 aim=norm(sub(ship,cam));game.yaw=atan2f(aim.x,aim.z);float ap=aim.y;if(ap>1)ap=1;if(ap<-1)ap=-1;game.pitch=asinf(ap);game.roll=0;
   starfield();
-  if(length(sub(ship,(Vec3){0,0,3500}))<12000)station_model();
-  shipmesh(mesh_id(player_ships[game.ship].name),ship,game.docked?station_angle(&game)*.2f:oldyaw,oldroll*.4f,1.15f,GOLD,0);
+  /* Local scenery so the inset reads as “ship in this system,” not a void studio. */
+  if(game.docked||length(sub(ship,(Vec3){0,0,3500}))<14000)station_model();
+  else {
+   Body *b=&game.bodies[1];
+   Vec3 bp=camera(&game,b->pos);if(bp.z>80){Point p=project(bp);int r=(int)fminf(28,b->radius*240.f/bp.z);if(r>3&&p.x>x&&p.x<x+w&&p.y>y&&p.y<y+h)circle((int)p.x,(int)p.y,r,b->color);}
+  }
+  float yaw=game.docked?station_angle(&game)*.15f+phase*.2f:oldyaw;
+  shipmesh(mesh_id(player_ships[game.ship].name),ship,yaw,oldroll*.25f,2.35f,GOLD,0);
   flush_meshes();
  }
  preview_reset();game.pos=oldpos;game.yaw=oldyaw;game.pitch=oldpitch;game.roll=oldroll;
+ text((x+6)/8,(y+h-10)/8,DIM,"3RD / %.10s",player_ships[game.ship].name);
 }
 static void ambient_space(void){
  if(system_whales(game.system)){Body *b=&game.bodies[3];for(int i=0;i<3;i++){float a=game.time*.028f+i*.62f;Vec3 pos=add(b->pos,(Vec3){cosf(a)*(b->radius+5600),700+sinf(a+i)*.5f*480,sinf(a)*(b->radius+5600)});if(length(sub(pos,game.pos))<14000)shipmesh(mesh_id("WORM"),pos,a+1.57f,sinf(game.time*.35f+i)*.16f,7.2f+i*1.3f,RGB(96,186,198),0);}}

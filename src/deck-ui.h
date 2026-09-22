@@ -17,11 +17,12 @@ static void home(void){
   int story_row=id==17&&(game.campaign_stage<6||game.guild_chapter<4||game.job_n>0);unsigned ink=id==row?WHITE:locked?DIM:story_row?GOLD:WHITE;
   text(3,y,ink,"%s%s%.21s",id==row?">":" ",story_row?"! ":"",labels[id]);
  }
- menu_space_view(246,64,218,66);
+ /* Top-right: live third-person ship in local space. */
+ menu_space_view(246,64,218,92);
  int is_story=row==17&&(game.campaign_stage<6||game.guild_chapter<4||game.job_n>0);
- text(31,17,is_story?GOLD:GOLD,"%.27s",labels[row]);
- text(31,19,WHITE,"%s",hints[row][0]);
- if(!game.docked&&(row==3||row==4||row==12||row==20))text(31,21,AMBER,"Dock first to open this.");
+ text(31,20,is_story?GOLD:GOLD,"%.27s",labels[row]);
+ text(31,22,WHITE,"%s",hints[row][0]);
+ if(!game.docked&&(row==3||row==4||row==12||row==20))text(31,23,AMBER,"Dock first to open this.");
  if(is_story){rect(246,178,218,2,GOLD);text(31,23,GOLD,"Open to see your next step.");}
  text(2,25,CYAN,"System: %.12s",game.systems[game.system].name);
  {int wl=wanted_level(&game);text(2,26,wl?RED:DIM,wl?"Wanted [%s]":"Clear warrant",stars(wl));}
