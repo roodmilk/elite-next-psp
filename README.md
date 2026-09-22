@@ -1,4 +1,9 @@
-# ELITE: NEXT — development build 2.5.26
+# ELITE: NEXT — development build 2.5.27
+
+## New in 2.5.27 — ask-then-answer story chat
+
+- You speak first (orange YOU bubble); Kei answers on the next Cross.
+- Saga briefs no longer ask questions the screen already answered.
 
 ## New in 2.5.26 — clearer GalNet WANTED board
 

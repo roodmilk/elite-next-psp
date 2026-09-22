@@ -22,7 +22,7 @@ static void campaign_screen(void){
     player_speech_bubble(54,saga_brief_reply(beat));
     panel(16,124,448,45);text(3,16,GOLD,"YOU SPOKE");
     text_wrap(3,18,54,1,WHITE,"X to hear the reply.",0);
-    text(3,20,AMBER,"Beat %d / %d — you speak first",beat+1,SAGA_BRIEF_BEATS);
+    text(3,20,AMBER,"Beat %d / %d - you speak first",beat+1,SAGA_BRIEF_BEATS);
     narrative_reply_choice(0,22,"Hear the reply");
    }else{
     saga_speaker_face(16,56,48,b);
@@ -32,7 +32,7 @@ static void campaign_screen(void){
     text_wrap(11,9,46,2,WHITE,saga_brief_line(b,beat),0);
     panel(16,124,448,45);text(3,16,GOLD,"CONVERSATION");
     text_wrap(3,18,54,1,WHITE,beat<SAGA_BRIEF_BEATS-1?"Listen, then reply.":b->objective,0);
-    text(3,20,AMBER,"Beat %d / %d — finish before leaving",beat+1,SAGA_BRIEF_BEATS);
+    text(3,20,AMBER,"Beat %d / %d - finish before leaving",beat+1,SAGA_BRIEF_BEATS);
     narrative_reply_choice(0,22,saga_brief_reply(beat));
    }
    footer("X CONTINUE   (O/SELECT LOCKED)");return;
@@ -57,13 +57,13 @@ static void campaign_screen(void){
    player_speech_bubble(54,prologue_brief_reply(beat));
    rect(16,126,448,27,RGB(13,36,43));text(3,16,CYAN,"YOU ASKED");
    text_wrap(3,18,54,1,WHITE,"X to hear Kei's answer.",0);
-   text(3,19,AMBER,"Ask first — Beat %d / %d",beat+1,PROLOGUE_BRIEF_BEATS);
+   text(3,19,AMBER,"Ask first - Beat %d / %d",beat+1,PROLOGUE_BRIEF_BEATS);
    narrative_reply_choice(0,21,"Hear Kei's answer");
   }else{
    kei_speech_bubble(54,prologue_brief_line1(beat),prologue_brief_line2(beat),0);
    rect(16,126,448,27,RGB(13,36,43));text(3,16,CYAN,"CURRENT OBJECTIVE");
    text_wrap(3,18,54,1,WHITE,beat<PROLOGUE_BRIEF_BEATS-1?"Ask Kei, then hear the answer.":"Accept first flight, then launch.",0);
-   text(3,19,AMBER,"YOUR REPLY — Beat %d / %d",beat+1,PROLOGUE_BRIEF_BEATS);
+   text(3,19,AMBER,"YOUR REPLY - Beat %d / %d",beat+1,PROLOGUE_BRIEF_BEATS);
    narrative_reply_choice(0,21,prologue_brief_reply(beat));
   }
   footer("X CONTINUE   (O/SELECT LOCKED UNTIL ACCEPT)");return;
