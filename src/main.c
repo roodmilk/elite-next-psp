@@ -235,7 +235,8 @@ static void capital_model(const NPC *n,unsigned color){
 }
 static int depth_sort(const void *a,const void *b){float d=((const DrawTri*)b)->depth-((const DrawTri*)a)->depth;return d>0?1:d<0?-1:0;}
 static void flush_meshes(void){qsort(drawlist,drawcount,sizeof(*drawlist),depth_sort);for(int i=0;i<drawcount;i++)triangle(&drawlist[i]);drawcount=0;}
-static void header(const char *title){rect(0,0,W,22,RGB(5,12,20));rect(0,0,W,1,GOLD);rect(0,21,W,1,CYAN);rect(0,0,4,22,GOLD);draw_next_art(next_logo_small,100,18,5,2,100,18);text(14,1,DIM,"/");text(16,1,WHITE,"%.42s",title);}
+/* Art kit chrome — charcoal + ochre/cream rules; cyan stays a nav signal only. */
+static void header(const char *title){rect(0,0,W,22,RGB(21,28,39));rect(0,0,W,1,RGB(193,139,77));rect(0,21,W,1,RGB(85,212,212));rect(0,0,3,22,RGB(240,180,91));draw_next_art(next_logo_small,100,18,5,2,100,18);text(14,1,RGB(155,154,165),"/");text(16,1,RGB(229,210,163),"%.42s",title);}
 static void button_icon(int x,int y,char b,unsigned c){
  if(b=='O'){circle(x+4,y+4,3,c);}
  else if(b=='X'){line(x+1,y+1,x+7,y+7,c);line(x+7,y+1,x+1,y+7,c);}
@@ -262,7 +263,7 @@ static void footer(const char *s){
  }
  text(1,32,DIM,"%s",label);
 }
-static void selected_span(int y,int w){if(w<48)w=48;rect(8,y*8-2,w,12,high_contrast?RGB(38,78,88):RGB(16,38,48));rect(8,y*8-2,3,12,GOLD);}
+static void selected_span(int y,int w){if(w<48)w=48;rect(8,y*8-2,w,12,high_contrast?RGB(58,72,88):RGB(41,54,70));rect(8,y*8-2,3,12,RGB(240,180,91));}
 static void selected(int y){selected_span(y,464);}
 static const char *stars(int n){static char result[8];for(int i=0;i<5;i++)result[i]=i<n?'*':'.';result[5]=0;return result;}
 static void page_number_at(int col,int rownum,int current,int total){if(total>1)text(col,rownum,DIM,"%d/%d",current,total);}

@@ -2,7 +2,8 @@ static int cargo_item(int selection){if(game.docked)return selection;int n=0;for
 static int cargo_rows(void){if(game.docked)return GOODS;int n=0;for(int i=0;i<GOODS;i++)n+=game.cargo[i]>0;return n?n:1;}
 static int contact_ids[1+BODY_COUNT+NPC_COUNT+DEBRIS_COUNT+ANOMALY_COUNT],contact_count;
 static void contacts_refresh(void){contact_count=0;for(int i=0;i<=ANOMALY_ID_MAX;i++)if(valid_target(i))contact_ids[contact_count++]=i;}
-static void panel(int x,int y,int w,int h){rect(x,y,w,h,RGB(7,14,22));rect(x,y,w,1,CYAN);rect(x,y+h-1,w,1,RGB(22,44,58));rect(x,y,1,h,CYAN);rect(x+w-1,y,1,h,RGB(18,36,48));rect(x,y,7,1,GOLD);rect(x,y,1,7,GOLD);rect(x+w-7,y,7,1,GOLD);rect(x+w-1,y,1,7,GOLD);}
+/* Instrument panel — soft charcoal fill, cream/slate rules. No gold corner brackets (debug look). */
+static void panel(int x,int y,int w,int h){rect(x,y,w,h,RGB(21,28,39));rect(x,y,w,1,RGB(229,210,163));rect(x,y+h-1,w,1,RGB(41,54,70));rect(x,y,1,h,RGB(90,96,76));rect(x+w-1,y,1,h,RGB(41,54,70));rect(x+1,y+1,w-2,1,RGB(41,54,70));}
 #include "deck-ui.h"
 static void market_screen(void){
  header(game.docked?"CARGO / STATION MARKET":"CARGO / INVENTORY");panel(8,32,220,156);panel(236,32,236,156);
