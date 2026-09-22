@@ -92,7 +92,7 @@ static int sc_fill_npcs(int room,ScNpc *out,int maxn){
   SC_PUSH("KEI",EXPLORERS,SC_ACT_TALK,-1,-1,0,0,"When you are ready, open Tracked Mission.","Ask about Ryn / next step");
   SC_PUSH("SURVEYOR",EXPLORERS,SC_ACT_QUEST,-1,-1,600,0,"Fresh surface sample pays. Log it honest.","Accept survey tip");
  }else if(room==SC_R_CUSTOMS){
-  SC_PUSH("CUSTOMS",LAW,SC_ACT_TALK,-1,-1,0,0,"Restricted goods still raise warrants.","Ask about your heat");
+  SC_PUSH("CUSTOMS",LAW,SC_ACT_TALK,-1,-1,0,0,"Restricted goods matter when Law scans.","Ask about your heat");
  }
  #undef SC_PUSH
  return n;
@@ -677,8 +677,9 @@ static void sc_talk_tip(const ScNpc *p){
   else if(game.saga_chapter<SAGA_COUNT)message(&game,"Kei: open Tracked Mission on the command deck when you are ready.");
   else message(&game,"Kei: the board is quiet. Fly honest and check Guild tips.");
  }else if(!strcmp(p->name,"CUSTOMS")){
-  snprintf(note,sizeof(note),"Warrant heat %d/5 here. Restricted goods raise it fast.",wanted_level(&game));
-  message(&game,note);
+  if(game.legal>0){if(police_pay_desk(&game))return;snprintf(note,sizeof(note),"Outstanding warrant %d/5. Need %.1f U at the desk.",wanted_level(&game),police_fine(&game)*.1f);message(&game,note);}
+  else if(cargo_contraband(&game)>0){snprintf(note,sizeof(note),"Hold shows %d t restricted. Space Law will scan if they catch you.",cargo_contraband(&game));message(&game,note);}
+  else message(&game,"Hold looks clean. Restricted goods only matter when Law scans.");
  }else message(&game,p->offer?p->offer:p->line);
 }
 static void sc_draw_text_box(void){

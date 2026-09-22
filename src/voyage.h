@@ -280,7 +280,7 @@ static void cockpit(void){
  button_icon(8,263,'T',RGB(85,212,212));text(3,33,RGB(155,154,165),"HOLD: COMMS");
  if(game.dead)text(20,33,RED,"START: RECOVER");
  else if(paused)text(20,33,RGB(240,180,91),"HOLD START  L/R BANK  U/D POWER");
- else if(game.police_stop)text(20,33,RGB(240,180,91),"X PAY   O CUSTODY");
+ else if(game.police_stop)text(16,33,RGB(240,180,91),game.police_phase?"X CONFIRM SCAN MENU":"X CONFIRM SETTLE MENU");
  else if(game.approach>=0)text(20,33,RGB(240,180,91),"X ENTER   O TURN BACK");
  else if(game.surface==2)text(20,33,RGB(155,154,165),"O BOARD   SQUARE SCAN   2xR JET");
  else if(game.planet>=0)text(20,33,RGB(155,154,165),game.surface==1?"O WALK   TRIANGLE TAKE OFF":"O LAND   TRIANGLE ORBIT");

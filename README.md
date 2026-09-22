@@ -606,14 +606,35 @@ A new commander starts on Handler Kei's Guild brief. X opens the command deck on
 
 ## Wanted levels and police
 
-Wanted levels 1-5 apply only to the system where the offence happened. Shooting protected ships adds five crime points; buying restricted slaves, narcotics or firearms adds one. Each five crime points raises a wanted level, up to five. Higher wanted levels dispatch two additional police per level.
+Wanted levels 1–5 apply only to the system where the offence was recorded. Assault or killing protected ships (not pirates) still files heat immediately. **Restricted goods** (Slaves, Narcotics, Firearms) are **not** a crime until Local Law scans your hold.
 
-A police ship within 650 metres intercepts a wanted player, stopping all simulation and opening a mandatory choice:
+### What triggers a stop
 
-- X pays a fine of 50 units per wanted level and clears the local warrant. If you cannot afford it, the choice stays open.
-- Circle accepts station custody. You are returned to the local station, charged a release bribe of 25 units per wanted level (capped at your available money), and released with the local warrant cleared.
+- **Warrant stop:** any unpaid local heat, Law within ~650 m.
+- **Cargo scan:** clean warrant but restricted tonnes aboard, Law within ~650 m.
 
-Other systems do not inherit that wanted level and police ships do not follow through warp. Returning to a system restores any uncleared warrant there. All local warrants are saved.
+Flight freezes. Up/Down choose, **X confirms**.
+
+### Scan menu
+
+1. **Submit** — clean hold: released with a short grace. Dirty hold: goods seized, warrant filed, settle menu opens.
+2. **Refuse** — forced open; seizure + extra heat; settle menu.
+3. **Run** — escape with raised warrant and pursuit (same as settle-run).
+
+### Settle menu
+
+1. **Pay fine** — 50 units per wanted star; clears this system's warrant.
+2. **Station custody** — half fine (or all you have); teleports you to the hub clear.
+3. **Run** — escalate and flee.
+
+### Getting clear
+
+- Pay or take custody at the stop, or  
+- Dock and open **Save / status**, then **Square** to pay the local fine at the desk, or  
+- Ask CUSTOMS on the station walk when you have heat, or  
+- Leave the system (the warrant waits for your return). Pirate bounties stay separate (15.0 U for destroying pirates).
+
+Higher wanted levels still wake extra police. Warrants remain per-system across warp and save/load (V2+ `wanted[]`).
 
 ## Debug menu
 

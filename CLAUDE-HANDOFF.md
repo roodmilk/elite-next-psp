@@ -85,6 +85,8 @@ Station interiors restaged from `docs/CINEMATIC-MOCKUP-TARGETS.md` + ART DIRECTO
 
 Art HUD/disembark, Designer dock-menu/cam/Factions, Story gazette lore. Smoke-green Commander download.
 
+**Law rewrite (untagged tip):** hold scan discovers restricted goods (no crime-on-buy); warrant vs scan stops; Status Square / CUSTOMS tip clear desk. Pirate bounty unchanged. No art restyle.
+
 ### 2.5.42 — ART quiet FX + declutter disembark
 
 Quiet space FX (`b0a97e1`) on the combined tip. Smoke-green Commander pack. Follow-on untagged ART tip: options-list station deck + HUD/GalNet/space-ocean look fixes.

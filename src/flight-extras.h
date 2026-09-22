@@ -306,7 +306,28 @@ static void lens_flares(void){
   }
  }
 }
-static void police_dialog(void){if(!game.police_stop)return;const int bx=76,by=38,bw=388,bh=65;unsigned edge=faction_colors[LAW];draw_portrait(16,45,48,48,VOICE_LAW*37,LAW);rect(bx,by,bw,bh,RGB(21,28,39));rect(bx,by,bw,2,edge);rect(bx,by+bh-2,bw,2,RGB(41,54,70));rect(bx+bw-2,by,2,bh,edge);line(bx,by+20,bx-12,by+28,edge);line(bx-12,by+28,bx,by+36,edge);rect(bx-3,by+22,4,13,RGB(21,28,39));speaker_name_tag(11,6,"LOCAL LAW",edge);text(11,8,RGB(229,210,163),"Commander, your vessel is under local arrest.");text(11,10,RGB(229,210,163),"Warrant %d/5 in %s. Choose now.",wanted_level(&game),game.systems[game.system].name);text(2,14,RGB(155,154,165),"YOUR RESPONSE");const char *opts[]={"PAY FINE AND LEAVE","ACCEPT STATION CUSTODY","RUN FROM LAW"};for(int i=0;i<3;i++){int y=16+i*3;if(i==police_choice)selected(y);text(3,y,i==police_choice?RGB(229,210,163):RGB(155,154,165),"%s %s",i==police_choice?">":" ",opts[i]);if(i==0)text(32,y,i==police_choice?RGB(85,212,212):RGB(155,154,165),"%.1f U",police_fine(&game)*.1f);if(i==1)text(32,y,i==police_choice?RGB(240,180,91):RGB(155,154,165),"UP TO %.1f U",police_fine(&game)*.05f);if(i==2)text(32,y,i==police_choice?RED:RGB(155,154,165),"WARRANT + PURSUIT");}text(2,26,RGB(155,154,165),"UP/DOWN CHOOSE   X CONFIRM   FLIGHT PAUSED");}
+static void police_dialog(void){if(!game.police_stop)return;const int bx=76,by=38,bw=388,bh=65;unsigned edge=faction_colors[LAW];draw_portrait(16,45,48,48,VOICE_LAW*37,LAW);rect(bx,by,bw,bh,RGB(21,28,39));rect(bx,by,bw,2,edge);rect(bx,by+bh-2,bw,2,RGB(41,54,70));rect(bx+bw-2,by,2,bh,edge);line(bx,by+20,bx-12,by+28,edge);line(bx-12,by+28,bx,by+36,edge);rect(bx-3,by+22,4,13,RGB(21,28,39));speaker_name_tag(11,6,"LOCAL LAW",edge);
+ if(game.police_phase==1){
+  text(11,8,RGB(229,210,163),"Hold inspection. Restricted cargo will be seized.");
+  text(11,10,RGB(229,210,163),"Scanner: %d t flagged in %s.",cargo_contraband(&game),game.systems[game.system].name);
+  text(2,14,RGB(155,154,165),"YOUR RESPONSE");
+  const char *opts[]={"SUBMIT TO SCAN","REFUSE INSPECTION","RUN FROM LAW"};
+  for(int i=0;i<3;i++){int y=16+i*3;if(i==police_choice)selected(y);text(3,y,i==police_choice?RGB(229,210,163):RGB(155,154,165),"%s %s",i==police_choice?">":" ",opts[i]);
+   if(i==0)text(32,y,i==police_choice?RGB(85,212,212):RGB(155,154,165),cargo_contraband(&game)?"SEIZE + FINE":"CLEAN PASS");
+   if(i==1)text(32,y,i==police_choice?RGB(240,180,91):RGB(155,154,165),"FORCE SCAN");
+   if(i==2)text(32,y,i==police_choice?RED:RGB(155,154,165),"WARRANT + PURSUIT");}
+ }else {
+  text(11,8,RGB(229,210,163),"Commander, your vessel is under local arrest.");
+  text(11,10,RGB(229,210,163),"Warrant %d/5 in %s. Choose now.",wanted_level(&game),game.systems[game.system].name);
+  text(2,14,RGB(155,154,165),"YOUR RESPONSE");
+  const char *opts[]={"PAY FINE AND LEAVE","ACCEPT STATION CUSTODY","RUN FROM LAW"};
+  for(int i=0;i<3;i++){int y=16+i*3;if(i==police_choice)selected(y);text(3,y,i==police_choice?RGB(229,210,163):RGB(155,154,165),"%s %s",i==police_choice?">":" ",opts[i]);
+   if(i==0)text(32,y,i==police_choice?RGB(85,212,212):RGB(155,154,165),"%.1f U",police_fine(&game)*.1f);
+   if(i==1)text(32,y,i==police_choice?RGB(240,180,91):RGB(155,154,165),"UP TO %.1f U",police_fine(&game)*.05f);
+   if(i==2)text(32,y,i==police_choice?RED:RGB(155,154,165),"WARRANT + PURSUIT");}
+ }
+ text(2,26,RGB(155,154,165),"UP/DOWN CHOOSE   X CONFIRM   FLIGHT PAUSED");
+}
 static void death_effect(void){if(!game.dead)return;rect(0,38,W,142,BG);float age=game.explosion;
  const Mesh *m=&meshes[mesh_id(player_ships[game.ship].name)];
  for(int i=0;i<m->triangles;i++){const MeshTri *t=&m->t[i];Vec3 center=mul(add(add(m->v[t->a],m->v[t->b]),m->v[t->c]),1.f/3);Vec3 dir=norm(add(center,(Vec3){sinf(i*4.f)*25,cosf(i*2.f)*25,20}));Vec3 shift=add((Vec3){0,0,340},mul(dir,age*130));int indices[3]={t->a,t->b,t->c};Point p[3];int visible=1;for(int j=0;j<3;j++){Vec3 v=add(shift,rotate(mul(m->v[indices[j]],1.5f),age*.8f,age*.3f));if(v.z<15){visible=0;break;}p[j]=project(v);}if(!visible)continue;for(int j=0;j<3;j++){Point a=p[j],b=p[(j+1)%3];if(a.y>=40&&a.y<178&&b.y>=40&&b.y<178)line((int)a.x,(int)a.y,(int)b.x,(int)b.y,i%3?GOLD:RED);}}

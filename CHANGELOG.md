@@ -2,6 +2,11 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## Unreleased — law system rewrite (tip; no micro-tag)
+
+- Law is a real loop: restricted goods only matter when scanned; warrant vs cargo-scan stops; settle / run; docked desk (Status Square) and CUSTOMS tip can clear heat.
+- Assault/kill of protected ships still files immediate warrants. Pirate bounty unchanged. Save V12 / wanted[] migration kept.
+
 ## Unreleased — Commander play fixes (tip; no micro-tag)
 
 - Undocked command deck **hides** Shipyard, Outfitting, and Mission board (dock-only services).

@@ -101,9 +101,55 @@ static int npc_role_for(const Game *g,int i){
 }
 int wanted_level(const Game *g){return g->legal>0?(g->legal>=25?5:1+(g->legal-1)/5):0;}
 void add_crime(Game *g,int points){g->legal+=points;if(g->legal>1000)g->legal=1000;g->wanted[g->system]=g->legal;}
-int police_fine(const Game *g){return wanted_level(g)*500;}
-int police_resolve(Game *g,int jail){if(!g->police_stop)return 0;int cost=jail?police_fine(g)/2:police_fine(g);if(!jail&&g->credits<cost){message(g,"Not enough units. Press O for custody.");return 0;}if(cost>g->credits)cost=g->credits;g->credits-=cost;g->legal=0;g->wanted[g->system]=0;g->police_stop=0;g->attacked=0;g->speed=0;g->boost=0;g->cue=SFX_UI;if(jail){g->docked=1;g->pos=(Vec3){0,0,3200};g->energy=100;message(g,"Station custody complete. Bribe paid.");}else message(g,"Fine paid. Local warrant cleared.");return 1;}
-int police_escape(Game *g){if(!g->police_stop)return 0;g->police_stop=0;add_crime(g,8);g->police_grace=7;g->attacked=7;g->speed=fmaxf(g->speed,player_ships[g->ship].speed*.8f);g->boost=0;for(int i=0;i<NPC_COUNT;i++)if(g->npc[i].alive&&g->npc[i].role==LAW)g->npc[i].target=-2;g->cue=SFX_ALERT;message(g,"You ran. Local warrant raised; patrols are pursuing.");speak(g,VOICE_LAW,"Suspect fleeing. All patrols intercept.");return 1;}
+int goods_restricted(int item){return item==3||item==6||item==10;}
+int cargo_contraband(const Game *g){int n=0;for(int i=0;i<GOODS;i++)if(goods_restricted(i))n+=g->cargo[i];return n;}
+static int police_seize_contraband(Game *g){
+ int seized=0,heat=0;
+ for(int i=0;i<GOODS;i++)if(goods_restricted(i)&&g->cargo[i]>0){
+  heat+=2+g->cargo[i];seized+=g->cargo[i];g->cargo[i]=0;
+ }
+ if(heat){if(heat>25)heat=25;add_crime(g,heat);}
+ return seized;
+}
+int police_fine(const Game *g){int wl=wanted_level(g);return (wl>0?wl:1)*500;}
+void police_begin(Game *g,int phase){
+ g->police_stop=1;g->police_phase=phase?1:0;g->speed=0;g->boost=0;g->approach=-1;g->cue=SFX_ALERT;
+ if(g->police_phase==1){message(g,"Local Law: hold inspection. Submit, refuse, or run.");speak(g,VOICE_LAW,"Inspection. Submit your hold, refuse, or run.");}
+ else {message(g,"Local Law: stop and settle your warrant.");speak(g,VOICE_LAW,"Commander, your vessel is under local arrest.");}
+}
+int police_scan_submit(Game *g){
+ if(!g->police_stop||g->police_phase!=1)return 0;
+ int seized=police_seize_contraband(g);
+ if(!seized){g->police_stop=0;g->police_phase=0;g->police_grace=5.f;g->cue=SFX_UI;message(g,"Hold clear. Free to proceed.");speak(g,VOICE_LAW,"Clean hold. Proceed, Commander.");return 1;}
+ g->police_phase=0;g->cue=SFX_ALERT;message(g,"Contraband seized. Settle the new warrant.");speak(g,VOICE_LAW,"Contraband confirmed. Settle now.");return 1;
+}
+int police_scan_refuse(Game *g){
+ if(!g->police_stop||g->police_phase!=1)return 0;
+ int seized=police_seize_contraband(g);add_crime(g,seized?6:4);
+ g->police_phase=0;g->cue=SFX_ALERT;message(g,"Scan forced. Warrant filed. Settle or run.");speak(g,VOICE_LAW,"Refusal noted. Hold opened under warrant.");return 1;
+}
+int police_resolve(Game *g,int jail){
+ if(!g->police_stop||g->police_phase!=0)return 0;
+ int cost=jail?police_fine(g)/2:police_fine(g);
+ if(!jail&&g->credits<cost){message(g,"Not enough units. Choose station custody.");return 0;}
+ if(cost>g->credits)cost=g->credits;g->credits-=cost;g->legal=0;g->wanted[g->system]=0;g->police_stop=0;g->police_phase=0;g->attacked=0;g->speed=0;g->boost=0;g->cue=SFX_UI;
+ if(jail){g->docked=1;g->pos=(Vec3){0,0,3200};g->energy=100;message(g,"Station custody complete. Release fee paid.");}
+ else message(g,"Fine paid. Local warrant cleared.");
+ return 1;
+}
+int police_escape(Game *g){
+ if(!g->police_stop)return 0;
+ int scan=g->police_phase==1;g->police_stop=0;g->police_phase=0;add_crime(g,scan?10:8);g->police_grace=7;g->attacked=7;
+ g->speed=fmaxf(g->speed,player_ships[g->ship].speed*.8f);g->boost=0;
+ for(int i=0;i<NPC_COUNT;i++)if(g->npc[i].alive&&g->npc[i].role==LAW)g->npc[i].target=-2;
+ g->cue=SFX_ALERT;message(g,"You ran. Local warrant raised; patrols are pursuing.");speak(g,VOICE_LAW,"Suspect fleeing. All patrols intercept.");return 1;
+}
+int police_pay_desk(Game *g){
+ if(!g->docked||g->legal<=0||g->police_stop)return 0;
+ int cost=police_fine(g);if(g->credits<cost){message(g,"Not enough units to clear this warrant.");return 0;}
+ g->credits-=cost;g->legal=0;g->wanted[g->system]=0;g->cue=SFX_UI;
+ message(g,"Local fine paid at the station desk. Warrant cleared.");return 1;
+}
 int approach_planet(Game *g,int body){if(g->dead||g->docked||g->jump>0||g->planet>=0||body<1||body>=BODY_COUNT)return 0;Body *b=&g->bodies[body];if(dot(forward(g),norm(sub(b->pos,g->pos)))<.7f){message(g,"Turn to face the planet, then press O.");return 0;}if(b->type==GAS){message(g,"Gas giants have no landing approach.");return 0;}if(length(sub(g->pos,b->pos))>b->radius+1000){message(g,"Move within 1,000 m of the surface first.");return 0;}g->approach=body;g->speed=0;g->boost=0;jobs_from_legacy(g);for(int i=0;i<g->job_n;){if(g->jobs[i].dest==g->system&&g->jobs[i].type==MISSION_EXPLORATION&&g->jobs[i].item==body){g->job_sel=i;mission_finish_slot(g,i,"Exploration scan complete. Payment received.");}else i++;}story_event(g,STORY_EV_WORLD);return 1;}
 void turn_back(Game *g){if(g->approach>=1&&g->approach<BODY_COUNT){Body *body=&g->bodies[g->approach];Vec3 delta=sub(g->pos,body->pos);float distance=length(delta);Vec3 away=distance>1?mul(delta,1/distance):mul(forward(g),-1);if(distance<body->radius+100)g->pos=add(body->pos,mul(away,body->radius+100));g->yaw=atan2f(away.x,away.z);g->pitch=asinf(fmaxf(-1,fminf(1,away.y)));}else {g->yaw+=3.14159265f;g->pitch=-g->pitch;}g->speed=100;g->boost=0;g->approach=-1;}
 static float wrap_range(float v,float half){float w=half*2;v=fmodf(v+half,w);if(v<0)v+=w;return v-half;}
@@ -276,7 +322,7 @@ static void travellers_promote(Game *g){
 }
 void game_spawn(Game *g){
  jobs_from_legacy(g);
- system_bodies(g);g->dock_stage=0;g->station_variant=0;g->approach=-1;g->planet=-1;g->surface=0;g->boost=0;g->attacked=0;g->encounter=0;g->police_stop=0;g->missile_time=0;g->missile_target=-1;g->incoming_missile=0;g->incoming_source=-1;
+ system_bodies(g);g->dock_stage=0;g->station_variant=0;g->approach=-1;g->planet=-1;g->surface=0;g->boost=0;g->attacked=0;g->encounter=0;g->police_stop=0;g->police_phase=0;g->missile_time=0;g->missile_target=-1;g->incoming_missile=0;g->incoming_source=-1;
  for(int i=0;i<DEBRIS_COUNT;i++)g->debris[i].alive=0;
  /* Belt geometry and mineable objects share one bounded pool. */
  for(int band=0;band<2;band++){
@@ -342,9 +388,9 @@ void launch(Game *g){if(!g->docked)return;guild_event(g,GUILD_LAUNCH);g->docked=
 #include "docking.h"
 #include "journey.h"
 int trade(Game *g,int i,int buy){if(!g->docked||i<0||i>=GOODS)return 0;
- if(buy){if(g->credits<g->price[i]||g->stock[i]<1||(goods[i].unit=='t'&&cargo_used(g)>=cargo_capacity(g))){message(g,"Check units, stock and cargo space.");return 0;}g->credits-=g->price[i];g->stock[i]--;g->cargo[i]++;if(i==3||i==6||i==10){add_crime(g,1);message(g,"Restricted goods purchased. Local warrant increased.");}}
+ if(buy){if(g->credits<g->price[i]||g->stock[i]<1||(goods[i].unit=='t'&&cargo_used(g)>=cargo_capacity(g))){message(g,"Check units, stock and cargo space.");return 0;}g->credits-=g->price[i];g->stock[i]--;g->cargo[i]++;if(goods_restricted(i))message(g,"Restricted goods loaded. Law will scan your hold.");}
  else {if(g->cargo[i]<=mission_cargo_reserved(g,i)){message(g,g->cargo[i]?"Reserved for a mission. Abandon it to release cargo.":"Nothing to sell.");return 0;}g->cargo[i]--;g->stock[i]++;g->credits+=g->price[i];}g->cue=SFX_UI;
- if(!(buy&&(i==3||i==6||i==10))){char note[64];snprintf(note,sizeof(note),buy?"Bought %s.":"Sold %s.",goods[i].name);message(g,note);}
+ if(!(buy&&goods_restricted(i))){char note[64];snprintf(note,sizeof(note),buy?"Bought %s.":"Sold %s.",goods[i].name);message(g,note);}
  return 1;
 }
 int buy_ship(Game *g,int i){if(!g->docked||i<0||i>=player_ship_count)return 0;if(i==g->ship){message(g,"Already on this ship.");return 0;}
@@ -384,7 +430,7 @@ int salvage(Game *g,int id){
  if(d->wreck){g->credits+=d->qty;snprintf(note,sizeof(note),"HULL SALVAGE RECOVERED: %.1f UNITS.",d->qty*.1f);}
  else {int item=d->good;if(item<0||item>=GOODS)item=12;
   if(goods[item].unit=='t'&&cargo_used(g)+d->qty>cargo_capacity(g)){int payout=g->price[item]*d->qty/2;if(payout<10)payout=10;g->credits+=payout;snprintf(note,sizeof(note),"HOLD FULL. SOLD %s SALVAGE FOR %.1f UNITS.",goods[item].name,payout*.1f);}
-  else {g->cargo[item]+=d->qty;if(item==3||item==6||item==10){add_crime(g,1);snprintf(note,sizeof(note),"SALVAGED RESTRICTED %s. LOCAL WARRANT INCREASED.",goods[item].name);}else snprintf(note,sizeof(note),"SALVAGED %d%c %s.",d->qty,goods[item].unit,goods[item].name);}
+  else {g->cargo[item]+=d->qty;if(goods_restricted(item))snprintf(note,sizeof(note),"SALVAGED RESTRICTED %s. HIDE IT FROM LAW SCANS.",goods[item].name);else snprintf(note,sizeof(note),"SALVAGED %d%c %s.",d->qty,goods[item].unit,goods[item].name);}
  }
  d->alive=0;message(g,note);g->cue=SFX_SCAN;return 1;
 }
@@ -512,7 +558,11 @@ void game_tick(Game *g,float dt,float turn,float pitch,int throttle,int fire){
   else {aim=stn;if(length(sub(n->pos,stn))<520){n->waypoint=8;n->dir=norm((Vec3){n->pos.x,0,n->pos.z-3500});}}
   if(n->role==LAW||n->role==PIRATES)for(int j=0;j<NPC_COUNT;j++)if(i!=j&&g->npc[j].alive){NPC *o=&g->npc[j];if((n->role==LAW&&o->role==PIRATES)||(n->role==PIRATES&&(o->role==TRADERS||o->role==LAW))){float d=length(sub(o->pos,n->pos));if(d<best){target=j;best=d;aim=o->pos;}}}
   float pd=length(sub(g->pos,n->pos));if(((n->role==PIRATES&&g->system!=7)||(n->role==LAW&&g->legal>0)||((n->role==TRADERS||n->role==EXPLORERS)&&n->health<npc_max_health(n)-.5f))&&pd<best){target=-2;best=pd;aim=g->pos;}
-  if(n->role==LAW&&g->legal>0&&pd<650&&g->jump<=0&&g->police_grace<=0){n->target=-2;g->police_stop=1;g->speed=0;g->boost=0;g->approach=-1;g->cue=SFX_ALERT;message(g,"Local Law: stop and settle your warrant.");speak(g,VOICE_LAW,"Commander, your vessel is under local arrest.");return;}
+  if(n->role==LAW&&pd<650&&g->jump<=0&&g->police_grace<=0){
+   int dirty=cargo_contraband(g);
+   if(g->legal>0){n->target=-2;police_begin(g,0);return;}
+   if(dirty>0){n->target=-2;police_begin(g,1);return;}
+  }
   if((n->role==TRADERS&&!n->freighter)||n->role==EXPLORERS){float danger=1100;int threat=-1;for(int j=0;j<NPC_COUNT;j++)if(g->npc[j].alive&&g->npc[j].role==PIRATES){float d=length(sub(n->pos,g->npc[j].pos));if(d<danger){danger=d;threat=j;}}if(threat>=0)aim=add(n->pos,mul(norm(sub(n->pos,g->npc[threat].pos)),2000));}
   n->target=target;Vec3 desired=norm(sub(aim,n->pos));for(int b=0;b<BODY_COUNT;b++){Vec3 toward=sub(g->bodies[b].pos,n->pos);float along=dot(toward,desired),radius=g->bodies[b].radius+n->radius+300;if(along>0&&along<radius+1800&&length(sub(toward,mul(desired,along)))<radius){Vec3 outward=norm(mul(toward,-1));desired=norm(add(desired,add(mul(outward,2),(Vec3){.15f,.4f,0})));}}for(int cap=8;cap<36;cap+=12){NPC *c=&g->npc[cap];if(!c->alive||!c->freighter)continue;Vec3 toward=sub(c->pos,n->pos);float along=dot(toward,desired),clear=c->radius+n->radius+220;if(along>0&&along<clear+1000&&length(sub(toward,mul(desired,along)))<clear)desired=norm(add(desired,add(mul(norm(mul(toward,-1)),2),(Vec3){.15f,.6f,0})));}
   n->dir=norm(add(mul(n->dir,1-dt*1.8f),mul(desired,dt*1.8f)));
@@ -643,13 +693,23 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  Vec3 facing=forward(&g);turn_back(&g);CHECK(dot(facing,forward(&g))<-.999f&&g.approach==-1,"turn back reverses heading 180 degrees");
  game_init(&g);g.system=0;launch(&g);g.speed=0;for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;g.npc[2].alive=1;g.npc[2].pos=(Vec3){0,0,300};g.npc[2].dir=(Vec3){0,0,-1};g.npc[2].cooldown=0;game_tick(&g,.016f,0,0,0,0);CHECK(g.attacked>0,"incoming fire raises attack warning");
  game_init(&g);launch(&g);for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;int dest=-1;for(int i=0;i<256;i++)if(i!=g.system&&distance_ly(&g,g.system,i)*10<=g.fuel){dest=i;break;}g.destination=dest;float fuel=g.fuel,cost=distance_ly(&g,g.system,dest)*10;CHECK(jump_start(&g),"reachable warp starts");for(int i=0;i<310;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.system==dest&&fabsf(g.fuel-(fuel-cost))<.01f,"warp arrives in selected system and consumes fuel once");
- game_init(&g);add_crime(&g,15);CHECK(wanted_level(&g)==3&&g.wanted[g.system]==15,"crime raises the current system wanted level");g.credits=2000;g.police_stop=1;int fine=police_fine(&g);CHECK(police_resolve(&g,0)&&g.credits==2000-fine&&g.legal==0,"paying police deducts exact fine and clears local warrant");
- add_crime(&g,10);g.credits=20;g.police_stop=1;CHECK(!police_resolve(&g,0)&&g.police_stop,"unaffordable fine keeps police choice open");CHECK(police_resolve(&g,1)&&g.docked&&g.credits==0&&g.legal==0,"custody returns to station and takes affordable release bribe");
- game_init(&g);launch(&g);add_crime(&g,10);g.police_stop=1;int before_run=g.legal;CHECK(police_escape(&g)&&!g.police_stop&&g.legal>before_run&&g.police_grace>0&&g.attacked>0,"running from law resumes flight, escalates warrant and starts pursuit");
+ game_init(&g);add_crime(&g,15);CHECK(wanted_level(&g)==3&&g.wanted[g.system]==15,"crime raises the current system wanted level");g.credits=2000;g.police_stop=1;g.police_phase=0;int fine=police_fine(&g);CHECK(police_resolve(&g,0)&&g.credits==2000-fine&&g.legal==0,"paying police deducts exact fine and clears local warrant");
+ add_crime(&g,10);g.credits=20;g.police_stop=1;g.police_phase=0;CHECK(!police_resolve(&g,0)&&g.police_stop,"unaffordable fine keeps police choice open");CHECK(police_resolve(&g,1)&&g.docked&&g.credits==0&&g.legal==0,"custody returns to station and takes affordable release bribe");
+ game_init(&g);launch(&g);add_crime(&g,10);g.police_stop=1;g.police_phase=0;int before_run=g.legal;CHECK(police_escape(&g)&&!g.police_stop&&g.legal>before_run&&g.police_grace>0&&g.attacked>0,"running from law resumes flight, escalates warrant and starts pursuit");
  game_init(&g);launch(&g);g.pos=(Vec3){0,0,-20000};g.speed=0;for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;add_crime(&g,10);game_tick(&g,.016f,0,0,0,0);int cops=0;for(int i=36;i<NPC_COUNT;i++)cops+=g.npc[i].alive;CHECK(cops==4,"wanted level two dispatches four extra police");
- g.npc[36].pos=add(g.pos,(Vec3){0,0,300});game_tick(&g,.016f,0,0,0,0);CHECK(g.police_stop,"approaching police opens interception");Vec3 stopped=g.npc[36].pos;float frozen=g.time;game_tick(&g,.016f,1,1,1,1);CHECK(g.time==frozen&&length(sub(stopped,g.npc[36].pos))==0,"police encounter freezes world simulation");
- g.police_stop=0;for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;int origin=g.system;g.destination=dest;g.fuel=100;g.jump=.001f;game_tick(&g,.016f,0,0,0,0);CHECK(g.legal==0&&g.wanted[origin]==10,"warp leaves warrant behind in origin system");g.destination=origin;g.jump=.001f;game_tick(&g,.016f,0,0,0,0);CHECK(g.legal==10,"returning to original system restores its warrant");
+ g.npc[36].pos=add(g.pos,(Vec3){0,0,300});game_tick(&g,.016f,0,0,0,0);CHECK(g.police_stop&&g.police_phase==0,"approaching police opens warrant interception");Vec3 stopped=g.npc[36].pos;float frozen=g.time;game_tick(&g,.016f,1,1,1,1);CHECK(g.time==frozen&&length(sub(stopped,g.npc[36].pos))==0,"police encounter freezes world simulation");
+ g.police_stop=0;g.police_phase=0;for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;int origin=g.system;g.destination=dest;g.fuel=100;g.jump=.001f;game_tick(&g,.016f,0,0,0,0);CHECK(g.legal==0&&g.wanted[origin]==10,"warp leaves warrant behind in origin system");g.destination=origin;g.jump=.001f;game_tick(&g,.016f,0,0,0,0);CHECK(g.legal==10,"returning to original system restores its warrant");
  g.docked=1;g.fuel=10;CHECK(save_game(&g,"test-wanted.sav")&&load_game(&loaded,"test-wanted.sav")&&loaded.wanted[origin]==10,"wanted records survive save and load");remove("test-wanted.sav");
+ /* Law rewrite: no heat on acquire; scan discovers contraband; desk clears when docked. */
+ game_init(&g);g.credits=5000;int legal0=g.legal;CHECK(trade(&g,6,1)&&g.cargo[6]==1&&g.legal==legal0,"buying narcotics does not raise warrant until scanned");
+ launch(&g);g.pos=(Vec3){0,0,-20000};g.speed=0;for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;g.npc[36].alive=1;g.npc[36].role=LAW;g.npc[36].pos=add(g.pos,(Vec3){0,0,300});g.police_grace=0;game_tick(&g,.016f,0,0,0,0);
+ CHECK(g.police_stop&&g.police_phase==1,"dirty hold near Law opens a cargo scan");
+ CHECK(police_scan_submit(&g)&&g.cargo[6]==0&&g.legal>0&&g.police_phase==0&&g.police_stop,"submit scan seizes narcotics and opens settle");
+ g.credits=5000;CHECK(police_resolve(&g,0)&&g.legal==0&&!g.police_stop,"paying after a scan clears the warrant");
+ game_init(&g);g.credits=5000;g.cargo[3]=2;launch(&g);g.pos=(Vec3){0,0,-5000};for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;g.npc[6].alive=1;g.npc[6].role=LAW;g.npc[6].pos=add(g.pos,(Vec3){0,0,200});g.police_grace=0;game_tick(&g,.016f,0,0,0,0);
+ CHECK(g.police_phase==1&&police_scan_refuse(&g)&&g.cargo[3]==0&&g.legal>=6&&g.police_phase==0,"refuse forces seizure and warrant");
+ game_init(&g);g.docked=1;add_crime(&g,10);g.credits=5000;int desk=police_fine(&g);CHECK(police_pay_desk(&g)&&g.legal==0&&g.credits==5000-desk,"docked status desk pays and clears local warrant");
+ game_init(&g);g.docked=1;g.credits=5000;g.cargo[0]=0;{int before=g.legal;/* smuggle accept via cargo only */g.cargo[6]=1;CHECK(g.legal==before&&cargo_contraband(&g)==1,"contraband cargo alone does not create a warrant");}
  game_init(&g);g.roll=1.5707963f;Vec3 rolled=camera(&g,(Vec3){100,0,100});CHECK(fabsf(rolled.x)<.01f&&rolled.y< -99,"roll rotates camera and compass coordinates");
  Save legacy;memset(&legacy,0,sizeof(legacy));legacy.magic=0x41455053;legacy.version=1;legacy.system=7;legacy.destination=129;legacy.credits=1000;legacy.fuel=10;legacy.contract=-1;legacy.legal=5;FILE *legacyfile=fopen("test-legacy.sav","wb");if(legacyfile){fwrite(&legacy,1,sizeof(legacy),legacyfile);fclose(legacyfile);}CHECK(load_game(&loaded,"test-legacy.sav")&&loaded.credits==1000&&loaded.wanted[7]==5,"previous build saves import with a local warrant");remove("test-legacy.sav");
  game_init(&g);launch(&g);for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;g.pos=(Vec3){0,0,3200};g.speed=100;g.roll=station_angle(&g);for(int i=0;i<120&&!g.dock_stage;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.dock_stage==2&&!g.dead&&g.energy==100,"manual entry passes through actual station opening without damage");int sawWelcome=0;for(int i=0;i<400;i++){game_tick(&g,1.f/60,0,0,0,0);sawWelcome|=g.dock_stage==3;}CHECK(sawWelcome&&g.docked,"manual entry shows arrival then welcome before services");
