@@ -10,6 +10,8 @@ Systems/QA follow-up hardens fitted catalog bounds in Loadout and refund paths a
 
 The first expansion-roadmap milestone is also landed locally: outfitting content is centralized in `src/equipment-data.h`, with stable catalog IDs and runtime table validation. Full smoke remains green.
 
+The second milestone adds lightweight PSP heap telemetry to `performance-check.txt`; the latest smoke measured 14.99 MB minimum free heap and 14.74 MB largest block under PPSSPP, with all groups passing.
+
 ## Start here
 
 This is a native PSP homebrew game inspired by Elite-A and the wider Elite lineage. It is no longer a literal port: it has a new flight/world simulation, 256 seeded systems, modern PSP interface, multi-body systems, factions, missions, planetary flight/EVA, custom radio folders and an original Kei/Ryn campaign called **The Open Channel**.

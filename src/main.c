@@ -16,6 +16,7 @@
 #include "campaign.h"
 #include "saga.h"
 #include "audio.h"
+#include "perf-metrics.h"
 #include "radio-tests.h"
 #include "steering.h"
 #include "steering-test.h"
@@ -834,11 +835,11 @@ int main(void){
  int dump_native=0,audit_all=0;FILE *dflag=fopen("dump-native.flag","r");if(dflag){fclose(dflag);dump_native=1;}FILE *aflag=fopen("audit-all.flag","r");if(aflag){fclose(aflag);audit_all=1;}
  FILE *radioflag=fopen("open-radio.flag","r");if(radioflag){fclose(radioflag);game.voice_time=0;story_complete(&game);change_page(RADIO);}audio_init();
  FILE *walkflag=fopen("open-walk.flag","r");if(walkflag){int room=0;fscanf(walkflag,"%d",&room);fclose(walkflag);game.docked=1;walk_kind=0;walk_x=walk_z=walk_yaw=0;sc_built_for=-1;sc_build_map();if(room>=0&&room<SC_R_COUNT)sc_room=room;sc_verb=SC_V_LOOK;sc_hot=0;sc_menu=0;page=WALK;game.voice_time=0;}
- unsigned previous=0;int frames=0,frame_samples=0,slow_frames=0,scene_frames[43]={0};double frame_seconds=0,scene_seconds[43]={0};float worst_frame=0;uint64_t last,now;sceRtcGetCurrentTick(&last);float frequency=(float)sceRtcGetTickResolution();
+ unsigned previous=0;int frames=0,frame_samples=0,slow_frames=0,scene_frames[43]={0};double frame_seconds=0,scene_seconds[43]={0};float worst_frame=0;PerfMetrics perf;perf_metrics_reset(&perf);uint64_t last,now;sceRtcGetCurrentTick(&last);float frequency=(float)sceRtcGetTickResolution();
  while(running){
   if(suspend_requested){suspend_requested=0;audio_prepare_suspend();}
   if(resume_requested){resume_requested=0;runtime_recover_from_sleep();previous=0;sceRtcGetCurrentTick(&last);}
-  sceRtcGetCurrentTick(&now);float raw_dt=(now-last)/frequency,dt=raw_dt;last=now;if(smoke&&frames>30&&raw_dt<.25f){int scene=frames/10;if(scene>42)scene=42;frame_seconds+=raw_dt;frame_samples++;scene_seconds[scene]+=raw_dt;scene_frames[scene]++;if(raw_dt>worst_frame)worst_frame=raw_dt;if(raw_dt>.025f)slow_frames++;}if(dt>.05f)dt=.05f;if(dt<.001f)dt=.001f;
+  sceRtcGetCurrentTick(&now);float raw_dt=(now-last)/frequency,dt=raw_dt;last=now;if(smoke&&frames>30&&raw_dt<.25f){int scene=frames/10;if(scene>42)scene=42;frame_seconds+=raw_dt;frame_samples++;scene_seconds[scene]+=raw_dt;scene_frames[scene]++;if(raw_dt>worst_frame)worst_frame=raw_dt;if(raw_dt>.025f)slow_frames++;perf_metrics_sample_frame(&perf,raw_dt);if((frames&31)==0)perf_metrics_sample_memory(&perf);}if(dt>.05f)dt=.05f;if(dt<.001f)dt=.001f;
   SceCtrlData pad={0};pad.Lx=pad.Ly=128;
   int valid=sceCtrlPeekBufferPositive(&pad,1)>0;
   if(!valid){pad.Buttons=0;pad.Lx=pad.Ly=128;}
@@ -905,12 +906,11 @@ int main(void){
    * NEXTFRAME (2.5.4) scheduled the back buffer one frame late and left us painting the live
    * front buffer — black flash / strobing on hardware. Keep sleep recover; fix the flip mode. */
   sceDisplayWaitVblankStart();sceDisplaySetFrameBuf((void*)fb,STRIDE,PSP_DISPLAY_PIXEL_FORMAT_8888,PSP_DISPLAY_SETBUF_IMMEDIATE);buffer^=1;frames++;
-  if(smoke&&!visual_hold&&frames==425){double fps=frame_seconds>0?frame_samples/frame_seconds:0;FILE *log=fopen("boot-check.txt","a");if(log){fprintf(log,"Rendered 42 scenes in 425 frames, including landing, EVA, ship compass, Codex and anomaly scan.\n");fprintf(log,"Performance: %.2f average FPS, %.2f ms worst frame, %d frames over 25 ms.\n",fps,worst_frame*1000,slow_frames);fclose(log);}FILE *perf=fopen("performance-check.txt","w");if(perf){int planet_fail=0;for(int i=36;i<=39;i++)if(scene_frames[i]&&scene_frames[i]/scene_seconds[i]<24)planet_fail=1;int fail=fps<50||planet_fail;fprintf(perf,"%s average frame rate >= 50 FPS (%.2f FPS)\n",fps>=50?"PASS":"FAIL",fps);fprintf(perf,"%s planetary flight/EVA scenes remain >= 24 FPS\n",planet_fail?"FAIL":"PASS");fprintf(perf,"INFO worst frame %.2f ms; %d frames over 25 ms\n",worst_frame*1000,slow_frames);for(int i=3;i<43;i++)if(scene_frames[i])fprintf(perf,"SCENE %02d %.2f FPS\n",i,scene_frames[i]/scene_seconds[i]);fprintf(perf,"RESULT %d failures\n",fail);fclose(perf);}running=0;}
+  if(smoke&&!visual_hold&&frames==425){double fps=frame_seconds>0?frame_samples/frame_seconds:0;FILE *log=fopen("boot-check.txt","a");if(log){fprintf(log,"Rendered 42 scenes in 425 frames, including landing, EVA, ship compass, Codex and anomaly scan.\n");fprintf(log,"Performance: %.2f average FPS, %.2f ms worst frame, %d frames over 25 ms.\n",fps,worst_frame*1000,slow_frames);fclose(log);}FILE *perf_file=fopen("performance-check.txt","w");if(perf_file){int planet_fail=0;for(int i=36;i<=39;i++)if(scene_frames[i]&&scene_frames[i]/scene_seconds[i]<24)planet_fail=1;int fail=fps<50||planet_fail;fprintf(perf_file,"%s average frame rate >= 50 FPS (%.2f FPS)\n",fps>=50?"PASS":"FAIL",fps);fprintf(perf_file,"%s planetary flight/EVA scenes remain >= 24 FPS\n",planet_fail?"FAIL":"PASS");fprintf(perf_file,"INFO worst frame %.2f ms; %d frames over 25 ms\n",worst_frame*1000,slow_frames);fprintf(perf_file,"INFO heap minimum free %d bytes; largest block %d bytes\n",perf.min_free_mem==0x7fffffff?0:perf.min_free_mem,perf.min_free_block==0x7fffffff?0:perf.min_free_block);for(int i=3;i<43;i++)if(scene_frames[i])fprintf(perf_file,"SCENE %02d %.2f FPS\n",i,scene_frames[i]/scene_seconds[i]);fprintf(perf_file,"RESULT %d failures\n",fail);fclose(perf_file);}running=0;}
  }
  audio_stop();
  sceKernelExitGame();return 0;
 }
-
 
 
 
