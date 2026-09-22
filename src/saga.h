@@ -1,6 +1,6 @@
 /* The Open Channel: data-driven main campaign.
  * Briefings follow ask-then-answer (same rhythm as the prologue): beat N+1
- * answers the commander's ask on beat N. Acts I–III (chs 02–19 / indices 0–17)
+ * answers the commander's ask on beat N. Acts I–IV (chs 02–25 / indices 0–23)
  * ship eight page-script beats with locked codas. Feature screenplay:
  * docs/OPEN-CHANNEL-SCREENPLAY.md */
 enum { SAGA_DOCK, SAGA_SCAN, SAGA_HUNT, SAGA_HOME, SAGA_CHOICE };

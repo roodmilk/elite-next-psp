@@ -8,6 +8,12 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 - Side hatch doors replace top chrome door strips so the focal object stays clear; UI chrome thins to cream/cyan hairlines.
 - Fewer decorative frames (no checker floors / lamp rows); SHIP return and talk/shop/gift/taxi unchanged.
 
+### Pending story tip pack (untagged — big releases only)
+
+- Open Channel Act III–IV eight-beat page scripts with locked codas through berth (Ch.14–25); ask-then-answer pairs realigned to answer the prior ask.
+- Story chat chrome: drop needless `YOU:` / `YOU SPOKE` headers; player bubble reads `COMMANDER`.
+- Lands on PR into the 2.5.39 tip; no micro `v*` until a coordinated story+gameplay drop.
+
 ## 2.5.38 - 2026-09-22
 
 - Soft-FB Wave A canopy FX on the unified tip: denser engine plumes, boost heat shimmer, hit sparks and explosion embers (`space-fx.h`).
@@ -16,8 +22,7 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 
 ## 2.5.37 - 2026-09-22
 
-- **Unified playable tip:** MacVenture station deck (art-kit soft-FB rooms, clear SHIP return, talk/shop/gift/taxi) plus Open Channel Act I–III eight-beat page scripts with choice blurbs and locked codas (Ch.02–19 through No Easy Flag).
-- Act III (Ch.14–19) raised to page-script authority from the screenplay: map deposit, Federal/Imperial/Alliance envoys, Coldest Signal, coalition choice.
+- **Unified playable tip:** MacVenture station deck (art-kit soft-FB rooms, clear SHIP return, talk/shop/gift/taxi) plus Open Channel Act I–II eight-beat page scripts with choice blurbs and locked codas (Ch.02–13 through Carry Home).
 - ART DIRECTOR in-game look pass folded in: warmer planets, settlement silhouettes, richer space presentation (`planet.h` / `voyage.h`).
 - Composition targets for post-unify MacVenture/station polish land in `docs/CINEMATIC-MOCKUP-TARGETS.md` (hero focus, fewer frames, warm staging).
 - Single downloadable pack — story + station together.
