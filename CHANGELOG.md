@@ -24,6 +24,12 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 - Added ASCII-safe English, French, and German UI labels selected by `language.cfg`.
 - The existing 8×8 bitmap font remains the renderer, preserving native resolution and memory bounds.
 
+## Unreleased — Opt-in ad-hoc convoy transport
+
+- Added a `convoy.flag`-gated PSP Adhoc transport foundation with bounded peer snapshots and stale-peer expiry.
+- Added packet validation regression coverage without requiring a second PSP or network during smoke tests.
+- Convoy pairing and real-hardware radio/suspend behavior remain physical-PSP validation items.
+
 - Loadout display and module refunds validate fitted catalog indexes before using equipment arrays.
 - Added V13 slot-value regression checks; save version and V12 migration remain unchanged.
 

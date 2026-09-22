@@ -314,6 +314,8 @@ The last verified 2.5.32 run passed every group under PPSSPP (game, input, steer
 
 ## Highest-priority remaining work
 
+- Systems/QA added an opt-in convoy transport foundation. It is activated only when `convoy.flag` is present, so normal boot and smoke remain offline; packet schema validation is covered by `convoy-check.txt`. Pairing, peer rendering/gameplay, and physical two-PSP validation are still open.
+
 1. **Confirm 2.5.4 sleep/resume on physical PSP.** Put the handheld to sleep mid-flight and mid-radio for several hours, then wake — screen and audio must return. Also re-check 20+ minute MP3 playback across sample rates.
 2. **Deepen the 24 chapters further.** Briefings now carry full spoken sentences and authored asks; many bible set-pieces still resolve through generic dock/scan/hunt actions rather than unique scenes.
 3. **Visually inspect the full galaxy map at 480×272** and the new Select-deck ship preview / radio tuner on hardware.

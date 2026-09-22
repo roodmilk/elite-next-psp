@@ -21,7 +21,7 @@ for source in game ships main; do
 done
 psp-gcc -G0 "-L$SDK/lib" "-specs=$SDK/lib/prxspecs" -Wl,-q,-T"$SDK/lib/linkfile.prx" -Wl,-zmax-page-size=128 \
   "${OBJECTS[@]}" "$SDK/lib/prxexports.o" \
-  -lpspdebug -lpspdisplay -lpspge -lpspctrl -lpsppower -lpsprtc -lpspaudio -lpspmp3 -lpsputility -lm \
+  -lpspdebug -lpspdisplay -lpspge -lpspgu -lpspctrl -lpsppower -lpsprtc -lpspaudio -lpspmp3 -lpsputility -lpspnet_adhocctl -lpspnet_adhoc -lpspnet -lm \
   -o "$BUILD/elite-a.elf"
 psp-fixup-imports "$BUILD/elite-a.elf"
 psp-prxgen "$BUILD/elite-a.elf" "$BUILD/elite-a.prx"

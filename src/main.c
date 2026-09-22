@@ -19,6 +19,7 @@
 #include "perf-metrics.h"
 #include "gu-accel.h"
 #include "localization.h"
+#include "convoy.h"
 #include "radio-tests.h"
 #include "steering.h"
 #include "steering-test.h"
@@ -43,7 +44,7 @@ static volatile int running=1;
 static volatile int resume_requested=0,suspend_requested=0;
 static unsigned *fb;
 static Game game;
-static int page=0,row=0,paused=0,smoke=0,visual_hold=0,hud_hidden=0,hud_mode=0,high_contrast=0;
+static int page=0,row=0,paused=0,smoke=0,visual_hold=0,hud_hidden=0,hud_mode=0,high_contrast=0,convoy_mode=0;
 /* 0 = Kei/Ryn campaign, 1 = Guild assignments, 2+ = accepted job slot. */
 static int tracked_mission=0;
 static int analog_center_x=128,analog_center_y=128;
@@ -822,8 +823,9 @@ int main(void){
  scePowerSetClockFrequency(333,333,166);sceCtrlSetSamplingCycle(0);sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
  sceDisplaySetMode(0,W,H);pspDebugScreenInit();pspDebugScreenEnableBackColor(0);locale_load("language.cfg");gu_accel_init();
  game_init(&game);deck_reset();FILE *flag=fopen("smoke.flag","r");if(flag){smoke=1;fclose(flag);FILE *visual=fopen("visual.flag","r");if(visual){visual_hold=1;fclose(visual);}FILE *log=fopen("boot-check.txt","w");if(log){fprintf(log,"PSP main reached; %d meshes loaded.\n",mesh_count);fclose(log);}}
- if(smoke){radio_tests();steering_tests();game_tests("game-check.txt");input_tests();}
- else {game.voice_time=0;change_page(INTRO);}
+  if(smoke){radio_tests();steering_tests();game_tests("game-check.txt");input_tests();convoy_tests();}
+  else {game.voice_time=0;change_page(INTRO);}
+  {FILE *convoyflag=fopen("convoy.flag","r");if(convoyflag){fclose(convoyflag);convoy_mode=convoy_start();if(!convoy_mode)message(&game,"Convoy mode unavailable.");}}
  FILE *introflag=fopen("open-intro.flag","r");if(introflag){fclose(introflag);change_page(INTRO);intro_time=6;}FILE *socialflag=fopen("open-spacebook.flag","r");if(socialflag){fclose(socialflag);change_page(GALNET);galnet_tab=3;game.voice_time=0;}FILE *netflag=fopen("open-galnet.flag","r");if(netflag){int tab=0;fscanf(netflag,"%d",&tab);fclose(netflag);change_page(GALNET);galnet_tab=tab>=0&&tab<6?tab:0;row=0;game.voice_time=0;}FILE *helpflag=fopen("open-help.flag","r");if(helpflag){int tab=0;fscanf(helpflag,"%d",&tab);fclose(helpflag);change_page(HELP);help_tab=tab>=0&&tab<4?tab:0;}
  FILE *yardflag=fopen("open-yard.flag","r");if(yardflag){int ship=0;fscanf(yardflag,"%d",&ship);fclose(yardflag);change_page(YARD);row=ship>=0&&ship<player_ship_count?ship:0;game.voice_time=0;story_complete(&game);}
  FILE *sflag=fopen("open-story.flag","r");if(sflag){fclose(sflag);change_page(STORY);}
@@ -858,6 +860,7 @@ int main(void){
   if(page!=FLIGHT&&!paused){game.message_time-=dt;if(game.message_time<0)game.message_time=0;}
   if(game.cue){if(!quiet_comms||(game.cue!=SFX_COMM&&game.cue!=SFX_TALK))audio_play(game.cue);game.cue=0;}
   audio_duck=(!quiet_comms&&game.voice_time>0)||game.police_stop;audio_scene_set(game.planet>=0?1:(game.attacked>0||game.incoming_missile>0)?2:game.docked||page!=FLIGHT?3:0);
+  if(convoy_mode){ConvoySnapshot snapshot={CONVOY_MAGIC,CONVOY_VERSION,(uint16_t)game.system,(int16_t)(game.speed<0?0:game.speed),game.pos.x,game.pos.y,game.pos.z,game.yaw,game.pitch,(uint16_t)(game.energy<0?0:game.energy>100?100:game.energy),(uint16_t)(game.energy<0?0:game.energy>100?100:game.energy)};convoy_poll(&snapshot);}
   if(smoke&&frames==20){suspend_requested=1;resume_requested=1;}
   if(smoke&&frames==21){suspend_requested=1;resume_requested=1;}
   if(smoke&&frames>0&&frames%80==0)radio_tune((frames/80)%RADIO_STATION_COUNT);
@@ -911,13 +914,9 @@ int main(void){
   sceDisplayWaitVblankStart();sceDisplaySetFrameBuf((void*)fb,STRIDE,PSP_DISPLAY_PIXEL_FORMAT_8888,PSP_DISPLAY_SETBUF_IMMEDIATE);buffer^=1;frames++;
   if(smoke&&!visual_hold&&frames==425){double fps=frame_seconds>0?frame_samples/frame_seconds:0;FILE *log=fopen("boot-check.txt","a");if(log){fprintf(log,"Rendered 42 scenes in 425 frames, including landing, EVA, ship compass, Codex and anomaly scan.\n");fprintf(log,"Performance: %.2f average FPS, %.2f ms worst frame, %d frames over 25 ms.\n",fps,worst_frame*1000,slow_frames);fclose(log);}FILE *perf_file=fopen("performance-check.txt","w");if(perf_file){int planet_fail=0;for(int i=36;i<=39;i++)if(scene_frames[i]&&scene_frames[i]/scene_seconds[i]<24)planet_fail=1;int fail=fps<50||planet_fail;fprintf(perf_file,"%s average frame rate >= 50 FPS (%.2f FPS)\n",fps>=50?"PASS":"FAIL",fps);fprintf(perf_file,"%s planetary flight/EVA scenes remain >= 24 FPS\n",planet_fail?"FAIL":"PASS");fprintf(perf_file,"INFO worst frame %.2f ms; %d frames over 25 ms\n",worst_frame*1000,slow_frames);fprintf(perf_file,"INFO heap minimum free %d bytes; largest block %d bytes\n",perf.min_free_mem==0x7fffffff?0:perf.min_free_mem,perf.min_free_block==0x7fffffff?0:perf.min_free_block);for(int i=3;i<43;i++)if(scene_frames[i])fprintf(perf_file,"SCENE %02d %.2f FPS\n",i,scene_frames[i]/scene_seconds[i]);fprintf(perf_file,"RESULT %d failures\n",fail);fclose(perf_file);}running=0;}
  }
- audio_stop();gu_accel_stop();
+ audio_stop();gu_accel_stop();convoy_stop();
  sceKernelExitGame();return 0;
 }
-
-
-
-
 
 
 
