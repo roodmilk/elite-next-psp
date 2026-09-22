@@ -652,7 +652,7 @@ Each system contains a sun, ocean world, gas giant and two rocky planets. Rock b
 
 Circle opens the approach choice near an ocean or rocky planet. X enters a biome surface tinted from that world’s orbit sprite and colours (ocean island, arid, ice, volcanic or forest) with a cyan pad. Descend onto the pad and press Circle to land, Circle again to walk. Square on foot surveys flora, fauna and minerals coloured for that world. Board the parked ship, Triangle to take off, Triangle again for orbit. On foot: nub look, D-pad move, double-tap R for jetpack. Walking too far from the pad still builds environmental hazard. Docked: Fly → Disembark / walk station to talk on the concourse.
 
-Suns and gas giants have no landing approach. You cannot land on water. Quiet systems stay sparsely populated; Atlas echoes and extra life appear in rarer or more dangerous stars.
+Suns and gas giants have no landing approach. A gas-giant boundary stop offers Circle to turn away; it does not offer a surface flight or scan reward. Approach choices pause threats and mission clocks. You cannot land on water. Quiet systems stay sparsely populated; Atlas echoes and extra life appear in rarer or more dangerous stars.
 
 ## Verification
 

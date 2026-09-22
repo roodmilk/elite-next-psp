@@ -709,11 +709,33 @@ static void input_tests(void){
   int bounded=1;for(int i=0;i<360;i++){float a=i*.017453293f;RadarPoint q=radar_point((Vec3){sinf(a)*100000,50000,cosf(a)*100000});if(q.x<178||q.x>302||q.y<214||q.y>246||abs(q.lift)>4)bounded=0;}
   INPUT_CHECK(bounded,"radar: all 360-degree distant bearings remain inside instrument");
  }
+ #include "planet-approach-input-tests.h"
  {
   unsigned *saved_fb=fb,*pixels=malloc(STRIDE*H*sizeof(unsigned));
   INPUT_CHECK(pixels!=0,"graphics: disposable framebuffer allocated");
   if(pixels){
    fb=pixels;TEST_INIT();hud_mode=hud_hidden=0;int old_quiet=quiet_comms;quiet_comms=0;
+   {
+    int old_contrast=high_contrast,contained=1,gas_action=1;
+    FILE *capture=fopen("dump-native.flag","r");int capture_approach=capture!=0;if(capture)fclose(capture);
+    for(int kind=0;kind<2;kind++)for(int mode=0;mode<3;mode++){
+     TEST_INIT();launch(&game);page=FLIGHT;game.approach=1;game.bodies[1].type=kind?GAS:OCEAN;
+     hud_mode=mode;hud_hidden=mode==2;high_contrast=mode==2;
+     memset(pixels,0,STRIDE*H*sizeof(unsigned));planet_prompt();
+     int title=0,note=0,entry=0;
+     for(int y=0;y<H;y++)for(int x=0;x<W;x++)if(pixels[y*STRIDE+x]){
+      if(x<20||x>=460||y<88||y>=172)contained=0;
+      if(y>=96&&y<104&&pixels[y*STRIDE+x]==RGB(240,180,91))title=1;
+      if(y>=152&&y<160&&pixels[y*STRIDE+x]==RGB(155,154,165))note=1;
+      if(x>=58&&x<200&&y>=120&&y<144&&pixels[y*STRIDE+x]!=RGB(21,28,39))entry=1;
+     }
+     contained &= title&&note;gas_action &= kind?!entry:entry;
+     if(capture_approach){char path[64];space();snprintf(path,sizeof(path),"approach-%s-mode-%d.bmp",kind?"gas":"solid",mode);dump_native_bmp(path);}
+    }
+    INPUT_CHECK(contained,"graphics: approach title and explanation stay inside modal in all HUD modes");
+    INPUT_CHECK(gas_action,"graphics: only solid worlds offer X surface flight");
+    high_contrast=old_contrast;TEST_INIT();hud_mode=hud_hidden=0;
+   }
    memset(pixels,0,STRIDE*H*sizeof(unsigned));button_icon(10,10,'T',WHITE);
    INPUT_CHECK(pixels[11*STRIDE+14]&&pixels[17*STRIDE+11]&&pixels[17*STRIDE+17]&&!pixels[12*STRIDE+11],"graphics: PSP Triangle icon points upward");
    int clean=1;

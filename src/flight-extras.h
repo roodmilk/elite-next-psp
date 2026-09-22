@@ -200,7 +200,16 @@ static void warp_effect(void){
  rect(80,88,320,28,RGB(21,28,39));rect(80,88,320,2,RGB(193,139,77));
  text(15,12,RGB(240,180,91),"WARP TO %.12s  %.1f",game.systems[game.destination].name,game.jump);
 }
-static void planet_prompt(void){if(game.approach<0)return;int y0=hud_mode==0?88:view_top()+8;rect(20,y0,440,84,RGB(21,28,39));rect(20,y0,440,2,RGB(193,139,77));rect(20,y0+82,440,2,RGB(41,54,70));text(7,12,RGB(240,180,91),"APPROACH: %s",game.bodies[game.approach].name);button_icon(58,y0+38,'X',RGB(85,212,212));text(10,(y0+39)/8,RGB(229,210,163),"fly the surface");button_icon(210,y0+38,'O',RED);text(29,(y0+39)/8,RGB(229,210,163),"turn back");text(7,19,RGB(155,154,165),game.bodies[game.approach].type==GAS?"Gas giant: scan it, then reverse away.":"Land on the ochre pad, then O to walk.");}
+static void planet_prompt(void){
+ if(game.approach<0||game.approach>=BODY_COUNT)return;
+ /* The safety modal always shares the full cockpit's clear centre. */
+ int y0=88,solid=game.bodies[game.approach].type!=GAS&&game.bodies[game.approach].type!=SUN;
+ rect(20,y0,440,84,RGB(21,28,39));rect(20,y0,440,2,RGB(193,139,77));rect(20,y0+82,440,2,RGB(41,54,70));
+ text(7,(y0+8)/8,RGB(240,180,91),"APPROACH: %s",game.bodies[game.approach].name);
+ if(solid){button_icon(58,y0+38,'X',RGB(85,212,212));text(10,(y0+39)/8,RGB(229,210,163),"fly the surface");}
+ button_icon(210,y0+38,'O',RED);text(29,(y0+39)/8,RGB(229,210,163),"turn back");
+ text(7,(y0+64)/8,RGB(155,154,165),solid?"Fly to the pad; slow down, O to land.":"No solid surface. Circle turns back.");
+}
 static void celestial_rims(void){
  int top=view_top(),bot=view_bot();
  for(int i=0;i<BODY_COUNT;i++){

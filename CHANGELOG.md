@@ -2,6 +2,13 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## Unreleased — safe planetary approach
+
+- Planetary boundary interception stops weapons and remaining simulation immediately; active approach choices pause threats and clocks.
+- Gas giants offer a truthful Circle escape, and reject X entry with an explanation.
+- Approach text and actions stay inside the safety panel in Full, Minimal and Scenic HUD modes.
+- Added non-sun boundary, sun damage, turn-away, orbit return, PSP-input and native framebuffer regressions. Save V13 and mission rewards unchanged.
+
 ## Unreleased — authored Open Channel Chapters 02–04
 
 - Added sealed-receiver pickup and home delivery, quiet-signal observation with fire/heat reset and re-entry recovery, a required convoy port stamp, and an optional lifeboat scan that grants Independent trust once.
