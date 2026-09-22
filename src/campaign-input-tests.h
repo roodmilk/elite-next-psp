@@ -106,6 +106,9 @@
  INPUT_CHECK(strstr(saga_beats[10].talk2,"Yes")||strstr(saga_beats[10].talk2,"yes")||strstr(saga_beats[10].talk2,"geometry"),"script: Ryn beat 1 answers the alive ask");
  INPUT_CHECK(strstr(saga_choice_reaction(5,0),"Pirates")&&strstr(saga_close_line(0),"Case"),"script: choice reactions and chapter closers stay character-voiced");
  INPUT_CHECK(strstr(saga_coda_line1(0),"evidence")&&strstr(saga_coda_line2(1),"sky"),"script: Act I codas keep screenplay aftermath voice");
+ INPUT_CHECK(strstr(saga_beats[5].line,"flinch")&&strstr(saga_beats[6].line,"Clinic"),"script: Act I Sable staging and Act II Mara clinic open from screenplay");
+ INPUT_CHECK(strstr(saga_beats[10].ask3,"silent")&&strstr(saga_beats[10].talk3,"ghost")&&saga_has_coda(11),"script: Ryn reunion asks why she vanished; Act II coda range reaches Carry Home");
+ INPUT_CHECK(strstr(saga_choice_blurb(11,0),"Light")||strstr(saga_choice_blurb(11,0),"board"),"script: Carry Home blurbs name the broadcast stakes");
  INPUT_CHECK(strstr(prologue_brief_line1(0),"Ryn")&&strstr(prologue_brief_line2(0),"three"),"script: prologue hook still names Ryn and the three missed calls");
  TEST_INIT();
 }
