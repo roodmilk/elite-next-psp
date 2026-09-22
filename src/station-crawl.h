@@ -3,7 +3,7 @@ enum { SC_W=5, SC_H=4, SC_N=0, SC_E=1, SC_S=2, SC_WDIR=3 };
 enum { SC_ROOM_EMPTY=0, SC_ROOM_HUB, SC_ROOM_SHOP, SC_ROOM_BAR, SC_ROOM_BAY, SC_ROOM_CLINIC, SC_ROOM_GUILD, SC_ROOM_LOCK };
 enum { SC_ACT_TALK=0, SC_ACT_SHOP, SC_ACT_GIFT, SC_ACT_QUEST, SC_ACT_TAXI, SC_ACT_BOARD };
 enum { SC_MENU_NONE=0, SC_MENU_PERSON, SC_MENU_SHOP };
-static int sc_x=2,sc_y=0,sc_face=SC_N,sc_menu=0,sc_choice=0,sc_shop_row=0,sc_built_for=-1;
+static int sc_x=2,sc_y=0,sc_face=SC_N,sc_menu=0,sc_choice=0,sc_shop_row=0,sc_built_for=-1,sc_bob=0;
 static unsigned char sc_map[SC_H][SC_W];
 static unsigned char sc_door_n[SC_H][SC_W],sc_door_e[SC_H][SC_W]; /* doors to N and E neighbours */
 typedef struct { const char *name; int role; int act; int shop_item; int gift_bit; int quest_pay; int taxi_pay; const char *line; const char *offer; } ScNpc;
@@ -58,11 +58,50 @@ static void sc_build_map(void){
  else {sc_map[0][2]=SC_ROOM_SHOP;sc_map[2][2]=SC_ROOM_SHOP;}
  sc_x=1;sc_y=0;sc_face=SC_S;sc_menu=0;sc_choice=0;
 }
-static int sc_door_ahead(void){
- if(sc_face==SC_N)return sc_y>0&&sc_door_n[sc_y][sc_x];
- if(sc_face==SC_S)return sc_y+1<SC_H&&sc_door_n[sc_y+1][sc_x];
- if(sc_face==SC_E)return sc_x+1<SC_W&&sc_door_e[sc_y][sc_x];
+static int sc_door_dir(int dir){
+ if(dir==SC_N)return sc_y>0&&sc_door_n[sc_y][sc_x];
+ if(dir==SC_S)return sc_y+1<SC_H&&sc_door_n[sc_y+1][sc_x];
+ if(dir==SC_E)return sc_x+1<SC_W&&sc_door_e[sc_y][sc_x];
  return sc_x>0&&sc_door_e[sc_y][sc_x-1];
+}
+static int sc_door_ahead(void){return sc_door_dir(sc_face);}
+static int sc_nbr(int dir,int *ox,int *oy){
+ int x=sc_x,y=sc_y;
+ if(dir==SC_N){if(y<=0)return -1;y--;}
+ else if(dir==SC_S){if(y+1>=SC_H)return -1;y++;}
+ else if(dir==SC_E){if(x+1>=SC_W)return -1;x++;}
+ else {if(x<=0)return -1;x--;}
+ if(ox)*ox=x;if(oy)*oy=y;return sc_map[y][x];
+}
+static unsigned sc_room_tint(int room){
+ if(room==SC_ROOM_SHOP)return RGB(52,42,28);
+ if(room==SC_ROOM_BAR)return RGB(48,28,52);
+ if(room==SC_ROOM_GUILD)return RGB(24,52,44);
+ if(room==SC_ROOM_CLINIC)return RGB(32,52,64);
+ if(room==SC_ROOM_LOCK)return RGB(56,32,32);
+ if(room==SC_ROOM_BAY)return RGB(44,40,28);
+ if(room==SC_ROOM_HUB)return RGB(28,44,54);
+ return RGB(36,48,58);
+}
+static unsigned sc_room_tint2(int room){
+ if(room==SC_ROOM_SHOP)return RGB(40,32,20);
+ if(room==SC_ROOM_BAR)return RGB(34,18,40);
+ if(room==SC_ROOM_GUILD)return RGB(16,36,30);
+ if(room==SC_ROOM_CLINIC)return RGB(22,38,50);
+ if(room==SC_ROOM_LOCK)return RGB(40,22,22);
+ if(room==SC_ROOM_BAY)return RGB(30,28,18);
+ if(room==SC_ROOM_HUB)return RGB(18,32,40);
+ return RGB(28,38,48);
+}
+static unsigned sc_room_trim(int room){
+ if(room==SC_ROOM_SHOP)return RGB(120,90,40);
+ if(room==SC_ROOM_BAR)return RGB(120,70,130);
+ if(room==SC_ROOM_GUILD)return RGB(60,140,110);
+ if(room==SC_ROOM_CLINIC)return RGB(90,160,180);
+ if(room==SC_ROOM_LOCK)return RGB(140,70,70);
+ if(room==SC_ROOM_BAY)return RGB(110,100,50);
+ if(room==SC_ROOM_HUB)return RGB(70,130,150);
+ return RGB(70,92,104);
 }
 static void sc_step(int dir){ /* dir +1 forward, -1 back */
  int f=sc_face; if(dir<0)f=(f+2)&3;
@@ -71,69 +110,155 @@ static void sc_step(int dir){ /* dir +1 forward, -1 back */
  else if(f==SC_S){if(sc_y+1<SC_H&&sc_door_n[sc_y+1][sc_x])ny++;else return;}
  else if(f==SC_E){if(sc_x+1<SC_W&&sc_door_e[sc_y][sc_x])nx++;else return;}
  else {if(sc_x>0&&sc_door_e[sc_y][sc_x-1])nx--;else return;}
- sc_x=nx;sc_y=ny;sc_menu=0;game.cue=SFX_UI;
+ sc_x=nx;sc_y=ny;sc_menu=0;sc_bob=6;game.cue=SFX_UI;
+}
+/* OpenEnroth-inspired corridor frame: depth layers, side portals, tile floor.
+ * Grid-step crawler (PSP-safe) — no enemies, station interactions only. */
+static void sc_wall_column(int x0,int x1,int y0,int y1,unsigned wall,unsigned wall2,unsigned trim,int seam){
+ if(x1<=x0||y1<=y0)return;
+ rect(x0,y0,x1-x0,y1-y0,seam?wall2:wall);
+ if(seam){rect(x0,y0+12,2,y1-y0-24,trim);rect(x1-2,y0+12,2,y1-y0-24,trim);}
+ /* Panel rivets */
+ for(int y=y0+18;y<y1-18;y+=22){pixel(x0+3,y,trim);pixel(x1-4,y,trim);}
+}
+static void sc_draw_side_portal(int left,int depth,int has_door,int nbr_room,unsigned wall,unsigned trim){
+ /* depth 0=near, 1=mid — portals open into neighbour tint like Enroth doorways. */
+ int inset=18+depth*42,top=48+depth*28,bot=232-depth*28,w=34-depth*8;
+ if(w<16)w=16;
+ int x=left?inset:W-inset-w;
+ unsigned dark=RGB(8,12,18),inner=has_door?sc_room_tint2(nbr_room):wall;
+ rect(x,top,w,bot-top,dark);
+ if(has_door){
+  rect(x+3,top+8,w-6,bot-top-16,inner);
+  rect(x+6,top+14,w-12,bot-top-28,mix_rgb(inner,RGB(4,8,12),.35f));
+  rect(x+(left?w-5:2),top+20,3,bot-top-40,trim);
+  /* Floor lip into the side room */
+  rect(x+4,bot-18,w-8,6,mix_rgb(inner,RGB(20,24,28),.4f));
+ }else{
+  for(int k=0;k<4;k++)rect(x+4,top+16+k*28,w-8,2,mix_rgb(wall,RGB(10,14,18),.3f));
+ }
 }
 static void sc_draw_fp(void){
- /* OpenEnroth / Might & Magic style first-person: layered walls, tile floor,
-  * door jambs and room props. No combat — only station interactions. */
- rect(0,0,W,H,RGB(6,10,16));
- int mid=118,room=sc_map[sc_y][sc_x];
- unsigned wall=RGB(36,48,58),wall2=RGB(28,38,48),trim=RGB(70,92,104);
- if(room==SC_ROOM_SHOP){wall=RGB(52,42,28);wall2=RGB(40,32,20);trim=RGB(120,90,40);}
- else if(room==SC_ROOM_BAR){wall=RGB(48,28,52);wall2=RGB(34,18,40);trim=RGB(120,70,130);}
- else if(room==SC_ROOM_GUILD){wall=RGB(24,52,44);wall2=RGB(16,36,30);trim=RGB(60,140,110);}
- else if(room==SC_ROOM_CLINIC){wall=RGB(32,52,64);wall2=RGB(22,38,50);trim=RGB(90,160,180);}
- else if(room==SC_ROOM_LOCK){wall=RGB(56,32,32);wall2=RGB(40,22,22);trim=RGB(140,70,70);}
- else if(room==SC_ROOM_BAY){wall=RGB(44,40,28);wall2=RGB(30,28,18);trim=RGB(110,100,50);}
- /* Ceiling plates */
- for(int y=28;y<mid;y++){float t=(y-28)/(float)(mid-28);int inset=(int)(t*100);unsigned c=mix_rgb(RGB(50,60,72),RGB(12,16,22),t);rect(inset,y,W-2*inset,1,c);if(((y+sc_x*3)&7)==0)rect(inset+8,y,W-2*inset-16,1,mix_rgb(c,trim,.2f));}
- /* Floor tiles (grid foreshortening) */
- for(int y=mid;y<248;y++){float t=(y-mid)/(float)(248-mid);int inset=(int)((1.f-t)*100);unsigned c=mix_rgb(RGB(18,24,32),RGB(8,10,14),t);rect(inset,y,W-2*inset,1,c);if(((y+sc_y)&11)==0)rect(inset,y,W-2*inset,1,mix_rgb(c,trim,.15f));}
- for(int i=1;i<6;i++){float t=i/6.f;int inset=(int)((1.f-t)*100);int y=mid+(int)(t*(248-mid));line(inset,y,W-inset,y,RGB(14,18,24));}
- /* Left / right wall columns with panel seams (MM dungeon look) */
- for(int i=0;i<12;i++){
-  int x0=i*8,x1=(i+1)*8;int y0=28+i*8,y1=248-i*8;
-  rect(x0,y0,x1-x0+1,y1-y0,i&1?wall:wall2);
-  rect(W-(i+1)*8,y0,x1-x0+1,y1-y0,i&1?wall:wall2);
-  if((i%3)==2){rect(x0,y0+20,2,y1-y0-40,trim);rect(W-x1,y0+20,2,y1-y0-40,trim);}
+ rect(0,0,W,H,RGB(4,8,14));
+ int mid=120+sc_bob/2,room=sc_map[sc_y][sc_x];
+ unsigned wall=sc_room_tint(room),wall2=sc_room_tint2(room),trim=sc_room_trim(room);
+ int left_dir=(sc_face+3)&3,right_dir=(sc_face+1)&3;
+ int door_l=sc_door_dir(left_dir),door_r=sc_door_dir(right_dir),door_f=sc_door_ahead();
+ int nlx,nly,nrx,nry,nfx,nfy;
+ int nbr_l=door_l?sc_nbr(left_dir,&nlx,&nly):-1;
+ int nbr_r=door_r?sc_nbr(right_dir,&nrx,&nry):-1;
+ int nbr_f=door_f?sc_nbr(sc_face,&nfx,&nfy):-1;
+ /* Ceiling vault with cross-beams (indoor BLV feel, flat raster) */
+ for(int y=28;y<mid;y++){
+  float t=(y-28)/(float)(mid-28);int inset=(int)(t*108);
+  unsigned c=mix_rgb(RGB(54,64,78),RGB(10,14,20),t);
+  rect(inset,y,W-2*inset,1,c);
+  if(((y*2)&15)==0)rect(inset+6,y,W-2*inset-12,1,mix_rgb(c,trim,.25f));
  }
- /* Side alcove hints (neighbours) */
- if(sc_x>0&&sc_door_e[sc_y][sc_x-1]){rect(8,90,36,70,RGB(10,14,20));rect(12,96,28,58,RGB(20,32,40));}
- if(sc_x+1<SC_W&&sc_door_e[sc_y][sc_x]){rect(W-44,90,36,70,RGB(10,14,20));rect(W-40,96,28,58,RGB(20,32,40));}
- int door=sc_door_ahead();
- if(door){
-  /* Deep door frame like Enroth corridor portals */
-  rect(156,62,168,140,RGB(4,8,12));
-  rect(164,70,152,124,wall2);
-  rect(178,82,124,104,RGB(10,18,24));
-  rect(186,90,108,88,RGB(16,28,36));
-  rect(228,118,24,52,GOLD);rect(232,122,16,12,RGB(40,30,10));
-  text(24,11,CYAN,"PASSAGE");
+ /* Beam ribs converging to vanishing point */
+ for(int i=0;i<5;i++){int x=40+i*100;line(x,32,240,mid-2,mix_rgb(trim,RGB(20,24,30),.55f));}
+ /* Floor: foreshortened tile grid */
+ for(int y=mid;y<248;y++){
+  float t=(y-mid)/(float)(248-mid);int inset=(int)((1.f-t)*108);
+  unsigned c=mix_rgb(RGB(22,30,40),RGB(6,8,12),t*.85f);
+  if(((y/3+sc_x)&1)==0)c=mix_rgb(c,trim,.08f);
+  rect(inset,y,W-2*inset,1,c);
+ }
+ for(int i=0;i<=6;i++){
+  float t=i/6.f;int inset=(int)((1.f-t)*108);int y=mid+(int)(t*(248-mid));
+  line(inset,y,W-inset,y,RGB(12,16,22));
+  int span=(W-2*inset)/4;for(int k=1;k<4;k++){int x=inset+k*span;line(x,y,240+(x-240)/4,mid,RGB(10,14,18));}
+ }
+ /* Near wall columns (depth 0) — heavy Enroth panel framing */
+ for(int i=0;i<5;i++){
+  int x0=i*10,x1=(i+1)*10;int y0=30+i*10,y1=246-i*10;
+  sc_wall_column(x0,x1,y0,y1,wall,wall2,trim,(i%2)==0);
+  sc_wall_column(W-x1,W-x0,y0,y1,wall,wall2,trim,(i%2)==0);
+ }
+ /* Mid wall columns (depth 1) */
+ for(int i=5;i<9;i++){
+  int x0=i*12,x1=(i+1)*12;int y0=36+i*8,y1=240-i*8;
+  sc_wall_column(x0,x1,y0,y1,wall2,wall,trim,(i%3)==0);
+  sc_wall_column(W-x1,W-x0,y0,y1,wall2,wall,trim,(i%3)==0);
+ }
+ /* Facing-relative side portals (fixed: left/right track turn facing) */
+ sc_draw_side_portal(1,0,door_l,nbr_l,wall,trim);
+ sc_draw_side_portal(0,0,door_r,nbr_r,wall,trim);
+ sc_draw_side_portal(1,1,door_l,nbr_l,wall,trim);
+ sc_draw_side_portal(0,1,door_r,nbr_r,wall,trim);
+ /* Far wall / passage — portal into next cell tint */
+ if(door_f){
+  unsigned far=sc_room_tint(nbr_f),far2=sc_room_tint2(nbr_f),ftrim=sc_room_trim(nbr_f);
+  rect(148,56,184,148,RGB(2,6,10));
+  rect(158,64,164,132,far2);
+  rect(170,76,140,112,far);
+  rect(182,88,116,92,mix_rgb(far,RGB(4,8,12),.4f));
+  /* Arch jambs */
+  rect(158,64,10,132,trim);rect(312,64,10,132,trim);
+  rect(158,64,164,8,trim);rect(158,188,164,8,trim);
+  /* Door plate + latch */
+  rect(222,120,36,56,mix_rgb(ftrim,GOLD,.35f));
+  rect(234,138,8,8,RGB(40,30,10));
+  rect(168,196,144,8,mix_rgb(far2,RGB(30,34,40),.3f));
+  text(23,9,CYAN,"PASSAGE");
+  /* Tiny prop glimpse from neighbour type */
+  if(nbr_f==SC_ROOM_SHOP){rect(200,150,20,16,RGB(70,50,28));rect(260,150,20,16,RGB(70,50,28));}
+  if(nbr_f==SC_ROOM_BAR){rect(210,160,60,12,RGB(60,30,50));}
  }else{
-  rect(150,54,180,152,wall);
-  for(int k=0;k<6;k++)rect(160,70+k*22,160,2,wall2);
-  rect(200,100,80,60,RGB(18,24,30));
-  text(22,11,DIM,"BULKHEAD");
+  rect(150,52,180,156,wall);
+  for(int k=0;k<7;k++)rect(162,66+k*18,156,2,wall2);
+  rect(198,96,84,64,RGB(14,20,26));
+  rect(210,108,60,40,RGB(10,14,18));
+  text(22,9,DIM,"BULKHEAD");
  }
- /* Ceiling lamp */
- circle(240,48,5,trim);rect(236,40,8,8,GOLD);
- /* Room props by type */
- if(room==SC_ROOM_SHOP){rect(70,150,50,40,RGB(60,45,25));rect(360,150,50,40,RGB(60,45,25));}
- if(room==SC_ROOM_BAR){rect(100,160,280,30,RGB(50,30,40));rect(110,150,40,10,RGB(90,60,50));}
- if(room==SC_ROOM_HUB){rect(210,140,60,50,RGB(30,50,60));rect(220,130,40,10,CYAN);}
+ /* Ceiling lamp / glow */
+ circle(240,44-sc_bob/3,6,trim);rect(237,36-sc_bob/3,6,8,GOLD);
+ rect(232,50-sc_bob/3,16,2,mix_rgb(trim,RGB(255,220,120),.4f));
+ /* Room props — denser furniture silhouettes */
+ if(room==SC_ROOM_SHOP){
+  rect(64,148,56,44,RGB(60,45,25));rect(70,140,44,10,RGB(90,70,40));
+  rect(360,148,56,44,RGB(60,45,25));rect(366,140,44,10,RGB(90,70,40));
+  rect(200,170,80,20,RGB(50,38,22));
+ }else if(room==SC_ROOM_BAR){
+  rect(90,168,300,28,RGB(50,30,40));rect(100,156,36,12,RGB(90,60,50));
+  rect(340,156,36,12,RGB(90,60,50));rect(200,150,80,14,RGB(70,40,55));
+ }else if(room==SC_ROOM_HUB){
+  rect(204,136,72,56,RGB(30,50,60));rect(216,124,48,12,CYAN);
+  rect(220,148,40,8,RGB(50,90,100));
+ }else if(room==SC_ROOM_GUILD){
+  rect(190,140,100,40,RGB(20,60,48));rect(210,128,60,12,RGB(60,140,110));
+ }else if(room==SC_ROOM_CLINIC){
+  rect(180,150,120,36,RGB(40,70,80));rect(200,140,80,10,RGB(120,200,210));
+ }else if(room==SC_ROOM_BAY){
+  rect(70,160,50,36,RGB(70,60,30));rect(360,160,50,36,RGB(70,60,30));
+  rect(160,180,160,16,RGB(50,45,25));
+ }else if(room==SC_ROOM_LOCK){
+  rect(200,140,80,50,RGB(70,35,35));rect(220,150,40,20,RGB(20,20,24));
+ }
  /* NPC silhouettes mid-corridor */
  ScNpc people[3]; int pn=sc_fill_npcs(sc_x,sc_y,people,3);
  for(int i=0;i<pn;i++){
-  int sx=190+i*48,sy=155; unsigned ink=faction_colors[people[i].role];
-  rect(sx,sy-48,32,48,RGB(16,24,32)); rect(sx+2,sy-48,28,46,RGB(22,32,42));
-  rect(sx+8,sy-48,16,16,ink); pixel(sx+12,sy-42,WHITE); pixel(sx+18,sy-42,WHITE);
-  rect(sx+10,sy-28,12,20,ink);
+  int sx=186+i*52,sy=158; unsigned ink=faction_colors[people[i].role];
+  rect(sx,sy-52,34,52,RGB(12,18,26));
+  rect(sx+3,sy-50,28,48,RGB(20,30,40));
+  rect(sx+8,sy-50,18,16,ink);
+  pixel(sx+12,sy-44,WHITE);pixel(sx+18,sy-44,WHITE);
+  rect(sx+10,sy-30,14,22,ink);
+  rect(sx+6,sy-8,22,8,mix_rgb(ink,RGB(10,14,18),.4f));
+  if(sc_menu==SC_MENU_PERSON&&i==sc_choice)rect(sx-2,sy-54,38,2,GOLD);
  }
+ if(sc_bob>0)sc_bob--;
 }
 static void sc_draw_minimap(void){
  int ox=368,oy=36,cs=14;
  rect(ox-4,oy-4,SC_W*cs+8,SC_H*cs+8,RGB(6,14,20));
  rect(ox-4,oy-4,SC_W*cs+8,1,CYAN); text(46,3,CYAN,"MAP");
+ /* Door links first so rooms sit on top */
+ for(int y=0;y<SC_H;y++)for(int x=0;x<SC_W;x++){
+  int px=ox+x*cs+cs/2-1,py=oy+y*cs+cs/2-1;
+  if(x+1<SC_W&&sc_door_e[y][x])rect(px,py,cs,2,RGB(40,60,70));
+  if(y>0&&sc_door_n[y][x])rect(px,py-cs,2,cs,RGB(40,60,70));
+ }
  for(int y=0;y<SC_H;y++)for(int x=0;x<SC_W;x++){
   int px=ox+x*cs,py=oy+y*cs; unsigned c=RGB(16,24,32);
   if(sc_map[y][x]==SC_ROOM_HUB)c=RGB(40,90,100);
@@ -145,7 +270,6 @@ static void sc_draw_minimap(void){
   else if(sc_map[y][x]==SC_ROOM_LOCK)c=RGB(80,40,40);
   rect(px,py,cs-2,cs-2,c);
   if(x==sc_x&&y==sc_y){rect(px+2,py+2,cs-6,cs-6,GOLD);
-   /* facing tick */
    if(sc_face==SC_N)rect(px+cs/2-1,py+1,2,3,WHITE);
    if(sc_face==SC_S)rect(px+cs/2-1,py+cs-5,2,3,WHITE);
    if(sc_face==SC_E)rect(px+cs-5,py+cs/2-1,3,2,WHITE);
@@ -158,8 +282,11 @@ static void sc_draw_ui(void){
  sc_draw_fp();
  rect(0,0,W,28,RGB(8,19,28)); rect(0,26,W,2,GOLD);
  text(1,0,GOLD,"STATION / %.16s",station_name(&game));
- text(1,2,DIM,"D-PAD TURN/MOVE  X ACT  O DECK");
+ text(1,2,DIM,"LEFT/RIGHT TURN  UP MOVE  X ACT  O DECK");
  text(28,2,CYAN,"%.12s",sc_room_name(sc_map[sc_y][sc_x]));
+ /* Facing compass strip */
+ {const char *d[]={"N","E","S","W"};text(40,0,WHITE,"[%s]",d[sc_face&3]);
+  if(sc_door_ahead())text(44,0,CYAN,"DOOR");else text(44,0,DIM,"WALL");}
  sc_draw_minimap();
  rect(0,248,W,24,RGB(8,19,28)); rect(0,248,W,2,CYAN);
  ScNpc people[3]; int pn=sc_fill_npcs(sc_x,sc_y,people,3);
@@ -194,13 +321,13 @@ static void sc_do_act(void){
  ScNpc *p=&people[sc_choice];
  speak(&game,p->role==LAW?VOICE_LAW:p->role==EXPLORERS?VOICE_KEI:!strcmp(p->name,"VENN")?VOICE_VENN:VOICE_DOCK,p->line);
  if(p->act==SC_ACT_TALK){message(&game,p->line);game.cue=SFX_UI;}
- else if(p->act==SC_ACT_SHOP){sc_menu=SC_MENU_SHOP;sc_shop_row=0;message(&game,"Chandler stock — exclusive to this deck.");}
+ else if(p->act==SC_ACT_SHOP){sc_menu=SC_MENU_SHOP;sc_shop_row=0;message(&game,"Chandler stock - exclusive to this deck.");}
  else if(p->act==SC_ACT_GIFT){
   int bit=p->gift_bit>=0?p->gift_bit:0;
   if(game.gift_flags&(1u<<bit)){message(&game,"Already took that gift.");return;}
   game.gift_flags|=1u<<bit;
   if(bit==0){if(!(game.upgrades&8)){game.upgrades|=8;message(&game,"Free cargo clamp fitted (+8t).");}else {game.credits+=200;message(&game,"Clamp spare sold for 20 U.");}}
-  else {game.energy=100;message(&game,"Medkit used — energy restored.");}
+  else {game.energy=100;message(&game,"Medkit used - energy restored.");}
   game.cue=SFX_UI;
  }else if(p->act==SC_ACT_QUEST){
   game.credits+=p->quest_pay; game.discoveries++; {char note[64];snprintf(note,sizeof(note),"Side tip paid %.1f U.",p->quest_pay*.1f);message(&game,note);} game.cue=SFX_SELECT;

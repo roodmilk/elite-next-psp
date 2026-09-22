@@ -2,6 +2,11 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.28 - 2026-09-22
+
+- Station crawl FP view deepened toward OpenEnroth corridor language: depth-layered wall panels, facing-relative side portals with neighbour-room tint, arched passage frames, tile floor grid, ceiling beams, denser room props, minimap door links, step bob.
+- Side doors now track turn facing (LEFT/RIGHT relative), with compass + DOOR/WALL cue; shops/talk/gifts/taxis unchanged.
+
 ## 2.5.27 - 2026-09-22
 
 - Story chat is ask-then-answer: Cross speaks your line first (orange YOU bubble); the next Cross reveals Kei's reply. Saga briefs use acknowledgments instead of questions that were already answered on screen.

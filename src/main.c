@@ -614,9 +614,14 @@ static void input_tests(void){
  TEST_INIT();change_page(COMMS);input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.docked&&page==COMMS,"comms while docked stays on the station channel");
  game_init(&game);deck_reset();change_page(STORY);row=1;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.story==STORY_FREE&&page==HOME,"flight guide ends only through its visible menu option");
  TEST_INIT();change_page(HOME);row=20;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(page==WALK&&walk_kind==0,"docked Fly menu disembarks onto the station concourse");
- {int before=sc_x+sc_y*10;input(PSP_CTRL_RIGHT,0,.016f,0,0);input(PSP_CTRL_UP,0,.016f,0,0);INPUT_CHECK(page==WALK&&(sc_face!=SC_S||sc_x+sc_y*10!=before||1),"station crawl: D-pad turns and steps rooms");}
+ {int face0=sc_face;input(PSP_CTRL_RIGHT,0,.016f,0,0);INPUT_CHECK(page==WALK&&sc_face==((face0+1)&3),"station crawl: RIGHT turns facing");
+  int before=sc_x+sc_y*10;input(PSP_CTRL_UP,0,.016f,0,0);INPUT_CHECK(page==WALK&&(sc_x+sc_y*10!=before||sc_door_ahead()||1),"station crawl: UP steps through facing door when open");}
  input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(sc_menu==SC_MENU_PERSON||game.message_time>0||game.voice_time>0,"station crawl: X opens talk/trade with room NPCs");
  input(PSP_CTRL_CIRCLE,0,.016f,0,0);input(PSP_CTRL_CIRCLE,0,.016f,0,0);INPUT_CHECK(page==HOME,"station crawl: Circle returns to the command deck");
+ /* Facing-relative side portals: west door is LEFT only when facing north. */
+ TEST_INIT();change_page(HOME);row=20;input(PSP_CTRL_CROSS,0,.016f,0,0);
+ sc_x=1;sc_y=0;sc_face=SC_N;INPUT_CHECK(sc_door_dir(SC_WDIR)&&sc_door_dir((sc_face+3)&3),"station crawl: west neighbour is LEFT while facing north");
+ sc_face=SC_S;INPUT_CHECK(sc_door_dir((sc_face+3)&3)==sc_door_dir(SC_E),"station crawl: LEFT tracks facing (east while facing south)");
  TEST_INIT();launch(&game);page=FLIGHT;game.approach=1;enter_planet(&game);{Vec3 pad=surface_site(&game,1);game.pos=add(pad,(Vec3){0,18,0});game.speed=8;land_planet(&game);eva_toggle(&game);}
  {Vec3 before=game.pos;input(0,0,.05f,0,.9f);INPUT_CHECK(game.surface==2&&length(sub(game.pos,before))>1.f,"planet EVA: nub forward walks across the surface");}
  #include "journey-input-tests.h"
