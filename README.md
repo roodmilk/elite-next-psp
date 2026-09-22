@@ -1,4 +1,9 @@
-# ELITE: NEXT — development build 2.5.28
+# ELITE: NEXT — development build 2.5.29
+
+## New in 2.5.29 — living space backdrop
+
+- Nebula, space clouds, twinkling stars and rare shooting stars via a soft-framebuffer FX kit (no heavy GU library — fits this engine).
+- High contrast mode still strips decorative haze.
 
 ## New in 2.5.28 — deeper station crawl corridors
 

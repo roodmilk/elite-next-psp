@@ -64,6 +64,10 @@ Important controls:
 
 ## Recent changes that must be preserved
 
+### 2.5.29 — soft-FB space FX kit
+
+In-engine nebula, clouds, twinkle and rare meteors (`space-fx.h`). No GU particle dependency; high contrast skips decorative haze.
+
 ### 2.5.28 — OpenEnroth-style station crawl depth
 
 Facing-relative side portals, arched passages, tile floor, ceiling beams, denser props; interactions unchanged.
