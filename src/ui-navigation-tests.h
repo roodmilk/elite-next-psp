@@ -18,7 +18,7 @@
  row=2;int previous_contrast=high_contrast;input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(high_contrast!=previous_contrast,"comfort: High contrast focus toggles visibly");
  row=4;input(PSP_CTRL_CROSS,0,.016f,0,0);help_tab=0;
- input(PSP_CTRL_LEFT,0,.016f,0,0);INPUT_CHECK(help_tab==3,"controls: pages wrap and remain bounded");
+ input(PSP_CTRL_LEFT,0,.016f,0,0);INPUT_CHECK(help_tab==4,"controls: pages wrap and remain bounded");
  input(PSP_CTRL_CIRCLE,0,.016f,0,0);INPUT_CHECK(page==COMFORT&&row==4,"controls: Back returns to comfort instead of losing location");
  TEST_INIT();launch(&game);change_page(HOME);
  {int ship_vis[6],ship_n=deck_fill(1,ship_vis),work_vis[6],work_n=deck_fill(2,work_vis),hidden=0;

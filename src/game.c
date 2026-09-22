@@ -159,26 +159,43 @@ static void site_xz(const Game *g,int i,float *x,float *z){
  if(i>=0&&i<3){if(seeds[i]!=seed){unsigned h=sector_hash(seed+(unsigned)(i+1)*9973u);float a=(h%6283)*.001f,d=480.f+(h%900);xs[i]=cosf(a)*d;zs[i]=sinf(a)*d;seeds[i]=seed;}*x=xs[i];*z=zs[i];return;}
  unsigned h=sector_hash(seed+(unsigned)(i+1)*9973u);float a=(h%6283)*.001f,d=480.f+(h%900);*x=cosf(a)*d;*z=sinf(a)*d;
 }
+/* One fixed lattice and diagonal for collision and the rendered ground mesh. */
+static float terrain_vertex(const Game *g,int ix,int iz){
+ float px,pz;site_xz(g,1,&px,&pz);
+ float dx=ix*(float)SURFACE_CELL-px,dz=iz*(float)SURFACE_CELL-pz;
+ float distance=sqrtf(dx*dx+dz*dz);
+ if(distance<=200||g->bodies[g->planet].type==OCEAN)return 24; /* all permitted landing positions stay flat */
+ unsigned u=sector_hash(g->bodies[g->planet].seed^(unsigned)ix*73856093u^(unsigned)iz*19349663u);
+ int rocky=g->bodies[g->planet].type!=OCEAN,art=rocky?(g->bodies[g->planet].seed%4):0;
+ float amplitude=rocky&&art==2?14.f:rocky&&art==1?6.f:10.f;
+ float edge=fminf(1,(distance-200)/200);
+ return 24+((u%1000)/500.f-1)*amplitude*edge;
+}
 float terrain_height(const Game *g,float x,float z){
  if(g->planet<1||g->planet>=BODY_COUNT)return 0;
- float px,pz;site_xz(g,1,&px,&pz);
- float dx=x-px,dz=z-pz,d2=dx*dx+dz*dz;
- float h=24.f;
- if(d2>100.f*100.f){
-  unsigned u=sector_hash(g->bodies[g->planet].seed^(unsigned)(x*3.1f)^(unsigned)(z*5.7f));
-  float n=((u%1000)/1000.f)*2.f-1.f;
-  float edge=1.f-100.f/sqrtf(d2+1.f);if(edge<0)edge=0;if(edge>1)edge=1;
-  int rocky=g->bodies[g->planet].type!=OCEAN;
-  unsigned art=rocky?(g->bodies[g->planet].seed%4):0;
-  h+=n*(rocky&&art==2?14.f:rocky&&art==1?6.f:10.f)*edge; /* desert/ice/other hills */
- }
- return h;
+ float gx=x/SURFACE_CELL,gz=z/SURFACE_CELL;int ix=(int)floorf(gx),iz=(int)floorf(gz);
+ float u=gx-ix,v=gz-iz,a=terrain_vertex(g,ix,iz);
+ if(u==0&&v==0)return a;
+ float c=terrain_vertex(g,ix+1,iz+1);
+ if(u>=v){float b=terrain_vertex(g,ix+1,iz);return a+(b-a)*u+(c-b)*v;}
+ float d=terrain_vertex(g,ix,iz+1);return a+(c-d)*u+(d-a)*v;
 }
 Vec3 surface_site(const Game *g,int i){float x=0,z=0;if(g->planet>=1)site_xz(g,i,&x,&z);return (Vec3){x,terrain_height(g,x,z)+22,z};}
 int terrain_is_water(const Game *g,float x,float z){
- if(g->planet<1||g->bodies[g->planet].type!=OCEAN)return 0;
- float px,pz;site_xz(g,1,&px,&pz);float dx=x-px,dz=z-pz;
+ if(g->planet<1||g->planet>=BODY_COUNT||g->bodies[g->planet].type!=OCEAN)return 0;
+ /* Whole shoreline tiles: the collision shore is exactly the visible shore. */
+ float px,pz;site_xz(g,1,&px,&pz);
+ float dx=(floorf(x/SURFACE_CELL)+.5f)*SURFACE_CELL-px,dz=(floorf(z/SURFACE_CELL)+.5f)*SURFACE_CELL-pz;
  return dx*dx+dz*dz>=420.f*420.f;
+}
+int eva_can_board(const Game *g){
+ if(g->planet<1||g->planet>=BODY_COUNT||g->surface!=2||g->dead)return 0;
+ float dx=g->pos.x-g->ship_pos.x,dz=g->pos.z-g->ship_pos.z;
+ return dx*dx+dz*dz<=60.f*60.f&&fabsf(g->pos.y-(terrain_height(g,g->pos.x,g->pos.z)+22))<=2;
+}
+static int eva_position_allowed(const Game *g,float x,float z){
+ Vec3 pad=surface_site(g,1);float dx=x-pad.x,dz=z-pad.z;
+ return dx*dx+dz*dz<=EVA_FIELD_RADIUS*EVA_FIELD_RADIUS&&!terrain_is_water(g,x,z);
 }
 int enter_planet(Game *g){
  if(g->dead||g->docked||g->dock_stage||g->police_stop||g->jump>0||g->planet>=0)return 0;
@@ -224,29 +241,39 @@ int takeoff_planet(Game *g){
 }
 int eva_toggle(Game *g){
  if(g->planet<0||g->dead)return 0;
- if(g->surface==1){g->surface=2;g->ship_pos=g->pos;g->pos.x+=55;g->pos.z+=40;g->pos.y=terrain_height(g,g->pos.x,g->pos.z)+22;g->yaw=atan2f(g->ship_pos.x-g->pos.x,g->ship_pos.z-g->pos.z);g->pitch=0;g->speed=0;g->boost=0;g->jetpack=0;message(g,"On foot. Nub look, D-pad move, Square scans, Circle boards.");speak(g,VOICE_COMP,"On foot. Survey flora and fauna around the pad.");return 1;}
+ if(g->surface==1){g->surface=2;g->ship_pos=g->pos;g->pos.x-=36;g->pos.z+=24;g->pos.y=terrain_height(g,g->pos.x,g->pos.z)+22;g->yaw=atan2f(g->ship_pos.x-g->pos.x,g->ship_pos.z-g->pos.z);g->pitch=0;g->speed=0;g->boost=0;g->jetpack=0;message(g,"On foot. Nub look, D-pad move, Square scans, Circle boards.");speak(g,VOICE_COMP,"On foot. Survey flora and fauna around the pad.");return 1;}
  if(g->surface!=2)return 0;
- float dx=g->pos.x-g->ship_pos.x,dz=g->pos.z-g->ship_pos.z;if(dx*dx+dz*dz>3600){message(g,"Return to the parked ship to board.");return 0;}
- g->pos=g->ship_pos;g->surface=1;g->speed=0;message(g,"Boarded. Triangle takes off.");return 1;
+ if(!eva_can_board(g)){float dx=g->pos.x-g->ship_pos.x,dz=g->pos.z-g->ship_pos.z;message(g,dx*dx+dz*dz<=3600?"Land beside ship to board.":"Return to the parked ship to board.");return 0;}
+ g->pos=g->ship_pos;g->surface=1;g->speed=0;g->pitch=g->roll=g->jetpack=0;g->boost=0;message(g,"Boarded. Triangle takes off.");return 1;
 }
-static void planet_tick(Game *g,float dt,float turn,float pitch,int throttle){
+static void planet_tick(Game *g,float dt,float turn,float pitch,int throttle,float strafe){
  g->heat=fmaxf(0,g->heat-dt*22);g->shot=fmaxf(0,g->shot-dt);g->energy=fminf(100,g->energy+dt*1.5f);
  if(g->surface==2){
-  /* Nub look (turn) + forward/back from pitch stick — same mental model as station walk. */
-  g->yaw+=turn*dt*2.2f;g->pitch=0;
-  float walk=0;if(pitch>.18f)walk=62.f;else if(pitch<-.18f)walk=-28.f;
-  if(throttle>0)walk=62.f;else if(throttle<0)walk=-28.f;
-  Vec3 dir=forward(g);g->pos.x+=dir.x*walk*dt;g->pos.z+=dir.z*walk*dt;
+  g->yaw+=turn*dt*2.2f;g->pitch=fmaxf(-.75f,fminf(.75f,g->pitch+pitch*dt*1.6f));g->roll=0;
+  float walk=throttle>0?62.f:throttle<0?-28.f:0,side=strafe*45.f;
+  float pace=sqrtf(walk*walk+side*side);if(pace>62){walk*=62/pace;side*=62/pace;}
+  Vec3 before=g->pos;
+  float sy=sinf(g->yaw),cy=cosf(g->yaw);
+  float nx=g->pos.x+(sy*walk+cy*side)*dt,nz=g->pos.z+(cy*walk-sy*side)*dt;
+  if(eva_position_allowed(g,nx,nz)){g->pos.x=nx;g->pos.z=nz;}
+  else {
+   /* Slide along a shore/field edge, never wrap to the far side of the map. */
+   if(eva_position_allowed(g,nx,g->pos.z))g->pos.x=nx;
+   if(eva_position_allowed(g,g->pos.x,nz))g->pos.z=nz;
+   if(g->message_time<=0)message(g,terrain_is_water(g,nx,nz)?"Shoreline. Triangle faces your ship.":"Field edge. Triangle faces your ship.");
+  }
+  float oldfloor=terrain_height(g,before.x,before.z)+22;
+  float floor=terrain_height(g,g->pos.x,g->pos.z)+22;
+  if(g->pos.y<=oldfloor+.5f&&g->jetpack<=0&&!g->boost)g->pos.y=floor;
   if(g->boost){int lift=g->jetpack<=0;g->jetpack=fminf(80,g->jetpack+220*dt);if(lift)g->cue=SFX_BOOST;}else g->jetpack=fmaxf(-100,g->jetpack-140*dt);
   g->pos.y+=g->jetpack*dt;
   for(int i=0;i<LIFE_COUNT;i++)if(g->life[i].alive&&g->life[i].kind==LIFE_FAUNA){g->life[i].pos.x+=sinf(g->time*1.4f+i)*18*dt;g->life[i].pos.z+=cosf(g->time*1.1f+i)*14*dt;g->life[i].pos.y=terrain_height(g,g->life[i].pos.x,g->life[i].pos.z)+16;}
-  g->pos.x=wrap_range(g->pos.x,4200);g->pos.z=wrap_range(g->pos.z,4200);
-  float floor=terrain_height(g,g->pos.x,g->pos.z)+22;
+  if(g->pos.y>floor+120){g->pos.y=floor+120;g->jetpack=0;}
   if(g->pos.y<floor){g->pos.y=floor;if(g->jetpack<0)g->jetpack=0;}
   float px,pz;site_xz(g,1,&px,&pz);float pd=(g->pos.x-px)*(g->pos.x-px)+(g->pos.z-pz)*(g->pos.z-pz);
   if(pd>140*140){g->hazard=fminf(100,g->hazard+dt*(g->bodies[g->planet].type==OCEAN?9:14));if(g->hazard>=100)g->energy-=dt*10;}
   else g->hazard=fmaxf(0,g->hazard-dt*22);
-  g->speed=fabsf(walk);
+  g->speed=sqrtf((g->pos.x-before.x)*(g->pos.x-before.x)+(g->pos.z-before.z)*(g->pos.z-before.z))/dt;
   if(g->energy<=0){g->energy=0;g->dead=1;g->jump=0;g->explosion=0;g->cue=SFX_DEATH;message(g,"Ship destroyed. START for a new commander.");}
   return;
  }
@@ -486,7 +513,7 @@ static void world_collision(Game *g,Vec3 previous){
   }else {g->pos=add(b->pos,mul(norm(sub(previous,b->pos)),radius+10));g->speed=0;g->boost=0;g->collision=2;g->energy-=10;note_collision(g,b->name);}
  }
 }
-void game_tick(Game *g,float dt,float turn,float pitch,int throttle,int fire){
+static void game_step(Game *g,float dt,float turn,float pitch,int throttle,int fire,float strafe){
  if(dt<=0||dt>.1f)dt=1.0f/60;
  /* An approach choice pauses threats and timers, like the input modal. */
  if(g->approach>=0&&!g->dead)return;
@@ -503,7 +530,7 @@ void game_tick(Game *g,float dt,float turn,float pitch,int throttle,int fire){
  }
  if(g->dock_stage){docking_tick(g,dt);return;}
  if(g->dead||g->docked||g->approach>=0)return;
- if(g->planet>=0){planet_tick(g,dt,turn,pitch,throttle);return;}
+ if(g->planet>=0){planet_tick(g,dt,turn,pitch,throttle,strafe);return;}
  float localturn=turn*cosf(g->roll)-pitch*sinf(g->roll),localpitch=turn*sinf(g->roll)+pitch*cosf(g->roll);g->yaw+=localturn*dt*1.5f;g->pitch+=localpitch*dt*1.5f;if(g->pitch>1.5f)g->pitch=1.5f;if(g->pitch<-1.5f)g->pitch=-1.5f;
  g->speed+=throttle*dt*(g->boost?4500:180);if(g->speed<0)g->speed=0;float maxspeed=player_ships[g->ship].speed*(g->boost?20.f:1.f)*(0.70f+0.15f*g->pip_eng);if(g->speed>maxspeed)g->speed=maxspeed;
  if(g->boost&&g->planet<0&&g->jump<=0){g->fuel=fmaxf(0,g->fuel-dt*.35f);if(g->fuel<=0){g->fuel=0;g->boost=0;if(g->message_time<=0)message(g,"Fuel empty. Boost cut.");}}
@@ -626,6 +653,11 @@ void game_tick(Game *g,float dt,float turn,float pitch,int throttle,int fire){
    g->pos=(Vec3){sinf(ang)*dist*.62f,((int)((h>>18)%11)-5)*420.f,-dist*.78f};g->yaw=atan2f(-g->pos.x,STATION_Z-g->pos.z);g->pitch=0;g->speed=100;}
   travellers_advance(g,g->system);
   market(g);game_spawn(g);saga_observation_reenter(g);route_refresh_destination(g);g->cue=SFX_WARP;char note[80];snprintf(note,sizeof(note),"Hyperspace complete. Fuel %.1f LY left.",g->fuel*.1f);message(g,note);speak(g,VOICE_COMP,"Hyperspace complete. Station ahead.");}}
+}
+void game_tick(Game *g,float dt,float turn,float pitch,int throttle,int fire){game_step(g,dt,turn,pitch,throttle,fire,0);}
+void game_eva_tick(Game *g,float dt,float turn,float pitch,int walk,float strafe,int jet){
+ if(g->planet<1||g->planet>=BODY_COUNT||g->surface!=2||g->dead||g->docked||g->police_stop||g->approach>=0||g->dock_stage||g->jump>0)return;
+ g->boost=jet!=0;game_step(g,dt,turn,pitch,walk,0,fmaxf(-1,fminf(1,strafe)));
 }
 /* Versioned commander file. Load into a temporary struct; reject before mutation. */
 typedef struct {uint32_t magic,version;int system,destination,credits,kills,legal,ship,laser,missiles;float fuel;int cargo[GOODS],stock[GOODS],price[GOODS];int contract,reward;float remaining;} Save;
@@ -783,7 +815,7 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  Vec3 pad=surface_site(&g,1);g.pos=add(pad,(Vec3){0,20,0});g.speed=12;g.energy=100;CHECK(land_planet(&g)&&g.surface==1,"slow pad approach lands the ship");
  CHECK(eva_toggle(&g)&&g.surface==2,"commander can leave the landed ship");
  {int life=0;for(int i=0;i<LIFE_COUNT;i++)life+=g.life[i].alive;CHECK(life==LIFE_COUNT,"landed worlds spawn a full set of surface lifeforms");}
- {float farh=terrain_height(&g,pad.x+700,pad.z+700),nearh=terrain_height(&g,pad.x,pad.z);CHECK(nearh>23.f&&nearh<25.f&&fabsf(farh-nearh)>0.5f,"surface terrain stays flat on the pad and rises away from it");}
+ {float farh=terrain_height(&g,pad.x+700,pad.z+700),nearh=terrain_height(&g,pad.x,pad.z);CHECK(nearh==24.f&&farh==24.f,"ocean island and visible water share a level surface");}
  CHECK(g.pos.y-terrain_height(&g,g.pos.x,g.pos.z)>=21.9f,"EVA camera remains above terrain at eye height");
  CHECK(survey_scan(&g)&&g.discoveries>0,"visor scan logs nearby surface life");
  float eva_floor=terrain_height(&g,g.pos.x,g.pos.z)+22;g.boost=1;game_tick(&g,.1f,0,0,0,0);float airborne=g.pos.y;g.boost=0;game_tick(&g,.016f,0,0,0,0);CHECK(airborne>eva_floor&&g.pos.y>eva_floor,"jetpack release transitions into a smooth fall");
@@ -803,6 +835,7 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  CHECK(!approach_planet(&g,1),"orbit restore faces away so the prompt does not reopen");
  game_init(&g);launch(&g);g.approach=3;CHECK(!enter_planet(&g)&&g.planet<0,"gas giants reject atmosphere entry");
  #include "planet-approach-tests.h"
+ #include "planet-eva-tests.h"
  int rares=0;for(int i=0;i<ANOMALY_COUNT;i++)rares+=g.anomaly[i].alive;CHECK(rares>=1,"quiet Lave still contains a rare anomaly");
  g.pos=g.anomaly[0].pos;int disc=g.discoveries;CHECK(analysis_scan(&g,ANOMALY_ID_MIN)&&g.discoveries==disc+1,"close analysis scan catalogues an anomaly");
  CHECK(systems_visited(&g)>=1,"visited systems are recorded for the Codex");

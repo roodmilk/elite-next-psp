@@ -1,5 +1,15 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Pending integration — planetary EVA traversal
+
+The specialist/planetary-eva checkpoint adds independent look/walk/strafe/jet,
+grounded boarding, continuous shared terrain, shore/field bounds and clear ship
+return/exposure cues. All five PPSSPP smoke groups pass (324 game / 309 input,
+57.18 average FPS). EVA scene38 is 31.55 FPS versus 40.46 baseline: the full
+viewport has a measurable cost. No physical PSP test or save-layout change.
+See docs/PLANETARY-EVA-HANDOFF.md for evidence, scope and next activity/revisit
+gaps. Lead owns integration and release. Story approved the coaching string.
+
 ## Integrated 2.5.47 — safe planetary approach
 
 Approach now stops the remaining collision-frame simulation and pauses threats
@@ -367,8 +377,7 @@ The last verified 2.5.32 run passed every group under PPSSPP (game, input, steer
 
 ## Highest-priority remaining work
 
-Planetary lane: reconcile EVA controls/help, terrain rendering/collision, local
-bounds and ship-return guidance as the next separate slice; see the planetary audit.
+Planetary lane: the specialist/planetary-eva checkpoint now covers controls, shared terrain, local bounds and ship return (pending lead integration). Next, runtime-confirm mineral-free worlds and agree one guaranteed activity plus durable reward/revisit rules with Gameplay and Systems. See docs/PLANETARY-EVA-HANDOFF.md; do not promise these next mechanics as implemented.
 
 1. **Confirm 2.5.4 sleep/resume on physical PSP.** Put the handheld to sleep mid-flight and mid-radio for several hours, then wake — screen and audio must return. Also re-check 20+ minute MP3 playback across sample rates.
 2. **Deepen the 24 chapters further.** Briefings now carry full spoken sentences and authored asks; many bible set-pieces still resolve through generic dock/scan/hunt actions rather than unique scenes.

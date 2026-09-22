@@ -180,17 +180,18 @@ static void planet_view(void){
   unsigned c=biome==BIOME_OCEAN&&t<.12f?waterc:mix_rgb(grass,mix_rgb(b->accent,RGB(48,78,40),.35f),t*.45f);
   for(int x=0;x<W;x++)fb[y*STRIDE+x]=c;
  }
- int cell=game.surface==2?40:56,span=5;
+ int cell=SURFACE_CELL,span=5;
  int gx0=(int)floorf(game.pos.x/cell)-span,gz0=(int)floorf(game.pos.z/cell)-span;
  for(int iz=0;iz<span*2+1;iz++)for(int ix=0;ix<span*2+1;ix++){
   float x0=(gx0+ix)*(float)cell,z0=(gz0+iz)*(float)cell,x1=x0+cell,z1=z0+cell;
   float cx=x0+cell*.5f,cz=z0+cell*.5f;
   float gy=terrain_height(&game,cx,cz);
   Vec3 mid=camera(&game,(Vec3){cx,gy,cz});if(mid.z<20||mid.z>620)continue;
-  if(terrain_is_water(&game,cx,cz))continue;
+  int water=terrain_is_water(&game,cx,cz);
   int checker=((gx0+ix)+(gz0+iz))&1;
-  unsigned col=checker?grass:mix_rgb(grass,b->accent,.28f);
-  planet_quad((Vec3){x0,gy,z0},(Vec3){x1,gy,z0},(Vec3){x1,gy,z1},(Vec3){x0,gy,z1},col);
+  unsigned col=water?waterc:checker?grass:mix_rgb(grass,b->accent,.28f);
+  planet_quad((Vec3){x0,terrain_height(&game,x0,z0),z0},(Vec3){x1,terrain_height(&game,x1,z0),z0},
+              (Vec3){x1,terrain_height(&game,x1,z1),z1},(Vec3){x0,terrain_height(&game,x0,z1),z1},col);
  }
  {
   float px=pad.x,pz=pad.z,h=terrain_height(&game,px,pz)+.6f,s=40.f;
@@ -267,13 +268,17 @@ static void planet_eva_hud(void){
  static const char *biome_name[]={"OCEAN ISLAND","ARID FLATS","ICE FIELD","VOLCANIC SCRUB","FOREST RISE"};
  int biome=planet_biome(b);
  rect(0,0,W,28,RGB(21,28,39));rect(0,26,W,2,RGB(193,139,77));
- text(1,0,RGB(229,210,163),"ON FOOT / %.14s",b->name);text(1,2,RGB(155,154,165),"NUB LOOK  D-PAD MOVE  2xR JET  SQ SCAN  O BOARD");
+ text(1,0,RGB(229,210,163),"ON FOOT / %.14s",b->name);
+ text(1,2,RGB(155,154,165),"NUB/L+PAD LOOK  PAD MOVE  HOLD R JET  SQ SCAN  O BOARD");
  text(40,0,RGB(85,212,212),"%s",biome_name[biome]);
- rect(0,248,W,24,RGB(21,28,39));rect(0,248,W,2,RGB(193,139,77));
- float dx=game.pos.x-game.ship_pos.x,dz=game.pos.z-game.ship_pos.z,shipd=sqrtf(dx*dx+dz*dz);
- int near=-1;float best=999;for(int i=0;i<LIFE_COUNT;i++)if(game.life[i].alive&&!game.life[i].scanned){float d=length(sub(game.life[i].pos,game.pos));if(d<best){best=d;near=i;}}
- if(near>=0&&best<380)text(1,32,RGB(240,180,91),"%s  %d M  — SQ SCAN",game.life[near].kind==LIFE_FLORA?"FLORA":game.life[near].kind==LIFE_FAUNA?"FAUNA":"MINERAL",(int)best);
- else if(shipd<70)text(1,32,RGB(85,212,212),"SHIP NEAR — O TO BOARD");
- else text(1,32,RGB(155,154,165),"SHIP %d M   HAZARD %d",(int)shipd,(int)game.hazard);
- if(game.hazard>40){rect(300,252,160,8,RGB(40,20,20));rect(300,252,(int)(1.6f*game.hazard),8,RED);}
+ rect(0,240,W,32,RGB(21,28,39));rect(0,240,W,2,RGB(193,139,77));
+ float dx=game.ship_pos.x-game.pos.x,dz=game.ship_pos.z-game.pos.z,shipd=sqrtf(dx*dx+dz*dz);
+ float angle=atan2f(dx,dz)-game.yaw;angle=atan2f(sinf(angle),cosf(angle));
+ const char *bearing=shipd<1?"NEAR":fabsf(angle)<.3f?"AHEAD":fabsf(angle)>2.6f?"BEHIND":angle>0?"RIGHT":"LEFT";
+ text(1,31,RGB(85,212,212),"SHIP %s %d M  TRI FACE SHIP",bearing,(int)shipd);
+ text(42,31,game.hazard>40?RED:RGB(155,154,165),"HZ %d HP %d",(int)game.hazard,(int)game.energy);
+ if(game.hazard>=100)text(1,33,RED,"EXPOSURE DAMAGES SUIT! TRI FACE SHIP; RETURN TO PAD");
+ else if(game.message_time>0&&game.message[0])text(1,33,RGB(229,210,163),"%.58s",game.message);
+ else if(eva_can_board(&game))text(1,33,RGB(85,212,212),"O BOARD SHIP");
+ else text(1,33,RGB(155,154,165),"SQ SURVEY   SELECT DECK   L+PAD LOOK WITHOUT NUB");
 }

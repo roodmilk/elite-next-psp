@@ -51,7 +51,7 @@ static int walk_salvaged=0;
 static int analog_enabled=1,analog_ready=0,fire_blocked=0;
 static float preview_time=0;
 static int nearby[256],near_count,chart_mode=0,chart_cursor=7,chart_zoom=1;
-static int view_top(void){return hud_hidden?0:(hud_mode==0?0:23);}
+static int view_top(void){return game.planet>=0&&game.surface==2?28:hud_hidden?0:(hud_mode==0?0:23);}
 static int buffer=0;
 static void display_recover(void){
  /* After sleep the LCD/framebuffer pairing can be invalid; rebuild both planes. */
@@ -73,7 +73,7 @@ static void runtime_recover_from_sleep(void){
  audio_init();
  message(&game,"PSP resumed. Display, controls and radio restored.");
 }
-static int view_bot(void){return hud_hidden?H-1:(hud_mode==0?191:247);}
+static int view_bot(void){return game.planet>=0&&game.surface==2?239:hud_hidden?H-1:(hud_mode==0?191:247);}
 enum { HOME,FLIGHT,MARKET,CHART,YARD,EQUIP,STATUS,HELP,FACTIONS,LOCAL,DEBUG,COMMS,DETAILS,MISSIONS,MISSIONLOG,TARGETING,GALNET,CODEX,STORY,GUILD,RADIO,COMMS_PANEL,INTRO,CAMPAIGN,COMFORT,WALK,INVENTORY };
 #include "deck-nav.h"
 static int pip_sel=1,comms_rescue_confirm=0,abandon_confirm=0,faction_lore_card=0;
@@ -418,6 +418,11 @@ static void walk_screen(void){
  if(walk_kind==2){rect(8,252,180,8,RGB(41,54,70));rect(8,252,(int)(1.8f*walk_oxygen),8,RGB(85,212,212));rect(8,262,180,8,RGB(70,40,38));rect(8,262,(int)(1.8f*walk_integrity),8,RGB(200,90,75));text(25,32,RGB(229,210,163),"O2 %d  SUIT %d",(int)walk_oxygen,(int)walk_integrity);}
  else text(1,32,RGB(155,154,165),"Workshop. Triangle returns to the concourse.");
 }
+static unsigned flight_steer_buttons(unsigned buttons){
+ if(page==FLIGHT&&((buttons&PSP_CTRL_SQUARE)||(game.planet>=0&&game.surface==2)))
+  buttons&=~(PSP_CTRL_UP|PSP_CTRL_DOWN|PSP_CTRL_LEFT|PSP_CTRL_RIGHT);
+ return buttons;
+}
 static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
  static unsigned in_held=0;static int sq_arm=0;
  unsigned released=in_held&~held;in_held=held;if(page!=FLIGHT||paused||game.police_stop||game.approach>=0||game.dock_stage)sq_arm=0;
@@ -459,6 +464,18 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
  if(game.dock_stage){autoaim=0;if(game.dock_stage==1&&(pressed&PSP_CTRL_CIRCLE)){game.dock_stage=0;game.speed=0;game.boost=0;message(&game,"Docking guidance cancelled. You have control.");return;}game_tick(&game,dt,0,0,0,0);if(game.docked)change_page(HOME);return;}
  if(game.dead){game_tick(&game,dt,0,0,0,0);return;}
  if(page==FLIGHT&&game.jump>0){game.boost=0;game_tick(&game,dt,0,0,0,0);if(game.jump<=0){selected_target=0;autoaim=0;}return;}
+ /* On foot owns its controls; spacecraft roll, boost and target chords never run here. */
+ if(page==FLIGHT&&game.planet>=0&&game.surface==2){
+  autoaim=0;sq_arm=0;hard_brake=0;r_tap=l_tap=10;
+  if(pressed&PSP_CTRL_SELECT){game.boost=0;change_page(HOME);return;}
+  if(pressed&PSP_CTRL_CIRCLE){eva_toggle(&game);return;}
+  if(pressed&PSP_CTRL_TRIANGLE){game.yaw=atan2f(game.ship_pos.x-game.pos.x,game.ship_pos.z-game.pos.z);game.pitch=game.roll=0;message(&game,"Facing your ship. D-pad forward to return.");}
+  if(pressed&PSP_CTRL_SQUARE)survey_scan(&game);
+  int walk=((held&PSP_CTRL_UP)!=0)-((held&PSP_CTRL_DOWN)!=0);
+  float strafe=((held&PSP_CTRL_RIGHT)!=0)-((held&PSP_CTRL_LEFT)!=0);
+  if(held&PSP_CTRL_LTRIGGER){ax=strafe;ay=(float)walk;walk=0;strafe=0;}
+  game_eva_tick(&game,dt,ax,ay,walk,strafe,(held&PSP_CTRL_RTRIGGER)!=0);return;
+ }
  if(page==FLIGHT&&(pressed&PSP_CTRL_RTRIGGER)&&!(held&PSP_CTRL_SQUARE)){if(r_tap<.32f&&game.heat<85){game.boost=1;game.cue=SFX_BOOST;}else if(r_tap<.32f&&game.heat>=85)message(&game,"Too hot to boost. Cool down first.");r_tap=0;}if(!(held&PSP_CTRL_RTRIGGER)||page!=FLIGHT||(game.planet>=0&&game.surface==1)||(held&PSP_CTRL_SQUARE)||game.heat>=90)game.boost=0;
  if(page==FLIGHT&&(pressed&PSP_CTRL_LTRIGGER)&&!(held&(PSP_CTRL_LEFT|PSP_CTRL_RIGHT|PSP_CTRL_SQUARE))){if(l_tap<.32f&&game.speed>player_ships[game.ship].speed*.35f){hard_brake=.55f;game.boost=0;game.cue=SFX_UI;message(&game,"Hard brake.");}l_tap=0;}
  if(page==FLIGHT&&game.approach>=0){game.boost=0;if(pressed&PSP_CTRL_CIRCLE){turn_back(&game);autoaim=0;}else if(pressed&PSP_CTRL_CROSS){if(enter_planet(&game))autoaim=0;}return;}
@@ -493,7 +510,7 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
  if(page==CHART&&chart_mode&&(pressed&PSP_CTRL_LEFT))chart_move_cursor(-1,0);
  if(page==CHART&&chart_mode&&(pressed&PSP_CTRL_RIGHT))chart_move_cursor(1,0);
  if(page==HOME&&(pressed&(PSP_CTRL_LEFT|PSP_CTRL_RIGHT)))deck_tab(pressed&PSP_CTRL_RIGHT?1:-1);
- if(page==HELP&&(pressed&(PSP_CTRL_LEFT|PSP_CTRL_RIGHT)))help_tab=(help_tab+(pressed&PSP_CTRL_RIGHT?1:3))%4;
+ if(page==HELP&&(pressed&(PSP_CTRL_LEFT|PSP_CTRL_RIGHT)))help_tab=(help_tab+(pressed&PSP_CTRL_RIGHT?1:4))%5;
    if(page==TARGETING&&(pressed&(PSP_CTRL_LTRIGGER|PSP_CTRL_RTRIGGER))){step_scan_cat(pressed&PSP_CTRL_RTRIGGER?1:-1);target_count=collect_scan_ids(target_ids,scan_cat);row=0;}
    if(page==CHART&&chart_mode&&(pressed&(PSP_CTRL_LTRIGGER|PSP_CTRL_RTRIGGER))){chart_zoom+=pressed&PSP_CTRL_RTRIGGER?1:-1;if(chart_zoom<1)chart_zoom=1;if(chart_zoom>4)chart_zoom=4;game.cue=SFX_SELECT;}
    if(page==GALNET&&(pressed&(PSP_CTRL_LTRIGGER|PSP_CTRL_RTRIGGER))){galnet_tab=(galnet_tab+(pressed&PSP_CTRL_RTRIGGER?1:5))%6;row=0;}
@@ -695,7 +712,7 @@ static void input_tests(void){
   if(ex>=0){sc_hot=ex;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(sc_room!=start,"station: X on a door changes room");}
   else INPUT_CHECK(0,"station: arrivals must list at least one exit hotspot");}
  TEST_INIT();launch(&game);page=FLIGHT;game.approach=1;enter_planet(&game);{Vec3 pad=surface_site(&game,1);game.pos=add(pad,(Vec3){0,18,0});game.speed=8;land_planet(&game);eva_toggle(&game);}
- {Vec3 before=game.pos;input(0,0,.05f,0,.9f);INPUT_CHECK(game.surface==2&&length(sub(game.pos,before))>1.f,"planet EVA: nub forward walks across the surface");}
+ {Vec3 before=game.pos;input(0,0,.05f,0,.9f);INPUT_CHECK(game.surface==2&&length(sub(game.pos,before))<.01f&&game.pitch>0,"planet EVA: nub looks without walking");}
  #include "journey-input-tests.h"
  #include "radio-input-tests.h"
  #include "comms-input-tests.h"
@@ -710,6 +727,7 @@ static void input_tests(void){
   INPUT_CHECK(bounded,"radar: all 360-degree distant bearings remain inside instrument");
  }
  #include "planet-approach-input-tests.h"
+ #include "planet-eva-input-tests.h"
  {
   unsigned *saved_fb=fb,*pixels=malloc(STRIDE*H*sizeof(unsigned));
   INPUT_CHECK(pixels!=0,"graphics: disposable framebuffer allocated");
@@ -735,6 +753,30 @@ static void input_tests(void){
     INPUT_CHECK(contained,"graphics: approach title and explanation stay inside modal in all HUD modes");
     INPUT_CHECK(gas_action,"graphics: only solid worlds offer X surface flight");
     high_contrast=old_contrast;TEST_INIT();hud_mode=hud_hidden=0;
+   }
+   {
+    TEST_INIT();launch(&game);game.approach=1;enter_planet(&game);game.pos=surface_site(&game,1);game.speed=8;land_planet(&game);eva_toggle(&game);page=FLIGHT;
+    memset(pixels,0,STRIDE*H*sizeof(unsigned));drawcount=0;space();
+    int filled=1;for(int y=192;y<240;y++)for(int x=0;x<W;x++)if(!pixels[y*STRIDE+x])filled=0;
+    INPUT_CHECK(view_top()==28&&view_bot()==239&&filled,"EVA graphics: world fills the space between header and return strip");
+    FILE *capture=fopen("eva-capture.flag","r");
+    if(capture){
+     fclose(capture);int old_contrast=high_contrast;
+     TEST_INIT();launch(&game);game.approach=1;enter_planet(&game);
+     game.pos=surface_site(&game,1);game.speed=8;land_planet(&game);eva_toggle(&game);
+     page=FLIGHT;game.message_time=0;
+     for(int mode=0;mode<2;mode++){high_contrast=mode;drawcount=0;space();dump_native_bmp(mode?"eva-boarding-contrast.bmp":"eva-boarding.bmp");}
+     game.pos.x+=160;game.pos.y=terrain_height(&game,game.pos.x,game.pos.z)+22;
+     game.yaw=atan2f(game.ship_pos.x-game.pos.x,game.ship_pos.z-game.pos.z);game.hazard=42;game.message_time=0;high_contrast=0;drawcount=0;space();dump_native_bmp("eva-return.bmp");
+     game.pos=game.ship_pos;game.pos.y+=4;game.hazard=0;survey_scan(&game);drawcount=0;space();dump_native_bmp("eva-scan-result.bmp");
+     game.pos.y+=35;eva_toggle(&game);drawcount=0;space();dump_native_bmp("eva-airborne-board.bmp");
+     game.hazard=100;game.energy=35;drawcount=0;space();dump_native_bmp("eva-exposure.bmp");
+     game.hazard=0;game.message_time=0;game.pitch=.75f;drawcount=0;space();dump_native_bmp("eva-look-up.bmp");
+     game.pitch=-.75f;drawcount=0;space();dump_native_bmp("eva-look-down.bmp");
+     change_page(HELP);help_tab=4;rect(0,0,W,H,BG);help();dump_native_bmp("eva-controls.bmp");
+     high_contrast=old_contrast;
+    }
+    TEST_INIT();hud_mode=hud_hidden=0;
    }
    memset(pixels,0,STRIDE*H*sizeof(unsigned));button_icon(10,10,'T',WHITE);
    INPUT_CHECK(pixels[11*STRIDE+14]&&pixels[17*STRIDE+11]&&pixels[17*STRIDE+17]&&!pixels[12*STRIDE+11],"graphics: PSP Triangle icon points upward");
@@ -843,7 +885,7 @@ int main(void){
  game_init(&game);deck_reset();FILE *flag=fopen("smoke.flag","r");if(flag){smoke=1;fclose(flag);FILE *visual=fopen("visual.flag","r");if(visual){visual_hold=1;fclose(visual);}FILE *log=fopen("boot-check.txt","w");if(log){fprintf(log,"PSP main reached; %d meshes loaded.\n",mesh_count);fclose(log);}}
  if(smoke){radio_tests();steering_tests();game_tests("game-check.txt");input_tests();}
  else {game.voice_time=0;change_page(INTRO);}
- FILE *introflag=fopen("open-intro.flag","r");if(introflag){fclose(introflag);change_page(INTRO);intro_time=6;}FILE *socialflag=fopen("open-spacebook.flag","r");if(socialflag){fclose(socialflag);change_page(GALNET);galnet_tab=3;game.voice_time=0;}FILE *netflag=fopen("open-galnet.flag","r");if(netflag){int tab=0;fscanf(netflag,"%d",&tab);fclose(netflag);change_page(GALNET);galnet_tab=tab>=0&&tab<6?tab:0;row=0;game.voice_time=0;}FILE *helpflag=fopen("open-help.flag","r");if(helpflag){int tab=0;fscanf(helpflag,"%d",&tab);fclose(helpflag);change_page(HELP);help_tab=tab>=0&&tab<4?tab:0;}
+ FILE *introflag=fopen("open-intro.flag","r");if(introflag){fclose(introflag);change_page(INTRO);intro_time=6;}FILE *socialflag=fopen("open-spacebook.flag","r");if(socialflag){fclose(socialflag);change_page(GALNET);galnet_tab=3;game.voice_time=0;}FILE *netflag=fopen("open-galnet.flag","r");if(netflag){int tab=0;fscanf(netflag,"%d",&tab);fclose(netflag);change_page(GALNET);galnet_tab=tab>=0&&tab<6?tab:0;row=0;game.voice_time=0;}FILE *helpflag=fopen("open-help.flag","r");if(helpflag){int tab=0;fscanf(helpflag,"%d",&tab);fclose(helpflag);change_page(HELP);help_tab=tab>=0&&tab<5?tab:0;}
  FILE *yardflag=fopen("open-yard.flag","r");if(yardflag){int ship=0;fscanf(yardflag,"%d",&ship);fclose(yardflag);change_page(YARD);row=ship>=0&&ship<player_ship_count?ship:0;game.voice_time=0;story_complete(&game);}
  FILE *sflag=fopen("open-story.flag","r");if(sflag){fclose(sflag);change_page(STORY);}
  FILE *factionflag=fopen("open-factions.flag","r");if(factionflag){fclose(factionflag);change_page(FACTIONS);row=1;}FILE *comfortflag=fopen("open-comfort.flag","r");if(comfortflag){fclose(comfortflag);change_page(COMFORT);}FILE *homeflag=fopen("open-home.flag","r");if(homeflag){int item=0;fscanf(homeflag,"%d",&item);fclose(homeflag);change_page(HOME);row=item>=0&&item<DECK_ITEMS?item:0;game.voice_time=0;}FILE *codexflag=fopen("open-codex.flag","r");if(codexflag){int tab=0;fscanf(codexflag,"%d",&tab);fclose(codexflag);change_page(CODEX);codex_tab=tab>=0&&tab<6?tab:0;row=0;game.voice_time=0;}FILE *cpflag=fopen("open-campaign.flag","r");if(cpflag){int stage=0,flying=0;fscanf(cpflag,"%d %d",&stage,&flying);fclose(cpflag);if(flying)launch(&game);game.campaign_stage=stage>=0&&stage<=6?stage:0;game.voice_time=0;tracked_mission=0;change_page(CAMPAIGN);}FILE *guildflag=fopen("open-guild.flag","r");if(guildflag){int chapter=0,ready=0;fscanf(guildflag,"%d %d",&chapter,&ready);fclose(guildflag);game.guild_chapter=chapter>=0&&chapter<=4?chapter:0;game.guild_flags=ready?31:0;game.voice_time=0;tracked_mission=1;change_page(CAMPAIGN);}
@@ -869,7 +911,7 @@ int main(void){
   int was_ready=analog_ready,ready=stick_ready(valid,pad.Lx,pad.Ly,&analog_ready);
   if(ready&&!was_ready){analog_center_x=pad.Lx;analog_center_y=pad.Ly;}
   if(ready&&!(pad.Buttons&(PSP_CTRL_LEFT|PSP_CTRL_RIGHT|PSP_CTRL_UP|PSP_CTRL_DOWN))&&abs((int)pad.Lx-analog_center_x)<18&&abs((int)pad.Ly-analog_center_y)<18){analog_center_x=(analog_center_x*15+pad.Lx)/16;analog_center_y=(analog_center_y*15+pad.Ly)/16;}
-  unsigned steer=pad.Buttons;if(page==FLIGHT&&(pad.Buttons&PSP_CTRL_SQUARE))steer&=~(PSP_CTRL_UP|PSP_CTRL_DOWN|PSP_CTRL_LEFT|PSP_CTRL_RIGHT);
+  unsigned steer=flight_steer_buttons(pad.Buttons);
   float ax,ay;steering_axes_centered(valid,steer,pad.Lx,pad.Ly,analog_enabled&&ready,analog_center_x,analog_center_y,&ax,&ay);
   if(!paused)preview_time+=dt;
   input(pressed,pad.Buttons,dt,ax,ay);
@@ -914,7 +956,7 @@ int main(void){
   if(smoke&&frames==360){game_init(&game);deck_reset();launch(&game);page=FLIGHT;hud_mode=hud_hidden=0;game.pos=add(game.bodies[1].pos,(Vec3){0,0,-game.bodies[1].radius-800});game.yaw=game.pitch=0;game.approach=1;enter_planet(&game);}
   if(smoke&&frames==370){Vec3 pad=surface_site(&game,1);game.pos=add(pad,(Vec3){0,18,0});game.speed=8;land_planet(&game);}
   if(smoke&&frames==380){eva_toggle(&game);}
-  if(smoke&&!visual_hold&&frames==390){game.pos=game.ship_pos;eva_toggle(&game);takeoff_planet(&game);}
+  if(smoke&&!visual_hold&&frames==390){game.pos=game.ship_pos;game.pos.y=terrain_height(&game,game.pos.x,game.pos.z)+22;eva_toggle(&game);takeoff_planet(&game);}
   if(smoke&&!visual_hold&&frames==400){leave_planet(&game);page=FLIGHT;}
   if(smoke&&!visual_hold&&frames==410){change_page(CODEX);}
   if(smoke&&!visual_hold&&frames==420){change_page(RADIO);}if(smoke&&!visual_hold&&frames==415){game_init(&game);deck_reset();launch(&game);page=FLIGHT;game.pos=game.anomaly[0].pos;analysis_scan(&game,ANOMALY_ID_MIN);}

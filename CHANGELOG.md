@@ -2,6 +2,13 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## Unreleased — planetary EVA traversal
+
+- Separate on-foot look, walk/strafe and hold-R jet controls; analog-off fallback and a dedicated fifth Help page.
+- Match terrain collision to the rendered triangles, block water/local edges, and permit grounded boarding immediately after disembarking.
+- Show ship bearing/distance, exposure and remaining suit health; preserve scan feedback and fill the full EVA viewport.
+- Add traversal, resource, save and mineral-to-hub-sale regressions. V13 layout and existing reward rules are unchanged.
+
 ## 2.5.47 - 2026-09-23
 
 - Planet approaches now stop the remaining collision frame safely, pause threats while the choice is open, and give gas giants truthful turn-away controls.
