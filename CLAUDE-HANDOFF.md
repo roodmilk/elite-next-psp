@@ -137,7 +137,7 @@ The build compiles `game.c`, `ships.c` and `main.c`, links PSP libraries and pro
 - radio checks;
 - performance checks.
 
-The last verified 2.5.7 source includes audible radio static and dial polish; full PPSSPP smoke follows packaging. PPSSPP success does not replace physical PSP testing.
+The last verified 2.5.7 run passed every group under PPSSPP (game, input, steering, radio, performance). PPSSPP success does not replace physical PSP testing.
 
 ## Highest-priority remaining work
 
