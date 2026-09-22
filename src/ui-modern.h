@@ -180,8 +180,13 @@ static void equipment(void){
  text(31,7,CYAN,"%.22s",equip_cat[row]);
  text(31,9,WHITE,"%.21s",equipment_details[i]);
  text(31,12,CYAN,"%.27s",equipment_effects[i]);
- text(31,15,DIM,"Tech %d / hub %d",equipment_tech[i],game.systems[game.system].tech+1);
- text(31,18,equipment_owned(i)?CYAN:WHITE,equipment_owned(i)?i==8?"Rack full":i==0?"Tank full":"Installed":"%.1f units",row>=0&&i==0?fuelcost*.1f:equipment_costs[i]*.1f);
+ {
+  int need=equipment_tech[i],have=game.systems[game.system].tech+1,ok=i==0||have>=need;
+  if(equipment_owned(i))text(31,15,CYAN,i==8?"Missile rack full":i==0?"Fuel tank full":"Already fitted");
+  else if(ok){text(31,15,CYAN,"In stock at this hub");text(31,16,DIM,"Hub tech %d  (needs %d)",have,need);}
+  else{text(31,15,AMBER,"Hub tech too low");text(31,16,DIM,"Needs tech %d  (here %d)",need,have);text(31,17,DIM,"Warp to a richer system");}
+ }
+ text(31,19,equipment_owned(i)?DIM:WHITE,equipment_owned(i)?"--":"%.1f units",row>=0&&i==0?fuelcost*.1f:equipment_costs[i]*.1f);
  text(31,21,DIM,"Balance %.1f",game.credits*.1f);
  footer("UP/DOWN   X BUY / REFUEL   O BACK");
 }

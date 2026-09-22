@@ -1,4 +1,10 @@
-# ELITE: NEXT — development build 2.5.4
+# ELITE: NEXT — development build 2.5.5
+
+## New in 2.5.5 — speaker chips and clearer outfitting
+
+- `NAME SAYS` labels sit on a colour chip so Kei, Law, Guild and saga contacts read at a glance.
+- Tracked Mission shows the active speaker's face beside the briefing bubble.
+- Outfitting explains tech gates in plain language (in stock / already fitted / hub tech too low — warp to a richer system).
 
 ## New in 2.5.4 — wake from long sleep without a black screen
 

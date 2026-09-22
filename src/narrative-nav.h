@@ -58,13 +58,31 @@ static void narrative_reply_choice(int index,int y,const char *label){
  line(464,py+4,470,py+7,edge);line(470,py+7,464,py+10,edge);
  text(3,y,active?GOLD:AMBDIM,"%s YOU: %.45s",active?">":" ",label);
 }
+static int saga_speaker_role(const SagaBeat *b){
+ if(!b)return EXPLORERS;
+ if(b->role==3)return LAW;
+ if(b->role==2)return TRADERS;
+ return EXPLORERS;
+}
+static unsigned saga_speaker_color(const SagaBeat *b){
+ int role=saga_speaker_role(b);
+ if(b&&(!strcmp(b->speaker,"KEI")||!strcmp(b->speaker,"RYN")))return RGB(76,181,190);
+ return faction_colors[role];
+}
+static void saga_speaker_face(int x,int y,int size,const SagaBeat *b){
+ if(!b){draw_kei(x,y,size,0);return;}
+ if(!strcmp(b->speaker,"KEI")||!strcmp(b->speaker,"RYN")){draw_kei(x,y,size,!strcmp(b->speaker,"RYN")?1:0);return;}
+ int role=saga_speaker_role(b);unsigned seed=0;
+ for(const char *p=b->speaker;*p;p++)seed=seed*131u+(unsigned char)*p;
+ draw_portrait(x,y,size,size,(int)(seed%2000)+role*37,role);
+}
 static void kei_speech_bubble(int y,const char *line1,const char *line2,int expression){
  const int px=16,size=48,bx=76,bw=388,bh=62;unsigned edge=RGB(76,181,190),fill=RGB(14,29,39);
  draw_kei(px,y+7,size,expression);
  rect(bx,y,bw,bh,fill);rect(bx,y,bw,2,edge);rect(bx,y+bh-2,bw,2,RGB(30,78,86));rect(bx+bw-2,y,2,bh,edge);
  /* A compact pixel tail physically links these words to Kei's portrait. */
  line(bx,y+20,bx-12,y+28,edge);line(bx-12,y+28,bx,y+36,edge);rect(bx-3,y+22,4,13,fill);
- text(11,y/8+1,CYAN,"KEI SAYS");
+ speaker_name_tag(11,y/8+1,"KEI",edge);
  text(11,y/8+3,WHITE,"%.43s",line1);
  if(line2&&line2[0])text(11,y/8+5,WHITE,"%.43s",line2);
 }

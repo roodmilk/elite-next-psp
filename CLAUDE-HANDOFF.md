@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.4**.
+Prepared 22 September 2026. Current build: **2.5.5**.
 
 ## Start here
 
@@ -75,6 +75,10 @@ The currently playable chapter actions are deliberately compact: dock, scan, def
 The nearby list only shows local candidates. Triangle opens a spatial overview of all 256 systems. It marks the current system in cyan, the tracked mission destination in gold, and caches/draws every intermediate jump. L/R zoom from 1× to 4×. X converts the selected long route into its first reachable jump. This logic is generic; **Quator has no special code or significance** and was only the system that exposed the old UI flaw.
 
 Story navigation plans against the fitted drive even if the tank is empty, then marks the next hop as low-fuel until the player refuels. The story screen distinguishes `NEXT` from `FINAL`, and the cockpit names the next reachable hop.
+
+### 2.5.5 — speaker chips and outfitting clarity
+
+Dialogue name plates use `speaker_name_tag` so `NAME SAYS` sits on a faction-coloured chip. Tracked Mission (saga + Guild) draws the speaker portrait next to the briefing bubble. Outfitting no longer shows opaque `Tech N / hub M` — it states whether the item is in stock, already fitted, or blocked by hub tech, and tells the player to warp to a richer system when needed.
 
 ### 2.5.4 — sleep/resume recovery
 

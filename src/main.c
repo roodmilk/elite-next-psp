@@ -115,6 +115,15 @@ static void text(int x,int y,unsigned c,const char *fmt,...){
   }
  }
 }
+/* Coloured name plate so "KEI SAYS" / "REI SAYS" read at a glance on 480x272. */
+static void speaker_name_tag(int col,int rowy,const char *name,unsigned color){
+ char tag[28];snprintf(tag,sizeof(tag),"%.12s SAYS",name&&name[0]?name:"CONTACT");
+ int n=(int)strlen(tag);if(n<1)n=1;if(n>18)n=18;
+ int x=col*8,y=rowy*8;
+ rect(x-2,y-1,n*8+6,10,color);
+ rect(x-1,y,n*8+4,8,RGB(((color&255)*28)/100,(((color>>8)&255)*28)/100,(((color>>16)&255)*28)/100));
+ text(col,rowy,WHITE,"%.*s",n,tag);
+}
 static void dump_native_bmp(const char *path){
  FILE *f=fopen(path,"wb");if(!f||!fb)return;
  int w=W,h=H;unsigned size=54+(unsigned)w*h*3;unsigned char hdr[54]={0};

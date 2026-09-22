@@ -63,7 +63,7 @@ static void speech_box(int x,int y,int w){
  int portrait=who!=VOICE_COMP,tx=x+(portrait?40:8),col=tx/8,cap=(x+w-8-tx)/8;
  rect(x,y,w,32,RGB(8,18,28));rect(x,y,2,32,ink);
  if(portrait){if(who==VOICE_KEI)draw_kei(x+4,y,32,0);else draw_portrait(x+4,y,32,32,who==VOICE_CONTACT?game.voice_seed:who*37,role);}
- text(col,y/8,ink,"%.20s",who==VOICE_CONTACT?faction_names[role]:names[who]);
+ speaker_name_tag(col,y/8,who==VOICE_CONTACT?faction_names[role]:names[who],ink);
  button_icon(x+w-16,y,'T',ink);
  for(int row=0;row<2&&*s;row++){
   int len=(int)strlen(s),cut=len<cap?len:cap;
