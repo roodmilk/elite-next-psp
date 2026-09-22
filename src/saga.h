@@ -1,7 +1,7 @@
 /* The Open Channel: data-driven main campaign.
  * Briefings follow ask-then-answer (same rhythm as the prologue): beat N+1
- * answers the commander's ask on beat N. Act I (chs 02-07 / indices 0-5) uses
- * eight page-script beats; later chapters pad to eight. Feature screenplay:
+ * answers the commander's ask on beat N. Acts I–III (chs 02–19 / indices 0–17)
+ * ship eight page-script beats with locked codas. Feature screenplay:
  * docs/OPEN-CHANNEL-SCREENPLAY.md */
 enum { SAGA_DOCK, SAGA_SCAN, SAGA_HUNT, SAGA_HOME, SAGA_CHOICE };
 enum { SAGA_BRIEF_BEATS = 8 };
@@ -250,104 +250,115 @@ static const SagaBeat saga_beats[]={
   "Make the publication choice.",
   "Decide how openly to publish",SAGA_CHOICE,0},
 
+ /* Act III Ch.14 — map page script */
  {"A Map for Everyone","RYN",
-  "Three powers want one map, and none of them should own the only copy of how living things move through this sky.",
+  "Three copies. Same map. Same doubts printed in the margin. Nobody gets a cleaner version than anyone else.",
   "Federation, Empire, Alliance — each with a different smile. Copies go to a neutral archive with doubt and provenance attached.",
   "Neutral means shared custody of uncertainty, not a flag that pretends the sky is solved. No exclusives.",
   "They will. It will sound like relief until you notice the lock. Refusal is enough; you do not owe them a fight for saying no.",
-  "Correct. Deliver the packets. Keep your hands free of anyone's exclusive stamp.",
-  "If a buyout arrives mid-dock, smile, refuse, leave. Relief with a lock is still a cage.",
-  "Doubt travels with the packets. Provenance is the part that keeps a map from becoming scripture.",
+  "Correct. Deposit the packets. Keep your hands free of anyone's exclusive stamp.",
+  "Authoritative is a word people use when they want the others to go quiet. Messy truth beats polished hazard notices.",
+  "If anyone tries to buy the master, log the offer as evidence. Romanticise the argument that kept the seal honest — not the seal.",
   "Next step: take copies to a neutral archive without granting exclusives.",
   "Who wants this map?",
   "Neutral archive — what does that mean?",
   "What about a Meridian buyout?",
   "So I refuse exclusives?",
+  "Why attach doubt to every copy?",
   "What if they offer mid-dock?",
-  "Why attach doubt?",
   "I will deliver the packets.",
   "Accept the archive run.",
   "Take copies to a neutral archive",SAGA_DOCK,3},
+
+ /* Act III Ch.15 — Federal page script */
  {"Federal Measure","TAMSIN",
-  "The Federation offers security with conditions — another way of saying the fine print arrives wearing a rescue jacket.",
-  "Patrol coverage and rapid logistics. Real help. Also surveillance language that travels in the same briefing folder.",
-  "That you will trade operational access for the jacket. Working crews survive by noticing when help starts looking like a lease.",
-  "They will stage one. Watch the paperwork that makes the cost permanent while the benefit looks obvious.",
-  "No. You are listening like someone who still has to fly tomorrow. Keep your own counsel.",
-  "If they show a rescue exercise, clap politely. Clapping is not a signature.",
-  "Write nothing. Nod if you must. Your berth stays yours when the folder closes.",
+  "The Federation does not need your map. They need your lane not to kill civilians while three governments write letters.",
+  "Patrol shells, rapid medevac, priority jump slots for relief — and operational telemetry shared for the crisis duration.",
+  "That you will trade ship IDs, vector, cargo class for the jacket. Not cabin audio. Not private mail. Still a lease if you sleep.",
+  "They will stage a rescue exercise. Watch the paperwork that makes the cost permanent while the benefit looks obvious.",
+  "No. You are listening like someone who still has to fly tomorrow. Keep your own counsel until all three powers speak.",
+  "Ugly doctrine: move first, publish second, apologise in footnotes. Ugly I can fly with. Invisible conditions I cannot.",
+  "Record the telemetry clause verbatim. If cargo class becomes cargo contents, Iona wants the delta timestamped.",
   "Next step: hear the Federal envoy without committing a flag.",
   "What are they offering?",
   "What is the catch in the fine print?",
   "Will they show a rescue?",
   "Should I refuse them today?",
-  "How do I watch the exercise?",
-  "Any advice for the meeting?",
+  "How ugly is their doctrine?",
+  "What should Iona watch?",
   "I will listen carefully.",
   "Meet the Federal envoy.",
   "Hear the Federal envoy",SAGA_DOCK,2},
+
+ /* Act III Ch.16 — Imperial page script */
  {"Imperial Courtesy","SABLE",
   "The Empire never calls a debt a chain. They call it courtesy, which lasts longer and photographs better.",
-  "Funding with nicer stationery than most pirates manage — and an expectation packed in the same crate.",
-  "Yes. Courtesy is a contract. Smile if you must; do not confuse manners with acquittal.",
+  "Long-term underwriting and personal surety — plus Imperial observers and first refusal on survey work for ten years.",
+  "Yes. Courtesy is a contract. First refusal is a soft monopoly wearing perfume. Smile if you must; do not marry it.",
   "Whoever smiles while counting what you will owe when the map becomes inconvenient. That person is the real brief.",
-  "Correct. Leave with information and your hands free. That is rarer than patronage.",
-  "If they toast your independence, check your pockets. Toasts are inventory checks with better lighting.",
-  "I know debt theatre. Walk out still owning your schedule. That is the win condition.",
+  "Correct. Leave with information and your hands free. She says walk-away ends the underwriting — no chase. Rare and true.",
+  "Named houses collect favours the way stations collect dust. Preference reshapes every contract around the preference.",
+  "Hear her. Do not marry her. Continuity with a face still needs a charter that survives the funeral.",
   "Next step: hear the Imperial envoy without accepting a debt.",
   "What does their courtesy cost?",
   "Is the funding real?",
   "Who should I watch?",
   "We are not signing today?",
-  "What about the toast?",
+  "What about the walk-away?",
   "Any pirate advice?",
   "I will hear them out.",
   "Meet the Imperial envoy.",
   "Hear the Imperial envoy",SAGA_DOCK,2},
+
+ /* Act III Ch.17 — Alliance page script */
  {"Alliance of Necessity","IONA",
   "The Alliance offers witnesses, not certainty — slower and less flattering than a flag that claims to already know.",
-  "Public minutes and shared blame. Inconvenient until the powerful rewrite a map and you need someone who kept the old stamp.",
-  "Because witnesses matter when ambition meets a chart. Certainty without audit is just branding.",
+  "Public minutes and shared blame. Three mirrors, three jurisdictions. If any hash drifts, the session voids.",
+  "Because witnesses matter when ambition meets a chart. If you cannot show your work, you do not get the lane.",
   "Yes. I will test their audit trail before you choose. Witnesses only matter if the record survives contact with ambition.",
   "Who can be cross-examined when this story becomes expensive — then decide with your eyes open.",
-  "Ask who keeps the minutes when the minutes become dangerous. That answer is the real offer.",
-  "If their trail fails my test, I will say so on the record. Prefer awkward truth to flattering fog.",
+  "Ask who keeps the minutes when the minutes become dangerous. Put delay-notice requirements in the draft before you trust them.",
+  "Coalition seat, not a coronation. Continuity without a single throat to choke. Listen to all three, then choose allies — not owners.",
   "Next step: hear the Alliance envoy and weigh their audit trail.",
   "What do they actually offer?",
   "Why prefer witnesses to certainty?",
   "Will you test their trail?",
   "What should I ask them?",
   "What is the dangerous question?",
-  "Will you speak if it fails?",
+  "Any last counsel before I choose?",
   "I will hear their case.",
   "Meet the Alliance envoy.",
   "Hear the Alliance envoy",SAGA_DOCK,3},
+
+ /* Act III Ch.18 — cold signal page script */
  {"The Coldest Signal","PIP",
-  "Signal structure: nonhuman. Confidence: troubling. Recommendation: do not fire.",
+  "Signal structure: nonhuman. Confidence interval: troubling. Recommendation: curiosity without munitions.",
   "High enough to refuse a hunt. Low enough to refuse a sermon. Record. Leave a polite wake.",
-  "Correct. It will not paint like ordinary target traffic, and turning it into a hunt teaches every later pilot the wrong first verb.",
-  "Oru calls it evidence. News will call it worse. I am a maintenance drone — I prefer a recorder and restraint to a war.",
+  "Correct. It will not paint like ordinary target traffic. Turning it into a hunt teaches every later pilot the wrong first verb.",
+  "Oru calls it unresolved return. News will invent worse labels. I prefer a recorder and restraint to a war.",
   "A clean sample, then home, before someone invents doctrine out of a waveform.",
-  "Weapons stay cold. Hot metal teaches the wrong lesson to whatever is listening.",
-  "If it moves, you still do not chase. Curiosity without restraint invents wars out of waveforms.",
+  "Contact geometry unstable. Not debris. Not a filed beacon. Incomplete on purpose — or because we lack the sense it was made for.",
+  "Firing solution was available. I deleted it from the helpful tips. Uncertainty is not a failure state. It is the only honest one.",
   "Next step: scan the silent contact and do not fire.",
   "Nonhuman — how sure are you?",
   "So no weapons at all?",
   "Will it look like a target?",
   "What do I bring back?",
+  "What is it, then?",
   "Confirm weapons stay cold?",
-  "What if it moves closer?",
   "Record and withdraw.",
   "Begin the silent scan.",
   "Scan the silent contact; do not fire",SAGA_SCAN,1},
+
+ /* Act III Ch.19 — coalition choice page script */
  {"No Easy Flag","RYN",
   "Pick allies, not owners. We have to live with the difference after the speeches end and the fuel bills remain.",
   "Owners write your schedule. Allies stand on the channel without claiming the people who depend on it.",
   "Hold the relay under inspection. Prior trust brings fuel tenders, survey markers, or lawful ceasefire calls — help with a personality.",
   "Useful. Not free. Every option still supports a non-lethal finish; Meridian does not get to write the ending in wreckage.",
   "Yes. Choose who stands with us like someone who still wants a berth afterward.",
-  "Public tenders, Guild markers, or lawful force — each helps without owning your callsign.",
-  "Hold the line: allies, not owners. After the cut, we still have to dock somewhere.",
+  "Public tenders, Guild markers, or lawful force — each helps without owning your callsign. Ideals do not hold a lane alone.",
+  "Hold the line: allies, not owners. After the cut, we still have to dock somewhere that remembers our names.",
   "Next step: choose the relay coalition.",
   "Allies or owners — meaning?",
   "What does a coalition actually do?",
@@ -358,6 +369,7 @@ static const SagaBeat saga_beats[]={
   "I understand the choice.",
   "Choose the coalition.",
   "Choose the relay coalition",SAGA_CHOICE,0},
+
  {"The Black Flight","VENN",
   "Meridian interceptors crossed the public lane like the lane belonged to their shareholders.",
   "Break the blockade. Prefer lives over wreckage. Disable, outmanoeuvre, or draw them off.",
@@ -493,8 +505,8 @@ static const char *saga_choice_blurb(int chapter,int option){
   "Boring vault + chain. Teeth later. Meridian gets spin time.",
   "Active hazards only. Safer ops, less public trust, quieter counterplay."};
  static const char *flag[3]={
-  "Civilian tenders. Working pilots show up when fuel is real.",
-  "Guild markers. Survey help without an ownership claim.",
+  "Civilian tenders on the clock. Ideals do not hold a lane alone.",
+  "Guild survey markers — help without an ownership claim.",
   "Lawful force under inspection. Watchers get watched."};
  static const char *light[3]={
   "Commons with receipts. Charter starts the moment you stop talking.",
@@ -567,11 +579,11 @@ static const char *saga_close_line(int chapter){
  return c[chapter];
 }
 /* Act I locked completion codas (chs 02-07 / indices 0-5) — Story UI page before next brief. */
-enum { SAGA_ACT1_END = 5, SAGA_ACT2_END = 11 };
+enum { SAGA_ACT1_END = 5, SAGA_ACT2_END = 11, SAGA_ACT3_END = 17 };
 static int saga_coda_pending=-1;
-static int saga_has_coda(int chapter){return chapter>=0&&chapter<=SAGA_ACT2_END;}
+static int saga_has_coda(int chapter){return chapter>=0&&chapter<=SAGA_ACT3_END;}
 static const char *saga_coda_speaker(int chapter){
- static const char *s[]={"KEI","ORU","TAMSIN","IONA","NADI","SABLE","MARA","VENN","IONA","ORU","RYN","KEI"};
+ static const char *s[]={"KEI","ORU","TAMSIN","IONA","NADI","SABLE","MARA","VENN","IONA","ORU","RYN","KEI","RYN","TAMSIN","SABLE","IONA","PIP","RYN"};
  if(!saga_has_coda(chapter))return "KEI";
  return s[chapter];
 }
@@ -588,7 +600,14 @@ static const char *saga_coda_line1(int chapter){
   "Custody sealed. Meridian stamped DENIED and dated after the denial. History stays history.",
   "Three matches. Shelter bearing plotted. We observed; we did not herd; we did not fire.",
   "Amplifier offline. Empty space is what consent sounds like when the universe is big.",
-  "Volume chosen. Settlements, clocks, or quiet lanes — we live with the map we just voted for."};
+  "Volume chosen. Settlements, clocks, or quiet lanes — we live with the map we just voted for.",
+  "Packets deposited. Same doubts in every margin. Map is for everyone — including people who will hate us for it.",
+  "Federal packet logged. Ugly doctrine keeps people breathing. Invisible conditions still kill convoys.",
+  "Imperial packet heard. Walk-away is real. Preference is the quiet monopoly — do not marry it.",
+  "Alliance hashes tested. Delay notices required. Continuity without a single throat to choke.",
+  "Unresolved return filed. No shots. Uncertainty kept honest — the only ending that is not a war.",
+  "Coalition set. Allies, not owners. Hold that line when the cameras leave.",
+ };
  if(!saga_has_coda(chapter))return "";
  return a[chapter];
 }
@@ -605,7 +624,14 @@ static const char *saga_coda_line2(int chapter){
   "Serious people built it the first time. We will not reenact the burial.",
   "Go to her. And remember: the first useful act was making room.",
   "Stay for tea if your plot allows. Then we decide what we carry home — and how loudly.",
-  "I am over-explaining again. Berth six. Come home when you can."};
+  "I am over-explaining again. Berth six. Come home when you can.",
+  "Come home before someone invents a new forgery with better stationery.",
+  "Hear the Empire and Alliance before anyone signs a colour. Ideals do not hold a lane alone.",
+  "Take the packet. Drink the tea. Sign nothing. Someone still pays when cameras leave.",
+  "Listen to all three. Then choose who stands with you — not who owns you.",
+  "If they heard the scream we made, leave a silence clearer than the lie.",
+  "Prior trust brings tenders, markers, or ceasefires. Use them. Do not sell the callsign.",
+ };
  if(!saga_has_coda(chapter))return "";
  return b[chapter];
 }
