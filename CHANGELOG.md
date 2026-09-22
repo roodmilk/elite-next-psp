@@ -11,6 +11,7 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 - Station TAKE on owned props opens the NPC deal; GO snaps to a hatch first — verb payoffs tightened for fun.
 - ART DIRECTOR space animation kit folded in: `space-animation-kit.h` plume/beacon/spark masks, warm station exterior windows, meteor sparkle (`docs/SPACE-ANIMATION-HANDOFF.md`).
 - ART DIRECTOR A+++ visual pass plan landed as composition guidance (`docs/A-PLUS-PLUS-VISUAL-PASS.md`) — execution continues on this tip without a micro-tag.
+- Story confirm answers + Who Keeps the Light choice staging tightened from screenplay (PR #19 follow-up).
 
 ## 2.5.38 - 2026-09-22
 

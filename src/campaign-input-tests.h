@@ -113,6 +113,9 @@
  INPUT_CHECK(strstr(saga_beats[16].line,"curiosity without munitions")&&strstr(saga_choice_blurb(17,2),"Watchers"),"script: Coldest Signal and Flag blurbs keep screenplay stakes");
  INPUT_CHECK(strstr(saga_beats[18].talk2,"Pale Meridian")&&strstr(saga_beats[21].talk4,"No pursuit")&&strstr(saga_beats[22].talk5,"Tone"),"script: Act IV ask-then-answer pairs answer the prior ask");
  INPUT_CHECK(!strstr(saga_beats[10].ask3,"silent"),"script: reunion asks stay ordered — coords after silence");
+ INPUT_CHECK(strstr(saga_beats[16].talk7,"Weapons stay cold")||strstr(saga_beats[16].talk7,"weapons stay cold"),"script: Coldest confirm ask gets a direct yes");
+ INPUT_CHECK(strstr(saga_beats[20].talk7,"Crews first")||strstr(saga_beats[20].talk7,"crews first"),"script: Open Channel confirm ask gets crews-first yes");
+ INPUT_CHECK(strstr(saga_choice_blurb(22,0),"inspection")&&strstr(saga_choice_reaction(22,1),"method"),"script: Who Keeps Light blurbs/reactions match screenplay custody stakes");
  INPUT_CHECK(strstr(prologue_brief_line1(0),"Ryn")&&strstr(prologue_brief_line2(0),"three"),"script: prologue hook still names Ryn and the three missed calls");
  TEST_INIT();
 }

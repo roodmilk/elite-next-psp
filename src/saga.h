@@ -338,7 +338,7 @@ static const SagaBeat saga_beats[]={
   "It may paint like a contact. Treat the paint as a question, not a hunting licence. Oru calls it unresolved return.",
   "A clean sample, then home, before someone invents doctrine out of a waveform.",
   "Contact geometry unstable. Not debris. Not a filed beacon. Incomplete on purpose — or because we lack the sense it was made for.",
-  "Firing solution was available. I deleted it from the helpful tips. Uncertainty is not a failure state. It is the only honest one.",
+  "Yes. Weapons stay cold. I deleted the firing solution from the helpful tips. Uncertainty is not a failure state.",
   "Next step: scan the silent contact and do not fire.",
   "Nonhuman — how sure are you?",
   "So no weapons at all?",
@@ -413,7 +413,7 @@ static const SagaBeat saga_beats[]={
   "With the truth on the wire and people still breathing. Not with a body count he can wave as proof he was necessary.",
   "Then get them clear. I am learning not to turn care into control — do not let me fail that lesson through you.",
   "No. He needs to be answerable. Stand-down, evacuate, or flee — never a required death. Precision over revenge.",
-  "If crews are in the way, peel them free first. An open channel built on graves is just another cage.",
+  "Yes. Crews first. Peel them free before you touch the nodes. An open channel built on graves is just another cage.",
   "Next step: reach and clear the primary relay.",
   "Disable — not destroy?",
   "What will Voss claim?",
@@ -509,9 +509,9 @@ static const char *saga_choice_blurb(int chapter,int option){
   "Guild survey markers — help without an ownership claim.",
   "Lawful force under inspection. Watchers get watched."};
  static const char *light[3]={
-  "Commons with receipts. Charter starts the moment you stop talking.",
-  "Guild keys plus inspection — or the joke ends.",
-  "Lawful archive. Your name stays where it can be checked."};
+  "Public keys with mandatory inspection days — not decorative.",
+  "Guild holds method and maintenance; Law audits on a fixed calendar.",
+  "Lawful archive wears the keys. Distrust them in public — that is the design."};
  const char **table=light;
  if(chapter==5)table=silence;
  else if(chapter==11)table=carry;
@@ -535,9 +535,9 @@ static const char *saga_choice_reaction(int chapter,int option){
   "Kei: Guild survey teams. Markers, not owners. That is the deal.",
   "Iona: Lawful force under inspection. I will watch the watchers."};
  static const char *light[3]={
-  "Kei: Public custody with a charter. The sky stays a commons with receipts.",
-  "Kei: Guild custody. We hold keys and accept inspection — or I resign the joke.",
-  "Iona: Lawful archive. Your name stays where it can be checked."};
+  "Kei: Public custody with teeth. Inspection days are mandatory, not decorative.",
+  "Kei: Guild custody. We hold method — kick me if I start sounding like a gate.",
+  "Iona: Lawful archive. Keep distrusting me in public. It is part of the design."};
  const char **table=light;
  if(chapter==5)table=silence;
  else if(chapter==11)table=carry;
