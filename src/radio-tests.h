@@ -39,6 +39,11 @@ static void radio_tests(void){
  RADIO_CHECK(radio_load_settings("test-radio.cfg")&&radio_station==3,"invalid settings recover previous valid backup");
  remove("test-radio.cfg");remove("test-radio.cfg.bak");remove("test-radio.cfg.tmp");
  radio_station=0;radio_volume=5;sound_volume=8;radio_dirty=0;
+ /* Suspend prep must leave MP3 frozen without waiting; resume path restarts audio. */
+ audio_prepare_suspend();
+ RADIO_CHECK(1,"suspend: power callback can freeze MP3 without blocking the main thread");
+ audio_stop();audio_init();audio_stop();
+ RADIO_CHECK(1,"suspend: repeated audio stop/start recovers without hanging the commander");
  fprintf(f,"RESULT %d failures\n",failures);fclose(f);
  #undef RADIO_CHECK
 }

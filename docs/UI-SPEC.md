@@ -95,7 +95,7 @@ The current menu path has a bounded eight-entry stack. HOME, FLIGHT and INTRO re
 | Hold-Triangle panel | Quick channels and view controls | Existing tap/hold separation. No invisible dialogue blocker when chatter is quiet. |
 | Cargo/market | Inspect hold; trade when docked | Reserved crates remain protected. Future transaction step must state quantity, total cost, remaining credits and capacity before bulk trades. |
 | Shipyard | Compare hulls | Mesh fitting already tested. Future exchange confirmation must explain net cost, cargo compatibility and changed capabilities. |
-| Outfitting | Refuel and buy equipment | Existing tech/credit checks. Future rows should separate owned, unavailable-tech and unaffordable states, with one explanation per state. |
+| Outfitting | Refuel and buy equipment | Detail pane states in stock / already fitted / hub tech too low with needed vs local tech and “warp to a richer system.” |
 | Save/status | Save, load and review commander | V8 CRC and recovery already implemented. Future explicit overwrite/load confirmations must preserve existing backup semantics. |
 | Controls | Find one action | Four implemented pages: Flight, Targets/Travel, Stations/Surfaces, Menus/Comfort. L still toggles analog. |
 | Display/chatter | Set view and chatter | Implemented visible settings. HUD is session-only; quiet setting uses checked radio.cfg. Larger text and reduced motion are planned, not exposed as fake switches. |

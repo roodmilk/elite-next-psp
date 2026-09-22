@@ -5,6 +5,10 @@
 /releases/
 /handoff/
 
+# Station-art bake experiments (regenerate with tools/bake-station-art.py --bin2c)
+/assets/preview/station-art/*.bin
+/assets/preview/station-art/*.c
+
 # Runtime and test output
 /*-check.txt
 /boot-check.txt

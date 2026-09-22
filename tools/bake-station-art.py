@@ -1,0 +1,355 @@
+#!/usr/bin/env python3
+"""Bake ART DIRECTOR station kits into drop-in headers + preview crops.
+
+Does NOT edit src/station-crawl.h. Release agent includes station-art-kit.h when ready.
+
+Inputs (default under assets/source/station-art/):
+  station-room-kit-proposed.png/.svg
+  celestial-identity-kit-proposed.png/.svg
+
+Outputs:
+  src/station-art-kit.h              — palette + room style tables (soft-FB RGB())
+  assets/preview/station-art/*.png   — 8 room panel crops + provenance JSON
+  assets/source/station-art/provenance.json
+  Optional: assets/preview/station-art/*.bin + bin2c snippets if --bin2c
+
+Palette and room ids match docs/ART-KIT-HANDOFF.md / STATION-ROOM-VISUALS.md (PR #11).
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+try:
+    from PIL import Image
+except ImportError as e:
+    sys.stderr.write("Pillow required: pip3 install pillow\n")
+    raise SystemExit(1) from e
+
+ROOT = Path(__file__).resolve().parents[1]
+SRC_DIR = ROOT / "assets" / "source" / "station-art"
+PREVIEW = ROOT / "assets" / "preview" / "station-art"
+HEADER = ROOT / "src" / "station-art-kit.h"
+
+# ART DIRECTOR shared palette (hex → soft-FB RGB bytes)
+PALETTE = {
+    "VOID": (0x08, 0x0D, 0x18),
+    "CHARCOAL": (0x15, 0x1C, 0x27),
+    "SLATE": (0x29, 0x36, 0x46),
+    "OLIVE": (0x5A, 0x60, 0x4C),
+    "RUST": (0x8B, 0x4B, 0x37),
+    "OCHRE": (0xC1, 0x8B, 0x4D),
+    "CREAM": (0xE5, 0xD2, 0xA3),
+    "LAVENDER": (0x9B, 0x9A, 0xA5),
+    "CYAN": (0x55, 0xD4, 0xD4),
+    "AMBER": (0xF0, 0xB4, 0x5B),
+    "DANGER": (0xC8, 0x5A, 0x4B),
+}
+
+# Matches SVG panel placements in station-room-kit-proposed.svg
+# (x, y, w, h) inside 480×272 board; header band is y=0..22
+ROOM_PANELS = [
+    ("hall", "HALL", "FAR DOOR / ROUTE", 4, 28, 114, 116),
+    ("hub", "HUB", "ARRIVALS / BERTH", 123, 28, 114, 116),
+    ("shop", "SHOP", "PARTS / COUNTER", 242, 28, 114, 116),
+    ("bar", "BAR", "RUMOUR / PASSENGER", 361, 28, 115, 116),
+    ("bay", "BAY", "CRATES / LIFT", 4, 150, 114, 116),
+    ("clinic", "CLINIC", "MEDIC / BENCH", 123, 150, 114, 116),
+    ("guild", "GUILD", "EVIDENCE / DESK", 242, 150, 114, 116),
+    ("customs", "CUSTOMS", "SCAN / LAW", 361, 150, 115, 116),
+]
+
+# Soft-FB room styles for optional sc_room_tint replacements (wall, wall2, trim, lamp, accent)
+# Tuned to ART DIRECTOR roles; release agent maps SC_ROOM_* → these ids.
+ROOM_STYLES = {
+    "hall": {
+        "wall": "SLATE",
+        "wall2": "CHARCOAL",
+        "trim": "OLIVE",
+        "lamp": "AMBER",
+        "accent": "CYAN",
+        "sc_enum": "SC_ROOM_EMPTY",
+        "focus": "far hatch / route",
+        "anchors": ["far_door", "side_alcove_l", "side_alcove_r"],
+    },
+    "hub": {
+        "wall": "CHARCOAL",
+        "wall2": "SLATE",
+        "trim": "CREAM",
+        "lamp": "OCHRE",
+        "accent": "CYAN",
+        "sc_enum": "SC_ROOM_HUB",
+        "focus": "arrivals board / berth window",
+        "anchors": ["arrivals_board", "berth_window", "venn", "dockhand"],
+    },
+    "shop": {
+        "wall": "SLATE",
+        "wall2": "CHARCOAL",
+        "trim": "OCHRE",
+        "lamp": "AMBER",
+        "accent": "CYAN",
+        "sc_enum": "SC_ROOM_SHOP",
+        "focus": "parts counter",
+        "anchors": ["counter", "exclusive_item", "mechanic", "clamp_crate"],
+    },
+    "bar": {
+        "wall": "OLIVE",
+        "wall2": "CHARCOAL",
+        "trim": "RUST",
+        "lamp": "AMBER",
+        "accent": "OCHRE",
+        "sc_enum": "SC_ROOM_BAR",
+        "focus": "service counter",
+        "anchors": ["bartender", "rumour_table", "traveller", "taxi_prompt"],
+    },
+    "bay": {
+        "wall": "SLATE",
+        "wall2": "CHARCOAL",
+        "trim": "OCHRE",
+        "lamp": "AMBER",
+        "accent": "CYAN",
+        "sc_enum": "SC_ROOM_BAY",
+        "focus": "cargo lift / crate lane",
+        "anchors": ["loader", "marked_crate", "manifest", "lift"],
+    },
+    "clinic": {
+        "wall": "SLATE",
+        "wall2": "CHARCOAL",
+        "trim": "LAVENDER",
+        "lamp": "CYAN",
+        "accent": "CREAM",
+        "sc_enum": "SC_ROOM_CLINIC",
+        "focus": "treatment bench",
+        "anchors": ["medic", "bench", "medkit", "diagnostic"],
+    },
+    "guild": {
+        "wall": "OLIVE",
+        "wall2": "CHARCOAL",
+        "trim": "CREAM",
+        "lamp": "AMBER",
+        "accent": "CYAN",
+        "sc_enum": "SC_ROOM_GUILD",
+        "focus": "evidence / survey desk",
+        "anchors": ["kei", "surveyor", "evidence", "mission_terminal"],
+    },
+    "customs": {
+        "wall": "CHARCOAL",
+        "wall2": "VOID",
+        "trim": "DANGER",
+        "lamp": "AMBER",
+        "accent": "CYAN",
+        "sc_enum": "SC_ROOM_LOCK",
+        "focus": "scanner gate",
+        "anchors": ["officer", "scanner", "restricted_sign", "inspect_terminal"],
+    },
+}
+
+
+def rgb_macro(name: str) -> str:
+    r, g, b = PALETTE[name]
+    return f"RGB({r},{g},{b})"
+
+
+def write_header(path: Path) -> None:
+    lines = [
+        "/* Auto-generated by tools/bake-station-art.py — do not hand-edit.",
+        " * ART DIRECTOR palette + room style kits (PR #11 handoff).",
+        " * Optional include for station-crawl: #include \"station-art-kit.h\"",
+        " * This file never owns crawl input/state — release agent wires it.",
+        " */",
+        "#ifndef ELITE_STATION_ART_KIT_H",
+        "#define ELITE_STATION_ART_KIT_H",
+        "",
+        "/* Shared McQuarrie / MacVenture palette */",
+    ]
+    for name in PALETTE:
+        r, g, b = PALETTE[name]
+        lines.append(f"#define ART_{name} RGB({r},{g},{b})")
+    lines += [
+        "",
+        "enum {",
+        "  ART_ROOM_HALL=0, ART_ROOM_HUB, ART_ROOM_SHOP, ART_ROOM_BAR,",
+        "  ART_ROOM_BAY, ART_ROOM_CLINIC, ART_ROOM_GUILD, ART_ROOM_CUSTOMS,",
+        "  ART_ROOM_COUNT",
+        "};",
+        "",
+        "typedef struct {",
+        "  unsigned wall, wall2, trim, lamp, accent;",
+        "  const char *short_name;",
+        "  const char *keywords;",
+        "  const char *focus;",
+        "} ArtRoomStyle;",
+        "",
+        "static const ArtRoomStyle art_room_styles[ART_ROOM_COUNT]={",
+    ]
+    for key, title, keywords, *_ in ROOM_PANELS:
+        st = ROOM_STYLES[key]
+        lines.append(
+            "  {%s,%s,%s,%s,%s,\"%s\",\"%s\",\"%s\"},"
+            % (
+                rgb_macro(st["wall"]),
+                rgb_macro(st["wall2"]),
+                rgb_macro(st["trim"]),
+                rgb_macro(st["lamp"]),
+                rgb_macro(st["accent"]),
+                title,
+                keywords,
+                st["focus"],
+            )
+        )
+    lines += [
+        "};",
+        "",
+        "/* Map existing SC_ROOM_* enums → art style index. Returns -1 if unknown. */",
+        "static int art_style_for_sc_room(int sc_room){",
+        "  switch(sc_room){",
+        "  case 0: return ART_ROOM_HALL; /* SC_ROOM_EMPTY */",
+        "  case 1: return ART_ROOM_HUB;",
+        "  case 2: return ART_ROOM_SHOP;",
+        "  case 3: return ART_ROOM_BAR;",
+        "  case 4: return ART_ROOM_BAY;",
+        "  case 5: return ART_ROOM_CLINIC;",
+        "  case 6: return ART_ROOM_GUILD;",
+        "  case 7: return ART_ROOM_CUSTOMS; /* SC_ROOM_LOCK */",
+        "  default: return -1;",
+        "  }",
+        "}",
+        "",
+        "static const ArtRoomStyle *art_room_style(int art_id){",
+        "  if(art_id<0||art_id>=ART_ROOM_COUNT)return &art_room_styles[ART_ROOM_HALL];",
+        "  return &art_room_styles[art_id];",
+        "}",
+        "",
+        "/* Economy flavour nudges (optional). agri=1 boosts bay/bar warmth; industrial boosts shop/trim. */",
+        "static unsigned __attribute__((unused)) art_econ_trim(unsigned base,int economy){",
+        "  if(economy>=4) return base; /* agri — keep ochre/rust warmth */",
+        "  /* industrial — pull trim toward slate/cyan slightly via mix in caller */",
+        "  return base;",
+        "}",
+        "",
+        "#endif /* ELITE_STATION_ART_KIT_H */",
+        "",
+    ]
+    path.write_text("\n".join(lines), encoding="utf-8")
+
+
+def crop_panels(kit_png: Path, out_dir: Path) -> list[dict]:
+    out_dir.mkdir(parents=True, exist_ok=True)
+    im = Image.open(kit_png).convert("RGBA")
+    if im.size != (480, 272):
+        sys.stderr.write(f"warn: kit is {im.size}, expected 480x272\n")
+    meta = []
+    for key, title, keywords, x, y, w, h in ROOM_PANELS:
+        tile = im.crop((x, y, x + w, y + h))
+        dest = out_dir / f"room-{key}.png"
+        tile.save(dest)
+        # also write a tiny 32×32 nearest thumb for atlas experiments
+        thumb = tile.resize((32, 32), Image.NEAREST)
+        thumb_path = out_dir / f"room-{key}-thumb32.png"
+        thumb.save(thumb_path)
+        meta.append(
+            {
+                "id": key,
+                "title": title,
+                "keywords": keywords,
+                "crop": [x, y, w, h],
+                "png": str(dest.relative_to(ROOT)),
+                "thumb32": str(thumb_path.relative_to(ROOT)),
+                "sc_enum": ROOM_STYLES[key]["sc_enum"],
+                "anchors": ROOM_STYLES[key]["anchors"],
+                "bytes_rgba_full": w * h * 4,
+                "note": "composition target — not a runtime fullscreen background",
+            }
+        )
+    return meta
+
+
+def rgba_to_softfb_bin(png: Path, bin_path: Path) -> tuple[int, int]:
+    """Pack non-transparent pixels as little-endian 0xAARRGGBB matching RGB() macro order (R|G<<8|B<<16|A<<24)."""
+    im = Image.open(png).convert("RGBA")
+    w, h = im.size
+    pix = im.load()
+    out = bytearray()
+    for y in range(h):
+        for x in range(w):
+            r, g, b, a = pix[x, y]
+            if a < 16:
+                out += (0).to_bytes(4, "little")
+            else:
+                c = r | (g << 8) | (b << 16) | (0xFF << 24)
+                out += c.to_bytes(4, "little")
+    bin_path.write_bytes(out)
+    return w, h
+
+
+def maybe_bin2c(bin_path: Path, symbol: str, out_c: Path) -> None:
+    bin2c = Path.home() / "pspdev" / "bin" / "bin2c"
+    if not bin2c.is_file():
+        # try PATH
+        from shutil import which
+
+        found = which("bin2c")
+        if not found:
+            sys.stderr.write("bin2c not found — skip C dump for %s\n" % bin_path.name)
+            return
+        bin2c = Path(found)
+    # bin2c usage: bin2c infile outfile symbol
+    subprocess.check_call([str(bin2c), str(bin_path), str(out_c), symbol])
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--kit", type=Path, default=SRC_DIR / "station-room-kit-proposed.png")
+    ap.add_argument("--out-header", type=Path, default=HEADER)
+    ap.add_argument("--out-preview", type=Path, default=PREVIEW)
+    ap.add_argument("--bin2c", action="store_true", help="Also emit .bin + bin2c for 32×32 thumbs")
+    args = ap.parse_args()
+
+    if not args.kit.is_file():
+        sys.stderr.write(f"missing kit PNG: {args.kit}\n")
+        return 1
+
+    write_header(args.out_header)
+    meta = crop_panels(args.kit, args.out_preview)
+
+    if args.bin2c:
+        for m in meta:
+            thumb = ROOT / m["thumb32"]
+            bin_path = args.out_preview / f"room-{m['id']}-thumb32.bin"
+            w, h = rgba_to_softfb_bin(thumb, bin_path)
+            c_path = args.out_preview / f"room-{m['id']}-thumb32.c"
+            maybe_bin2c(bin_path, f"art_thumb_{m['id']}", c_path)
+            m["bin"] = str(bin_path.relative_to(ROOT))
+            m["bin_wh"] = [w, h]
+
+    provenance = {
+        "generator": "tools/bake-station-art.py",
+        "art_authority": "docs/ART-KIT-HANDOFF.md (PR #11) + ART DIRECTOR kits",
+        "kit_source": str(args.kit.relative_to(ROOT)) if args.kit.is_relative_to(ROOT) else str(args.kit),
+        "palette": {k: "#%02X%02X%02X" % PALETTE[k] for k in PALETTE},
+        "rooms": meta,
+        "header": str(args.out_header.relative_to(ROOT)),
+        "coordination": {
+            "does_not_edit": "src/station-crawl.h",
+            "owner_crawl": "Continue ELITE NEXT release",
+            "owner_look": "ART DIRECTOR",
+            "owner_bake": "Elite psp agent",
+        },
+        "memory_note": "Do not embed 8×480×272 bitmaps; use style tables + small props.",
+    }
+    SRC_DIR.mkdir(parents=True, exist_ok=True)
+    prov_path = SRC_DIR / "provenance.json"
+    prov_path.write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")
+    (args.out_preview / "manifest.json").write_text(json.dumps(provenance, indent=2) + "\n", encoding="utf-8")
+
+    print(f"wrote {args.out_header}")
+    print(f"wrote {len(meta)} room crops → {args.out_preview}")
+    print(f"wrote {prov_path}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -22,10 +22,13 @@ static void field_sprite(int cx,int bottom,int size,int kind,unsigned ink,int po
  if(size>48)size=48;
  unsigned shadow=RGB((ink&255)/3,((ink>>8)&255)/3,((ink>>16)&255)/3);
  unsigned highlight=RGB(((ink&255)+220)/2,(((ink>>8)&255)+228)/2,(((ink>>16)&255)+220)/2);
+ /* Contact shadow under fauna/flora — grounds the billboard. */
+ if(kind<=1){int sw=size/2+2;rect(cx-sw/2,bottom-1,sw,2,RGB(12,16,22));}
  for(int y=0;y<size;y++)for(int x=0;x<size;x++){
   int sy=y*16/size,sx=x*16/size;
-  if(kind==1&&pose&&sy>=12)sx+=(sy&1)?1:-1;
-  if(sx<0||sx>15||!(field_masks[kind][sy]&(0x8000u>>sx)))continue;
+  if(kind==1&&pose&&sy>=10)sx+=(sy&1)?1:-1; /* walk bob */
+  if(kind==1&&pose&&sy<6)sy-=1; /* head bob */
+  if(sx<0||sx>15||sy<0||sy>15||!(field_masks[kind][sy]&(0x8000u>>sx)))continue;
   int px=cx-size/2+x,py=bottom-size+y;if(py<view_top()||py>view_bot())continue;
   unsigned col=(sx+sy)%7==0?highlight:sx>9||sy>12?shadow:ink;
   if(kind==1&&sy==4&&sx==10)col=WHITE;

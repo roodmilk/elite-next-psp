@@ -49,23 +49,124 @@ static void narrative_do(int screen){
 }
 static void narrative_choice(int index,int y,const char *label){
  if(row==index)selected_span(y,464);
- text(3,y,row==index?WHITE:DIM,"%s %.52s",row==index?">":" ",label);
+ text(3,y,row==index?WHITE:DIM,"%s %s",row==index?">":" ",label);
 }
 static void narrative_reply_choice(int index,int y,const char *label){
  int active=row==index,py=y*8-3;unsigned edge=active?RGB(245,157,62):RGB(119,71,38),fill=active?RGB(62,36,24):RGB(28,24,23);
  rect(16,py,448,14,fill);rect(16,py,448,1,edge);rect(16,py+13,448,1,edge);rect(16,py,2,14,edge);rect(462,py,2,14,edge);
  /* The right-hand tail marks this as the commander's side of the exchange. */
  line(464,py+4,470,py+7,edge);line(470,py+7,464,py+10,edge);
- text(3,y,active?GOLD:AMBDIM,"%s YOU: %.45s",active?">":" ",label);
+ /* Commander line only — no "YOU:" chrome (reads like broken English on PSP). */
+ text(3,y,active?GOLD:AMBDIM,"%s %s",active?">":" ",label);
+}
+static int saga_speaker_role(const SagaBeat *b){
+ if(!b)return EXPLORERS;
+ if(b->role==3)return LAW;
+ if(b->role==2)return TRADERS;
+ return EXPLORERS;
+}
+static unsigned saga_speaker_color(const SagaBeat *b){
+ int role=saga_speaker_role(b);
+ if(b&&(!strcmp(b->speaker,"KEI")||!strcmp(b->speaker,"RYN")))return RGB(76,181,190);
+ return faction_colors[role];
+}
+static void saga_speaker_face(int x,int y,int size,const SagaBeat *b){
+ if(!b){draw_kei(x,y,size,0);return;}
+ if(!strcmp(b->speaker,"KEI")||!strcmp(b->speaker,"RYN")){draw_kei(x,y,size,!strcmp(b->speaker,"RYN")?1:0);return;}
+ int role=saga_speaker_role(b);unsigned seed=0;
+ for(const char *p=b->speaker;*p;p++)seed=seed*131u+(unsigned char)*p;
+ draw_portrait(x,y,size,size,(int)(seed%2000)+role*37,role);
 }
 static void kei_speech_bubble(int y,const char *line1,const char *line2,int expression){
- const int px=16,size=48,bx=76,bw=388,bh=62;unsigned edge=RGB(76,181,190),fill=RGB(14,29,39);
+ const int px=16,size=48,bx=76,bw=388,bh=72;unsigned edge=RGB(76,181,190),fill=RGB(14,29,39);
  draw_kei(px,y+7,size,expression);
  rect(bx,y,bw,bh,fill);rect(bx,y,bw,2,edge);rect(bx,y+bh-2,bw,2,RGB(30,78,86));rect(bx+bw-2,y,2,bh,edge);
  /* A compact pixel tail physically links these words to Kei's portrait. */
  line(bx,y+20,bx-12,y+28,edge);line(bx-12,y+28,bx,y+36,edge);rect(bx-3,y+22,4,13,fill);
- text(11,y/8+1,CYAN,"KEI SAYS");
- text(11,y/8+3,WHITE,"%.43s",line1);
- if(line2&&line2[0])text(11,y/8+5,WHITE,"%.43s",line2);
+ speaker_name_tag(11,y/8+1,"KEI",edge);
+ /* Wrap into the bubble width — never hard-truncate mid-sentence. */
+ int col=11,cap=((bx+bw-8)/8)-col,row=y/8+3,bottom=y/8+7;
+ const char *left=0;
+ if(line1&&line1[0])row+=text_wrap(col,row,cap,3,WHITE,line1,&left);
+ if(line2&&line2[0]&&row<=bottom)text_wrap(col,row,cap,bottom+1-row,WHITE,line2,0);
+}
+/* Orange right-tailed bubble: the commander speaks before the NPC answers. */
+static void player_speech_bubble(int y,const char *speech){
+ const int bx=16,bw=388,bh=68;unsigned edge=RGB(245,157,62),fill=RGB(42,24,14);
+ rect(bx,y,bw,bh,fill);rect(bx,y,bw,2,edge);rect(bx,y+bh-2,bw,2,RGB(119,71,38));rect(bx,y,2,bh,edge);
+ line(bx+bw,y+20,bx+bw+12,y+28,edge);line(bx+bw+12,y+28,bx+bw,y+36,edge);rect(bx+bw-1,y+22,4,13,fill);
+ speaker_name_tag(3,y/8+1,"COMMANDER",edge);
+ text_wrap(3,y/8+3,46,3,WHITE,speech&&speech[0]?speech:"...",0);
 }
 static void narrative_footer(void){footer("UP/DOWN CHOOSE   X SELECT   O BACK");}
+enum { PROLOGUE_BRIEF_BEATS = 6 };
+static int saga_brief_beat=0,saga_brief_chapter=-1,prologue_brief_beat=0;
+/* echo=1: player just asked; next Cross reveals the NPC answer (never answer-before-ask). */
+static int prologue_brief_echo=0,saga_brief_echo=0;
+static void saga_brief_reset(int chapter){if(saga_brief_chapter!=chapter){saga_brief_chapter=chapter;saga_brief_beat=0;saga_brief_echo=0;}}
+static int saga_coda_locked(void){return saga_coda_pending>=0;}
+/* Locked until the player finishes every beat and accepts the next step. */
+static int saga_brief_locked(void){return game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT&&!game.saga_step&&saga_coda_pending<0;}
+static int prologue_brief_locked(void){return tracked_mission==0&&game.campaign_stage==0&&game.system==7&&game.docked;}
+static int story_brief_locked(void){return prologue_brief_locked()||saga_brief_locked()||saga_coda_locked();}
+static const char *saga_brief_line(const SagaBeat *b,int beat){
+ if(!b)return "";
+ switch(beat){
+ case 0:return b->line;
+ case 1:return b->talk2;
+ case 2:return b->talk3;
+ case 3:return b->talk4;
+ case 4:return b->talk5;
+ case 5:return b->talk6;
+ case 6:return b->talk7;
+ default:return b->talk8;
+ }
+}
+static const char *saga_brief_reply(const SagaBeat *b,int beat){
+ /* Chapter-authored asks — never answer a question the NPC line already covered. */
+ if(!b)return "Continue.";
+ switch(beat){
+ case 0:return b->ask1;
+ case 1:return b->ask2;
+ case 2:return b->ask3;
+ case 3:return b->ask4;
+ case 4:return b->ask5;
+ case 5:return b->ask6;
+ case 6:return b->ask7;
+ default:return b->ask8;
+ }
+}
+static const char *prologue_brief_line1(int beat){
+ /* Beat 0 = hook. Beats 1..4 answer the previous ask. Beat 5 reinforces accept. */
+ static const char *a[PROLOGUE_BRIEF_BEATS]={
+  "Ryn Vale is missing, and I need a pilot who can leave this berth and come back.",
+  "The catch is simple: come back alive, with the ship still answering the tower.",
+  "Ryn flew a ship like this one — patched, honest, and too willing to chase a quiet ping.",
+  "Analog stick or D-pad, pick what feels true in your hands; the ship will forgive either.",
+  "Launch, clear the station, fly out six hundred metres, then dock again on the same vector.",
+  "First flight is only that checklist. Accept when you mean the return as much as the launch."};
+ return a[beat>=0&&beat<PROLOGUE_BRIEF_BEATS?beat:PROLOGUE_BRIEF_BEATS-1];
+}
+static const char *prologue_brief_line2(int beat){
+ static const char *b[PROLOGUE_BRIEF_BEATS]={
+  "She missed three scheduled calls. Ryn skips meals and permits — never a call.",
+  "I will not send you into combat yet. Throttle is distance over time, not courage.",
+  "Borrow it. Learn its habits. Bring it home before we ask you for distances that matter.",
+  "Select opens the deck when you need air. Venn would rather tow a boring pilot than a clever wreck.",
+  "That return is the only skill that scales. Harbour badge is a receipt, not a medal.",
+  "When you accept, we start looking for the sealed case Ryn left with Mara."};
+ return b[beat>=0&&beat<PROLOGUE_BRIEF_BEATS?beat:PROLOGUE_BRIEF_BEATS-1];
+}
+static const char *prologue_brief_reply(int beat){
+ /* Ask is chosen on this beat; NPC answer arrives only after the echo beat. */
+ static const char *r[PROLOGUE_BRIEF_BEATS]={
+  "What is the catch?",
+  "Tell me about Ryn's ship.",
+  "How do the controls work?",
+  "Walk me through first flight.",
+  "I am ready when you are.",
+  "Accept first flight"};
+ return r[beat>=0&&beat<PROLOGUE_BRIEF_BEATS?beat:PROLOGUE_BRIEF_BEATS-1];
+}
+static int prologue_brief_needs_echo(int beat){return beat>=0&&beat<PROLOGUE_BRIEF_BEATS-1;}
+static int saga_brief_needs_echo(int beat){return beat>=0&&beat<SAGA_BRIEF_BEATS-1;}

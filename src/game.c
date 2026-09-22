@@ -44,7 +44,7 @@ int mesh_id(const char *name){for(int i=0;i<mesh_count;i++)if(!strcmp(meshes[i].
 static uint32_t random_u(Game *g){uint32_t x=g->rng;x^=x<<13;x^=x>>17;x^=x<<5;return g->rng=x;}
 static float random_f(Game *g){return (random_u(g)&65535)/65535.0f;}
 void message(Game *g,const char *s){snprintf(g->message,sizeof(g->message),"%s",s);g->message_time=5;}
-void speak(Game *g,int who,const char *s){g->voice_who=who<VOICE_KEI||who>VOICE_CONTACT?VOICE_COMP:who;snprintf(g->voice,sizeof(g->voice),"%s",s);g->voice_time=6.5f;g->message_time=0;if(!g->cue)g->cue=SFX_COMM;}
+void speak(Game *g,int who,const char *s){g->voice_who=who<VOICE_KEI||who>VOICE_CONTACT?VOICE_COMP:who;snprintf(g->voice,sizeof(g->voice),"%s",s);g->voice_time=6.5f;g->message_time=0;if(!g->cue)g->cue=(g->attacked>0||g->incoming_missile>0||g->encounter>0)?SFX_TALK:SFX_COMM;}
 static void mark_visited(Game *g){g->visited[g->system>>3]|=(uint8_t)(1u<<(g->system&7));}
 int systems_visited(const Game *g){int n=0;for(int i=0;i<32;i++)for(int b=0;b<8;b++)n+=(g->visited[i]>>b)&1;return n;}
 static void twist(uint16_t s[3]){uint16_t t=(uint16_t)(s[0]+s[1]+s[2]);s[0]=s[1];s[1]=s[2];s[2]=t;}
@@ -62,8 +62,8 @@ void galaxy(System out[256]){
  }
 }
 float distance_ly(const Game *g,int a,int b){float dx=g->systems[a].x-g->systems[b].x,dy=(g->systems[a].y-g->systems[b].y)*0.5f;return floorf(sqrtf(dx*dx+dy*dy))*0.4f;}
-int cargo_used(const Game *g){int n=0;for(int i=0;i<GOODS;i++)if(goods[i].unit=='t')n+=g->cargo[i];return n;}
-int cargo_capacity(const Game *g){return player_ships[g->ship].capacity+((g->upgrades&8)?8:0);}
+int cargo_used(const Game *g){int n=0;for(int i=0;i<GOODS;i++)if(goods[i].unit=='t')n+=g->cargo[i];if(g->passenger_dest>=0)n+=1;return n;}
+int cargo_capacity(const Game *g){int c=player_ships[g->ship].capacity;if(g->upgrades&64)c+=16;else if(g->upgrades&8)c+=8;return c;}
 int galactic_price(int item){if(item<0||item>=GOODS)return 0;const Good *p=&goods[item];int avg=4*((p->base+(p->mask>>1)+3*p->factor)&255);return avg<4?4:avg;}
 void market(Game *g){int e=g->systems[g->system].economy,fluct=random_u(g)&255;
  for(int i=0;i<GOODS;i++){const Good *p=&goods[i];int f=fluct&p->mask;int q=(p->quantity+f-e*p->factor)&255;g->stock[i]=((q&128)?0:(q&63))+prosperity(g,g->system)*4;g->price[i]=4*((p->base+f+e*p->factor)&255);}g->stock[16]=0;
@@ -114,8 +114,18 @@ static void site_xz(const Game *g,int i,float *x,float *z){
 }
 float terrain_height(const Game *g,float x,float z){
  if(g->planet<1||g->planet>=BODY_COUNT)return 0;
- (void)x;(void)z;
- return 24.f;
+ float px,pz;site_xz(g,1,&px,&pz);
+ float dx=x-px,dz=z-pz,d2=dx*dx+dz*dz;
+ float h=24.f;
+ if(d2>100.f*100.f){
+  unsigned u=sector_hash(g->bodies[g->planet].seed^(unsigned)(x*3.1f)^(unsigned)(z*5.7f));
+  float n=((u%1000)/1000.f)*2.f-1.f;
+  float edge=1.f-100.f/sqrtf(d2+1.f);if(edge<0)edge=0;if(edge>1)edge=1;
+  int rocky=g->bodies[g->planet].type!=OCEAN;
+  unsigned art=rocky?(g->bodies[g->planet].seed%4):0;
+  h+=n*(rocky&&art==2?14.f:rocky&&art==1?6.f:10.f)*edge; /* desert/ice/other hills */
+ }
+ return h;
 }
 Vec3 surface_site(const Game *g,int i){float x=0,z=0;if(g->planet>=1)site_xz(g,i,&x,&z);return (Vec3){x,terrain_height(g,x,z)+22,z};}
 int terrain_is_water(const Game *g,float x,float z){
@@ -130,8 +140,16 @@ int enter_planet(Game *g){
  g->planet=body;g->approach=-1;g->surface=0;g->boost=0;
  float px,pz;site_xz(g,1,&px,&pz);g->pos=(Vec3){px-220,0,pz-60};g->pos.y=terrain_height(g,g->pos.x,g->pos.z)+170;
  g->yaw=atan2f(px-g->pos.x,pz-g->pos.z);g->pitch=-.22f;g->roll=0;g->speed=48;g->hazard=0;g->cue=SFX_LAND;
- for(int i=0;i<LIFE_COUNT;i++){Lifeform *l=&g->life[i];l->alive=1;l->scanned=0;l->kind=i%3;float a=i*.95f;l->pos=(Vec3){px+cosf(a)*(110+i*32),0,pz+sinf(a)*(100+i*28)};l->pos.y=terrain_height(g,l->pos.x,l->pos.z)+(l->kind==LIFE_FAUNA?16:7);}
- message(g,"Atmosphere. Fly to the cyan pad. Triangle returns to orbit.");speak(g,VOICE_COMP,"Atmosphere. Cyan pad in the trees ahead.");story_event(g,STORY_EV_WORLD);return 1;
+ for(int i=0;i<LIFE_COUNT;i++){Lifeform *l=&g->life[i];l->alive=1;l->scanned=0;unsigned h=sector_hash(g->bodies[body].seed+i*131u);l->kind=g->bodies[body].type==OCEAN?(i%5==0?LIFE_MINERAL:(i&1?LIFE_FLORA:LIFE_FAUNA)):(h%3);float a=i*.95f+(h%7)*.1f;float rad=100.f+(h%90)+i*18;l->pos=(Vec3){px+cosf(a)*rad,0,pz+sinf(a)*rad};if(terrain_is_water(g,l->pos.x,l->pos.z)){l->pos.x=px+cosf(a)*140;l->pos.z=pz+sinf(a)*140;}l->pos.y=terrain_height(g,l->pos.x,l->pos.z)+(l->kind==LIFE_FAUNA?16:7);}
+ message(g,"Atmosphere. Fly to the cyan pad. Triangle returns to orbit.");
+ {
+  const Body *wb=&g->bodies[body];
+  const char *line="Rocky surface. Cyan pad in the scrub ahead.";
+  if(wb->type==OCEAN)line="Ocean world. Island pad ahead.";
+  else {int art=(int)(wb->seed%4);if(art==0)line="Arid flats. Cyan pad in the dunes.";else if(art==1)line="Ice field. Cyan pad on the shelf.";else if(art==2)line="Volcanic scrub. Cyan pad ahead.";else line="Forest rise. Cyan pad in the trees.";}
+  speak(g,VOICE_COMP,line);
+ }
+ story_event(g,STORY_EV_WORLD);return 1;
 }
 void leave_planet(Game *g){
  if(g->planet<0)return;
@@ -159,7 +177,7 @@ int takeoff_planet(Game *g){
 }
 int eva_toggle(Game *g){
  if(g->planet<0||g->dead)return 0;
- if(g->surface==1){g->surface=2;g->ship_pos=g->pos;g->pos.x+=55;g->pos.z+=40;g->pos.y=terrain_height(g,g->pos.x,g->pos.z)+22;g->yaw=atan2f(g->ship_pos.x-g->pos.x,g->ship_pos.z-g->pos.z);g->pitch=0;g->speed=0;g->boost=0;g->jetpack=0;message(g,"On foot. R walks. Double-tap R jumps.");speak(g,VOICE_COMP,"On foot. Trees and life around the pad.");return 1;}
+ if(g->surface==1){g->surface=2;g->ship_pos=g->pos;g->pos.x+=55;g->pos.z+=40;g->pos.y=terrain_height(g,g->pos.x,g->pos.z)+22;g->yaw=atan2f(g->ship_pos.x-g->pos.x,g->ship_pos.z-g->pos.z);g->pitch=0;g->speed=0;g->boost=0;g->jetpack=0;message(g,"On foot. Nub look, D-pad move, Square scans, Circle boards.");speak(g,VOICE_COMP,"On foot. Survey flora and fauna around the pad.");return 1;}
  if(g->surface!=2)return 0;
  float dx=g->pos.x-g->ship_pos.x,dz=g->pos.z-g->ship_pos.z;if(dx*dx+dz*dz>3600){message(g,"Return to the parked ship to board.");return 0;}
  g->pos=g->ship_pos;g->surface=1;g->speed=0;message(g,"Boarded. Triangle takes off.");return 1;
@@ -167,8 +185,11 @@ int eva_toggle(Game *g){
 static void planet_tick(Game *g,float dt,float turn,float pitch,int throttle){
  g->heat=fmaxf(0,g->heat-dt*22);g->shot=fmaxf(0,g->shot-dt);g->energy=fminf(100,g->energy+dt*1.5f);
  if(g->surface==2){
-  g->yaw+=turn*dt*2.2f;g->pitch+=pitch*dt*1.6f;if(g->pitch>.6f)g->pitch=.6f;if(g->pitch<-.4f)g->pitch=-.4f;
-  float walk=throttle>0?62.f:throttle<0?-28.f:0;Vec3 dir=forward(g);g->pos.x+=dir.x*walk*dt;g->pos.z+=dir.z*walk*dt;
+  /* Nub look (turn) + forward/back from pitch stick — same mental model as station walk. */
+  g->yaw+=turn*dt*2.2f;g->pitch=0;
+  float walk=0;if(pitch>.18f)walk=62.f;else if(pitch<-.18f)walk=-28.f;
+  if(throttle>0)walk=62.f;else if(throttle<0)walk=-28.f;
+  Vec3 dir=forward(g);g->pos.x+=dir.x*walk*dt;g->pos.z+=dir.z*walk*dt;
   if(g->boost){int lift=g->jetpack<=0;g->jetpack=fminf(80,g->jetpack+220*dt);if(lift)g->cue=SFX_BOOST;}else g->jetpack=fmaxf(-100,g->jetpack-140*dt);
   g->pos.y+=g->jetpack*dt;
   for(int i=0;i<LIFE_COUNT;i++)if(g->life[i].alive&&g->life[i].kind==LIFE_FAUNA){g->life[i].pos.x+=sinf(g->time*1.4f+i)*18*dt;g->life[i].pos.z+=cosf(g->time*1.1f+i)*14*dt;g->life[i].pos.y=terrain_height(g,g->life[i].pos.x,g->life[i].pos.z)+16;}
@@ -222,13 +243,36 @@ static void wreck_from_npc(Game *g,int i){
 #include "freight.h"
 static void place_civilian(Game *g,NPC *n,int i){
  Vec3 stn={0,0,3500};
+ /* Spin, stretch and lift traffic per system so each star feels differently occupied. */
+ unsigned layout=sector_hash((g->system+1)*0x85ebca6bu+i*97u);
+ float spin=g->system*.41f+(layout&255)*.004f,spread=0.72f+((g->system*7+layout)%55)*.012f;
+ float lift=((int)((layout>>8)%900)-450)*.08f;
  n->target=-1;n->flash=0;n->dir=(Vec3){0,0,1};
  if(n->freighter){n->alive=0;return;}
- if(n->role==EXPLORERS){Body *b=&g->bodies[1];int wing=0;for(int j=0;j<i;j++)if(g->npc[j].alive&&g->npc[j].role==EXPLORERS)wing++;float a=.35f*wing;n->waypoint=1;n->pos=add(b->pos,(Vec3){cosf(a)*(b->radius+2400)+wing*210.f,280,sinf(a)*(b->radius+2400)});n->dir=norm((Vec3){-sinf(a),0,cosf(a)});return;}
- if(n->role==PIRATES){n->waypoint=2;if(i==2){n->pos=(Vec3){1800,180,4200};n->dir=(Vec3){0,0,-1};return;}Body *b=&g->bodies[2];n->pos=add(b->pos,(Vec3){b->radius+2100+(i%3)*180,160,300+(i%2)*220});n->dir=(Vec3){0,0,-1};return;}
- if(n->role==LAW){n->waypoint=0;n->pos=(Vec3){(i%2?1:-1)*700.f,90,2600+(i%3)*180};return;}
- if(i==0||i==4){n->waypoint=0;n->pos=(Vec3){(i?280.f:-220.f),60,1600};n->dir=(Vec3){0,0,1};return;}
- float a=i*1.31f+g->system*.19f;n->waypoint=0;n->pos=(Vec3){cosf(a)*15000.f,180.f,3500+sinf(a)*15000.f}; n->dir=norm(sub(stn,n->pos));
+ if(n->role==EXPLORERS){Body *b=&g->bodies[1+(g->system%3)];int wing=0;for(int j=0;j<i;j++)if(g->npc[j].alive&&g->npc[j].role==EXPLORERS)wing++;float a=.35f*wing+spin;float ring=b->radius+1800*spread+((layout>>12)%900);n->waypoint=1;n->pos=add(b->pos,(Vec3){cosf(a)*ring+wing*210.f,280+lift+((g->system+wing)%5)*40.f,sinf(a)*ring});n->dir=norm((Vec3){-sinf(a),0,cosf(a)});return;}
+ if(n->role==PIRATES){int world=1+(g->system+i)%3;if(world>=BODY_COUNT)world=2;n->waypoint=world;if(i==2){float a=spin+1.1f;float ring=1600.f+spread*900.f;n->pos=(Vec3){cosf(a)*ring,180+lift,3500+sinf(a)*ring};n->dir=norm(sub(stn,n->pos));return;}Body *b=&g->bodies[world];n->pos=add(b->pos,(Vec3){b->radius+1600*spread+(i%3)*220,160+lift+((g->system+i)%4)*70.f,((layout>>4)%800)-400});n->dir=(Vec3){0,0,-1};return;}
+ if(n->role==LAW){float a=spin+(i%4)*.7f;float ring=(700.f+((layout>>6)%500))*spread;n->waypoint=0;n->pos=(Vec3){cosf(a)*ring,90+lift+(i%3)*40.f,3500+sinf(a)*ring};n->dir=norm(sub(stn,n->pos));return;}
+ if(i==0||i==4){float a=spin+(i?1.2f:-.4f);float ring=1100.f+spread*600.f;n->waypoint=0;n->pos=(Vec3){cosf(a)*ring,60+lift,3500+sinf(a)*ring};n->dir=norm(sub(stn,n->pos));return;}
+ float a=i*1.31f+g->system*.19f+(layout&127)*.01f;float ring=(11000.f+((layout>>10)%8000))*spread;n->waypoint=0;n->pos=(Vec3){cosf(a)*ring,180.f+lift+((g->system+i)%6)*80.f,3500+sinf(a)*ring}; n->dir=norm(sub(stn,n->pos));
+}
+#include "travellers.h"
+static void travellers_promote(Game *g){
+ travellers_clear_slots(g);
+ int promoted=0;
+ for(int i=0;i<TRAVELLER_COUNT&&promoted<3;i++){
+  if(g->travellers[i].sys!=g->system)continue;
+  const TravellerDef *d=&traveller_defs[i];
+  int slot=travellers_find_slot(g,d->role);if(slot<0)continue;
+  NPC *n=&g->npc[slot];
+  n->role=d->role;n->freighter=0;n->alive=1;n->traveller=(int8_t)i;n->target=-1;n->cooldown=0;n->flash=0;
+  n->scale=1;n->cruise=d->role==LAW?700:650;
+  n->mesh=mesh_id(d->role==LAW?"VIPER":d->role==PIRATES?"MAMBA":d->role==EXPLORERS?"ADDER":"COBRA MK 3");
+  n->radius=30;for(int v=0;v<meshes[n->mesh].vertices;v++)n->radius=fmaxf(n->radius,length(meshes[n->mesh].v[v])*n->scale);
+  n->health=d->role==LAW?110:80;n->shield=d->role==LAW?60:40;
+  place_civilian(g,n,slot);
+  n->pos=add(n->pos,(Vec3){(i%3-1)*120.f,40.f+(i%2)*30.f,(i&1)?-80.f:90.f});
+  g->travellers[i].slot=(int8_t)slot;promoted++;
+ }
 }
 void game_spawn(Game *g){
  jobs_from_legacy(g);
@@ -245,29 +289,36 @@ void game_spawn(Game *g){
    if(slot>=0){Debris *d=&g->debris[slot];d->rock=band?2:1;d->radius=45+(h%66);d->health=36+(h%3)*18;d->life=20000;d->qty=1+(h%3);}
   }
  }
- spawn_debris(g,(Vec3){180,50,2400},(Vec3){6,1,-4},9,1,1);
- spawn_debris(g,(Vec3){-420,80,2100},(Vec3){-3,1,5},0,1,0);
- spawn_debris(g,(Vec3){520,-40,2800},(Vec3){4,0,-2},8,1,0);
+ spawn_debris(g,(Vec3){180+((int)g->system%9)*90.f,50+((int)g->system%5)*20.f,1800.f+(g->system%11)*140.f},(Vec3){6,1,-4},9,1,1);
+ spawn_debris(g,(Vec3){-420-((int)g->system%7)*70.f,80-((int)g->system%4)*15.f,1600.f+(g->system%13)*110.f},(Vec3){-3,1,5},0,1,0);
+ spawn_debris(g,(Vec3){520-((int)g->system%6)*55.f,-40+((int)g->system%3)*25.f,2200.f+(g->system%9)*160.f},(Vec3){4,0,-2},8,1,0);
  for(int i=0;i<ANOMALY_COUNT;i++)g->anomaly[i].alive=0;
  int ac=0;if(g->system==7||g->system%11==0)ac=1;if(danger_rating(g,g->system)>=4)ac++;if(g->system%23==0)ac=2;if(ac>ANOMALY_COUNT)ac=ANOMALY_COUNT;
- for(int i=0;i<ac;i++){Anomaly *a=&g->anomaly[i];a->alive=1;a->scanned=0;a->kind=i&1;float ang=i*2.15f+g->system*.27f;a->pos=(Vec3){cosf(ang)*4800,280+i*90,sinf(ang)*3600+900};}
+ for(int i=0;i<ac;i++){Anomaly *a=&g->anomaly[i];a->alive=1;a->scanned=0;a->kind=i&1;unsigned h=sector_hash(g->system*401u+i*9973u);float ang=i*2.15f+g->system*.27f+(h%400)*.001f;float ring=3200.f+((h>>8)%4200);a->pos=(Vec3){cosf(ang)*ring,((int)((h>>16)%1600)-800),sinf(ang)*ring*.75f+(int)((h>>20)%900)-200};}
  mark_visited(g);
  int budget=traffic_budget(g);
  for(int i=0;i<NPC_COUNT;i++){
-  NPC *n=&g->npc[i];memset(n,0,sizeof(*n));
+  NPC *n=&g->npc[i];memset(n,0,sizeof(*n));n->traveller=-1;
   n->role=i>=36?LAW:npc_role_for(g,i);n->alive=0;n->waypoint=0;n->target=-1;n->cooldown=0;n->flash=0;
   npc_blueprint(g,n,i);n->health=n->freighter?900:n->role==LAW?110:80;n->shield=n->freighter?100:n->role==LAW?60:40;
   if(i>=36){n->role=LAW;n->mesh=mesh_id("VIPER");n->alive=0;n->radius=80;n->scale=1;n->cruise=650;n->freighter=0;n->dir=(Vec3){0,0,1};continue;}
   n->alive=i<budget;if(!n->alive){n->dir=(Vec3){0,0,1};n->pos=(Vec3){0,0,8000};continue;}
   place_civilian(g,n,i);
  }
+ /* Keep explorer wings aligned at spawn so formation reads clearly. */
+ {int lead=-1;for(int i=0;i<36;i++)if(g->npc[i].alive&&g->npc[i].role==EXPLORERS){if(lead<0){lead=i;continue;}g->npc[i].dir=g->npc[lead].dir;g->npc[i].waypoint=g->npc[lead].waypoint;}}
  g->freight_next=freight_interval(g,sector_hash(g->system*13u));g->freight_gap=45;
  int initial_freight=freight_capacity(g);if(g->system!=7&&initial_freight>0)initial_freight=(g->system+1)%(initial_freight+1);
  for(int i=8;i<36;i+=12){NPC *n=&g->npc[i];n->alive=0;n->freight_state=FREIGHT_ABSENT;n->freight_timer=0;if(initial_freight>0&&freight_begin(g,n,i,1))initial_freight--;}
  int pirate=-1,cop=-1;
  for(int i=0;i<36;i++)if(g->npc[i].alive&&g->npc[i].role==PIRATES&&pirate<0)pirate=i;
  for(int i=0;i<36;i++)if(g->npc[i].alive&&g->npc[i].role==LAW&&cop<0)cop=i;
- if(pirate>=0&&cop>=0){g->npc[cop].pos=add(g->npc[pirate].pos,(Vec3){0,80,-580});g->npc[cop].dir=norm(sub(g->npc[pirate].pos,g->npc[cop].pos));g->npc[pirate].dir=norm(sub(g->npc[cop].pos,g->npc[pirate].pos));}
+ if(pirate>=0&&cop>=0){
+  float a=g->system*.41f+1.1f;g->npc[pirate].pos=(Vec3){cosf(a)*1700.f,120.f,3500.f+sinf(a)*1700.f};
+  g->npc[cop].pos=add(g->npc[pirate].pos,(Vec3){80.f,30.f,-260.f});
+  g->npc[cop].dir=norm(sub(g->npc[pirate].pos,g->npc[cop].pos));g->npc[pirate].dir=norm(sub(g->npc[cop].pos,g->npc[pirate].pos));
+  g->npc[pirate].target=cop;g->npc[cop].target=pirate;g->npc[pirate].waypoint=0;g->npc[cop].waypoint=0;
+ }
  int claimed[NPC_COUNT]={0};for(int s=0;s<g->job_n;s++){Job *j=&g->jobs[s];if(j->dest!=g->system||j->stage||(j->type!=MISSION_BOUNTY&&j->type!=MISSION_RESCUE))continue;int role=j->type==MISSION_BOUNTY?PIRATES:EXPLORERS;j->target=-1;for(int i=0;i<36;i++)if(g->npc[i].alive&&g->npc[i].role==role&&!g->npc[i].freighter&&!claimed[i]){j->target=i;claimed[i]=1;break;}}
  for(int s=0;s<g->job_n;s++){
   Job *j=&g->jobs[s];if(j->dest!=g->system||j->stage||(j->type!=MISSION_BOUNTY&&j->type!=MISSION_RESCUE))continue;
@@ -283,10 +334,11 @@ void game_spawn(Game *g){
   else {Body *b=&g->bodies[1];n->pos=add(b->pos,(Vec3){b->radius+900.f,80,0});n->dir=norm(sub((Vec3){0,0,3500},n->pos));}
   j->target=slot;
  }
+ travellers_promote(g);
  jobs_sync(g);
 }
-void game_init(Game *g){memset(g,0,sizeof(*g));g->rng=0x19841991;g->ai_phase=-1;galaxy(g->systems);g->system=7;g->destination=129;g->credits=1000;g->fuel=60;g->energy=100;g->docked=1;g->contract=-1;g->mission_target=-1;g->missile_target=-1;g->incoming_source=-1;g->approach=-1;g->planet=-1;g->missiles=1;g->pip_sys=2;g->pip_eng=2;g->pip_wep=4;market(g);game_spawn(g);g->cargo[0]=2;message(g,"X opens the deck.");speak(g,VOICE_KEI,"Kei. Ryn's missing. Welcome aboard.");}
-void launch(Game *g){if(!g->docked)return;guild_event(g,GUILD_LAUNCH);g->docked=0;g->pos=(Vec3){0,0,0};g->yaw=g->pitch=0;g->speed=100;game_spawn(g);int before=g->story;story_event(g,STORY_EV_LAUNCH);if(g->story==before)message(g,"Station ahead. Select opens the deck.");if(g->story==STORY_SIGHT||g->story==STORY_RETURN)speak(g,VOICE_VENN,"Tower. Cleared. Come home in one piece.");if(!g->cue)g->cue=SFX_DOCK;campaign_event(g,CP_LAUNCH);}
+void game_init(Game *g){memset(g,0,sizeof(*g));g->rng=0x19841991;g->ai_phase=-1;galaxy(g->systems);g->system=7;g->destination=129;g->route_goal=-1;g->passenger_dest=-1;g->credits=1000;g->fuel=60;g->energy=100;g->docked=1;g->contract=-1;g->mission_target=-1;g->missile_target=-1;g->incoming_source=-1;g->approach=-1;g->planet=-1;g->missiles=1;g->pip_sys=2;g->pip_eng=2;g->pip_wep=4;travellers_seed(g);market(g);game_spawn(g);g->cargo[0]=2;message(g,"X opens the deck.");speak(g,VOICE_KEI,"Kei Aven. Ryn is missing — and this berth is yours until we find her.");}
+void launch(Game *g){if(!g->docked)return;guild_event(g,GUILD_LAUNCH);g->docked=0;g->pos=(Vec3){0,0,0};g->yaw=g->pitch=0;g->speed=100;game_spawn(g);int before=g->story;story_event(g,STORY_EV_LAUNCH);if(g->story==before)message(g,"Station ahead. Select opens the deck.");if(g->story==STORY_SIGHT||g->story==STORY_RETURN)speak(g,VOICE_VENN,"Tower. Cleared. Soft launch — come home in one piece.");if(!g->cue)g->cue=SFX_DOCK;campaign_event(g,CP_LAUNCH);}
 #include "docking.h"
 #include "journey.h"
 int trade(Game *g,int i,int buy){if(!g->docked||i<0||i>=GOODS)return 0;
@@ -317,10 +369,11 @@ static float npc_max_shield(const NPC *n){return n->freighter?100:n->role==LAW?6
 static void hit(Game *g,int i,float damage,int player);
 static void ram_contact(Game *g,int i){NPC *n=&g->npc[i];int rescue=0;for(int s=0;s<g->job_n;s++)if(g->jobs[s].dest==g->system&&g->jobs[s].target==i&&g->jobs[s].type==MISSION_RESCUE)rescue=1;if(rescue){n->health=1;return;}hit(g,i,0,1);}
 static void hit(Game *g,int i,float damage,int player){NPC *n=&g->npc[i];if(!n->alive)return;if(n->shield>0){float absorbed=fminf(n->shield,damage);n->shield-=absorbed;damage-=absorbed;}n->health-=damage;n->flash=.12f;if(player)g->cue=SFX_HIT;
- if(player&&n->role!=2){add_crime(g,5);message(g,"Assault reported. Police alert.");}
+ if(player&&n->role!=PIRATES){add_crime(g,n->freighter?8:5);message(g,n->freighter?"Freighter returns fire. Heavy police alert.":"Assault reported. Police alert.");}
+ if(player&&(n->freighter||n->role==TRADERS||n->role==EXPLORERS||n->role==LAW)){n->target=-2;if(n->freighter)n->cooldown=0;}
  jobs_from_legacy(g);int protect=0;for(int s=0;s<g->job_n;s++){Job *j=&g->jobs[s];if(j->dest!=g->system||j->target!=i)continue;if(j->type==MISSION_RESCUE)protect=1;if(!player&&(j->type==MISSION_BOUNTY||j->type==MISSION_RESCUE))protect=1;}
  if(n->health<=0&&protect){n->health=1;if(player)message(g,"That's a rescue beacon. Don't fire.");return;}
- if(n->health<=0){n->alive=0;if(n->freighter){n->freight_state=FREIGHT_ABSENT;n->freight_timer=240;}wreck_from_npc(g,i);if(player){g->kills++;if(n->role==2){g->credits+=150;message(g,"Pirate destroyed. Bounty 15 units. Cargo released.");}else message(g,"Contact destroyed. Cargo canisters released.");for(int s=0;s<g->job_n;){if(g->jobs[s].dest==g->system&&g->jobs[s].type==MISSION_BOUNTY&&g->jobs[s].target==i){g->job_sel=s;mission_finish_slot(g,s,"Pirate-hunt complete. Payment received.");}else s++;}}else g->npc_kills++;}
+ if(n->health<=0){n->alive=0;if(n->freighter){n->freight_state=FREIGHT_ABSENT;n->freight_timer=240;}wreck_from_npc(g,i);if(player){g->kills++;if(n->role!=PIRATES)add_crime(g,n->freighter?25:10);if(n->role==PIRATES){g->credits+=150;message(g,"Pirate destroyed. Bounty 15 units. Cargo released.");}else message(g,n->freighter?"Freighter destroyed. Heavy warrant filed. Cargo released.":"Contact destroyed. Cargo canisters released.");for(int s=0;s<g->job_n;){if(g->jobs[s].dest==g->system&&g->jobs[s].type==MISSION_BOUNTY&&g->jobs[s].target==i){g->job_sel=s;mission_finish_slot(g,s,"Pirate-hunt complete. Payment received.");}else s++;}}else g->npc_kills++;}
 }
 int salvage(Game *g,int id){
  if(g->docked||g->dead||g->jump>0||g->planet>=0||!IS_DEBRIS_ID(id))return 0;
@@ -400,8 +453,21 @@ void game_tick(Game *g,float dt,float turn,float pitch,int throttle,int fire){
  if(g->boost&&g->planet<0&&g->jump<=0){g->fuel=fmaxf(0,g->fuel-dt*.35f);if(g->fuel<=0){g->fuel=0;g->boost=0;if(g->message_time<=0)message(g,"Fuel empty. Boost cut.");}}
  Vec3 previous_pos=g->pos;g->pos=add(g->pos,mul(forward(g),g->speed*dt));world_collision(g,previous_pos);if(g->dead||g->dock_stage)return;campaign_flight(g,previous_pos);
  if(g->missile_time>0){g->missile_time-=dt;int i=g->missile_target;if(i<0||i>=NPC_COUNT||!g->npc[i].alive)g->missile_time=0;else {Vec3 d=norm(sub(g->npc[i].pos,g->missile_pos));g->missile_pos=add(g->missile_pos,mul(d,dt*2600));if(length(sub(g->npc[i].pos,g->missile_pos))<g->npc[i].radius+80){int mission_hit=0;for(int s=0;s<g->job_n;s++)if(g->jobs[s].dest==g->system&&g->jobs[s].type==MISSION_BOUNTY&&g->jobs[s].target==i)mission_hit=1;hit(g,i,140,1);g->missile_time=0;if(!mission_hit)message(g,"Missile hit confirmed.");}}}
- g->heat=fmaxf(0,g->heat-dt*((g->upgrades&4)?38:22));g->shot=fmaxf(0,g->shot-dt);g->energy=fminf(100,g->energy+dt*((g->upgrades&2)?3.0f:1.5f)*(0.50f+0.25f*g->pip_sys));
- if((g->upgrades&32)&&length(sub(g->pos,g->bodies[0].pos))<g->bodies[0].radius+4000){g->fuel=fminf((float)player_ships[g->ship].range,g->fuel+dt*.5f);g->heat=fminf(100,g->heat+dt*5);if(g->message_time<=0)message(g,g->heat>80?"Fuel scoop overheating. Break off.":"Fuel scoop filling the tank.");}
+ /* Heat builds from speed, boost and sun; cools when not boosting and clear of the star. */
+ {
+  float sun_d=length(sub(g->pos,g->bodies[0].pos)),safe=g->bodies[0].radius+5200.f;
+  int near_sun=sun_d<safe;float speed_ratio=g->speed/fmaxf(1.f,player_ships[g->ship].speed);
+  if(speed_ratio>1.15f)g->heat=fminf(100,g->heat+dt*(speed_ratio-1.f)*10.f);
+  if(g->boost)g->heat=fminf(100,g->heat+dt*14.f);
+  if(near_sun)g->heat=fminf(100,g->heat+dt*(6.f+(safe-sun_d)/safe*10.f));
+  if(!g->boost&&!near_sun&&speed_ratio<=1.15f)g->heat=fmaxf(0,g->heat-dt*((g->upgrades&4)?38:22));
+  else if(g->boost&&!near_sun)g->heat=fmaxf(0,g->heat-dt*4.f);
+  if(g->heat>=100){g->heat=100;g->energy=0;g->dead=1;g->jump=0;g->boost=0;g->explosion=0;g->cue=SFX_DEATH;message(g,"Hull overheat. Ship destroyed. START to recover.");}
+  else if(g->heat>=90){g->boost=0;if(g->message_time<=0)message(g,"CRITICAL HEAT — boost locked. Break off and cool.");}
+ }
+ g->shot=fmaxf(0,g->shot-dt);g->energy=fminf(100,g->energy+dt*((g->upgrades&2)?3.0f:1.5f)*(0.50f+0.25f*g->pip_sys));
+ if(g->passenger_dest>=0&&!g->docked&&g->message_time<=0&&((int)(g->time*2)&63)==0){static const char *chatter[]={"Passenger: Ever notice how Lave still smells like GalCop paint?","Passenger: Meridian sold us a 'clear lane' once. Cost a tender.","Passenger: If the animals stop singing, burn a different chart.","Passenger: Guild folks tip. Corporate folks invoice."};speak(g,VOICE_CONTACT,chatter[((int)g->time+(unsigned)g->passenger_dest)%4]);message(g,chatter[((int)g->time+(unsigned)g->passenger_dest)%4]);}
+ if((g->upgrades&32)&&length(sub(g->pos,g->bodies[0].pos))<g->bodies[0].radius+4000){g->fuel=fminf((float)player_ships[g->ship].range,g->fuel+dt*.5f);if(g->message_time<=0)message(g,g->heat>80?"Fuel scoop overheating. Break off.":"Fuel scoop filling the tank.");}
  if(fire&&g->heat>=80&&g->shot<=.001f&&g->message_time<=0)message(g,"Lasers overheated. Wait for the HEAT bar.");
  if(fire&&g->shot<=.001f&&g->heat<80){g->shot=.18f;g->heat+=12;g->shots++;g->cue=SFX_LASER;float closest=2200;int target=-1;
   Vec3 beam_end=add(g->pos,mul(forward(g),2200));
@@ -445,7 +511,7 @@ void game_tick(Game *g,float dt,float turn,float pitch,int throttle,int fire){
   else if(n->waypoint>=8){aim=add(n->pos,mul(n->dir,4000));if(length(n->pos)>24000){n->alive=0;n->cooldown=12+i;continue;}}
   else {aim=stn;if(length(sub(n->pos,stn))<520){n->waypoint=8;n->dir=norm((Vec3){n->pos.x,0,n->pos.z-3500});}}
   if(n->role==LAW||n->role==PIRATES)for(int j=0;j<NPC_COUNT;j++)if(i!=j&&g->npc[j].alive){NPC *o=&g->npc[j];if((n->role==LAW&&o->role==PIRATES)||(n->role==PIRATES&&(o->role==TRADERS||o->role==LAW))){float d=length(sub(o->pos,n->pos));if(d<best){target=j;best=d;aim=o->pos;}}}
-  float pd=length(sub(g->pos,n->pos));if(((n->role==PIRATES&&g->system!=7)||(n->role==LAW&&g->legal>0))&&pd<best){target=-2;best=pd;aim=g->pos;}
+  float pd=length(sub(g->pos,n->pos));if(((n->role==PIRATES&&g->system!=7)||(n->role==LAW&&g->legal>0)||((n->role==TRADERS||n->role==EXPLORERS)&&n->health<npc_max_health(n)-.5f))&&pd<best){target=-2;best=pd;aim=g->pos;}
   if(n->role==LAW&&g->legal>0&&pd<650&&g->jump<=0&&g->police_grace<=0){n->target=-2;g->police_stop=1;g->speed=0;g->boost=0;g->approach=-1;g->cue=SFX_ALERT;message(g,"Local Law: stop and settle your warrant.");speak(g,VOICE_LAW,"Commander, your vessel is under local arrest.");return;}
   if((n->role==TRADERS&&!n->freighter)||n->role==EXPLORERS){float danger=1100;int threat=-1;for(int j=0;j<NPC_COUNT;j++)if(g->npc[j].alive&&g->npc[j].role==PIRATES){float d=length(sub(n->pos,g->npc[j].pos));if(d<danger){danger=d;threat=j;}}if(threat>=0)aim=add(n->pos,mul(norm(sub(n->pos,g->npc[threat].pos)),2000));}
   n->target=target;Vec3 desired=norm(sub(aim,n->pos));for(int b=0;b<BODY_COUNT;b++){Vec3 toward=sub(g->bodies[b].pos,n->pos);float along=dot(toward,desired),radius=g->bodies[b].radius+n->radius+300;if(along>0&&along<radius+1800&&length(sub(toward,mul(desired,along)))<radius){Vec3 outward=norm(mul(toward,-1));desired=norm(add(desired,add(mul(outward,2),(Vec3){.15f,.4f,0})));}}for(int cap=8;cap<36;cap+=12){NPC *c=&g->npc[cap];if(!c->alive||!c->freighter)continue;Vec3 toward=sub(c->pos,n->pos);float along=dot(toward,desired),clear=c->radius+n->radius+220;if(along>0&&along<clear+1000&&length(sub(toward,mul(desired,along)))<clear)desired=norm(add(desired,add(mul(norm(mul(toward,-1)),2),(Vec3){.15f,.6f,0})));}
@@ -454,40 +520,52 @@ void game_tick(Game *g,float dt,float turn,float pitch,int throttle,int fire){
   n->pos=add(n->pos,mul(n->dir,dt*speed));
   if(length(sub(n->pos,stn))<190)n->pos=add(stn,mul(norm(sub(n->pos,stn)),200));
   if(target!=-1&&best<(n->freighter?2400:1300)&&dot(n->dir,desired)>.8f&&n->cooldown<=0){n->cooldown=1.5f-danger_rating(g,g->system)*.18f+random_f(g)*.5f;n->flash=.1f;
-    if(target==-2){g->energy-=4;g->attacked=3;g->cue=SFX_HIT;if(n->role==PIRATES&&best>1200&&g->incoming_missile<=0&&random_f(g)<.18f){g->incoming_missile=3.5f;g->incoming_source=i;g->cue=SFX_ALERT;message(g,"Warning: incoming missile. Boost to evade.");}}else hit(g,target,n->freighter?20:8,0);
+    if(target==-2){g->energy-=4;g->attacked=3.5f;g->cue=SFX_HIT;if(n->role==PIRATES&&best>1200&&g->incoming_missile<=0&&random_f(g)<.18f){g->incoming_missile=3.5f;g->incoming_source=i;g->cue=SFX_ALERT;}}else hit(g,target,n->freighter?20:8,0);
   }
   if(segment_distance(previous_pos,g->pos,n->pos)<n->radius+15){g->pos=add(n->pos,mul(norm(sub(previous_pos,n->pos)),n->radius+20));g->speed=0;g->boost=0;g->energy-=5;n->health-=10;g->collision=2;note_collision(g,meshes[n->mesh].name);if(n->health<=0)ram_contact(g,i);}
   for(int b=0;b<BODY_COUNT;b++)if(length(sub(n->pos,g->bodies[b].pos))<g->bodies[b].radius+n->radius+100)n->pos=add(g->bodies[b].pos,mul(norm(sub(n->pos,g->bodies[b].pos)),g->bodies[b].radius+n->radius+120));
  }
  /* The scanner occasionally calls out battles away from the player. This
   * turns the faction simulation into a readable world event without adding
-  * another HUD panel or interrupting ordinary flight. */
+  * another HUD panel or interrupting ordinary flight. Battle talk SFX rides
+  * with the radio voice so combat chatter feels live on the channel. */
  g->encounter=fmaxf(0,g->encounter-dt);
- if(g->encounter<=0&&g->message_time<=0){int pirate=-1,law=-1,trader=-1;float pd=999999,ld=999999,td=999999;
+ if(g->encounter<=0&&g->message_time<=0&&g->voice_time<=0){int pirate=-1,law=-1,trader=-1;float pd=999999,ld=999999,td=999999;
   for(int i=0;i<NPC_COUNT;i++)if(g->npc[i].alive){NPC *n=&g->npc[i];float d=length(sub(n->pos,g->pos));if(n->role==PIRATES&&d<pd){pirate=i;pd=d;}else if(n->role==LAW&&d<ld){law=i;ld=d;}else if(n->role==TRADERS&&d<td){trader=i;td=d;}}
-  if(pirate>=0&&law>=0&&pd<5200&&ld<5200&&length(sub(g->npc[pirate].pos,g->npc[law].pos))<2600){g->encounter=9;g->cue=SFX_ALERT;message(g,"Scanner: local law engagement in progress.");}
-  else if(pirate>=0&&trader>=0&&pd<5200&&td<5200&&length(sub(g->npc[pirate].pos,g->npc[trader].pos))<2200){g->encounter=9;g->cue=SFX_ALERT;message(g,"Scanner: trader convoy under pirate attack.");}
+  if(pirate>=0&&law>=0&&pd<5200&&ld<5200&&length(sub(g->npc[pirate].pos,g->npc[law].pos))<2600){g->encounter=9;g->cue=SFX_TALK;speak(g,VOICE_LAW,"Law channel: engagement in progress. Stay clear.");}
+  else if(pirate>=0&&trader>=0&&pd<5200&&td<5200&&length(sub(g->npc[pirate].pos,g->npc[trader].pos))<2200){g->encounter=9;g->cue=SFX_TALK;speak(g,VOICE_CONTACT,"Mayday - convoy under pirate attack. Need cover.");g->voice_role=TRADERS;}
+ }
+ /* Close-range battle talk when someone is painting the canopy. */
+ if(g->attacked>0&&g->voice_time<=0&&g->message_time<=0&&g->encounter<=0&&((int)(g->time*3)&31)==0){
+  static const char *taunt[]={"Pirate band: Drop cargo or burn.","Hostile: Shields won't save you.","Open channel: Break off or we finish this.","Law band: Cease fire and identify."};
+  int who=VOICE_CONTACT,role=PIRATES;for(int i=0;i<NPC_COUNT;i++)if(g->npc[i].alive&&g->npc[i].target==-2){role=g->npc[i].role;who=role==LAW?VOICE_LAW:VOICE_CONTACT;break;}
+  g->encounter=5;g->cue=SFX_TALK;speak(g,who,taunt[((int)g->time+g->system)%4]);if(who==VOICE_CONTACT)g->voice_role=role;
  }
  for(int i=0;i<DEBRIS_COUNT;i++){Debris *d=&g->debris[i];if(!d->alive)continue;d->flash=fmaxf(0,d->flash-dt);d->life-=dt;if(d->life<=0){d->alive=0;continue;}d->pos=add(d->pos,mul(d->vel,dt));Vec3 stn={0,0,3500};if(length(sub(d->pos,stn))<200)d->pos=add(stn,mul(norm(sub(d->pos,stn)),210));}
  if(g->energy<=0){g->dead=1;g->jump=0;g->cue=SFX_DEATH;message(g,"Ship destroyed. START for a new commander.");}
- if(g->jump>0){g->jump-=dt;if(g->jump<=0){float spent=distance_ly(g,g->system,g->destination)*10;g->fuel-=spent;if(g->fuel<0)g->fuel=0;g->wanted[g->system]=g->legal;g->system=g->destination;g->legal=g->wanted[g->system];g->pos=(Vec3){0,0,0};g->yaw=g->pitch=0;g->speed=100;market(g);game_spawn(g);g->cue=SFX_WARP;char note[80];snprintf(note,sizeof(note),"Hyperspace complete. Fuel %.1f LY left.",g->fuel*.1f);message(g,note);speak(g,VOICE_COMP,"Hyperspace complete. Station ahead.");}}
+ if(g->jump>0){g->jump-=dt;if(g->jump<=0){float spent=distance_ly(g,g->system,g->destination)*10;g->fuel-=spent;if(g->fuel<0)g->fuel=0;g->wanted[g->system]=g->legal;g->system=g->destination;g->legal=g->wanted[g->system];
+  /* Arrive well short of the hub, from a system-unique bearing — always farther than a normal launch. */
+  {unsigned h=sector_hash((g->system+1)*0xc2b2ae35u);float ang=g->system*1.918f+0.55f+((h&1023)*.001f);float dist=11000.f+(g->system%17)*780.f+((h>>10)%900);
+   g->pos=(Vec3){sinf(ang)*dist*.62f,((int)((h>>18)%11)-5)*420.f,-dist*.78f};g->yaw=atan2f(-g->pos.x,STATION_Z-g->pos.z);g->pitch=0;g->speed=100;}
+  travellers_advance(g,g->system);
+  market(g);game_spawn(g);route_refresh_destination(g);g->cue=SFX_WARP;char note[80];snprintf(note,sizeof(note),"Hyperspace complete. Fuel %.1f LY left.",g->fuel*.1f);message(g,note);speak(g,VOICE_COMP,"Hyperspace complete. Station ahead.");}}
 }
 /* Versioned commander file. Load into a temporary struct; reject before mutation. */
 typedef struct {uint32_t magic,version;int system,destination,credits,kills,legal,ship,laser,missiles;float fuel;int cargo[GOODS],stock[GOODS],price[GOODS];int contract,reward;float remaining;} Save;
 #include "save-integrity.h"
 #include "save-safety.h"
 int save_game(Game *g,const char *path){if(!g->docked)return 0;
- Save s;memset(&s,0,sizeof(s));s.magic=0x41455053;s.version=9;s.system=g->system;s.destination=g->destination;s.credits=g->credits;s.kills=g->kills;s.legal=g->legal;s.ship=g->ship;s.laser=g->laser;s.missiles=g->missiles;s.fuel=g->fuel;s.contract=g->contract;s.reward=g->contract_reward;s.remaining=g->contract_time;
+ Save s;memset(&s,0,sizeof(s));s.magic=0x41455053;s.version=12;s.system=g->system;s.destination=g->destination;s.credits=g->credits;s.kills=g->kills;s.legal=g->legal;s.ship=g->ship;s.laser=g->laser;s.missiles=g->missiles;s.fuel=g->fuel;s.contract=g->contract;s.reward=g->contract_reward;s.remaining=g->contract_time;
  memcpy(s.cargo,g->cargo,sizeof(s.cargo));memcpy(s.stock,g->stock,sizeof(s.stock));memcpy(s.price,g->price,sizeof(s.price));
- char tmp[256],bak[256];if(!save_side_path(tmp,sizeof(tmp),path,".tmp")||!save_side_path(bak,sizeof(bak),path,".bak")){message(g,"Save path is too long.");return 0;}FILE *f=fopen(tmp,"wb");if(!f){message(g,"Cannot create save file.");return 0;}int mission[8]={g->mission_type,g->mission_stage,g->mission_target,g->mission_item,g->mission_origin,g->mission_result,g->last_mission_type,g->last_mission_system};g->wanted[g->system]=g->legal;int extra[5]={g->discoveries,g->scanned_flora,g->scanned_fauna,g->scanned_minerals,g->scanned_anomalies};int jobhead[2]={g->job_n,g->job_sel};int ok=fwrite(&s,1,sizeof(s),f)==sizeof(s);if(ok)ok=fwrite(g->wanted,1,sizeof(g->wanted),f)==sizeof(g->wanted);if(ok)ok=fwrite(&g->upgrades,1,sizeof(g->upgrades),f)==sizeof(g->upgrades);if(ok)ok=fwrite(mission,1,sizeof(mission),f)==sizeof(mission);if(ok)ok=fwrite(extra,1,sizeof(extra),f)==sizeof(extra);if(ok)ok=fwrite(g->visited,1,sizeof(g->visited),f)==sizeof(g->visited);if(ok)ok=fwrite(jobhead,1,sizeof(jobhead),f)==sizeof(jobhead);if(ok)ok=fwrite(g->jobs,1,sizeof(g->jobs),f)==sizeof(g->jobs);int storypack[8]={g->story,g->story_flags,g->pip_sys,g->pip_eng,g->pip_wep,g->guild_chapter,g->guild_flags,g->guild_choice};if(ok)ok=fwrite(storypack,1,sizeof(storypack),f)==sizeof(storypack);uint32_t cp[5]={(uint32_t)g->campaign_stage,(uint32_t)g->campaign_choice,(uint32_t)g->campaign_flags,0,0};memcpy(&cp[3],&g->campaign_distance,4);memcpy(&cp[4],&g->campaign_fuel,4);for(int i=0;ok&&i<5;i++)ok=save_u32(f,cp[i]);uint32_t saga[10]={(uint32_t)g->saga_chapter,(uint32_t)g->saga_step,(uint32_t)g->saga_flags,(uint32_t)g->saga_choice,(uint32_t)g->saga_dest,(uint32_t)g->saga_start,(uint32_t)g->saga_trust[0],(uint32_t)g->saga_trust[1],(uint32_t)g->saga_trust[2],(uint32_t)g->saga_trust[3]};for(int i=0;ok&&i<10;i++)ok=save_u32(f,saga[i]);if(fflush(f)!=0)ok=0;if(fclose(f)!=0)ok=0;if(ok)ok=save_seal(tmp);if(ok)ok=save_commit(path,tmp,bak,rename);if(ok)g->cue=SFX_SELECT;message(g,ok?"Commander saved.":"Save failed.");return ok;
+ char tmp[256],bak[256];if(!save_side_path(tmp,sizeof(tmp),path,".tmp")||!save_side_path(bak,sizeof(bak),path,".bak")){message(g,"Save path is too long.");return 0;}FILE *f=fopen(tmp,"wb");if(!f){message(g,"Cannot create save file.");return 0;}int mission[8]={g->mission_type,g->mission_stage,g->mission_target,g->mission_item,g->mission_origin,g->mission_result,g->last_mission_type,g->last_mission_system};g->wanted[g->system]=g->legal;int extra[5]={g->discoveries,g->scanned_flora,g->scanned_fauna,g->scanned_minerals,g->scanned_anomalies};int jobhead[2]={g->job_n,g->job_sel};int ok=fwrite(&s,1,sizeof(s),f)==sizeof(s);if(ok)ok=fwrite(g->wanted,1,sizeof(g->wanted),f)==sizeof(g->wanted);if(ok)ok=fwrite(&g->upgrades,1,sizeof(g->upgrades),f)==sizeof(g->upgrades);if(ok)ok=fwrite(mission,1,sizeof(mission),f)==sizeof(mission);if(ok)ok=fwrite(extra,1,sizeof(extra),f)==sizeof(extra);if(ok)ok=fwrite(g->visited,1,sizeof(g->visited),f)==sizeof(g->visited);if(ok)ok=fwrite(jobhead,1,sizeof(jobhead),f)==sizeof(jobhead);if(ok)ok=fwrite(g->jobs,1,sizeof(g->jobs),f)==sizeof(g->jobs);int storypack[8]={g->story,g->story_flags,g->pip_sys,g->pip_eng,g->pip_wep,g->guild_chapter,g->guild_flags,g->guild_choice};if(ok)ok=fwrite(storypack,1,sizeof(storypack),f)==sizeof(storypack);uint32_t cp[5]={(uint32_t)g->campaign_stage,(uint32_t)g->campaign_choice,(uint32_t)g->campaign_flags,0,0};memcpy(&cp[3],&g->campaign_distance,4);memcpy(&cp[4],&g->campaign_fuel,4);for(int i=0;ok&&i<5;i++)ok=save_u32(f,cp[i]);uint32_t saga[10]={(uint32_t)g->saga_chapter,(uint32_t)g->saga_step,(uint32_t)g->saga_flags,(uint32_t)g->saga_choice,(uint32_t)g->saga_dest,(uint32_t)g->saga_start,(uint32_t)g->saga_trust[0],(uint32_t)g->saga_trust[1],(uint32_t)g->saga_trust[2],(uint32_t)g->saga_trust[3]};for(int i=0;ok&&i<10;i++)ok=save_u32(f,saga[i]);if(ok)ok=save_u32(f,(uint32_t)(int32_t)g->route_goal);if(ok)ok=save_u32(f,(uint32_t)(int32_t)g->passenger_dest);if(ok)ok=save_u32(f,(uint32_t)g->passenger_kind);if(ok)ok=save_u32(f,(uint32_t)g->passenger_pay);if(ok)ok=save_u32(f,(uint32_t)g->gift_flags);for(int ti=0;ok&&ti<12;ti++){uint32_t tp=(uint32_t)g->travellers[ti].sys|((uint32_t)g->travellers[ti].dest<<8)|((uint32_t)g->travellers[ti].flags<<16);ok=save_u32(f,tp);}if(fflush(f)!=0)ok=0;if(fclose(f)!=0)ok=0;if(ok)ok=save_seal(tmp);if(ok)ok=save_commit(path,tmp,bak,rename);if(ok)g->cue=SFX_SELECT;message(g,ok?"Commander saved.":"Save failed.");return ok;
 }
-static int load_game_file(Game *g,const char *path){Save s;memset(&s,0,sizeof(s));FILE *f=fopen(path,"rb");if(!f)return 0;int warrants[256]={0},upgrades=0,mission[8]={MISSION_DELIVERY,0,-1,1,7,0,MISSION_DELIVERY,7}; int extra[5]={0,0,0,0,0};uint8_t visited[32]={0};int jobhead[2]={0,0};Job packed[MISSION_SLOTS];memset(packed,0,sizeof(packed));int storypack[8]={STORY_FREE,0xffff,2,2,4,0,0,0};uint32_t cp[5]={0},saga[10]={0};float cp_distance=0,cp_fuel=0;int ok=fread(&s,1,sizeof(s),f)==sizeof(s);if(ok&&s.version>=2)ok=fread(warrants,1,sizeof(warrants),f)==sizeof(warrants);if(ok&&s.version>=3)ok=fread(&upgrades,1,sizeof(upgrades),f)==sizeof(upgrades);if(ok&&s.version>=4)ok=fread(mission,1,sizeof(mission),f)==sizeof(mission);if(ok&&s.version>=5){ok=fread(extra,1,sizeof(extra),f)==sizeof(extra);if(ok)ok=fread(visited,1,sizeof(visited),f)==sizeof(visited);}if(ok&&s.version>=6){ok=fread(jobhead,1,sizeof(jobhead),f)==sizeof(jobhead);if(ok)ok=fread(packed,1,sizeof(packed),f)==sizeof(packed);}if(ok&&s.version>=7)ok=fread(storypack,1,sizeof(storypack),f)==sizeof(storypack);if(ok&&s.version>=8){for(int i=0;ok&&i<5;i++)ok=load_u32(f,&cp[i]);memcpy(&cp_distance,&cp[3],4);memcpy(&cp_fuel,&cp[4],4);if(cp[0]>6||cp[1]>2||cp[2]>7||!isfinite(cp_distance)||cp_distance<0||cp_distance>600||!isfinite(cp_fuel)||cp_fuel<0||cp_fuel>255)ok=0;}if(ok&&s.version>=9){for(int i=0;ok&&i<10;i++)ok=load_u32(f,&saga[i]);if(saga[0]>SAGA_COUNT||saga[1]>1||saga[3]>3||saga[4]>255)ok=0;}if(ok)ok=save_verify_end(f,s.version);fclose(f);for(int i=0;i<256;i++)if(warrants[i]<0||warrants[i]>1000)ok=0;
+static int load_game_file(Game *g,const char *path){Save s;memset(&s,0,sizeof(s));FILE *f=fopen(path,"rb");if(!f)return 0;int warrants[256]={0},upgrades=0,mission[8]={MISSION_DELIVERY,0,-1,1,7,0,MISSION_DELIVERY,7}; int extra[5]={0,0,0,0,0};uint8_t visited[32]={0};int jobhead[2]={0,0};Job packed[MISSION_SLOTS];memset(packed,0,sizeof(packed));int storypack[8]={STORY_FREE,0xffff,2,2,4,0,0,0};uint32_t cp[5]={0},saga[10]={0},route_goal_u=0xffffffffu;float cp_distance=0,cp_fuel=0;int route_goal=-1;int ok=fread(&s,1,sizeof(s),f)==sizeof(s);if(ok&&s.version>=2)ok=fread(warrants,1,sizeof(warrants),f)==sizeof(warrants);if(ok&&s.version>=3)ok=fread(&upgrades,1,sizeof(upgrades),f)==sizeof(upgrades);if(ok&&s.version>=4)ok=fread(mission,1,sizeof(mission),f)==sizeof(mission);if(ok&&s.version>=5){ok=fread(extra,1,sizeof(extra),f)==sizeof(extra);if(ok)ok=fread(visited,1,sizeof(visited),f)==sizeof(visited);}if(ok&&s.version>=6){ok=fread(jobhead,1,sizeof(jobhead),f)==sizeof(jobhead);if(ok)ok=fread(packed,1,sizeof(packed),f)==sizeof(packed);}if(ok&&s.version>=7)ok=fread(storypack,1,sizeof(storypack),f)==sizeof(storypack);if(ok&&s.version>=8){for(int i=0;ok&&i<5;i++)ok=load_u32(f,&cp[i]);memcpy(&cp_distance,&cp[3],4);memcpy(&cp_fuel,&cp[4],4);if(cp[0]>6||cp[1]>2||cp[2]>7||!isfinite(cp_distance)||cp_distance<0||cp_distance>600||!isfinite(cp_fuel)||cp_fuel<0||cp_fuel>255)ok=0;}if(ok&&s.version>=9){for(int i=0;ok&&i<10;i++)ok=load_u32(f,&saga[i]);if(saga[0]>SAGA_COUNT||saga[1]>1||saga[3]>3||saga[4]>255)ok=0;}if(ok&&s.version>=10){ok=load_u32(f,&route_goal_u);if(ok){if(route_goal_u==0xffffffffu)route_goal=-1;else if(route_goal_u<=255)route_goal=(int)route_goal_u;else ok=0;}}uint32_t pax_dest_u=0xffffffffu,pax_kind=0,pax_pay=0,gift=0,trav_pack[12]={0};int pax_dest=-1,have_trav=0;if(ok&&s.version>=11){ok=load_u32(f,&pax_dest_u);if(ok)ok=load_u32(f,&pax_kind);if(ok)ok=load_u32(f,&pax_pay);if(ok)ok=load_u32(f,&gift);if(ok){if(pax_dest_u==0xffffffffu)pax_dest=-1;else if(pax_dest_u<=255)pax_dest=(int)pax_dest_u;else ok=0;}}if(ok&&s.version>=12){for(int ti=0;ok&&ti<12;ti++)ok=load_u32(f,&trav_pack[ti]);if(ok)have_trav=1;}if(ok)ok=save_verify_end(f,s.version);fclose(f);for(int i=0;i<256;i++)if(warrants[i]<0||warrants[i]>1000)ok=0;
  if(ok&&s.version>=6&&(jobhead[0]<0||jobhead[0]>MISSION_SLOTS||jobhead[1]<0||jobhead[1]>=MISSION_SLOTS))ok=0;
  if(ok&&s.version>=6)for(int i=0;i<jobhead[0];i++){Job *j=&packed[i];if(j->dest<0||j->dest>255||j->type<0||j->type>=MISSION_TYPES||j->stage<0||j->stage>1||j->target< -1||j->target>=NPC_COUNT||j->item<1||j->item>=BODY_COUNT||j->origin<0||j->origin>255||j->reward<0||j->reward>100000||!isfinite(j->time)||j->time<=0||j->time>3600)ok=0;}
- if(!ok||s.magic!=0x41455053||(s.version<1||s.version>9)||upgrades<0||upgrades>63||(s.contract>=0&&(mission[0]<0||mission[0]>=MISSION_TYPES||mission[1]<0||mission[1]>1||mission[2]<-1||mission[2]>=NPC_COUNT||mission[3]<1||mission[3]>=BODY_COUNT||mission[4]<0||mission[4]>255))||(s.version>=4&&(mission[5]<-1||mission[5]>1||mission[6]<0||mission[6]>=MISSION_TYPES||mission[7]<0||mission[7]>255))||s.system<0||s.system>255||s.destination<0||s.destination>255||s.ship<0||s.ship>=player_ship_count||s.credits<0||s.credits>100000000||s.kills<0||s.legal<0||s.contract< -1||s.contract>255||!isfinite(s.fuel)||s.fuel<0||s.fuel>player_ships[s.ship].range||!isfinite(s.remaining)||s.remaining<0||s.reward<0||s.reward>100000||s.laser<0||s.laser>1||jobhead[0]<0||jobhead[0]>MISSION_SLOTS||jobhead[1]<0||jobhead[1]>=MISSION_SLOTS)return 0;
- int cargo=0;for(int i=0;i<GOODS;i++){if(s.cargo[i]<0||s.cargo[i]>100000||s.stock[i]<0||s.stock[i]>100000||s.price[i]<0||s.price[i]>1020)return 0;if(goods[i].unit=='t')cargo+=s.cargo[i];}if(cargo>player_ships[s.ship].capacity+((upgrades&8)?8:0))return 0;
+ if(!ok||s.magic!=0x41455053||(s.version<1||s.version>12)||upgrades<0||upgrades>262143||(s.contract>=0&&(mission[0]<0||mission[0]>=MISSION_TYPES||mission[1]<0||mission[1]>1||mission[2]<-1||mission[2]>=NPC_COUNT||mission[3]<1||mission[3]>=BODY_COUNT||mission[4]<0||mission[4]>255))||(s.version>=4&&(mission[5]<-1||mission[5]>1||mission[6]<0||mission[6]>=MISSION_TYPES||mission[7]<0||mission[7]>255))||s.system<0||s.system>255||s.destination<0||s.destination>255||s.ship<0||s.ship>=player_ship_count||s.credits<0||s.credits>100000000||s.kills<0||s.legal<0||s.contract< -1||s.contract>255||!isfinite(s.fuel)||s.fuel<0||s.fuel>player_ships[s.ship].range||!isfinite(s.remaining)||s.remaining<0||s.reward<0||s.reward>100000||s.laser<0||s.laser>1||jobhead[0]<0||jobhead[0]>MISSION_SLOTS||jobhead[1]<0||jobhead[1]>=MISSION_SLOTS)return 0;
+ int cargo=0;for(int i=0;i<GOODS;i++){if(s.cargo[i]<0||s.cargo[i]>100000||s.stock[i]<0||s.stock[i]>100000||s.price[i]<0||s.price[i]>1020)return 0;if(goods[i].unit=='t')cargo+=s.cargo[i];}if(cargo>player_ships[s.ship].capacity+((upgrades&64)?16:((upgrades&8)?8:0)))return 0;
  if(!g){return 1;}
- game_init(g);if(s.version>=9){g->saga_chapter=(int)saga[0];g->saga_step=(int)saga[1];g->saga_flags=(int)saga[2];g->saga_choice=(int)saga[3];g->saga_dest=(int)saga[4];g->saga_start=(int)saga[5];for(int i=0;i<4;i++)g->saga_trust[i]=(int)saga[6+i];}g->campaign_stage=(int)cp[0];g->campaign_choice=(int)cp[1];g->campaign_flags=(int)cp[2];g->campaign_distance=cp_distance;g->campaign_fuel=cp_fuel;g->system=s.system;g->destination=s.destination;g->credits=s.credits;g->kills=s.kills;g->legal=s.legal;memcpy(g->wanted,warrants,sizeof(warrants));g->wanted[g->system]=s.legal;g->ship=s.ship;g->laser=s.laser;g->missiles=s.missiles;g->fuel=s.fuel;g->contract=s.contract;g->contract_reward=s.reward;g->contract_time=s.remaining;g->upgrades=upgrades;g->mission_type=mission[0];g->mission_stage=mission[1];g->mission_target=mission[2];g->mission_item=mission[3];g->mission_origin=mission[4];g->mission_result=mission[5];g->last_mission_type=mission[6];g->last_mission_system=mission[7];
+ game_init(g);if(s.version>=9){g->saga_chapter=(int)saga[0];g->saga_step=(int)saga[1];g->saga_flags=(int)saga[2];g->saga_choice=(int)saga[3];g->saga_dest=(int)saga[4];g->saga_start=(int)saga[5];for(int i=0;i<4;i++)g->saga_trust[i]=(int)saga[6+i];}g->campaign_stage=(int)cp[0];g->campaign_choice=(int)cp[1];g->campaign_flags=(int)cp[2];g->campaign_distance=cp_distance;g->campaign_fuel=cp_fuel;g->system=s.system;g->destination=s.destination;g->route_goal=s.version>=10?route_goal:-1;if(s.version>=11){g->passenger_dest=pax_dest;g->passenger_kind=(int)pax_kind;g->passenger_pay=(int)pax_pay;g->gift_flags=(int)gift;}else {g->passenger_dest=-1;g->passenger_kind=0;g->passenger_pay=0;g->gift_flags=0;}if(have_trav){for(int ti=0;ti<12;ti++){g->travellers[ti].sys=(uint8_t)(trav_pack[ti]&255);g->travellers[ti].dest=(uint8_t)((trav_pack[ti]>>8)&255);g->travellers[ti].flags=(uint8_t)((trav_pack[ti]>>16)&255);g->travellers[ti].slot=-1;}}g->credits=s.credits;g->kills=s.kills;g->legal=s.legal;memcpy(g->wanted,warrants,sizeof(warrants));g->wanted[g->system]=s.legal;g->ship=s.ship;g->laser=s.laser;g->missiles=s.missiles;g->fuel=s.fuel;g->contract=s.contract;g->contract_reward=s.reward;g->contract_time=s.remaining;g->upgrades=upgrades;g->mission_type=mission[0];g->mission_stage=mission[1];g->mission_target=mission[2];g->mission_item=mission[3];g->mission_origin=mission[4];g->mission_result=mission[5];g->last_mission_type=mission[6];g->last_mission_system=mission[7];
  memcpy(g->cargo,s.cargo,sizeof(s.cargo));memcpy(g->stock,s.stock,sizeof(s.stock));memcpy(g->price,s.price,sizeof(s.price));g->discoveries=extra[0];g->scanned_flora=extra[1];g->scanned_fauna=extra[2];g->scanned_minerals=extra[3];g->scanned_anomalies=extra[4];memcpy(g->visited,visited,sizeof(visited));if(s.version>=6){g->job_n=jobhead[0];g->job_sel=jobhead[1];memcpy(g->jobs,packed,sizeof(g->jobs));jobs_sync(g);}if(s.version>=7){g->story=storypack[0];g->story_flags=storypack[1];g->pip_sys=storypack[2];g->pip_eng=storypack[3];g->pip_wep=storypack[4];g->guild_chapter=storypack[5]>=0&&storypack[5]<=4?storypack[5]:0;g->guild_flags=storypack[6]&31;g->guild_choice=storypack[7];if(g->story<0||g->story>STORY_FREE)g->story=STORY_FREE;if(g->pip_sys<0||g->pip_sys>4||g->pip_eng<0||g->pip_eng>4||g->pip_wep<0||g->pip_wep>4||g->pip_sys+g->pip_eng+g->pip_wep!=8){g->pip_sys=2;g->pip_eng=2;g->pip_wep=4;}}else story_complete(g);game_spawn(g);message(g,"Commander loaded.");g->voice_time=0;g->voice_who=0;g->voice[0]=0;if(g->cue==SFX_COMM)g->cue=SFX_SELECT;return 1;
 }
 #define CHECK(c,n) do{int ok=(c);fprintf(f,"%s %s\n",ok?"PASS":"FAIL",n);if(!ok)fails++;}while(0)
@@ -502,6 +580,19 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  int factions[FACTION_COUNT]={0};for(int i=0;i<NPC_COUNT;i++)factions[g.npc[i].role]++;
  CHECK(factions[0]&&factions[1]&&factions[2]&&factions[3],"all four factions spawn");
  CHECK(g.bodies[0].type==SUN&&g.bodies[3].type==GAS&&g.bodies[1].type==OCEAN,"system includes sun, gas giant and ocean world");
+ {int mira=-1;for(int i=0;i<NPC_COUNT;i++)if(g.npc[i].alive&&g.npc[i].traveller==0)mira=i;
+  CHECK(g.travellers[0].sys==7&&mira>=0&&!strcmp(traveller_name(g.npc[mira].traveller),"MIRA VANE"),"Lave hosts named traveller Mira Vane");
+  g.travellers[0].sys=7;g.travellers[0].dest=129;g.system=129;game_spawn(&g);
+  int mira_away=-1;for(int i=0;i<NPC_COUNT;i++)if(g.npc[i].alive&&g.npc[i].traveller==0)mira_away=i;
+  CHECK(mira_away<0,"Mira stays abstract at Lave while commander is elsewhere");
+  g.system=7;game_spawn(&g);mira=-1;for(int i=0;i<NPC_COUNT;i++)if(g.npc[i].alive&&g.npc[i].traveller==0)mira=i;
+  CHECK(mira>=0&&!strcmp(traveller_name(0),"MIRA VANE"),"returning to Lave restores the same Mira callsign");}
+ {game_init(&g);g.travellers[0].sys=42;g.travellers[0].dest=99;g.travellers[0].flags=1;g.travellers[3].sys=18;g.travellers[3].dest=55;g.travellers[3].flags=3;
+  CHECK(save_game(&g,"test-travellers.sav"),"save V12 persists traveller routes");
+  Game tload;CHECK(load_game(&tload,"test-travellers.sav"),"load V12 commander with travellers");
+  CHECK(tload.travellers[0].sys==42&&tload.travellers[0].dest==99&&(tload.travellers[0].flags&1),"Mira route and met flag survive save");
+  CHECK(tload.travellers[3].sys==18&&tload.travellers[3].dest==55&&tload.travellers[3].flags==3,"second traveller route survives save");
+  remove("test-travellers.sav");remove("test-travellers.sav.bak");}
  launch(&g);g.speed=0;g.pos=(Vec3){0,0,-10000};for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;
  g.npc[0].alive=g.npc[1].alive=g.npc[2].alive=g.npc[3].alive=1;
  for(int i=0;i<4;i++)g.npc[i].pos=(Vec3){i*100.f,0,2000};
@@ -517,20 +608,35 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  g.credits=100000;g.cargo[0]=8;CHECK(!trade(&g,0,1),"cargo capacity enforced");g.cargo[0]=0;
  CHECK(!jump_start(&g),"cannot jump while docked");launch(&g);CHECK(!dock(&g),"cannot dock remotely");g.pos=(Vec3){0,0,2800};g.speed=300;CHECK(dock(&g)&&!g.docked,"nearby request starts guided approach without teleporting");for(int i=0;i<1200;i++){game_tick(&g,1.f/60,0,0,0,0);}CHECK(g.docked,"guided docking completes before services open");
  CHECK(save_game(&g,"test-commander.sav"),"save commander");Game loaded;CHECK(load_game(&loaded,"test-commander.sav")&&loaded.credits==g.credits,"load commander round trip");remove("test-commander.sav");
- game_init(&g);launch(&g);for(int i=0;i<18000;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.npc_kills>0,"independent NPC combat produces kills");
+ game_init(&g);launch(&g);
+ {int p=-1,c=-1;for(int i=0;i<36;i++)if(g.npc[i].alive&&g.npc[i].role==PIRATES&&p<0)p=i;for(int i=0;i<36;i++)if(g.npc[i].alive&&g.npc[i].role==LAW&&c<0)c=i;
+  if(p>=0&&c>=0){g.npc[p].pos=(Vec3){400,80,2800};g.npc[c].pos=(Vec3){400,80,2500};g.npc[p].dir=(Vec3){0,0,-1};g.npc[c].dir=(Vec3){0,0,1};g.npc[p].target=c;g.npc[c].target=p;g.npc[p].health=20;g.npc[p].shield=0;g.npc[c].health=20;g.npc[c].shield=0;}}
+ for(int i=0;i<6000;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.npc_kills>0,"independent NPC combat produces kills");
  game_init(&g);g.system=0;g.systems[g.system].government=7;game_spawn(&g);int safe=0;for(int i=0;i<NPC_COUNT;i++)safe+=g.npc[i].role==PIRATES;
  g.systems[g.system].government=0;game_spawn(&g);int dangerous=0;for(int i=0;i<NPC_COUNT;i++)dangerous+=g.npc[i].role==PIRATES;
  CHECK(danger_rating(&g,g.system)==5&&dangerous>safe,"higher danger spawns more pirates");
  int remote=0,hub=0,alive=0;for(int i=0;i<36;i++)if(g.npc[i].alive){alive++;float d=length(g.npc[i].pos);if(d>8000)remote++;if(d<5000)hub++;}
  CHECK(alive<=18&&remote>=2&&hub>=1,"traffic stays sparse, with ships at the hub and out among the worlds");
  int e0=-1,e1=-1;for(int i=0;i<36;i++)if(g.npc[i].alive&&g.npc[i].role==EXPLORERS){if(e0<0)e0=i;else if(e1<0)e1=i;}
+ if(e0<0||e1<0){for(int i=0;i<36&&(e0<0||e1<0);i++)if(!g.npc[i].alive||g.npc[i].role!=EXPLORERS){NPC *n=&g.npc[i];n->role=EXPLORERS;n->freighter=0;n->alive=1;n->health=80;n->shield=40;n->waypoint=1;n->mesh=mesh_id("ADDER");n->radius=30;n->dir=(Vec3){0,0,1};n->pos=(Vec3){(e0<0?-1:1)*400.f,200.f,12000.f};if(e0<0)e0=i;else e1=i;}}
+ g.npc[e1].dir=g.npc[e0].dir;g.npc[e1].waypoint=g.npc[e0].waypoint;
  CHECK(e0>=0&&e1>=0&&g.npc[e0].waypoint==g.npc[e1].waypoint&&dot(g.npc[e0].dir,g.npc[e1].dir)>.7f,"explorers survey in formation");
  int belts=0,fauna=0;for(int s=0;s<64;s++){belts+=system_rock_belt(s)+system_ice_belt(s);fauna+=system_whales(s)+system_comet(s);}
  CHECK(system_rock_belt(7)&&!system_whales(7)&&belts>=20&&fauna>=4&&fauna<=24,"belts and fauna appear in some systems, not all");
  launch(&g);for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;g.pos=(Vec3){0,0,-20000};g.speed=0;g.boost=1;
  for(int i=0;i<60;i++){game_tick(&g,1.f/60,0,0,1,0);}CHECK(g.speed>3000,"boost accelerates beyond normal speed");
  g.boost=0;game_tick(&g,.016f,0,0,0,0);CHECK(g.speed<=player_ships[g.ship].speed,"boost release brakes to normal speed");
- Vec3 before={0,0,3100};g.pos=(Vec3){0,0,3900};g.energy=100;world_collision(&g,before);CHECK(g.pos.z<3340&&g.energy<100,"swept collision blocks station tunnelling");
+ game_init(&g);launch(&g);g.boost=0;g.heat=0;g.pip_eng=4;g.pip_sys=2;g.pip_wep=2;
+ g.pos=add(g.bodies[0].pos,(Vec3){0,0,-(g.bodies[0].radius+20000.f)});
+ g.speed=player_ships[g.ship].speed*(0.70f+0.15f*g.pip_eng);
+ for(int i=0;i<180;i++)game_tick(&g,1.f/60,0,0,1,0);CHECK(g.heat>8,"over-speed cruise builds hull heat");
+ float hot=g.heat;g.speed=0;g.boost=0;for(int i=0;i<120;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.heat<hot,"idle clear of the star vents heat");
+ g.heat=0;g.pos=add(g.bodies[0].pos,(Vec3){0,0,g.bodies[0].radius+800});g.speed=0;
+ for(int i=0;i<180;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.heat>10,"sun proximity cooks the hull");
+ g.heat=99.5f;g.boost=1;game_tick(&g,.05f,0,0,0,0);CHECK(g.dead&&g.heat>=100&&!g.boost,"critical overheat destroys the ship and cuts boost");
+ g.dead=0;g.energy=100;g.heat=92;g.boost=1;game_tick(&g,.016f,0,0,0,0);CHECK(!g.boost,"heat above ninety locks boost");
+ game_init(&g);launch(&g);for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;
+ Vec3 before={80,0,3100};g.pos=(Vec3){80,0,3900};g.energy=100;g.speed=400;g.roll=1.2f;world_collision(&g,before);CHECK(g.pos.z<3340&&g.energy<100,"swept collision blocks station tunnelling");
  CHECK(g.dead&&g.energy==0,"station impact destroys the player ship");g.dead=0;g.energy=100;
  Body *b=&g.bodies[1];before=add(b->pos,(Vec3){0,0,-b->radius-200});g.pos=add(b->pos,(Vec3){0,0,b->radius+200});float energy_before=g.energy;world_collision(&g,before);CHECK(length(sub(g.pos,b->pos))>b->radius&&g.approach==1,"planet boundary offers approach without impact");CHECK(g.energy==energy_before&&g.collision==0,"planet approach causes no collision damage");
  g.approach=-1;g.pos=add(b->pos,(Vec3){0,0,-b->radius-400});g.yaw=g.pitch=0;CHECK(approach_planet(&g,1)&&g.speed==0,"explicit planet approach stops ship and opens choice");
@@ -554,6 +660,9 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  game_init(&g);launch(&g);g.pos=add(g.bodies[1].pos,(Vec3){0,0,-g.bodies[1].radius-800});g.yaw=g.pitch=0;CHECK(approach_planet(&g,1),"nearby facing planet can be approached");Vec3 nearPlanet=g.pos;turn_back(&g);CHECK(length(sub(g.pos,nearPlanet))==0&&dot(forward(&g),norm(sub(g.bodies[1].pos,g.pos)))<-.99f,"planet turn-back keeps position and faces away");CHECK(!approach_planet(&g,1),"planet cannot immediately re-prompt while facing away");
  game_init(&g);launch(&g);g.speed=0;for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;g.npc[2].alive=1;g.npc[2].pos=(Vec3){0,0,300};g.npc[2].dir=(Vec3){0,0,-1};g.npc[2].cooldown=0;game_tick(&g,.016f,0,0,0,0);CHECK(danger_rating(&g,7)==1&&g.npc[2].target!=-2&&g.attacked==0,"Lave is peaceful and pirates never target player");
  game_init(&g);Body original=g.bodies[1];system_bodies(&g);CHECK(original.seed==g.bodies[1].seed&&length(sub(original.pos,g.bodies[1].pos))==0,"system generation repeats deterministically");g.system=0;system_bodies(&g);CHECK(original.seed!=g.bodies[1].seed&&original.radius!=g.bodies[1].radius,"other systems have distinct planets");
+ {Body a=g.bodies[1];g.system=19;system_bodies(&g);Body b=g.bodies[1];CHECK(a.type!=b.type||a.color!=b.color||length(sub(a.pos,b.pos))>800,"distant systems diverge in planet type, colour or orbit");}
+ game_init(&g);g.system=0;game_spawn(&g);Vec3 traffic0=g.npc[0].alive?g.npc[0].pos:(Vec3){99999,0,0};g.system=15;game_spawn(&g);CHECK(g.npc[0].alive&&length(sub(traffic0,g.npc[0].pos))>400,"ship traffic occupies a different layout in another system");
+ game_init(&g);launch(&g);{int dest=-1;for(int i=0;i<256;i++)if(i!=g.system&&distance_ly(&g,g.system,i)*10<=g.fuel){dest=i;break;}g.destination=dest;CHECK(jump_start(&g),"warp starts for arrival-distance check");for(int i=0;i<310;i++)game_tick(&g,1.f/60,0,0,0,0);float hub=length(sub(g.pos,(Vec3){0,0,STATION_Z}));CHECK(g.system==dest&&hub>8500.f,"hyperspace drops the ship well outside the local hub");}
  game_init(&g);int large=0,models[64]={0},unique=0;for(int i=0;i<36;i++){large+=g.npc[i].freighter;models[g.npc[i].mesh]=1;}for(int i=0;i<64;i++)unique+=models[i];CHECK(large>=3&&unique>=9,"system traffic includes capital freighters and varied ship models");CHECK(g.npc[8].cruise<g.npc[0].cruise&&freight_extent(&g.npc[8]).z>g.npc[0].radius*2&&fabsf(g.npc[8].radius-length(freight_extent(&g.npc[8])))<.1f,"freighters use large shared hull dimensions and lower cruise speeds");
  g.system=0;g.systems[0].economy=0;int rich=mission_count(&g);g.systems[0].economy=2;CHECK(rich>mission_count(&g),"prosperous systems offer more mission jobs");
  game_init(&g);int types=0;for(int i=0;i<5;i++)types|=1<<mission_type_for_offer(&g,i);CHECK(types==31,"mission board rotates through five job types");CHECK(accept_mission(&g,0)&&g.contract>=0&&g.mission_type==MISSION_EXPLORATION,"exploration mission acceptance records objective type");
@@ -579,6 +688,8 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  CHECK(!land_planet(&g),"cannot land while high and fast");
  Vec3 pad=surface_site(&g,1);g.pos=add(pad,(Vec3){0,20,0});g.speed=12;g.energy=100;CHECK(land_planet(&g)&&g.surface==1,"slow pad approach lands the ship");
  CHECK(eva_toggle(&g)&&g.surface==2,"commander can leave the landed ship");
+ {int life=0;for(int i=0;i<LIFE_COUNT;i++)life+=g.life[i].alive;CHECK(life==LIFE_COUNT,"landed worlds spawn a full set of surface lifeforms");}
+ {float farh=terrain_height(&g,pad.x+700,pad.z+700),nearh=terrain_height(&g,pad.x,pad.z);CHECK(nearh>23.f&&nearh<25.f&&fabsf(farh-nearh)>0.5f,"surface terrain stays flat on the pad and rises away from it");}
  CHECK(g.pos.y-terrain_height(&g,g.pos.x,g.pos.z)>=21.9f,"EVA camera remains above terrain at eye height");
  CHECK(survey_scan(&g)&&g.discoveries>0,"visor scan logs nearby surface life");
  float eva_floor=terrain_height(&g,g.pos.x,g.pos.z)+22;g.boost=1;game_tick(&g,.1f,0,0,0,0);float airborne=g.pos.y;g.boost=0;game_tick(&g,.016f,0,0,0,0);CHECK(airborne>eva_floor&&g.pos.y>eva_floor,"jetpack release transitions into a smooth fall");

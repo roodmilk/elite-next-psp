@@ -13,6 +13,19 @@ int route_next_hop(const Game *g,int destination,int *jumps){
  while(previous[hop]!=g->system){hop=previous[hop];(*jumps)++;}
  return hop;
 }
+/* Manual multi-jump goal, separate from the immediate hyperspace destination. */
+void route_clear(Game *g){g->route_goal=-1;}
+void route_set_goal(Game *g,int goal){
+ if(goal<0||goal>255||goal==g->system){g->route_goal=-1;return;}
+ g->route_goal=goal;
+}
+void route_refresh_destination(Game *g){
+ if(g->route_goal<0||g->route_goal>255){g->route_goal=-1;return;}
+ if(g->system==g->route_goal){g->route_goal=-1;return;}
+ Game plan=*g;plan.fuel=(float)player_ships[g->ship].range;
+ int jumps=0,hop=route_next_hop(&plan,g->route_goal,&jumps);
+ if(hop>=0)g->destination=hop;else g->route_goal=-1;
+}
 int mission_cargo_reserved(const Game *g,int item){
  int n=0;
  for(int i=0;i<g->job_n;i++)if((item==0&&g->jobs[i].type==MISSION_DELIVERY)||
