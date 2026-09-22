@@ -1,10 +1,10 @@
 # ELITE: NEXT — visual identity direction
 
-**Status:** proposed art authority, 22 September 2026  
+**Status:** active art authority — in-game implementation on the 2.5.39 working tip (PR #11)  
 **Scope:** planets, deep space, stations, MacVenture-style room scenes, HUD atmosphere and presentation  
 **Platform constraint:** PSP-2000/3000, 480×272, native nearest-neighbour art
 
-This is a visual direction document, not a claim that the proposed look is already implemented. Existing captures remain the **CURRENT** reference; concept boards and targets in this document are **PROPOSED**. Station-crawl code is owned by the station implementation lane and is intentionally untouched here.
+This document remains the visual direction authority. Station rooms, UI chrome, and space/planet soft-FB now follow this palette and grammar in runtime code; proposed boards are still composition targets, not full-screen textures.
 
 ## The north star
 

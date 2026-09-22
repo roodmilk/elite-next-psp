@@ -234,7 +234,8 @@ static void capital_model(const NPC *n,unsigned color){
 }
 static int depth_sort(const void *a,const void *b){float d=((const DrawTri*)b)->depth-((const DrawTri*)a)->depth;return d>0?1:d<0?-1:0;}
 static void flush_meshes(void){qsort(drawlist,drawcount,sizeof(*drawlist),depth_sort);for(int i=0;i<drawcount;i++)triangle(&drawlist[i]);drawcount=0;}
-static void header(const char *title){rect(0,0,W,22,RGB(5,12,20));rect(0,0,W,1,GOLD);rect(0,21,W,1,CYAN);rect(0,0,4,22,GOLD);draw_next_art(next_logo_small,100,18,5,2,100,18);text(14,1,DIM,"/");text(16,1,WHITE,"%.42s",title);}
+/* Art kit chrome — charcoal + ochre/cream rules; cyan stays a nav signal only. */
+static void header(const char *title){rect(0,0,W,22,RGB(21,28,39));rect(0,0,W,1,RGB(193,139,77));rect(0,21,W,1,RGB(85,212,212));rect(0,0,3,22,RGB(240,180,91));draw_next_art(next_logo_small,100,18,5,2,100,18);text(14,1,RGB(155,154,165),"/");text(16,1,RGB(229,210,163),"%.42s",title);}
 static void button_icon(int x,int y,char b,unsigned c){
  if(b=='O'){circle(x+4,y+4,3,c);}
  else if(b=='X'){line(x+1,y+1,x+7,y+7,c);line(x+7,y+1,x+1,y+7,c);}
@@ -261,7 +262,7 @@ static void footer(const char *s){
  }
  text(1,32,DIM,"%s",label);
 }
-static void selected_span(int y,int w){if(w<48)w=48;rect(8,y*8-2,w,12,high_contrast?RGB(38,78,88):RGB(16,38,48));rect(8,y*8-2,3,12,GOLD);}
+static void selected_span(int y,int w){if(w<48)w=48;rect(8,y*8-2,w,12,high_contrast?RGB(58,72,88):RGB(41,54,70));rect(8,y*8-2,3,12,RGB(240,180,91));}
 static void selected(int y){selected_span(y,464);}
 static const char *stars(int n){static char result[8];for(int i=0;i<5;i++)result[i]=i<n?'*':'.';result[5]=0;return result;}
 static void page_number_at(int col,int rownum,int current,int total){if(total>1)text(col,rownum,DIM,"%d/%d",current,total);}
@@ -324,7 +325,7 @@ static void space(void){
  if(game.police_stop){if(hud_mode==0)cockpit();police_dialog();return;}
  if(game.dead){death_effect();sfx_maybe_death_embers();sfx_explosion_embers_draw(1.f/60);if(hud_mode==0)cockpit();return;}
  if(game.dock_stage>=2){docking_view();if(hud_mode==0)cockpit();return;}
- sector_background();space_fx_nebula();starfield();space_fx_meteors();celestial_rims();draw_bodies();lens_flares();station_model();station_window_animation();secondary_hubs();ambient_space();
+ sector_background();space_fx_nebula();starfield();space_fx_meteors();celestial_rims();draw_bodies();sfx_planet_beauty();lens_flares();sfx_sun_canopy_wash();station_model();station_window_animation();secondary_hubs();ambient_space();sfx_travel_beauty();sfx_travel_fun();
  int npc_detailed[NPC_COUNT]={0};
  for(int i=0;i<NPC_COUNT;i++){NPC *n=&game.npc[i];if(!n->alive||occluded(n->pos))continue;float distance=length(sub(n->pos,game.pos)),limit=n->freighter?12000.f:5200.f;if(distance>limit)continue;npc_detailed[i]=n->freighter?2:1;unsigned c=n->flash>0?WHITE:faction_colors[n->role];float yaw=atan2f(n->dir.x,n->dir.z);if(npc_detailed[i]==2){capital_model(n,c);continue;}shipmesh(n->mesh,n->pos,yaw,0,n->scale,c,0);}
  for(int i=0;i<DEBRIS_COUNT;i++){Debris *d=&game.debris[i];if(!d->alive||occluded(d->pos))continue;float distance=length(sub(d->pos,game.pos));if(distance>11000)continue;
@@ -346,10 +347,13 @@ static void space(void){
     float offset=n->freighter?(plume?1:-1)*lateral:0;
     Vec3 rear=npc_engine_root(n,offset);Vec3 rv=camera(&game,rear);if(rv.z<25)continue;Point root=project(rv);
     sfx_engine_plume_at((int)root.x,(int)root.y,n->freighter?0:(n->cruise>80),top,bot);
+    sfx_engine_plume_mask((int)root.x,(int)root.y,n->freighter?0:(n->cruise>80));
    }
   }
  }
- station_glow();station_entrance();speed_lines();engine_flare();sfx_engine_plume_player();missile_effects();
+ station_glow();station_entrance();speed_lines();engine_flare();sfx_engine_plume_player();
+ if(game.boost&&!sfx_fx_muted())sfx_engine_plume_mask(240,view_bot()-8,1);
+ missile_effects();
  for(int i=0;i<ANOMALY_COUNT;i++)if(game.anomaly[i].alive&&length(sub(game.anomaly[i].pos,game.pos))<=180){unsigned c=game.anomaly[i].kind?CYAN:GOLD;circle(240,110,18+(int)(sinf(game.time*4)*4),c);circle(240,110,7,c);}
  for(int i=0;i<NPC_COUNT;i++){NPC *n=&game.npc[i];if(!n->alive||npc_detailed[i]||occluded(n->pos))continue;Vec3 v=camera(&game,n->pos);if(v.z<30)continue;Point p=project(v);if(p.x<2||p.x>477||p.y<view_top()+2||p.y>view_bot()-2)continue;unsigned c=faction_colors[n->role];rect((int)p.x-1,(int)p.y-1,n->freighter?5:3,n->freighter?3:2,c);}
  freight_effects();mining_effects();

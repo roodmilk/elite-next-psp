@@ -1,8 +1,8 @@
 # ELITE: NEXT — native art kit handoff
 
-**Status:** proposed reference; style bake shipped in `v2.5.37`  
+**Status:** runtime wired on the 2.5.39 working tip (PR #11 atop #18); boards remain composition references  
 **Resolution:** 480×272 exact  
-**Runtime status:** not integrated; do not treat these boards as current game screens
+**Runtime status:** palette/styles via `station-art-kit.h` drive MacVenture soft-FB rooms; full boards are still not embedded textures
 
 ## Artifacts
 

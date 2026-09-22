@@ -193,19 +193,29 @@ static void sc_snap_verb_hot(void){
 }
 /* ---- drawing helpers (A++ cinematic: hero focus, 3 planes, warm staging) ---- */
 static void sc_win(int x,int y,int w,int h,const char *title,unsigned edge){
- /* Thin cream/cyan instruments — chrome recedes so MAIN owns the eye. */
+ /* Thin cream/ochre instruments — no cyan box outline; signal colour only in title. */
  rect(x,y,w,h,mix_rgb(SC_VOID,SC_CHAR,.55f));
- rect(x,y,w,10,mix_rgb(SC_CHAR,SC_CREAM,.12f));
- rect(x,y,w,1,mix_rgb(edge,SC_CREAM,.35f));
- rect(x,y+h-1,w,1,mix_rgb(edge,SC_VOID,.4f));
- rect(x,y,1,h,mix_rgb(edge,SC_CREAM,.25f));
- rect(x+w-1,y,1,h,mix_rgb(edge,SC_VOID,.35f));
- text((x+6)/8,(y+1)/8,mix_rgb(SC_CREAM,edge,.2f),"%.14s",title);
+ rect(x,y,w,10,mix_rgb(SC_CHAR,SC_CREAM,.14f));
+ rect(x,y,w,1,mix_rgb(SC_OCHRE,SC_CREAM,.45f));
+ rect(x,y+h-1,w,1,mix_rgb(SC_SLATE,SC_VOID,.35f));
+ rect(x,y,1,h,mix_rgb(SC_OLIVE,SC_CREAM,.2f));
+ rect(x+w-1,y,1,h,mix_rgb(SC_SLATE,SC_VOID,.4f));
+ text((x+6)/8,(y+1)/8,mix_rgb(SC_CREAM,edge,.25f),"%.14s",title);
 }
 static void sc_scene_sky(int x,int y,int w,int h,unsigned hi,unsigned lo){
  for(int row=0;row<h;row++){
   float t=row/(float)(h>1?h-1:1);
   rect(x,y+row,w,1,mix_rgb(hi,lo,t));
+ }
+}
+/* Built plates: vertical seams + sparse rivets — “built, not grown”. */
+static void sc_wall_plates(int x,int y,int w,int h,unsigned plate,unsigned seam){
+ int cols=4,cw=w/cols;if(cw<28){cols=3;cw=w/cols;}
+ for(int c=0;c<cols;c++){
+  int px=x+c*cw;
+  rect(px,y,cw-(c==cols-1?0:1),h,mix_rgb(plate,SC_CHAR,(c&1)*.08f));
+  if(c)rect(px-1,y,1,h,seam);
+  for(int r=0;r<3;r++){pixel(px+4,y+10+r*22,seam);pixel(px+cw-6,y+10+r*22,seam);}
  }
 }
 /* Three floor value masses — no checker texture that dies at 1×. */
@@ -214,11 +224,26 @@ static void sc_floor_planes(int x,int y,int w,int h,unsigned nearc,unsigned midc
  rect(x,y+h-band*3,w,band,farc);
  rect(x,y+h-band*2,w,band,midc);
  rect(x,y+h-band,w,band,nearc);
+ /* Floor seam lines for countable depth without a game-grid checker. */
+ for(int i=1;i<4;i++)rect(x,y+h-band*i,w,1,mix_rgb(farc,SC_CREAM,.12f));
 }
 static void sc_warm_key(int cx,int cy,unsigned lamp){
  rect(cx-10,cy,20,3,mix_rgb(lamp,SC_CREAM,.4f));
  rect(cx-4,cy+3,8,2,lamp);
  pixel(cx,cy-2,SC_CREAM);
+}
+/* Sparse pinprick stars inside a berth/void aperture. */
+static void sc_void_stars(int x,int y,int w,int h,unsigned seed){
+ unsigned s=seed^0xA11Cu;
+ for(int i=0;i<14;i++){
+  s=s*1664525u+1013904223u;
+  int px=x+2+(int)((s>>8)%(unsigned)(w>4?w-4:1));
+  s=s*1664525u+1013904223u;
+  int py=y+2+(int)((s>>8)%(unsigned)(h>4?h-4:1));
+  unsigned c=(i%5==0)?SC_CREAM:(i%3==0)?SC_LAV:mix_rgb(SC_VOID,SC_CREAM,.35f);
+  pixel(px,py,c);
+  if((i&3)==0)space_anim_draw(SPACE_ANIM_SPARK,px,py,((int)(game.time*3)+i)&3,mix_rgb(SC_OCHRE,SC_CREAM,.4f));
+ }
 }
 static void sc_hatch(int x,int y,int w,int h,unsigned frame,unsigned aperture,int hero){
  rect(x,y,w,h,frame);
@@ -258,12 +283,18 @@ static void sc_illust_arrivals(int x,int y,int w,int h){
  const ArtRoomStyle *st=sc_style();
  /* Hero: berth window at upper third. Layers: void lane / cream hall / rail. */
  sc_scene_sky(x,y,w,h,mix_rgb(SC_OCHRE,st->wall,.45f),mix_rgb(st->wall2,SC_RUST,.25f));
+ sc_wall_plates(x,y,w,h-48,mix_rgb(st->wall,SC_CREAM,.08f),mix_rgb(SC_OLIVE,SC_RUST,.35f));
  sc_floor_planes(x,y,w,h,mix_rgb(SC_CREAM,st->wall,.35f),mix_rgb(st->wall,st->wall2,.4f),st->wall2);
+ /* Overhead conduit strip */
+ rect(x+8,y+2,w-16,4,mix_rgb(st->trim,SC_OLIVE,.4f));
+ rect(x+24,y+6,12,2,st->lamp);rect(x+w/2-8,y+6,16,2,st->lamp);rect(x+w-40,y+6,12,2,st->lamp);
  /* Distant coral haze through the aperture */
  rect(x+72,y+10,176,70,SC_VOID);
  rect(x+72,y+10,176,3,SC_CREAM);
  rect(x+72,y+10,3,70,mix_rgb(SC_CREAM,st->trim,.4f));
  rect(x+245,y+10,3,70,mix_rgb(SC_CREAM,st->trim,.4f));
+ rect(x+72,y+77,176,3,mix_rgb(SC_CREAM,st->wall,.3f));
+ sc_void_stars(x+78,y+16,164,58,game.bodies[0].seed^(unsigned)game.system*17u);
  /* Soft warm spill */
  for(int row=0;row<28;row++)rect(x+78,y+16+row,164,1,mix_rgb(SC_VOID,SC_OCHRE,row/40.f));
  /* One freighter silhouette — scale cue, not a fleet */
@@ -271,21 +302,25 @@ static void sc_illust_arrivals(int x,int y,int w,int h){
  rect(x+140,y+34,28,8,mix_rgb(st->wall,SC_CREAM,.25f));
  rect(x+178,y+42,16,6,st->wall2);
  pixel(x+120,y+30,SC_CREAM);pixel(x+200,y+26,SC_LAV);pixel(x+160,y+22,st->lamp);
+ space_anim_draw(SPACE_ANIM_BEACON,x+118,y+28,((int)(game.time*4))&3,st->lamp);
  sc_warm_key(x+160,y+84,st->lamp);
  /* Mid: traffic board — cyan signal only */
  rect(x+196,y+84,90,40,st->wall2);
+ rect(x+196,y+84,90,2,SC_CREAM);
  rect(x+200,y+88,82,12,mix_rgb(st->accent,st->wall,.4f));
  rect(x+200,y+104,82,8,mix_rgb(SC_OLIVE,st->accent,.25f));
  rect(x+200,y+116,40,4,st->lamp);
  text((x+204)/8,(y+90)/8,st->accent,"BERTHS");
- /* Fore: rail */
+ /* Fore: rail + contact shadow */
  rect(x+72,y+118,160,4,st->trim);
  rect(x+72,y+122,160,3,SC_OLIVE);
+ rect(x+80,y+126,144,2,mix_rgb(SC_VOID,SC_CHAR,.5f));
 }
 static void sc_illust_shop(int x,int y,int w,int h){
  const ArtRoomStyle *st=sc_style();
  /* Hero: ochre counter. Cream walls, two shelf masses only. */
  sc_scene_sky(x,y,w,h,mix_rgb(SC_CREAM,st->wall,.4f),st->wall2);
+ sc_wall_plates(x,y,w,h-52,mix_rgb(st->wall,SC_CREAM,.1f),mix_rgb(SC_RUST,st->trim,.3f));
  sc_floor_planes(x,y,w,h,mix_rgb(SC_RUST,st->trim,.45f),mix_rgb(st->trim,st->wall,.35f),st->wall2);
  /* Back shelves — two blocks, not a grid of parts */
  rect(x+64,y+12,70,48,mix_rgb(st->wall,st->trim,.3f));
@@ -303,11 +338,15 @@ static void sc_illust_shop(int x,int y,int w,int h){
  rect(x+196,y+100,60,28,mix_rgb(st->trim,SC_RUST,.4f));
  rect(x+200,y+104,52,6,SC_CREAM);
  sc_warm_key(x+160,y+82,st->lamp);
+ /* Clamp crate — scale cue */
+ rect(x+24,y+h-44,36,28,mix_rgb(st->trim,SC_OCHRE,.4f));
+ rect(x+24,y+h-44,36,4,SC_CREAM);
 }
 static void sc_illust_canteen(int x,int y,int w,int h){
  const ArtRoomStyle *st=sc_style();
  /* Hero: bar top. Four bottles, one booth, one juke. */
  sc_scene_sky(x,y,w,h,mix_rgb(st->wall,SC_OCHRE,.3f),st->wall2);
+ sc_wall_plates(x,y,w,h-52,mix_rgb(st->wall,SC_OLIVE,.15f),mix_rgb(SC_RUST,st->trim,.35f));
  sc_floor_planes(x,y,w,h,mix_rgb(st->trim,st->wall,.4f),st->wall,st->wall2);
  /* Back bar wall + few bottles */
  rect(x+64,y+12,192,44,mix_rgb(st->wall,st->trim,.2f));
@@ -331,11 +370,14 @@ static void sc_illust_cargo(int x,int y,int w,int h){
  const ArtRoomStyle *st=sc_style();
  /* Hero: tip crate centre. Three crates, one cool hoist. */
  sc_scene_sky(x,y,w,h,mix_rgb(st->wall,st->trim,.15f),st->wall2);
+ sc_wall_plates(x,y,w,h-56,st->wall,mix_rgb(SC_OLIVE,st->trim,.3f));
  sc_floor_planes(x,y,w,h,mix_rgb(SC_OLIVE,st->wall,.4f),st->wall,st->wall2);
  /* Cool lift signal */
  rect(x+48,y+8,224,4,SC_LAV);
  rect(x+w/2-3,y+8,6,40,st->trim);
  rect(x+w/2-14,y+44,28,8,st->wall);
+ /* Hazard stripe on floor lane */
+ for(int i=0;i<8;i++)rect(x+56+i*28,y+h-56,14,4,(i&1)?SC_OCHRE:st->wall2);
  /* Three crates — centre is tip hero */
  for(int i=0;i<3;i++){
   int cx=x+72+i*72;
@@ -353,7 +395,13 @@ static void sc_illust_guild(int x,int y,int w,int h){
  const ArtRoomStyle *st=sc_style();
  /* Hero: tracked screen. Desk secondary. Olive/cream calm. */
  sc_scene_sky(x,y,w,h,mix_rgb(st->wall,st->wall2,.45f),st->wall2);
+ sc_wall_plates(x,y,w,h-52,mix_rgb(st->wall,SC_OLIVE,.2f),mix_rgb(SC_CREAM,st->trim,.25f));
  sc_floor_planes(x,y,w,h,mix_rgb(st->wall,SC_CREAM,.2f),st->wall,st->wall2);
+ /* Evidence / survey pin board — left secondary */
+ rect(x+16,y+16,56,64,mix_rgb(st->wall2,SC_OLIVE,.3f));
+ rect(x+20,y+20,20,14,SC_CREAM);rect(x+44,y+20,20,14,st->lamp);
+ rect(x+20,y+40,44,8,mix_rgb(st->accent,st->wall,.4f));
+ rect(x+20,y+52,28,6,SC_RUST);
  rect(x+96,y+16,128,60,st->wall2);
  rect(x+102,y+22,116,36,mix_rgb(st->wall,st->accent,.35f));
  text((x+108)/8,(y+30)/8,st->accent,"TRACKED MISSION");
@@ -367,6 +415,7 @@ static void sc_illust_clinic(int x,int y,int w,int h){
  const ArtRoomStyle *st=sc_style();
  /* Hero: treatment bay. One cool lamp, one locker. */
  sc_scene_sky(x,y,w,h,mix_rgb(st->trim,st->wall,.3f),st->wall2);
+ sc_wall_plates(x,y,w,h-52,mix_rgb(st->wall,SC_LAV,.12f),mix_rgb(st->trim,st->wall2,.35f));
  sc_floor_planes(x,y,w,h,mix_rgb(st->trim,st->wall2,.4f),st->wall,st->wall2);
  /* One practical cool key — not a string of discs */
  circle(x+160,y+18,8,mix_rgb(st->lamp,st->accent,.45f));
@@ -388,12 +437,14 @@ static void sc_illust_customs(int x,int y,int w,int h){
  const ArtRoomStyle *st=sc_style();
  /* Hero: scanner gate aperture. Warrant secondary. Cobalt/navy calm. */
  sc_scene_sky(x,y,w,h,mix_rgb(st->wall,st->trim,.12f),st->wall2);
+ sc_wall_plates(x,y,w,h-52,st->wall,mix_rgb(SC_DANGER,st->trim,.2f));
  sc_floor_planes(x,y,w,h,mix_rgb(st->wall,SC_CREAM,.15f),st->wall,st->wall2);
  /* Gate posts + warm scan aperture */
  rect(x+72,y+40,12,90,mix_rgb(st->trim,SC_RUST,.4f));
  rect(x+100,y+40,12,90,mix_rgb(st->trim,SC_RUST,.4f));
  rect(x+72,y+40,40,6,st->trim);
  for(int i=0;i<4;i++)rect(x+78,y+52+i*18,28,2,mix_rgb(st->accent,SC_VOID,.5f));
+ space_anim_draw(SPACE_ANIM_BEACON,x+92,y+70,((int)(game.time*5))&3,mix_rgb(SC_DANGER,SC_AMBER,.4f));
  /* Warrant glass */
  rect(x+140,y+16,120,52,st->wall2);
  rect(x+146,y+22,108,18,st->trim);

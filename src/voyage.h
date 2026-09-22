@@ -36,8 +36,9 @@ static void station_window_animation(void){
 }
 static void secondary_hubs(void);
 static void menu_space_view(int x,int y,int w,int h){
- rect(x,y,w,h,RGB(4,8,18));
- rect(x,y,w,1,CYAN);rect(x,y+h-1,w,1,RGB(32,57,69));
+ rect(x,y,w,h,RGB(8,13,24));
+ rect(x,y,w,1,RGB(193,139,77));rect(x,y+h-1,w,1,RGB(41,54,70));
+ rect(x,y,1,h,RGB(90,96,76));rect(x+w-1,y,1,h,RGB(41,54,70));
  Vec3 oldpos=game.pos;float oldyaw=game.yaw,oldpitch=game.pitch,oldroll=game.roll;
  preview_clip(x+w/2,y+h/2+2,x+1,y+1,x+w-1,y+h-1);
  /* Third-person orbit of the fitted hull against local space — pulled back so the full silhouette reads. */
