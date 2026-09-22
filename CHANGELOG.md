@@ -30,6 +30,11 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 - Added packet validation regression coverage without requiring a second PSP or network during smoke tests.
 - Convoy pairing and real-hardware radio/suspend behavior remain physical-PSP validation items.
 
+## Unreleased — Optional validated content pack
+
+- Added an optional `content.pack` archive for bounded ASCII UI label overrides; absent or malformed packs leave built-in localization unchanged.
+- Pack loading is atomic, length-limited and smoke-tested without changing commander save formats.
+
 - Loadout display and module refunds validate fitted catalog indexes before using equipment arrays.
 - Added V13 slot-value regression checks; save version and V12 migration remain unchanged.
 
