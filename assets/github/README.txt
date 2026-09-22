@@ -15,10 +15,13 @@ These files power the repository README and social preview.
   shot-story.png            Campaign dialogue
   shot-galnet.png           GalNet / wanted board
 
-Prefer native 480x272 captures. MacVenture sources:
-  project store media/macventure/station-mv-*.webp
-Title source:
-  project store media/screenshots/01-title-screen.png
+Prefer native 480x272 captures from Gameplay Designer big drops.
+Current tip (v2.5.39 MacVenture A++):
+  media/macventure/station-mv36-arrivals.webp
+  media/macventure/station-mv36-shop.webp
+  media/open-channel-npc-beat-1-of-8.png
+  media/screenshots/01-title-screen.png
+Older room shots (canteen/guild) retained until newer natives land.
 
 After merge, upload social-banner.png as the repo Social preview
 (see docs/GITHUB-STOREFRONT.md).

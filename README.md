@@ -17,7 +17,7 @@
 <p align="center">
   <strong>Trade. Explore. Bring someone home.</strong><br>
   Native PSP homebrew inspired by Elite-A — a 256-system galaxy, flight &amp; combat,<br>
-  MacVenture-style station decks, planetary landings, custom radio, and an original campaign.
+  cinematic MacVenture station decks, planetary landings, custom radio, and The Open Channel.
 </p>
 
 <p align="center">
@@ -96,11 +96,11 @@ No tracks are bundled — bring music you have rights to. Restart after adding o
 <p align="center">
   <img src="assets/github/shot-flight.png" alt="Cockpit approach to Lave System Hub" width="440">
   &nbsp;
-  <img src="assets/github/shot-station.png" alt="Station Arrivals — MacVenture deck with Venn" width="440">
+  <img src="assets/github/shot-station.png" alt="Station Arrivals — MacVenture A++ berth with Venn" width="440">
 </p>
 
 <p align="center">
-  <img src="assets/github/shot-station-shop.png" alt="Station Chandlery / shop" width="440">
+  <img src="assets/github/shot-station-shop.png" alt="Chandlery — MacVenture shop with ledger" width="440">
   &nbsp;
   <img src="assets/github/shot-station-canteen.png" alt="Station Canteen" width="440">
 </p>
@@ -108,7 +108,7 @@ No tracks are bundled — bring music you have rights to. Restart after adding o
 <p align="center">
   <img src="assets/github/shot-station-guild.png" alt="Station Guild" width="440">
   &nbsp;
-  <img src="assets/github/shot-story.png" alt="Open Channel campaign dialogue with Kei" width="440">
+  <img src="assets/github/shot-story.png" alt="Open Channel — Kei conversation beat 1/8" width="440">
 </p>
 
 ---
@@ -118,9 +118,9 @@ No tracks are bundled — bring music you have rights to. Restart after adding o
 | | |
 | --- | --- |
 | **Open galaxy** | 256 seeded systems — hubs, relays, markets, danger, multi-jump routes |
-| **The Open Channel** | Original Kei &amp; Ryn campaign — travel, survey, salvage, conflict, lasting choices |
+| **The Open Channel** | Original Kei &amp; Ryn campaign — beat-based dialogue, tracked missions, lasting choices |
 | **Flight &amp; combat** | Targeting computer, missiles, police, freighters, mining belts |
-| **Station decks** | MacVenture-style rooms (Arrivals, Shop, Canteen, Guild…) with LOOK / SPEAK / GO |
+| **Station decks** | MacVenture rooms with hero focal props, LOOK / SPEAK / GO / TAKE, clear SHIP return |
 | **Worlds** | Planetary approach, EVA walks, landing pads |
 | **Commander life** | Missions, GalNet, SpaceBook, outfitting, wanted levels, save/load |
 | **Radio** | Five custom stations + procedural fallback when a folder is empty |
