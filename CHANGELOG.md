@@ -13,6 +13,7 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 - Each system rotates planet types/colours and traffic layout; hyperspace drops you farther from the hub on a system-unique bearing.
 - Double-tap L hard-brakes when fast; heat rises from speed, boost and sun proximity — critical heat locks boost, max heat destroys the ship.
 - Hold Start adjusts SYS/ENG/WEP on the existing cockpit meters (no separate overlay). Mission cue is right-aligned; wanted level shows under the system name; Select deck preview is a third-person ship view.
+- Tracked story briefings are longer three-beat conversations; Circle is locked until the player finishes and accepts the next step (prologue Begin included).
 
 ## 2.5.4 - 2026-09-22
 

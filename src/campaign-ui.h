@@ -14,17 +14,25 @@ static void campaign_screen(void){
  if(game.campaign_stage>=6){
   if(game.saga_chapter>=SAGA_COUNT){text(2,5,GOLD,"THE OPEN CHANNEL / COMPLETE");kei_speech_bubble(54,"The channel is open, Commander.","There will always be another horizon.",2);text(3,18,CYAN,"FREE FLIGHT CONTINUES");footer("SELECT MISSION LOG   O BACK");return;}
   const SagaBeat *b=&saga_beats[game.saga_chapter];unsigned ink=saga_speaker_color(b);
+  saga_brief_reset(game.saga_chapter);
   text(2,5,GOLD,"CHAPTER %02d / %.31s",game.saga_chapter+2,b->title);
-  /* Portrait + colour-tagged speaker so the tracked briefing matches flight chatter. */
   saga_speaker_face(16,56,48,b);
   rect(76,54,388,62,RGB(14,29,39));rect(76,54,388,2,ink);rect(76,114,388,2,RGB(30,78,86));rect(462,54,2,62,ink);
   line(76,74,64,82,ink);line(64,82,76,90,ink);rect(73,76,4,13,RGB(14,29,39));
   speaker_name_tag(11,7,b->speaker,ink);
+  if(!game.saga_step){
+   const char *line=saga_brief_beat==0?b->line:saga_brief_beat==1?b->talk2:b->talk3;
+   text(11,9,WHITE,"%.43s",line);
+   panel(16,124,448,45);text(3,16,GOLD,"CONVERSATION");text(3,18,WHITE,"%.52s",saga_brief_beat<2?"Listen, then answer.":b->objective);
+   text(3,20,AMBER,"Beat %d / 3 — finish before leaving",saga_brief_beat+1);
+   if(saga_brief_beat<2)narrative_reply_choice(0,22,"Continue");
+   else narrative_reply_choice(0,22,"Accept next step");
+   footer("UP/DOWN   X CONTINUE   (O LOCKED)");return;
+  }
   text(11,9,WHITE,"%.43s",b->line);
   panel(16,124,448,45);text(3,16,GOLD,"CURRENT OBJECTIVE");text(3,18,WHITE,"%.52s",b->objective);
   if(game.saga_step&&b->kind!=SAGA_CHOICE){int jumps=0,hop=saga_next_hop(&game,&jumps);if(game.system==game.saga_dest)text(3,20,CYAN,"YOU ARE IN %.24s",game.systems[game.saga_dest].name);else if(hop>=0&&hop!=game.saga_dest)text(3,20,DIM,"NEXT: %.12s   FINAL: %.12s",game.systems[hop].name,game.systems[game.saga_dest].name);else text(3,20,DIM,"DESTINATION: %.24s",game.systems[game.saga_dest].name);}
-  if(!game.saga_step)narrative_reply_choice(0,22,"Begin chapter");
-  else if(b->kind==SAGA_CHOICE){text(3,21,AMBER,"YOUR DECISION");narrative_reply_choice(0,22,"Public and transparent");narrative_reply_choice(1,24,"Explorers Guild custody");narrative_reply_choice(2,26,"Lawful independent archive");}
+  if(b->kind==SAGA_CHOICE){text(3,21,AMBER,"YOUR DECISION");narrative_reply_choice(0,22,"Public and transparent");narrative_reply_choice(1,24,"Explorers Guild custody");narrative_reply_choice(2,26,"Lawful independent archive");}
   else narrative_reply_choice(0,23,saga_ready(&game)?"Complete chapter":"Set course for objective");
   narrative_footer();return;
  }
@@ -38,6 +46,6 @@ static void campaign_screen(void){
  if(game.campaign_stage==6){a="Your badge and reward are yours.";b="This is the end of the current chapter.";}
  kei_speech_bubble(54,a,b,game.campaign_stage>=5?2:0);
  rect(16,126,448,27,RGB(13,36,43));text(3,16,CYAN,"CURRENT OBJECTIVE");text(3,18,WHITE,"%.48s",narrative_label(narrative_action(CAMPAIGN)));
- if(game.campaign_stage==0){text(3,19,AMBER,"YOUR REPLY");narrative_reply_choice(0,20,narrative_label(narrative_action(CAMPAIGN)));narrative_reply_choice(1,22,"What is the catch?");narrative_reply_choice(2,24,"Tell me about Ryn's ship.");narrative_reply_choice(3,26,"Show me the flight controls.");narrative_footer();}
+ if(game.campaign_stage==0){text(3,19,AMBER,"YOUR REPLY — finish before leaving");narrative_reply_choice(0,20,narrative_label(narrative_action(CAMPAIGN)));narrative_reply_choice(1,22,"What is the catch?");narrative_reply_choice(2,24,"Tell me about Ryn's ship.");narrative_reply_choice(3,26,"Show me the flight controls.");footer("UP/DOWN   X SELECT   (O LOCKED UNTIL BEGIN)");}
  else footer(narrative_action(CAMPAIGN)==NA_REWARD?"X COLLECT REWARD   SELECT MISSION LOG   O BACK":"SELECT MISSION LOG   O BACK");
 }

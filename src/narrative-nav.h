@@ -87,3 +87,6 @@ static void kei_speech_bubble(int y,const char *line1,const char *line2,int expr
  if(line2&&line2[0])text(11,y/8+5,WHITE,"%.43s",line2);
 }
 static void narrative_footer(void){footer("UP/DOWN CHOOSE   X SELECT   O BACK");}
+static int saga_brief_beat=0,saga_brief_chapter=-1;
+static void saga_brief_reset(int chapter){if(saga_brief_chapter!=chapter){saga_brief_chapter=chapter;saga_brief_beat=0;}}
+static int saga_brief_locked(void){return game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT&&!game.saga_step&&saga_brief_beat<3;}
