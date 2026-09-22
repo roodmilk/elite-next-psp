@@ -349,7 +349,8 @@ static void space(void){
   unsigned color=d->flash>0?RGB(225,216,181):d->rock==2?RGB(143,178,193):d->rock?RGB(121,106,87):d->wreck?RGB(101,108,112):GOLD;
   shipmesh(mesh,d->pos,game.time*(d->rock?.045f:.2f)+i,i*.21f,d->radius/size,color,0);
  }
- for(int i=0;i<ANOMALY_COUNT;i++)if(game.anomaly[i].alive){float d=length(sub(game.anomaly[i].pos,game.pos));if(d>180&&d<10000)shipmesh(mesh_id("WORM"),game.anomaly[i].pos,game.time*.7f+i,sinf(game.time+i)*.2f,4.2f,game.anomaly[i].kind?CYAN:GOLD,0);}
+  for(int i=0;i<ANOMALY_COUNT;i++)if(game.anomaly[i].alive){float d=length(sub(game.anomaly[i].pos,game.pos));if(d>180&&d<10000)shipmesh(mesh_id("WORM"),game.anomaly[i].pos,game.time*.7f+i,sinf(game.time+i)*.2f,4.2f,game.anomaly[i].kind?CYAN:GOLD,0);}
+  if(convoy_mode&&convoy_running)for(int i=0;i<convoy_peer_count;i++){ConvoySnapshot *s=&convoy_peers[i].snapshot;if(s->system!=(uint16_t)game.system)continue;Vec3 peer={s->x,s->y,s->z};if(length(sub(peer,game.pos))<14000)shipmesh(mesh_id("ADDER"),peer,s->yaw,0,.8f,CYAN,0);}
  flush_meshes();
  for(int i=0;i<NPC_COUNT;i++)if(npc_detailed[i]==1){NPC *n=&game.npc[i];ship_sprite_detail(n,n->flash>0?WHITE:faction_colors[n->role]);}
  npc_engine_glow();
@@ -926,4 +927,3 @@ int main(void){
  audio_stop();gu_accel_stop();convoy_stop();
  sceKernelExitGame();return 0;
 }
-

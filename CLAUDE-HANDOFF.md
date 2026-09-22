@@ -314,7 +314,7 @@ The last verified 2.5.32 run passed every group under PPSSPP (game, input, steer
 
 ## Highest-priority remaining work
 
-- Systems/QA added an opt-in convoy transport foundation and compact in-flight status overlay. It is activated only when `convoy.flag` is present, so normal boot and smoke remain offline; packet schema validation is covered by `convoy-check.txt`. Pairing, convoy formation/gameplay, and physical two-PSP validation are still open.
+- Systems/QA added an opt-in convoy transport foundation, compact in-flight status overlay, and same-system peer ship silhouettes. It is activated only when `convoy.flag` is present, so normal boot and smoke remain offline; packet schema validation is covered by `convoy-check.txt`. Pairing, convoy formation/gameplay, and physical two-PSP validation are still open.
 - Systems/QA added an optional `content.pack` archive for bounded ASCII UI-label overrides. It is ignored when absent or malformed, and `localization-check.txt` covers valid/rejected packs. It does not alter commander save compatibility.
 
 1. **Confirm 2.5.4 sleep/resume on physical PSP.** Put the handheld to sleep mid-flight and mid-radio for several hours, then wake — screen and audio must return. Also re-check 20+ minute MP3 playback across sample rates.
