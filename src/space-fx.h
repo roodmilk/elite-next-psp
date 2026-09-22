@@ -110,6 +110,7 @@ static void space_fx_meteors(void){
  line(tx,ty,x,y,tail);
  sfx_add(x,y,head,top,bot);
  sfx_add(x+1,y,head,top,bot);
+ if(x>=4&&x<W-4&&y>=top+4&&y<=bot-4)space_anim_draw(SPACE_ANIM_SPARK,x,y,(int)(game.time*10.f),head);
  pixel(x,y,WHITE);
 }
 /* Stronger star twinkle + occasional bright sparkle (called from starfield). */

@@ -16,6 +16,24 @@ static void station_model(void){
  for(int i=0;i<4;i++){int j=(i+1)%4;Vec3 a=camera(&game,station_vertex(outer[i])),b=camera(&game,station_vertex(outer[j])),c=camera(&game,station_vertex(inner[j])),d=camera(&game,station_vertex(inner[i]));queue_triangle(a,b,c,RGB(109,140,151));queue_triangle(a,c,d,RGB(109,140,151));Vec3 backi=inner[i],backj=inner[j];backi.z=0;backj.z=0;queue_triangle(d,c,camera(&game,station_vertex(backj)),RGB(8,19,24));queue_triangle(d,camera(&game,station_vertex(backj)),camera(&game,station_vertex(backi)),RGB(8,19,24));}
  if(prosperity(&game,game.system)>=4){for(int ring=0;ring<2;ring++){float radius=230+ring*65;for(int i=0;i<24;i++){float a=station_angle(&game)+i*6.2831853f/24,b=station_angle(&game)+(i+1)*6.2831853f/24;Vec3 u=camera(&game,(Vec3){cosf(a)*radius,sinf(a)*radius,3500+(ring?100:-80)}),v=camera(&game,(Vec3){cosf(b)*radius,sinf(b)*radius,3500+(ring?100:-80)});if(u.z>15&&v.z>15){Point p=project(u),q=project(v);line((int)p.x,(int)p.y,(int)q.x,(int)q.y,ring?CYAN:DIM);}}}}
 }
+/* Small practical windows make the exterior read as a lived-in miniature.
+ * Procedural beacon masks; no station crawl geometry or interaction state. */
+static void station_window_animation(void){
+ if(high_contrast)return;
+ int top=clipy0>=0?clipy0:view_top(),bot=clipy1>=0?clipy1-1:view_bot();
+ unsigned seed=game.bodies[0].seed^(unsigned)game.system*97u;
+ int count=prosperity(&game,game.system)>=4?20:10;
+ for(int i=0;i<count;i++){
+  float a=station_angle(&game)+(i+.5f)*6.2831853f/count;
+  float radius=214.f+(i&1)*38.f;
+  Vec3 v=camera(&game,(Vec3){cosf(a)*radius,sinf(a)*radius,3500.f+((i&3)-1)*72.f});
+  if(v.z<20)continue;
+  Point p=project(v);if(p.x<2||p.x>=W-2||p.y<top||p.y>bot)continue;
+  unsigned c=((i+(int)(game.time*2.f))&5)==0?RGB(255,183,76):RGB(211,145,65);
+  space_anim_draw(SPACE_ANIM_BEACON,(int)p.x,(int)p.y,(int)(game.time*4.f)+i,c);
+ }
+ (void)seed;
+}
 static void secondary_hubs(void);
 static void menu_space_view(int x,int y,int w,int h){
  rect(x,y,w,h,RGB(4,8,18));
@@ -30,7 +48,7 @@ static void menu_space_view(int x,int y,int w,int h){
   game.pos=cam;Vec3 aim=norm(sub(ship,cam));game.yaw=atan2f(aim.x,aim.z);float ap=aim.y;if(ap>1)ap=1;if(ap<-1)ap=-1;game.pitch=asinf(ap);game.roll=0;
   starfield();space_fx_nebula();space_fx_meteors();
   /* Local scenery so the inset reads as “ship in this system,” not a void studio. */
-  if(game.docked||length(sub(ship,(Vec3){0,0,3500}))<14000)station_model();
+  if(game.docked||length(sub(ship,(Vec3){0,0,3500}))<14000){station_model();station_window_animation();}
   else {
    Body *b=&game.bodies[1];
    Vec3 bp=camera(&game,b->pos);if(bp.z>80){Point p=project(bp);int r=(int)fminf(28,b->radius*240.f/bp.z);if(r>3&&p.x>x&&p.x<x+w&&p.y>y&&p.y<y+h)circle((int)p.x,(int)p.y,r,b->color);}
@@ -53,13 +71,14 @@ static void engine_flare(void){
  int pulse=(int)(sinf(game.time*(game.boost?18:9))*2),length=(game.boost?18:7)+(int)(power*10)+pulse;if(length<3)length=3;
  unsigned core=game.boost?CYAN:AMBER,edge=game.boost?RGB(45,120,170):RGB(150,92,28);int y=bottom-6;
  for(int i=0;i<length;i++){int w=game.boost?2+(i%3):1+(i%2),yy=y+i,spread=(i*2)/3+1;rect(240-w-spread,yy,w,1,edge);rect(240+spread,yy,w,1,edge);if((i&1)==0)pixel(240,yy,core);}line(240-length/2,y-1,240+length/2,y-1,edge);
+ space_anim_draw(SPACE_ANIM_PLUME,240,y+length/2,(int)(game.time*12.f),core);
 }
 static void secondary_hubs(void){
  for(int i=1;i<HUB_COUNT;i++){Vec3 p=hub_position(&game,i);float d=length(sub(p,game.pos));if(d>30000||occluded(p))continue;unsigned c=i==1?CYAN:RGB(150,110,210);shipmesh(mesh_id("CORIOLIS"),p,0,station_angle(&game)+(i*1.7f),.62f,c,0);}
 }
 static void docking_view(void){
  if(game.dock_stage==3){rect(0,23,W,195,BG);text(22,10,CYAN,"DOCKING COMPLETE");text(12,14,WHITE,"Welcome to %s",station_name(&game));text(17,18,DIM,"Opening station services...");return;}
- Vec3 oldpos=game.pos;float oldyaw=game.yaw,oldpitch=game.pitch,oldroll=game.roll;game.pos=(Vec3){260,120,2820};Vec3 aim=norm(sub((Vec3){0,0,3400},game.pos));game.yaw=atan2f(aim.x,aim.z);game.pitch=asinf(aim.y);game.roll=0;sector_background();space_fx_nebula();starfield();space_fx_meteors();station_model();float t=fminf(1,game.dock_timer/3);shipmesh(mesh_id(player_ships[game.ship].name),(Vec3){0,0,3070+t*470},0,station_angle(&game),.7f,GOLD,0);flush_meshes();station_entrance();text(2,5,CYAN,"ARRIVAL CAMERA / %s",station_name(&game));game.pos=oldpos;game.yaw=oldyaw;game.pitch=oldpitch;game.roll=oldroll;
+ Vec3 oldpos=game.pos;float oldyaw=game.yaw,oldpitch=game.pitch,oldroll=game.roll;game.pos=(Vec3){260,120,2820};Vec3 aim=norm(sub((Vec3){0,0,3400},game.pos));game.yaw=atan2f(aim.x,aim.z);game.pitch=asinf(aim.y);game.roll=0;sector_background();space_fx_nebula();starfield();space_fx_meteors();station_model();station_window_animation();float t=fminf(1,game.dock_timer/3);shipmesh(mesh_id(player_ships[game.ship].name),(Vec3){0,0,3070+t*470},0,station_angle(&game),.7f,GOLD,0);flush_meshes();station_entrance();text(2,5,CYAN,"ARRIVAL CAMERA / %s",station_name(&game));game.pos=oldpos;game.yaw=oldyaw;game.pitch=oldpitch;game.roll=oldroll;
 }
 /* Edge-band captions. Body text is word wrapped to actual 8px cell capacity. */
 static void speech_box(int x,int y,int w){
