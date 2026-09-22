@@ -1,5 +1,52 @@
-Continue development of ELITE: NEXT, a native PSP homebrew game. Read CLAUDE-HANDOFF.md first, then docs/DESIGN-BIBLE-2.0.md, docs/OPEN-CHANNEL-CAMPAIGN.md and docs/UI-SPEC.md. Treat the current source and newest user feedback as authoritative when older design notes disagree.
+Continue development of ELITE: NEXT, a native PSP homebrew game.
 
-Before changing anything, run ./build.ps1 and ./smoke-test.ps1 and report the baseline. Preserve PSP 480x272 readability, save migration, mission idempotency, custom MP3 streaming and suspend/resume behaviour. Quator is only an ordinary generated system; the full-galaxy route planner must work generically for every tracked destination.
+GitHub is the source of truth. Chat history is not project memory.
 
-Continue from the highest-priority remaining work in CLAUDE-HANDOFF.md. Make concrete source changes, add meaningful regressions, rebuild, test and package a new numbered release. Be honest about proposed design versus functionality that is actually playable.
+## Read first (in order)
+
+1. `CLAUDE-HANDOFF.md` — current build, playable vs planned, and the numbered priority list
+2. `VERSION` and the newest `CHANGELOG.md` entry
+3. `AGENTS.md` — pull/rebase, version sync, commit/push/tag rules
+4. `docs/DESIGN-BIBLE-2.0.md`
+5. `docs/OPEN-CHANNEL-CAMPAIGN.md`
+6. `docs/UI-SPEC.md`
+
+Treat current source and newest user feedback as authoritative when older design notes disagree.
+
+## Current build
+
+- Version: see `VERSION` (2.5.3 at time of writing)
+- Save format: 10 (imports V1–V9). New persistent fields need a new version, validation, migration and tests.
+- Packaged game: `dist/ELITE-NEXT-PSP/EBOOT.PBP`
+
+## Before changing anything
+
+1. `git pull --rebase --autostash` and `git submodule update --init --recursive`
+2. Baseline build + smoke: `./build.ps1` / `./smoke-test.ps1` on Windows, or `./build.sh` / `./smoke-test.sh` on Linux
+3. Report pass/fail and version. Do not claim features that are only designed.
+
+## Hard constraints
+
+- Preserve PSP 480×272 readability, save migration, mission idempotency, custom MP3 streaming and suspend/resume behaviour.
+- Quator is only an ordinary generated system; the full-galaxy route planner must work generically for every tracked destination.
+- Be honest about proposed design versus functionality that is actually playable.
+
+## What to work on next
+
+Continue from the **Highest-priority remaining work** section in `CLAUDE-HANDOFF.md`. At 2.5.3 that is:
+
+1. Physical PSP hardware validation (audio/suspend/resume) — cannot be faked in emulator-only environments; document if blocked
+2. Visual 480×272 galaxy-map inspection (including amber saved route goals)
+3. Deepen Open Channel chapters beyond generic dock/scan/hunt actions
+4. Chapter-specific dialogue pages in the Mission Log transcript
+5. Physical performance/memory audit
+
+Software-ready work for cloud agents is usually #3 or #4 when #1/#2 need real hardware.
+
+## After each coherent change
+
+1. Add meaningful regressions
+2. Rebuild and run the full smoke suite (zero failures)
+3. Update `VERSION`, `build.ps1` (and `build.sh` if present), `CHANGELOG.md`, `CLAUDE-HANDOFF.md` together
+4. Copy tested `EBOOT.PBP` to `dist/ELITE-NEXT-PSP/EBOOT.PBP`
+5. Commit, push, open/update a PR; tag `v<version>` only for a public downloadable build

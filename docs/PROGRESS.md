@@ -1,5 +1,12 @@
 # Design-bible implementation ledger
 
+## ELITE: NEXT 2.5.3 — persistent manual route goals
+
+- Added `Game.route_goal` so a galaxy-map plot keeps the final destination while `destination` remains the next hyperspace hop.
+- Save format 10 stores the goal; V1–V9 commanders still import. After each jump the next hop refreshes toward the goal; arrival clears it.
+- Nearby/galaxy UI shows `FINAL` / amber route-goal labels for manual plans; story destinations still use gold when tracked.
+- Journey and input regressions cover plot, save/load, intermediate advance and arrival clear. PPSSPP smoke green; physical PSP still outstanding.
+
 ## ELITE: NEXT 2.0.5 — priority stability and native-resolution audit
 
 - Audited 26 sequential runtime states plus dedicated story and flight captures at 480x272. Reviewed menus, docking, freighters, combat warnings, targeting, planet flight and EVA for clipping and panel overlap.
