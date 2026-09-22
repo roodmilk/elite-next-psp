@@ -6,6 +6,8 @@ Prepared 22 September 2026. Current build: **2.5.46**.
 
 Outfitting buys into six hardpoints (`fit[]`); Loadout sells at 50%. Bits still drive the sim; V13 persists slots. Targeting CRT fuzz from 2.5.45 retained.
 
+Systems/QA follow-up hardens fitted catalog bounds in Loadout and refund paths and adds V13 slot-value regression checks. Save format remains V13; V12 migration remains unchanged. Full PPSSPP smoke is green on the specialist/systems-qa branch.
+
 ## Start here
 
 This is a native PSP homebrew game inspired by Elite-A and the wider Elite lineage. It is no longer a literal port: it has a new flight/world simulation, 256 seeded systems, modern PSP interface, multi-body systems, factions, missions, planetary flight/EVA, custom radio folders and an original Kei/Ryn campaign called **The Open Channel**.

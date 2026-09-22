@@ -2,6 +2,11 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## Unreleased — Systems/QA V13 bounds hardening
+
+- Loadout display and module refunds validate fitted catalog indexes before using equipment arrays.
+- Added V13 slot-value regression checks; save version and V12 migration remain unchanged.
+
 ## Unreleased — ART targeting CRT glass (tip; no micro-tag)
 
 - Targeting computer monitor gets faint CRT scanlines + sparse static under the list (glyphs stay sharp; no text bloom). No shooting stars.

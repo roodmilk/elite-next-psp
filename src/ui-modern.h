@@ -243,6 +243,7 @@ static int equipment_owned(int i){
  for(int s=0;s<FIT_SLOTS;s++)if(game.fit[s]==(uint8_t)i)return 1;
  return 0;
 }
+static const char *equipment_label(int i){return i>=0&&i<EQUIP_COUNT?equipment_list_names[i]:"INVALID";}
 static int equipment_in_stock(int i){
  if(i<0||i>=EQUIP_COUNT)return 0;
  if(i==0)return 1;
@@ -271,7 +272,7 @@ static int unequip_slot(int slot,int refund){
   game.fit[slot]=(uint8_t)old;fit_rebuild(&game);
   message(&game,"Unload cargo before removing the hold.");return 0;
  }
- if(refund){int back=equip_sell_price(old);game.credits+=back;char note[72];snprintf(note,sizeof(note),"Sold %s for %.1f U.",equipment_list_names[old],back*.1f);message(&game,note);}
+ if(refund&&fit_value_valid(slot,old)){int back=equip_sell_price(old);game.credits+=back;char note[72];snprintf(note,sizeof(note),"Sold %s for %.1f U.",equipment_list_names[old],back*.1f);message(&game,note);}
  else message(&game,"Module removed.");
  game.cue=SFX_UI;return 1;
 }
@@ -308,7 +309,7 @@ static void equipment(void){
  if(row<0)row=0; if(row>=n)row=n-1;
  int first=row/6*6,fuelcost=(int)ceilf(player_ships[game.ship].range-game.fuel)*2;
  text(2,5,CYAN,"IN STOCK");page_number_at(18,5,row/6+1,(n+5)/6);
- for(int j=0;j<6&&first+j<n;j++){int disp=first+j,i=list[disp],y=7+j*3;if(disp==row)rect(10,y*8-3,220,15,RGB(25,65,77));text(2,y,equipment_owned(i)?CYAN:disp==row?WHITE:DIM,"%-4s %-14s%s",equip_cat_name(i),equipment_list_names[i],equipment_owned(i)?" *":"");}
+ for(int j=0;j<6&&first+j<n;j++){int disp=first+j,i=list[disp],y=7+j*3;if(disp==row)rect(10,y*8-3,220,15,RGB(25,65,77));text(2,y,equipment_owned(i)?CYAN:disp==row?WHITE:DIM,"%-4s %-14s%s",equip_cat_name(i),equipment_label(i),equipment_owned(i)?" *":"");}
  int i=list[row],slot=equip_slot_for(i);
  text(31,5,GOLD,"%.22s",equipment_names[i]);
  text(31,7,CYAN,"%.22s",i==0||i==3?"SERVICE":(slot>=0?((const char*[]){"WPN","DEF","NAV","HOLD","FUEL","UTIL"})[slot]:equip_cat_name(i)));
@@ -331,6 +332,7 @@ static void inventory_screen(void){
  const char *slot[]={"WPN","DEF","NAV","HOLD","FUEL","UTIL"};
  for(int i=0;i<6;i++){
   int y=7+i*2,mod=game.fit[i];
+  if(!fit_value_valid(i,mod))mod=FIT_EMPTY;
   const char *name=mod==FIT_EMPTY?(i==FIT_HOLD?"BASE HOLD":i==FIT_FUEL?"TANK ONLY":"NONE"):equipment_list_names[mod];
   if(i==row)selected(y);text(2,y,i==row?GOLD:WHITE,"%-4s %.18s",slot[i],name);
  }
@@ -497,5 +499,3 @@ static void story_screen(void){
  if(game.story<STORY_FREE){if(row==1)selected_span(26,464);text(3,26,row==1?WHITE:DIM,"%s End the optional guide",row==1?">":" ");}
  footer("UP/DOWN CHOOSE   X SELECT   O BACK");
 }
-
-

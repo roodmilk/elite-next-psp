@@ -740,6 +740,7 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  game_init(&g);g.fit[FIT_DEF]=16;fit_rebuild(&g);CHECK((g.upgrades&256)&&g.fit[FIT_DEF]==16,"ECM suite fits DEF and arms missile soft-kill");
  game_init(&g);g.docked=1;g.fit[FIT_HOLD]=11;g.fit[FIT_NAV]=4;fit_rebuild(&g);CHECK(save_game(&g,"test-fit.sav")&&load_game(&loaded,"test-fit.sav")&&loaded.fit[FIT_HOLD]==11&&loaded.fit[FIT_NAV]==4&&(loaded.upgrades&64)&&(loaded.upgrades&1),"save V13 persists fitted HOLD and NAV modules");remove("test-fit.sav");remove("test-fit.sav.bak");
  game_init(&g);g.upgrades=8|64;fit_synthesize(&g);CHECK(g.fit[FIT_HOLD]==11&&cargo_capacity(&g)==player_ships[g.ship].capacity+16,"V12 upgrades synthesize into fitted freight rack");
+ CHECK(fit_value_valid(FIT_HOLD,23)&&fit_value_valid(FIT_UTIL,FIT_EMPTY),"V13 accepts valid catalog and empty slot values");CHECK(!fit_value_valid(FIT_WPN,23)&&!fit_value_valid(FIT_DEF,1),"V13 rejects invalid slot values");
  game_init(&g);g.roll=1.5707963f;Vec3 rolled=camera(&g,(Vec3){100,0,100});CHECK(fabsf(rolled.x)<.01f&&rolled.y< -99,"roll rotates camera and compass coordinates");
  Save legacy;memset(&legacy,0,sizeof(legacy));legacy.magic=0x41455053;legacy.version=1;legacy.system=7;legacy.destination=129;legacy.credits=1000;legacy.fuel=10;legacy.contract=-1;legacy.legal=5;FILE *legacyfile=fopen("test-legacy.sav","wb");if(legacyfile){fwrite(&legacy,1,sizeof(legacy),legacyfile);fclose(legacyfile);}CHECK(load_game(&loaded,"test-legacy.sav")&&loaded.credits==1000&&loaded.wanted[7]==5,"previous build saves import with a local warrant");remove("test-legacy.sav");
  game_init(&g);launch(&g);for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;g.pos=(Vec3){0,0,3200};g.speed=100;g.roll=station_angle(&g);for(int i=0;i<120&&!g.dock_stage;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.dock_stage==2&&!g.dead&&g.energy==100,"manual entry passes through actual station opening without damage");int sawWelcome=0;for(int i=0;i<400;i++){game_tick(&g,1.f/60,0,0,0,0);sawWelcome|=g.dock_stage==3;}CHECK(sawWelcome&&g.docked,"manual entry shows arrival then welcome before services");
@@ -829,10 +830,6 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
 #include "freight-tests.h"
  fprintf(f,"RESULT %d failures\n",fails);fclose(f);return fails;
 }
-
-
-
-
 
 
 
