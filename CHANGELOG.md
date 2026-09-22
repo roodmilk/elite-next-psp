@@ -2,6 +2,12 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.14 - 2026-09-22
+
+- Story briefs (first flight and every Open Channel chapter) run a six-beat locked conversation: Circle and Select stay blocked until you accept the next step.
+- Final beat restates the objective; after accept, Tracked Mission only reinforces that step — no replaying old dialogue branches.
+- Chapter dialogue expanded with character-specific lines drawn from the campaign bible.
+
 ## 2.5.13 - 2026-09-22
 
 - Select / command deck top-right is a clearer third-person orbit of your ship in local space (closer camera, larger inset, station or planet backdrop).

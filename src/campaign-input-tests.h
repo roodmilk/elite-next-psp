@@ -1,10 +1,20 @@
 {
  TEST_INIT();change_page(HOME);row=17;input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(page==CAMPAIGN,"campaign UI: visible Story menu opens the next step");
- row=2;input(PSP_CTRL_CROSS,0,.016f,0,0);
- INPUT_CHECK(game.campaign_choice==2&&!game.campaign_stage,"campaign UI: asking about Ryn saves choice without accepting");
- row=0;input(PSP_CTRL_CROSS,0,.016f,0,0);
- INPUT_CHECK(game.campaign_stage==1&&page==CAMPAIGN,"campaign UI: Cross accepts the highlighted first flight");
+ input(PSP_CTRL_CIRCLE,0,.016f,0,0);
+ INPUT_CHECK(page==CAMPAIGN&&!game.campaign_stage,"campaign UI: Circle stays locked until the conversation ends");
+ input(PSP_CTRL_SELECT,0,.016f,0,0);
+ INPUT_CHECK(page==CAMPAIGN&&!game.campaign_stage,"campaign UI: Select stays locked until the conversation ends");
+ for(int i=0;i<PROLOGUE_BRIEF_BEATS-1;i++){
+  input(PSP_CTRL_CROSS,0,.016f,0,0);
+  INPUT_CHECK(!game.campaign_stage&&page==CAMPAIGN,"campaign UI: early Cross advances dialogue without accepting");
+ }
+ INPUT_CHECK(game.campaign_choice==2&&prologue_brief_beat==PROLOGUE_BRIEF_BEATS-1,"campaign UI: linear beats record Ryn context before accept");
+ input(PSP_CTRL_CROSS,0,.016f,0,0);
+ INPUT_CHECK(game.campaign_stage==1&&page==CAMPAIGN,"campaign UI: final Cross accepts the first flight");
+ input(PSP_CTRL_CIRCLE,0,.016f,0,0);
+ INPUT_CHECK(page!=CAMPAIGN||!prologue_brief_locked(),"campaign UI: Circle unlocks after accept");
+ change_page(CAMPAIGN);
  input(PSP_CTRL_CROSS,PSP_CTRL_CROSS,.016f,0,0);
  INPUT_CHECK(page==CAMPAIGN&&game.docked&&game.shots==0,"campaign UI: accepted mission briefing has no hidden launch action");
  change_page(CAMPAIGN);float flight=game.campaign_distance;
@@ -15,14 +25,25 @@
  INPUT_CHECK(page==CAMPAIGN&&!game.dead&&game.docked&&game.credits==cash,"campaign UI: Start recovers training instead of deleting commander");
  TEST_INIT();change_page(CAMPAIGN);input(PSP_CTRL_TRIANGLE,0,.016f,0,0);
  INPUT_CHECK(!game.campaign_stage&&page==CAMPAIGN,"story: unadvertised Triangle does not accept a mission");
- row=3;input(PSP_CTRL_CROSS,0,.016f,0,0);input(PSP_CTRL_CIRCLE,0,.016f,0,0);
- INPUT_CHECK(page==CAMPAIGN&&row==3,"story: Controls returns to the visible option that opened it");
+ input(PSP_CTRL_CROSS,0,.016f,0,0);
+ INPUT_CHECK(prologue_brief_beat==1&&!game.campaign_stage,"story: Cross advances the locked prologue beat");
  game.campaign_stage=5;game.docked=1;row=0;cash=game.credits;
  INPUT_CHECK(narrative_action(CAMPAIGN)==NA_REWARD,"story: ready report offers a reward");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(game.campaign_stage==6&&game.credits==cash+1000&&narrative_action(CAMPAIGN)==NA_ASSIGNMENTS,"story: collecting once replaces the reward action");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(page==CAMPAIGN&&game.credits==cash+1000,"story: completed chapter has no hidden Guild-menu action or duplicate repayment");
+ /* Open Channel brief: six locked beats, Select/Circle blocked, then accept reinforces objective. */
+ saga_brief_beat=0;saga_brief_chapter=game.saga_chapter;row=0;
+ INPUT_CHECK(saga_brief_locked()&&!game.saga_step,"saga brief: chapter opens locked before accept");
+ input(PSP_CTRL_CIRCLE,0,.016f,0,0);INPUT_CHECK(page==CAMPAIGN&&!game.saga_step,"saga brief: Circle blocked mid-conversation");
+ input(PSP_CTRL_SELECT,0,.016f,0,0);INPUT_CHECK(page==CAMPAIGN&&!game.saga_step,"saga brief: Select blocked mid-conversation");
+ for(int i=0;i<SAGA_BRIEF_BEATS-1;i++){input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(!game.saga_step,"saga brief: Cross walks beats without starting the objective");}
+ INPUT_CHECK(saga_brief_beat==SAGA_BRIEF_BEATS-1,"saga brief: final beat is the reinforce / accept step");
+ input(PSP_CTRL_CROSS,0,.016f,0,0);
+ INPUT_CHECK(game.saga_step==1&&!saga_brief_locked(),"saga brief: accept sets the next mission step and unlocks exit");
+ input(PSP_CTRL_CROSS,0,.016f,0,0);
+ INPUT_CHECK(game.saga_step==1,"saga brief: after accept, Cross sets course instead of replaying dialogue");
  game.guild_chapter=0;game.guild_flags=0;row=0;
  INPUT_CHECK(narrative_action(GUILD)==NA_FLY,"assignments: unfinished flight offers Launch instead of Claim");
  game.guild_flags=GUILD_LAUNCH|GUILD_DOCK;

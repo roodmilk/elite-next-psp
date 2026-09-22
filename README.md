@@ -1,4 +1,10 @@
-# ELITE: NEXT — development build 2.5.5
+# ELITE: NEXT — development build 2.5.14
+
+## New in 2.5.14 — locked, expanded story conversations
+
+- First flight and every Open Channel chapter use a six-beat locked briefing: finish the conversation before Circle or Select can leave Tracked Mission.
+- The last beat restates the next mission step; after accept, dialogue no longer loops old options.
+- Chapter lines expanded with character-specific talk drawn from the campaign bible.
 
 ## New in 2.5.5 — speaker chips, clearer menus, radio tuner, system variety
 

@@ -151,6 +151,13 @@ The player ratifies a custodian and inspection charter. The losing groups retain
 
 Return to Lave. Venn assigns berth six permanently. Kei admits that asking the player to bring Ryn home also gave the player a home. The credits show the player's four choices and surviving relationships, then offer a research beacon, relief route or salvage tug as the first post-story project.
 
+## Briefing conversation rules (playable)
+
+- Each chapter opens a **six-beat locked conversation** on Tracked Mission before the objective becomes active.
+- Circle and Select cannot leave until the player accepts on the final beat.
+- The final beat restates the next mission step. After accept, the screen only reinforces that step — no replaying earlier lines or looping old reply choices.
+- The first-flight prologue uses the same lock once the commander is docked at Lave Hub.
+
 ## Production and validation rules
 
 - Bind a chapter destination once, save it, and route to it with the real jump graph.

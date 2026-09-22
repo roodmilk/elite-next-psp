@@ -21,15 +21,16 @@ static void campaign_screen(void){
   line(76,74,64,82,ink);line(64,82,76,90,ink);rect(73,76,4,13,RGB(14,29,39));
   speaker_name_tag(11,7,b->speaker,ink);
   if(!game.saga_step){
-   const char *line=saga_brief_beat==0?b->line:saga_brief_beat==1?b->talk2:b->talk3;
-   text(11,9,WHITE,"%.43s",line);
-   panel(16,124,448,45);text(3,16,GOLD,"CONVERSATION");text(3,18,WHITE,"%.52s",saga_brief_beat<2?"Listen, then answer.":b->objective);
-   text(3,20,AMBER,"Beat %d / 3 — finish before leaving",saga_brief_beat+1);
-   if(saga_brief_beat<2)narrative_reply_choice(0,22,"Continue");
-   else narrative_reply_choice(0,22,"Accept next step");
-   footer("UP/DOWN   X CONTINUE   (O LOCKED)");return;
+   int beat=saga_brief_beat;if(beat<0)beat=0;if(beat>=SAGA_BRIEF_BEATS)beat=SAGA_BRIEF_BEATS-1;
+   text(11,9,WHITE,"%.43s",saga_brief_line(b,beat));
+   panel(16,124,448,45);text(3,16,GOLD,"CONVERSATION");
+   text(3,18,WHITE,"%.52s",beat<SAGA_BRIEF_BEATS-1?"Listen, then answer.":b->objective);
+   text(3,20,AMBER,"Beat %d / %d — finish before leaving",beat+1,SAGA_BRIEF_BEATS);
+   narrative_reply_choice(0,22,saga_brief_reply(beat));
+   footer("X CONTINUE   (O/SELECT LOCKED)");return;
   }
-  text(11,9,WHITE,"%.43s",b->line);
+  /* After accept: reinforce the next step only — no old dialogue branches. */
+  text(11,9,WHITE,"%.43s",b->talk6);
   panel(16,124,448,45);text(3,16,GOLD,"CURRENT OBJECTIVE");text(3,18,WHITE,"%.52s",b->objective);
   if(game.saga_step&&b->kind!=SAGA_CHOICE){int jumps=0,hop=saga_next_hop(&game,&jumps);if(game.system==game.saga_dest)text(3,20,CYAN,"YOU ARE IN %.24s",game.systems[game.saga_dest].name);else if(hop>=0&&hop!=game.saga_dest)text(3,20,DIM,"NEXT: %.12s   FINAL: %.12s",game.systems[hop].name,game.systems[game.saga_dest].name);else text(3,20,DIM,"DESTINATION: %.24s",game.systems[game.saga_dest].name);}
   if(b->kind==SAGA_CHOICE){text(3,21,AMBER,"YOUR DECISION");narrative_reply_choice(0,22,"Public and transparent");narrative_reply_choice(1,24,"Explorers Guild custody");narrative_reply_choice(2,26,"Lawful independent archive");}
@@ -37,15 +38,22 @@ static void campaign_screen(void){
   narrative_footer();return;
  }
  text(2,5,GOLD,"CHAPTER 1 / %s",game.campaign_stage==6?"COMPLETE":game.campaign_stage==5?"REPORT":"FIRST FLIGHT");
- const char *a="Ryn is missing. Help me find her.";
- const char *b="First, take a short flight and return.";
- if(game.campaign_stage==0&&game.campaign_choice==1){a="The catch? Come back safely.";b="I need a pilot I can trust.";}
- if(game.campaign_stage==0&&game.campaign_choice==2){a="Ryn flew a ship like this one.";b="This one is yours to borrow.";}
+ if(prologue_brief_locked()){
+  int beat=prologue_brief_beat;if(beat<0)beat=0;if(beat>=PROLOGUE_BRIEF_BEATS)beat=PROLOGUE_BRIEF_BEATS-1;
+  kei_speech_bubble(54,prologue_brief_line1(beat),prologue_brief_line2(beat),0);
+  rect(16,126,448,27,RGB(13,36,43));text(3,16,CYAN,"CURRENT OBJECTIVE");text(3,18,WHITE,"%.48s",beat<PROLOGUE_BRIEF_BEATS-1?"Finish this conversation with Kei.":"Accept first flight, then launch.");
+  text(3,19,AMBER,"YOUR REPLY — Beat %d / %d",beat+1,PROLOGUE_BRIEF_BEATS);
+  narrative_reply_choice(0,21,prologue_brief_reply(beat));
+  footer("X CONTINUE   (O/SELECT LOCKED UNTIL ACCEPT)");return;
+ }
+ const char *a="Return safely to Lave Hub.";
+ const char *b="Docking guidance can bring you inside.";
+ if(game.campaign_stage==0){a="Ryn is missing. Help me find her.";b=game.system!=7?"Get to Lave Hub before we begin.":"Dock at Lave Hub to begin training.";}
  if(game.campaign_stage>0&&game.campaign_stage<5){a="Return safely to Lave Hub.";b="Docking guidance can bring you inside.";}
  if(game.campaign_stage==5){a="You made it home. Thank you.";b="Collect your 100-unit reward below.";}
  if(game.campaign_stage==6){a="Your badge and reward are yours.";b="This is the end of the current chapter.";}
  kei_speech_bubble(54,a,b,game.campaign_stage>=5?2:0);
  rect(16,126,448,27,RGB(13,36,43));text(3,16,CYAN,"CURRENT OBJECTIVE");text(3,18,WHITE,"%.48s",narrative_label(narrative_action(CAMPAIGN)));
- if(game.campaign_stage==0){text(3,19,AMBER,"YOUR REPLY — finish before leaving");narrative_reply_choice(0,20,narrative_label(narrative_action(CAMPAIGN)));narrative_reply_choice(1,22,"What is the catch?");narrative_reply_choice(2,24,"Tell me about Ryn's ship.");narrative_reply_choice(3,26,"Show me the flight controls.");footer("UP/DOWN   X SELECT   (O LOCKED UNTIL BEGIN)");}
+ if(game.campaign_stage==0){narrative_reply_choice(0,21,narrative_label(narrative_action(CAMPAIGN)));footer("UP/DOWN   X SELECT   O BACK");}
  else footer(narrative_action(CAMPAIGN)==NA_REWARD?"X COLLECT REWARD   SELECT MISSION LOG   O BACK":"SELECT MISSION LOG   O BACK");
 }

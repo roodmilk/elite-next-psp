@@ -87,6 +87,39 @@ static void kei_speech_bubble(int y,const char *line1,const char *line2,int expr
  if(line2&&line2[0])text(11,y/8+5,WHITE,"%.43s",line2);
 }
 static void narrative_footer(void){footer("UP/DOWN CHOOSE   X SELECT   O BACK");}
-static int saga_brief_beat=0,saga_brief_chapter=-1;
+enum { PROLOGUE_BRIEF_BEATS = 6 };
+static int saga_brief_beat=0,saga_brief_chapter=-1,prologue_brief_beat=0;
 static void saga_brief_reset(int chapter){if(saga_brief_chapter!=chapter){saga_brief_chapter=chapter;saga_brief_beat=0;}}
-static int saga_brief_locked(void){return game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT&&!game.saga_step&&saga_brief_beat<3;}
+/* Locked until the player finishes every beat and accepts the next step. */
+static int saga_brief_locked(void){return game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT&&!game.saga_step;}
+static int prologue_brief_locked(void){return tracked_mission==0&&game.campaign_stage==0&&game.system==7&&game.docked;}
+static int story_brief_locked(void){return prologue_brief_locked()||saga_brief_locked();}
+static const char *saga_brief_line(const SagaBeat *b,int beat){
+ if(!b)return "";
+ switch(beat){
+ case 0:return b->line;
+ case 1:return b->talk2;
+ case 2:return b->talk3;
+ case 3:return b->talk4;
+ case 4:return b->talk5;
+ default:return b->talk6;
+ }
+}
+static const char *saga_brief_reply(int beat){
+ static const char *r[SAGA_BRIEF_BEATS]={"Continue","Go on","I understand","What do you need?","Confirm the next step","Accept next step"};
+ return r[beat>=0&&beat<SAGA_BRIEF_BEATS?beat:SAGA_BRIEF_BEATS-1];
+}
+static const char *prologue_brief_line1(int beat){
+ static const char *a[PROLOGUE_BRIEF_BEATS]={
+  "Ryn is missing. Help me find her.","I will not send you into combat yet.","Ryn flew a ship like this one.","Analog or D-pad — pick what feels true.","Launch, clear the station, then dock again.","First flight: launch, fly, return to Lave Hub."};
+ return a[beat>=0&&beat<PROLOGUE_BRIEF_BEATS?beat:PROLOGUE_BRIEF_BEATS-1];
+}
+static const char *prologue_brief_line2(int beat){
+ static const char *b[PROLOGUE_BRIEF_BEATS]={
+  "She missed three calls. That is not like her.","The catch is simple: come back alive.","Borrow it. Learn its habits. Bring it home.","Select opens the deck when you need air.","That proves you can carry the next job.","Accept when you are ready to begin."};
+ return b[beat>=0&&beat<PROLOGUE_BRIEF_BEATS?beat:PROLOGUE_BRIEF_BEATS-1];
+}
+static const char *prologue_brief_reply(int beat){
+ static const char *r[PROLOGUE_BRIEF_BEATS]={"Continue","What is the catch?","Tell me about Ryn's ship.","How do the controls work?","Confirm first flight","Accept first flight"};
+ return r[beat>=0&&beat<PROLOGUE_BRIEF_BEATS?beat:PROLOGUE_BRIEF_BEATS-1];
+}
