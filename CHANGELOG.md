@@ -2,6 +2,11 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## Unreleased — pilot rescue control guidance
+
+- Generic pilot-rescue objectives now explain locking the rescue ship and using Triangle to hail within 600 m; Circle locks the contact rather than collecting the pilot.
+- Added input regressions for rescue acceptance, tracking, pickup boundaries, unrelated contacts, guided hub return, single contract/Guild payment, and expiry/retry. Rewards, timers and saves are unchanged.
+
 ## Unreleased — authored Open Channel Chapters 02–04
 
 - Added sealed-receiver pickup and home delivery, quiet-signal observation with fire/heat reset and re-entry recovery, a required convoy port stamp, and an optional lifeboat scan that grants Independent trust once.

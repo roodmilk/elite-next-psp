@@ -1,5 +1,36 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Gameplay candidate — truthful pilot-rescue controls
+
+Generic rescue objectives now read "Lock rescue ship. Within 600 m: Triangle hail."
+This matches the existing flight controls: Circle locks a contact, Triangle dismisses
+an active notice or hails when clear, and pickup requires the marked ship within
+600 m. Story & Dialogue approved the PR-01 intent. Contract and Guild rewards,
+deposit, timer, save V13 and Game layout are unchanged.
+
+The existing journey input-test hook covers board acceptance, track/navigation,
+Circle locking, notice acknowledgement, 601 m rejection, exact 600 m pickup,
+unrelated contact rejection, repeated hail, guided system-hub docking, contract
+and Guild payment once, redocking, expiry and retaking the offer. Tests place the
+player at the destination and freeze a contact for precise radius checks; they
+do not claim manual travel or a physical PSP soak. An optional
+`rescue-capture.flag` in the smoke directory writes `rescue-objective.bmp` through
+the production 480x272 tracked-mission renderer.
+
+Validation on base `7ef5fb0b3fa97d41323dfc265f5df720d9af416c`: PSP build
+and all five smoke groups passed (290 game / 288 input checks, 57.74 average FPS,
+33.37 ms worst frame). Compiler warnings remain 44, matching baseline. Native
+capture was visually checked: the complete instruction fits on one line without
+overlap. Evidence is in the Gameplay & Loops task's `outputs/rescue-evidence`;
+normal smoke run is `work/smoke-20260923-001105-281`. Capture I/O was a separate
+run and is not the reported performance baseline.
+
+Highest-priority remaining work for this slice: lead integration review and
+combined smoke after other specialist checkpoints. Do not stack another gameplay
+slice. Chapter 05, planetary approach/EVA, Station Arrivals and Systems runtime
+remain with their active owners. This is an unreleased source candidate: no
+version bump, release tag or packaged binary is part of this bounded handoff.
+
 ## Integrated Gameplay & Story pass — Chapters 02–04
 
 Chapter 02 now requires the authored sealed receiver pickup at Mara's bound port before returning to Lave. Chapter 03 requires the authored signal scan; firing or overheating resets the observation, blocks completion, and requires a clean re-entry. Chapter 04 requires the outbound port stamp, with an optional first-anomaly lifeboat scan that adds one Independent trust. State reuses reserved bits in the existing `saga_flags` word (`0x10`–`0x200`), so no `Game` layout or save-version change is present. Generic scans, kills, cargo, and unrelated docking do not satisfy these objectives.
