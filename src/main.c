@@ -441,7 +441,7 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
   if(page==LOCAL)contacts_refresh();
    if(page==TARGETING){int ids[1+BODY_COUNT+NPC_COUNT+DEBRIS_COUNT+ANOMALY_COUNT];target_count=collect_scan_ids(ids,scan_cat);if(target_count>0){for(int i=0;i<target_count;i++)target_ids[i]=ids[i];}if(row>=target_count)row=0;}
   int saga_choices=game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT&&game.saga_step&&saga_beats[game.saga_chapter].kind==SAGA_CHOICE;
-  int count=page==COMFORT?5:page==CAMPAIGN?(tracked_mission==0&&game.campaign_stage==0?1:tracked_mission==0&&game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT&&!game.saga_step?1:saga_choices?3:tracked_mission>=2?2:1):page==GUILD?2:page==STORY?(game.story<STORY_FREE?2:1):page==COMMS_PANEL?11:page==RADIO?3:page==HOME?DECK_ITEMS:page==MISSIONS?mission_count(&game):page==MISSIONLOG?2+game.job_n:page==DEBUG?8:page==LOCAL?contact_count:page==TARGETING?target_count:page==GALNET?galnet_rows():page==MARKET?cargo_rows():page==CHART?near_count:page==YARD?player_ship_count:page==EQUIP?equip_row_count():page==INVENTORY?6:page==FACTIONS?FACTION_COUNT:page==DETAILS?(1+BODY_COUNT):page==CODEX?codex_rows():1;
+  int count=page==COMFORT?5:page==CAMPAIGN?(tracked_mission==0&&game.campaign_stage==0?1:tracked_mission==0&&saga_coda_pending>=0?1:tracked_mission==0&&game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT&&!game.saga_step?1:saga_choices?3:tracked_mission>=2?2:1):page==GUILD?2:page==STORY?(game.story<STORY_FREE?2:1):page==COMMS_PANEL?11:page==RADIO?3:page==HOME?DECK_ITEMS:page==MISSIONS?mission_count(&game):page==MISSIONLOG?2+game.job_n:page==DEBUG?8:page==LOCAL?contact_count:page==TARGETING?target_count:page==GALNET?galnet_rows():page==MARKET?cargo_rows():page==CHART?near_count:page==YARD?player_ship_count:page==EQUIP?equip_row_count():page==INVENTORY?6:page==FACTIONS?FACTION_COUNT:page==DETAILS?(1+BODY_COUNT):page==CODEX?codex_rows():1;
   if(page==MARKET&&!game.docked&&(pressed&(PSP_CTRL_LEFT|PSP_CTRL_RIGHT))){message(&game,"Dock to buy or sell. Market controls are locked.");game.cue=SFX_UI;return;}
   if(count<1)count=1;
   if(pressed&(PSP_CTRL_UP|PSP_CTRL_DOWN))game.cue=SFX_SELECT;
@@ -499,7 +499,12 @@ else if(page==CAMPAIGN&&(pressed&PSP_CTRL_CROSS)){
   }else {narrative_do(CAMPAIGN);prologue_brief_beat=0;prologue_brief_echo=0;}
  }
  else if(tracked_mission==0&&game.campaign_stage==0)narrative_do(CAMPAIGN);
- else if(tracked_mission==0&&game.campaign_stage>=6){if(game.saga_chapter<SAGA_COUNT&&!game.saga_step){if(saga_brief_beat<SAGA_BRIEF_BEATS-1){if(!saga_brief_echo&&saga_brief_needs_echo(saga_brief_beat)){saga_brief_echo=1;row=0;game.cue=SFX_SELECT;}else{saga_brief_echo=0;saga_brief_beat++;row=0;game.cue=SFX_SELECT;}}else{saga_begin(&game);saga_brief_echo=0;}}else if(game.saga_chapter<SAGA_COUNT&&saga_beats[game.saga_chapter].kind==SAGA_CHOICE){game.saga_choice=row+1;saga_advance(&game);row=0;}else if(!saga_advance(&game)){int hops=0,hop=saga_next_hop(&game,&hops);if(hop<0){message(&game,"No route with this drive. Fit more jump range.");}else{route_clear(&game);game.destination=hop;change_page(CHART);char note[96];snprintf(note,sizeof(note),hop==game.saga_dest?"Destination selected: %s.":"Next jump: %s. Final destination: %s.",game.systems[hop].name,game.systems[game.saga_dest].name);message(&game,note);}}}
+ else if(tracked_mission==0&&game.campaign_stage>=6){
+  if(saga_coda_pending>=0){saga_coda_pending=-1;row=0;game.cue=SFX_SELECT;}
+  else if(game.saga_chapter<SAGA_COUNT&&!game.saga_step){if(saga_brief_beat<SAGA_BRIEF_BEATS-1){if(!saga_brief_echo&&saga_brief_needs_echo(saga_brief_beat)){saga_brief_echo=1;row=0;game.cue=SFX_SELECT;}else{saga_brief_echo=0;saga_brief_beat++;row=0;game.cue=SFX_SELECT;}}else{saga_begin(&game);saga_brief_echo=0;}}
+  else if(game.saga_chapter<SAGA_COUNT&&saga_beats[game.saga_chapter].kind==SAGA_CHOICE){game.saga_choice=row+1;saga_advance(&game);row=0;}
+  else if(!saga_advance(&game)){int hops=0,hop=saga_next_hop(&game,&hops);if(hop<0){message(&game,"No route with this drive. Fit more jump range.");}else{route_clear(&game);game.destination=hop;change_page(CHART);char note[96];snprintf(note,sizeof(note),hop==game.saga_dest?"Destination selected: %s.":"Next jump: %s. Final destination: %s.",game.systems[hop].name,game.systems[game.saga_dest].name);message(&game,note);}}
+ }
  else if(tracked_mission==0){if(narrative_action(CAMPAIGN)==NA_REWARD)campaign_claim(&game);else game.cue=SFX_UI;}
  else if(tracked_mission==1){if(narrative_action(GUILD)==NA_REWARD)guild_claim(&game);else game.cue=SFX_UI;}
  else {int ji=tracked_mission-2;if(row==0&&ji>=0&&ji<game.job_n)navigate_job(ji);else change_page(MISSIONLOG);}
@@ -535,7 +540,7 @@ else if(page==COMMS_PANEL&&(pressed&PSP_CTRL_CROSS)){
 static void input_tests(void){
  FILE *f=fopen("input-check.txt","w");if(!f)return;int failures=0;
 #define INPUT_CHECK(c,n) do{int ok=(c);fprintf(f,"%s %s\n",ok?"PASS":"FAIL",n);failures+=!ok;}while(0)
-#define TEST_INIT() do{game_init(&game);deck_reset();story_complete(&game);paused=0;selected_target=0;autoaim=0;scan_cat=2;tracked_mission=0;prologue_brief_beat=0;prologue_brief_echo=0;saga_brief_beat=0;saga_brief_echo=0;saga_brief_chapter=-1;}while(0)
+#define TEST_INIT() do{game_init(&game);deck_reset();story_complete(&game);paused=0;selected_target=0;autoaim=0;scan_cat=2;tracked_mission=0;prologue_brief_beat=0;prologue_brief_echo=0;saga_brief_beat=0;saga_brief_echo=0;saga_brief_chapter=-1;saga_coda_pending=-1;}while(0)
  TEST_INIT();launch(&game);page=FLIGHT;game.pos=(Vec3){0,0,-20000};game.speed=0;for(int i=0;i<NPC_COUNT;i++)game.npc[i].alive=0;
  input(PSP_CTRL_RTRIGGER,PSP_CTRL_RTRIGGER,.016f,0,0);INPUT_CHECK(!game.boost,"single R press does not boost");
  input(0,0,.1f,0,0);input(PSP_CTRL_RTRIGGER,PSP_CTRL_RTRIGGER,.016f,0,0);INPUT_CHECK(game.boost,"double R press starts boost");

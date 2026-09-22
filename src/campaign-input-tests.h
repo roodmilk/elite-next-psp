@@ -50,8 +50,19 @@
  INPUT_CHECK(saga_brief_beat==SAGA_BRIEF_BEATS-1,"saga brief: final beat is the reinforce / accept step");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(game.saga_step==1&&!saga_brief_locked(),"saga brief: accept sets the next mission step and unlocks exit");
+ INPUT_CHECK(SAGA_BRIEF_BEATS==8&&strstr(saga_beats[0].ask5,"Mara")&&strstr(saga_beats[0].talk6,"sealed"),"saga brief: Act I eight-beat page script answers the Mara ask");
+ INPUT_CHECK(strstr(saga_beats[0].talk7,"flying")&&strstr(saga_beats[0].ask8,"Accept"),"saga brief: Act I page script ends on accept after depth beats");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(game.saga_step==1&&page==CHART,"saga brief: after accept, Cross sets course instead of replaying dialogue");
+ /* Act I completion coda locks Story until dismissed. */
+ change_page(CAMPAIGN);game.docked=1;game.system=game.saga_dest;row=0;
+ INPUT_CHECK(saga_ready(&game),"saga coda: delivery chapter is ready at destination");
+ input(PSP_CTRL_CROSS,0,.016f,0,0);
+ INPUT_CHECK(saga_coda_pending==0&&game.saga_chapter==1&&saga_coda_locked(),"saga coda: Act I chapter complete opens a locked coda page");
+ input(PSP_CTRL_CIRCLE,0,.016f,0,0);INPUT_CHECK(page==CAMPAIGN&&saga_coda_pending==0,"saga coda: Circle stays locked on the coda page");
+ input(PSP_CTRL_CROSS,0,.016f,0,0);
+ INPUT_CHECK(saga_coda_pending<0&&!saga_coda_locked()&&saga_brief_locked(),"saga coda: Cross dismisses coda and unlocks the next brief");
+ INPUT_CHECK(strstr(saga_choice_blurb(5,0),"pirates")||strstr(saga_choice_blurb(5,0),"Pirates")||strstr(saga_choice_blurb(5,0),"Loud"),"saga choice: consequence blurbs stay on the decision screen");
  change_page(CAMPAIGN);game.guild_chapter=0;game.guild_flags=0;row=0;
  INPUT_CHECK(narrative_action(GUILD)==NA_FLY,"assignments: unfinished flight offers Launch instead of Claim");
  game.guild_flags=GUILD_LAUNCH|GUILD_DOCK;
@@ -94,6 +105,10 @@
  INPUT_CHECK(strstr(saga_beats[10].ask1,"alive")&&strstr(saga_beats[10].line,"alive"),"script: Ryn reunion keeps living voice on both sides");
  INPUT_CHECK(strstr(saga_beats[10].talk2,"Yes")||strstr(saga_beats[10].talk2,"yes")||strstr(saga_beats[10].talk2,"geometry"),"script: Ryn beat 1 answers the alive ask");
  INPUT_CHECK(strstr(saga_choice_reaction(5,0),"Pirates")&&strstr(saga_close_line(0),"Case"),"script: choice reactions and chapter closers stay character-voiced");
+ INPUT_CHECK(strstr(saga_coda_line1(0),"evidence")&&strstr(saga_coda_line2(1),"sky"),"script: Act I codas keep screenplay aftermath voice");
+ INPUT_CHECK(strstr(saga_beats[5].line,"flinch")&&strstr(saga_beats[6].line,"Clinic"),"script: Act I Sable staging and Act II Mara clinic open from screenplay");
+ INPUT_CHECK(strstr(saga_beats[10].ask3,"silent")&&strstr(saga_beats[10].talk3,"ghost")&&saga_has_coda(11),"script: Ryn reunion asks why she vanished; Act II coda range reaches Carry Home");
+ INPUT_CHECK(strstr(saga_choice_blurb(11,0),"Light")||strstr(saga_choice_blurb(11,0),"board"),"script: Carry Home blurbs name the broadcast stakes");
  INPUT_CHECK(strstr(prologue_brief_line1(0),"Ryn")&&strstr(prologue_brief_line2(0),"three"),"script: prologue hook still names Ryn and the three missed calls");
  TEST_INIT();
 }

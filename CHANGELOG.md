@@ -2,6 +2,12 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.35 - 2026-09-22
+
+- Act I Open Channel briefs (Ch.02–07) deepen to eight ask-then-answer page-script beats with screenplay texture.
+- Permanent decisions show consequence blurbs on the highlighted choice; Act I chapter completes open a locked coda page before the next brief.
+- Manuscript Volume IV documents the Act I page-script binding (`docs/ELITE-NEXT-MANUSCRIPT.md`).
+
 ## 2.5.33 - 2026-09-22
 
 - Begun the whole-game story & missions manuscript (`docs/ELITE-NEXT-MANUSCRIPT.md`): Volumes I–VII covering themes/cast, Mission Network template banks, Guild scenes, Open Channel verb sheets, living-galaxy texture, postgame seeds, and side-channel calls.
