@@ -7,12 +7,12 @@ static void campaign_screen(void){
   text(10,8,CYAN,"NEXT STEP / %s",guild_title(&game));
   text(10,10,WHITE,"Independent survey work for the Guild.");
   text(10,12,DIM,"Assignment %d of 4",game.guild_chapter>=4?4:game.guild_chapter+1);
-  panel(16,120,448,56);text(3,16,GOLD,"CURRENT OBJECTIVE");text(3,18,WHITE,"%.50s",guild_objective(&game));text(3,20,CYAN,"PROGRESS");text(3,22,DIM,"Launch %s   Dock %s   Report %s",(game.guild_flags&GUILD_LAUNCH)?"DONE":"--",(game.guild_flags&GUILD_DOCK)?"DONE":"--",guild_ready(&game)?"READY":"--");
+  panel(16,120,448,56);text(3,16,GOLD,"CURRENT OBJECTIVE");text_wrap(3,18,54,1,WHITE,guild_objective(&game),0);text(3,20,CYAN,"PROGRESS");text(3,22,DIM,"Launch %s   Dock %s   Report %s",(game.guild_flags&GUILD_LAUNCH)?"DONE":"--",(game.guild_flags&GUILD_DOCK)?"DONE":"--",guild_ready(&game)?"READY":"--");
   footer(narrative_action(GUILD)==NA_REWARD?"X COLLECT REWARD   SELECT MISSION LOG   O BACK":"SELECT MISSION LOG   O BACK");return;
  }
- if(tracked_mission>=2){int ji=tracked_mission-2;if(ji<0||ji>=game.job_n){tracked_mission=0;campaign_screen();return;}Job *j=&game.jobs[ji];text(2,5,GOLD,"CONTRACT / %s",mission_name(j->type));draw_icon(18,63,12+j->type,1);text(6,8,CYAN,"DESTINATION: %.18s",game.systems[j->dest].name);text(6,10,DIM,"TIME %.0fs   REWARD %.1f U",j->time,j->reward*.1f);rect(16,118,448,54,RGB(13,36,43));text(3,15,GOLD,"CURRENT OBJECTIVE");text(3,17,WHITE,"%.50s",mission_objective_at(&game,ji));text(3,20,DIM,"CHOOSE AN ACTION");narrative_choice(0,21,"Navigate to objective");narrative_choice(1,23,"Return to mission log");narrative_footer();return;}
+ if(tracked_mission>=2){int ji=tracked_mission-2;if(ji<0||ji>=game.job_n){tracked_mission=0;campaign_screen();return;}Job *j=&game.jobs[ji];text(2,5,GOLD,"CONTRACT / %s",mission_name(j->type));draw_icon(18,63,12+j->type,1);text(6,8,CYAN,"DESTINATION: %.18s",game.systems[j->dest].name);text(6,10,DIM,"TIME %.0fs   REWARD %.1f U",j->time,j->reward*.1f);rect(16,118,448,54,RGB(13,36,43));text(3,15,GOLD,"CURRENT OBJECTIVE");text_wrap(3,17,54,2,WHITE,mission_objective_at(&game,ji),0);text(3,20,DIM,"CHOOSE AN ACTION");narrative_choice(0,21,"Navigate to objective");narrative_choice(1,23,"Return to mission log");narrative_footer();return;}
  if(game.campaign_stage>=6){
-  if(game.saga_chapter>=SAGA_COUNT){text(2,5,GOLD,"THE OPEN CHANNEL / COMPLETE");kei_speech_bubble(54,"The channel is open, Commander.",saga_epilogue_line(&game),2);text(3,16,CYAN,"TRUST  P%d G%d L%d I%d",game.saga_trust[0],game.saga_trust[1],game.saga_trust[2],game.saga_trust[3]);text(3,18,DIM,"%.52s",saga_trust_helper(&game));text(3,20,CYAN,"FREE FLIGHT CONTINUES");footer("SELECT MISSION LOG   O BACK");return;}
+  if(game.saga_chapter>=SAGA_COUNT){text(2,5,GOLD,"THE OPEN CHANNEL / COMPLETE");kei_speech_bubble(54,"The channel is open, Commander.",saga_epilogue_line(&game),2);text(3,16,CYAN,"TRUST  P%d G%d L%d I%d",game.saga_trust[0],game.saga_trust[1],game.saga_trust[2],game.saga_trust[3]);text_wrap(3,18,54,1,DIM,saga_trust_helper(&game),0);text(3,20,CYAN,"FREE FLIGHT CONTINUES");footer("SELECT MISSION LOG   O BACK");return;}
   const SagaBeat *b=&saga_beats[game.saga_chapter];unsigned ink=saga_speaker_color(b);
   saga_brief_reset(game.saga_chapter);
   text(2,5,GOLD,"CHAPTER %02d / %.31s",game.saga_chapter+2,b->title);
@@ -22,16 +22,16 @@ static void campaign_screen(void){
   speaker_name_tag(11,7,b->speaker,ink);
   if(!game.saga_step){
    int beat=saga_brief_beat;if(beat<0)beat=0;if(beat>=SAGA_BRIEF_BEATS)beat=SAGA_BRIEF_BEATS-1;
-   text(11,9,WHITE,"%.43s",saga_brief_line(b,beat));
+   text_wrap(11,9,46,2,WHITE,saga_brief_line(b,beat),0);
    panel(16,124,448,45);text(3,16,GOLD,"CONVERSATION");
-   text(3,18,WHITE,"%.52s",beat<SAGA_BRIEF_BEATS-1?"Listen, then answer.":b->objective);
+   text_wrap(3,18,54,1,WHITE,beat<SAGA_BRIEF_BEATS-1?"Listen, then answer.":b->objective,0);
    text(3,20,AMBER,"Beat %d / %d — finish before leaving",beat+1,SAGA_BRIEF_BEATS);
    narrative_reply_choice(0,22,saga_brief_reply(beat));
    footer("X CONTINUE   (O/SELECT LOCKED)");return;
   }
   /* After accept: reinforce the next step only — no old dialogue branches. */
-  text(11,9,WHITE,"%.43s",b->talk6);
-  panel(16,124,448,45);text(3,16,GOLD,"CURRENT OBJECTIVE");text(3,18,WHITE,"%.52s",b->objective);
+  text_wrap(11,9,46,2,WHITE,b->talk6,0);
+  panel(16,124,448,45);text(3,16,GOLD,"CURRENT OBJECTIVE");text_wrap(3,18,54,2,WHITE,b->objective,0);
   if(game.saga_step&&b->kind!=SAGA_CHOICE){int jumps=0,hop=saga_next_hop(&game,&jumps);if(game.system==game.saga_dest)text(3,20,CYAN,"YOU ARE IN %.24s",game.systems[game.saga_dest].name);else if(hop>=0&&hop!=game.saga_dest)text(3,20,DIM,"NEXT: %.12s   FINAL: %.12s",game.systems[hop].name,game.systems[game.saga_dest].name);else text(3,20,DIM,"DESTINATION: %.24s",game.systems[game.saga_dest].name);}
   if(b->kind==SAGA_CHOICE){text(3,21,AMBER,"YOUR DECISION");narrative_reply_choice(0,22,saga_choice_label(game.saga_chapter,0));narrative_reply_choice(1,24,saga_choice_label(game.saga_chapter,1));narrative_reply_choice(2,26,saga_choice_label(game.saga_chapter,2));}
   else narrative_reply_choice(0,23,saga_ready(&game)?"Complete chapter":"Set course for objective");
@@ -41,7 +41,7 @@ static void campaign_screen(void){
  if(prologue_brief_locked()){
   int beat=prologue_brief_beat;if(beat<0)beat=0;if(beat>=PROLOGUE_BRIEF_BEATS)beat=PROLOGUE_BRIEF_BEATS-1;
   kei_speech_bubble(54,prologue_brief_line1(beat),prologue_brief_line2(beat),0);
-  rect(16,126,448,27,RGB(13,36,43));text(3,16,CYAN,"CURRENT OBJECTIVE");text(3,18,WHITE,"%.48s",beat<PROLOGUE_BRIEF_BEATS-1?"Finish this conversation with Kei.":"Accept first flight, then launch.");
+  rect(16,126,448,27,RGB(13,36,43));text(3,16,CYAN,"CURRENT OBJECTIVE");text_wrap(3,18,54,1,WHITE,beat<PROLOGUE_BRIEF_BEATS-1?"Finish this conversation with Kei.":"Accept first flight, then launch.",0);
   text(3,19,AMBER,"YOUR REPLY — Beat %d / %d",beat+1,PROLOGUE_BRIEF_BEATS);
   narrative_reply_choice(0,21,prologue_brief_reply(beat));
   footer("X CONTINUE   (O/SELECT LOCKED UNTIL ACCEPT)");return;
@@ -53,7 +53,7 @@ static void campaign_screen(void){
  if(game.campaign_stage==5){a="You made it home. Thank you.";b="Collect your 100-unit reward below.";}
  if(game.campaign_stage==6){a="Your badge and reward are yours.";b="This is the end of the current chapter.";}
  kei_speech_bubble(54,a,b,game.campaign_stage>=5?2:0);
- rect(16,126,448,27,RGB(13,36,43));text(3,16,CYAN,"CURRENT OBJECTIVE");text(3,18,WHITE,"%.48s",narrative_label(narrative_action(CAMPAIGN)));
+ rect(16,126,448,27,RGB(13,36,43));text(3,16,CYAN,"CURRENT OBJECTIVE");text_wrap(3,18,54,1,WHITE,narrative_label(narrative_action(CAMPAIGN)),0);
  if(game.campaign_stage==0){narrative_reply_choice(0,21,narrative_label(narrative_action(CAMPAIGN)));footer("UP/DOWN   X SELECT   O BACK");}
  else footer(narrative_action(CAMPAIGN)==NA_REWARD?"X COLLECT REWARD   SELECT MISSION LOG   O BACK":"SELECT MISSION LOG   O BACK");
 }

@@ -74,6 +74,7 @@ static int audio_worker(SceSize n,void *a){
    if(sfx_id==SFX_SELECT)sfx_len=140;
    else if(sfx_id==SFX_UI)sfx_len=280;
    else if(sfx_id==SFX_COMM)sfx_len=640;
+   else if(sfx_id==SFX_TALK)sfx_len=980;
    else if(sfx_id==SFX_LASER)sfx_len=420;
    else if(sfx_id==SFX_HIT)sfx_len=520;
    else if(sfx_id==SFX_SCAN)sfx_len=720;
@@ -104,6 +105,11 @@ static int audio_worker(SceSize n,void *a){
     if(sfx_id==SFX_SELECT)sfx=triangle_wave(phase*21)*52*e/den;
     else if(sfx_id==SFX_UI)sfx=wave*40*e/den;
     else if(sfx_id==SFX_COMM)sfx=triangle_wave(phase*(e>320?11:7))*42*e/den;
+    else if(sfx_id==SFX_TALK){
+     /* Battle talk: gated radio voice — formant buzz + grit, not a flat beep. */
+     int gate=((e/38)&1),buzz=triangle_wave(phase*(8+(e%5))),grit=((int)((noise>>24)&255)-128);
+     sfx=gate?(buzz*30+grit*12)*e/den:triangle_wave(phase*3)*8*e/den;
+    }
     else if(sfx_id==SFX_LASER)sfx=wave*50*e/den;
     else if(sfx_id==SFX_HIT)sfx=((int)((noise>>24)&255)-128)*24*e/den;
     else if(sfx_id==SFX_WARP)sfx=triangle_wave(phase*(3+(den-e)/90))*44*e/den;

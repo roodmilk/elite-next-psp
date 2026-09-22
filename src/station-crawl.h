@@ -144,10 +144,10 @@ static void sc_draw_ui(void){
  }else if(sc_menu==SC_MENU_PERSON&&pn>0){
   if(sc_choice<0)sc_choice=0; if(sc_choice>=pn)sc_choice=pn-1;
   ScNpc *p=&people[sc_choice];
-  text(1,31,GOLD,"%.10s",p->name); text(14,31,WHITE,"%.36s",p->line);
-  text(1,32,AMBER,"> %.40s",p->offer);
+  text(1,31,GOLD,"%.10s",p->name); text_wrap(14,31,44,1,WHITE,p->line,0);
+  text(1,32,AMBER,">"); text_wrap(3,32,55,1,AMBER,p->offer,0);
  }else if(pn>0){
-  text(1,31,GOLD,"%d here",pn); text(12,31,WHITE,"%.40s",people[0].line);
+  text(1,31,GOLD,"%d here",pn); text_wrap(12,31,46,1,WHITE,people[0].line,0);
   text(1,32,DIM,"X talk / trade   face a door to walk");
  }else text(1,31,DIM,"Empty deck. Face a door and press UP.");
  if(game.passenger_dest>=0)text(40,0,CYAN,"PAX");

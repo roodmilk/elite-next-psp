@@ -1,4 +1,10 @@
-# ELITE: NEXT — development build 2.5.22
+# ELITE: NEXT — development build 2.5.23
+
+## New in 2.5.23 — clearer menu ship, full speech, battle talk
+
+- Command deck ship inset is zoomed farther out.
+- Speech and notice text wraps inside its boxes instead of cutting off.
+- Combat opens a battle-talk radio cue with short engagement chatter.
 
 ## New in 2.5.22 — station crawl, shops, loadout
 

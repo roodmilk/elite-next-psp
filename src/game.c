@@ -44,7 +44,7 @@ int mesh_id(const char *name){for(int i=0;i<mesh_count;i++)if(!strcmp(meshes[i].
 static uint32_t random_u(Game *g){uint32_t x=g->rng;x^=x<<13;x^=x>>17;x^=x<<5;return g->rng=x;}
 static float random_f(Game *g){return (random_u(g)&65535)/65535.0f;}
 void message(Game *g,const char *s){snprintf(g->message,sizeof(g->message),"%s",s);g->message_time=5;}
-void speak(Game *g,int who,const char *s){g->voice_who=who<VOICE_KEI||who>VOICE_CONTACT?VOICE_COMP:who;snprintf(g->voice,sizeof(g->voice),"%s",s);g->voice_time=6.5f;g->message_time=0;if(!g->cue)g->cue=SFX_COMM;}
+void speak(Game *g,int who,const char *s){g->voice_who=who<VOICE_KEI||who>VOICE_CONTACT?VOICE_COMP:who;snprintf(g->voice,sizeof(g->voice),"%s",s);g->voice_time=6.5f;g->message_time=0;if(!g->cue)g->cue=(g->attacked>0||g->incoming_missile>0||g->encounter>0)?SFX_TALK:SFX_COMM;}
 static void mark_visited(Game *g){g->visited[g->system>>3]|=(uint8_t)(1u<<(g->system&7));}
 int systems_visited(const Game *g){int n=0;for(int i=0;i<32;i++)for(int b=0;b<8;b++)n+=(g->visited[i]>>b)&1;return n;}
 static void twist(uint16_t s[3]){uint16_t t=(uint16_t)(s[0]+s[1]+s[2]);s[0]=s[1];s[1]=s[2];s[2]=t;}
@@ -507,12 +507,19 @@ void game_tick(Game *g,float dt,float turn,float pitch,int throttle,int fire){
  }
  /* The scanner occasionally calls out battles away from the player. This
   * turns the faction simulation into a readable world event without adding
-  * another HUD panel or interrupting ordinary flight. */
+  * another HUD panel or interrupting ordinary flight. Battle talk SFX rides
+  * with the radio voice so combat chatter feels live on the channel. */
  g->encounter=fmaxf(0,g->encounter-dt);
- if(g->encounter<=0&&g->message_time<=0){int pirate=-1,law=-1,trader=-1;float pd=999999,ld=999999,td=999999;
+ if(g->encounter<=0&&g->message_time<=0&&g->voice_time<=0){int pirate=-1,law=-1,trader=-1;float pd=999999,ld=999999,td=999999;
   for(int i=0;i<NPC_COUNT;i++)if(g->npc[i].alive){NPC *n=&g->npc[i];float d=length(sub(n->pos,g->pos));if(n->role==PIRATES&&d<pd){pirate=i;pd=d;}else if(n->role==LAW&&d<ld){law=i;ld=d;}else if(n->role==TRADERS&&d<td){trader=i;td=d;}}
-  if(pirate>=0&&law>=0&&pd<5200&&ld<5200&&length(sub(g->npc[pirate].pos,g->npc[law].pos))<2600){g->encounter=9;g->cue=SFX_ALERT;message(g,"Scanner: local law engagement in progress.");}
-  else if(pirate>=0&&trader>=0&&pd<5200&&td<5200&&length(sub(g->npc[pirate].pos,g->npc[trader].pos))<2200){g->encounter=9;g->cue=SFX_ALERT;message(g,"Scanner: trader convoy under pirate attack.");}
+  if(pirate>=0&&law>=0&&pd<5200&&ld<5200&&length(sub(g->npc[pirate].pos,g->npc[law].pos))<2600){g->encounter=9;g->cue=SFX_TALK;speak(g,VOICE_LAW,"Law channel: engagement in progress. Stay clear.");}
+  else if(pirate>=0&&trader>=0&&pd<5200&&td<5200&&length(sub(g->npc[pirate].pos,g->npc[trader].pos))<2200){g->encounter=9;g->cue=SFX_TALK;speak(g,VOICE_CONTACT,"Mayday - convoy under pirate attack. Need cover.");g->voice_role=TRADERS;}
+ }
+ /* Close-range battle talk when someone is painting the canopy. */
+ if(g->attacked>0&&g->voice_time<=0&&g->message_time<=0&&g->encounter<=0&&((int)(g->time*3)&31)==0){
+  static const char *taunt[]={"Pirate band: Drop cargo or burn.","Hostile: Shields won't save you.","Open channel: Break off or we finish this.","Law band: Cease fire and identify."};
+  int who=VOICE_CONTACT,role=PIRATES;for(int i=0;i<NPC_COUNT;i++)if(g->npc[i].alive&&g->npc[i].target==-2){role=g->npc[i].role;who=role==LAW?VOICE_LAW:VOICE_CONTACT;break;}
+  g->encounter=5;g->cue=SFX_TALK;speak(g,who,taunt[((int)g->time+g->system)%4]);if(who==VOICE_CONTACT)g->voice_role=role;
  }
  for(int i=0;i<DEBRIS_COUNT;i++){Debris *d=&g->debris[i];if(!d->alive)continue;d->flash=fmaxf(0,d->flash-dt);d->life-=dt;if(d->life<=0){d->alive=0;continue;}d->pos=add(d->pos,mul(d->vel,dt));Vec3 stn={0,0,3500};if(length(sub(d->pos,stn))<200)d->pos=add(stn,mul(norm(sub(d->pos,stn)),210));}
  if(g->energy<=0){g->dead=1;g->jump=0;g->cue=SFX_DEATH;message(g,"Ship destroyed. START for a new commander.");}

@@ -116,6 +116,16 @@ static void text(int x,int y,unsigned c,const char *fmt,...){
   }
  }
 }
+/* Word-wrap into a fixed column width. Returns rows used; leftover returns via *left. */
+static int text_wrap(int col,int rowy,int cols,int max_rows,unsigned ink,const char *s,const char **left){
+ int used=0;if(cols<4)cols=4;if(left)*left=s;
+ for(;used<max_rows&&s&&*s;used++){
+  int len=(int)strlen(s),cut=len<cols?len:cols;
+  if(len>cols){int k;for(k=cut;k>cols/3;k--)if(s[k]==' '){cut=k;break;}}
+  text(col,rowy+used,ink,"%.*s",cut,s);s+=cut;while(*s==' ')s++;
+ }
+ if(left)*left=s;return used;
+}
 /* Coloured name plate so "KEI SAYS" / "REI SAYS" read at a glance on 480x272. */
 static void speaker_name_tag(int col,int rowy,const char *name,unsigned color){
  char tag[28];snprintf(tag,sizeof(tag),"%.12s SAYS",name&&name[0]?name:"CONTACT");
@@ -743,7 +753,7 @@ int main(void){
   input(pressed,pad.Buttons,dt,ax,ay);
   if(game.voice_time>0){game.voice_time-=dt;if(game.voice_time<0)game.voice_time=0;}
   if(page!=FLIGHT&&!paused){game.message_time-=dt;if(game.message_time<0)game.message_time=0;}
-  if(game.cue){if(!quiet_comms||game.cue!=SFX_COMM)audio_play(game.cue);game.cue=0;}
+  if(game.cue){if(!quiet_comms||(game.cue!=SFX_COMM&&game.cue!=SFX_TALK))audio_play(game.cue);game.cue=0;}
   audio_duck=(!quiet_comms&&game.voice_time>0)||game.police_stop;audio_scene_set(game.planet>=0?1:(game.attacked>0||game.incoming_missile>0)?2:game.docked||page!=FLIGHT?3:0);
   if(smoke&&frames==20){suspend_requested=1;resume_requested=1;}
   if(smoke&&frames==21){suspend_requested=1;resume_requested=1;}

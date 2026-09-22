@@ -21,11 +21,11 @@ static void menu_space_view(int x,int y,int w,int h){
  rect(x,y,w,1,CYAN);rect(x,y+h-1,w,1,RGB(32,57,69));
  Vec3 oldpos=game.pos;float oldyaw=game.yaw,oldpitch=game.pitch,oldroll=game.roll;
  preview_clip(x+w/2,y+h/2+2,x+1,y+1,x+w-1,y+h-1);
- /* Third-person orbit of the fitted hull against local space — close enough to read the silhouette. */
+ /* Third-person orbit of the fitted hull against local space — pulled back so the full silhouette reads. */
  {
   float phase=preview_time*.4f;
   Vec3 ship=game.docked?(Vec3){0,40,3180}:game.planet>=0?add(game.pos,(Vec3){0,80,0}):game.pos;
-  float dist=195.f;Vec3 cam=add(ship,(Vec3){sinf(phase)*dist,72.f+sinf(phase*.7f)*28.f,cosf(phase)*dist});
+  float dist=310.f;Vec3 cam=add(ship,(Vec3){sinf(phase)*dist,88.f+sinf(phase*.7f)*36.f,cosf(phase)*dist});
   game.pos=cam;Vec3 aim=norm(sub(ship,cam));game.yaw=atan2f(aim.x,aim.z);float ap=aim.y;if(ap>1)ap=1;if(ap<-1)ap=-1;game.pitch=asinf(ap);game.roll=0;
   starfield();
   /* Local scenery so the inset reads as “ship in this system,” not a void studio. */
@@ -35,7 +35,7 @@ static void menu_space_view(int x,int y,int w,int h){
    Vec3 bp=camera(&game,b->pos);if(bp.z>80){Point p=project(bp);int r=(int)fminf(28,b->radius*240.f/bp.z);if(r>3&&p.x>x&&p.x<x+w&&p.y>y&&p.y<y+h)circle((int)p.x,(int)p.y,r,b->color);}
   }
   float yaw=game.docked?station_angle(&game)*.15f+phase*.2f:oldyaw;
-  shipmesh(mesh_id(player_ships[game.ship].name),ship,yaw,oldroll*.25f,2.35f,GOLD,0);
+  shipmesh(mesh_id(player_ships[game.ship].name),ship,yaw,oldroll*.25f,1.85f,GOLD,0);
   flush_meshes();
  }
  preview_reset();game.pos=oldpos;game.yaw=oldyaw;game.pitch=oldpitch;game.roll=oldroll;
@@ -73,15 +73,13 @@ static void speech_box(int x,int y,int w){
  static const char *names[]={"","KEI","VENN","DOCKHAND","LOCAL LAW","COMPUTER","CONTACT"};
  unsigned ink=who==VOICE_COMP?CYAN:faction_colors[role];
  int portrait=who!=VOICE_COMP,tx=x+(portrait?40:8),col=tx/8,cap=(x+w-8-tx)/8;
- rect(x,y,w,32,RGB(8,18,28));rect(x,y,2,32,ink);
+ /* Three body rows so 80-char voice / 96-char messages never clip inside the band. */
+ int box_h=40;
+ rect(x,y,w,box_h,RGB(8,18,28));rect(x,y,2,box_h,ink);
  if(portrait){if(who==VOICE_KEI)draw_kei(x+4,y,32,0);else draw_portrait(x+4,y,32,32,who==VOICE_CONTACT?game.voice_seed:who*37,role);}
  speaker_name_tag(col,y/8,who==VOICE_CONTACT?faction_names[role]:names[who],ink);
  button_icon(x+w-16,y,'T',ink);
- for(int row=0;row<2&&*s;row++){
-  int len=(int)strlen(s),cut=len<cap?len:cap;
-  if(len>cap)for(int k=cut;k>cap/2;k--)if(s[k]==' '){cut=k;break;}
-  text(col,y/8+1+row,WHITE,"%.*s",cut,s);s+=cut;while(*s==' ')s++;
- }
+ text_wrap(col,y/8+1,cap,3,WHITE,s,0);
 }
 static void pip_bar(int x,int y,int w,int h,int fill,unsigned c){
  if(fill<0)fill=0;

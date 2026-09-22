@@ -59,10 +59,7 @@ static void comfort_screen(void){
 static void menu_notice(void){
  if(game.message_time<=0||!game.message[0])return;
  int narrative=page==CAMPAIGN||page==GUILD||page==STORY;
- int y=page==HOME?216:narrative?224:192;rect(8,y,464,narrative?24:28,RGB(15,30,40));rect(8,y,3,narrative?24:28,GOLD);
- const char *s=game.message;int n=(int)strlen(s),cut=n<54?n:54;
- if(n>54)for(int i=54;i>20;i--)if(s[i]==' '){cut=i;break;}
- text(2,(y+2)/8,GOLD,"%.*s",cut,s);
- int next=cut;while(s[next]==' ')next++;
- if(s[next])text(2,(y+16)/8,WHITE,"%.55s",s+next);
+ int y=page==HOME?216:narrative?224:192;int h=narrative?24:32;
+ rect(8,y,464,h,RGB(15,30,40));rect(8,y,3,h,GOLD);
+ text_wrap(2,(y+2)/8,56,narrative?2:3,GOLD,game.message,0);
 }

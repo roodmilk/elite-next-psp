@@ -95,7 +95,7 @@ static int speech_active(void){
  return 0;
 }
 static void speech_ok(void){game.voice_time=0;game.voice[0]=0;game.message_time=0;game.cue=SFX_UI;}
-static void contact_speak(int role,const char *line){speak(&game,VOICE_CONTACT,line);game.voice_role=role;game.voice_seed=game.system*NPC_COUNT+selected_target;}
+static void contact_speak(int role,const char *line){speak(&game,VOICE_CONTACT,line);game.voice_role=role;game.voice_seed=game.system*NPC_COUNT+selected_target;if(game.attacked>0||role==PIRATES)game.cue=SFX_TALK;}
 static void hail_target(void){
  pick_look_target();
  int id=look_target>=0?look_target:selected_target;
@@ -104,7 +104,7 @@ static void hail_target(void){
   if(mission_interact(&game,id))return;
   NPC *n=&game.npc[id-BODY_COUNT-1];
   selected_target=id;scan_cat=target_category(id);autoaim=0;story_event(&game,STORY_EV_TARGET);
-  if(n->role==PIRATES)speak(&game,VOICE_COMP,"No reply. They're painting us.");
+  if(n->role==PIRATES){speak(&game,VOICE_COMP,"No reply. They're painting us.");game.cue=SFX_TALK;}
   else if(n->role==LAW)contact_speak(LAW,game.legal?"Stop. Pay the fine or take custody.":"Clear. Keep the lane clean.");
   else if(n->role==TRADERS){if(n->freighter){char cargo[80];snprintf(cargo,sizeof(cargo),"%s %s. %d%c %s. %s.",n->freight_state<=FREIGHT_INBOUND?"From":"To",game.systems[n->freight_peer].name,n->freight_qty,goods[n->freight_good].unit,goods[n->freight_good].name,freight_status(n));contact_speak(TRADERS,cargo);}else contact_speak(TRADERS,"Market's open at the hub. Don't scrape the paint.");}
   else contact_speak(EXPLORERS,"Survey channel. We are mapping this sky.");

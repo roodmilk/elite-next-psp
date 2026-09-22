@@ -49,14 +49,14 @@ static void narrative_do(int screen){
 }
 static void narrative_choice(int index,int y,const char *label){
  if(row==index)selected_span(y,464);
- text(3,y,row==index?WHITE:DIM,"%s %.52s",row==index?">":" ",label);
+ text(3,y,row==index?WHITE:DIM,"%s %s",row==index?">":" ",label);
 }
 static void narrative_reply_choice(int index,int y,const char *label){
  int active=row==index,py=y*8-3;unsigned edge=active?RGB(245,157,62):RGB(119,71,38),fill=active?RGB(62,36,24):RGB(28,24,23);
  rect(16,py,448,14,fill);rect(16,py,448,1,edge);rect(16,py+13,448,1,edge);rect(16,py,2,14,edge);rect(462,py,2,14,edge);
  /* The right-hand tail marks this as the commander's side of the exchange. */
  line(464,py+4,470,py+7,edge);line(470,py+7,464,py+10,edge);
- text(3,y,active?GOLD:AMBDIM,"%s YOU: %.45s",active?">":" ",label);
+ text(3,y,active?GOLD:AMBDIM,"%s YOU: %s",active?">":" ",label);
 }
 static int saga_speaker_role(const SagaBeat *b){
  if(!b)return EXPLORERS;
@@ -83,8 +83,11 @@ static void kei_speech_bubble(int y,const char *line1,const char *line2,int expr
  /* A compact pixel tail physically links these words to Kei's portrait. */
  line(bx,y+20,bx-12,y+28,edge);line(bx-12,y+28,bx,y+36,edge);rect(bx-3,y+22,4,13,fill);
  speaker_name_tag(11,y/8+1,"KEI",edge);
- text(11,y/8+3,WHITE,"%.43s",line1);
- if(line2&&line2[0])text(11,y/8+5,WHITE,"%.43s",line2);
+ /* Wrap into the bubble width — never hard-truncate mid-sentence. */
+ int col=11,cap=((bx+bw-8)/8)-col,row=y/8+3;
+ const char *left=0;
+ if(line1&&line1[0])row+=text_wrap(col,row,cap,2,WHITE,line1,&left);
+ if(line2&&line2[0]&&row<=y/8+5)text_wrap(col,row,cap,y/8+6-row,WHITE,line2,0);
 }
 static void narrative_footer(void){footer("UP/DOWN CHOOSE   X SELECT   O BACK");}
 enum { PROLOGUE_BRIEF_BEATS = 6 };
