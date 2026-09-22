@@ -623,7 +623,7 @@ void game_tick(Game *g,float dt,float turn,float pitch,int throttle,int fire){
   {unsigned h=sector_hash((g->system+1)*0xc2b2ae35u);float ang=g->system*1.918f+0.55f+((h&1023)*.001f);float dist=11000.f+(g->system%17)*780.f+((h>>10)%900);
    g->pos=(Vec3){sinf(ang)*dist*.62f,((int)((h>>18)%11)-5)*420.f,-dist*.78f};g->yaw=atan2f(-g->pos.x,STATION_Z-g->pos.z);g->pitch=0;g->speed=100;}
   travellers_advance(g,g->system);
-  market(g);game_spawn(g);route_refresh_destination(g);g->cue=SFX_WARP;char note[80];snprintf(note,sizeof(note),"Hyperspace complete. Fuel %.1f LY left.",g->fuel*.1f);message(g,note);speak(g,VOICE_COMP,"Hyperspace complete. Station ahead.");}}
+  market(g);game_spawn(g);saga_observation_reenter(g);route_refresh_destination(g);g->cue=SFX_WARP;char note[80];snprintf(note,sizeof(note),"Hyperspace complete. Fuel %.1f LY left.",g->fuel*.1f);message(g,note);speak(g,VOICE_COMP,"Hyperspace complete. Station ahead.");}}
 }
 /* Versioned commander file. Load into a temporary struct; reject before mutation. */
 typedef struct {uint32_t magic,version;int system,destination,credits,kills,legal,ship,laser,missiles;float fuel;int cargo[GOODS],stock[GOODS],price[GOODS];int contract,reward;float remaining;} Save;
@@ -831,7 +831,6 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
 #include "freight-tests.h"
  fprintf(f,"RESULT %d failures\n",fails);fclose(f);return fails;
 }
-
 
 
 

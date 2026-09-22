@@ -802,14 +802,21 @@ static void saga_dock_event(Game *g){
  }
 }
 static void saga_observation_interrupt(Game *g){
- if(g&&g->saga_chapter==1&&g->saga_step&&g->system==g->saga_dest&&!(g->saga_flags&SAGA_OBSERVATION_DONE)){
-  g->saga_flags|=SAGA_OBSERVATION_RESET;
-  message(g,"Migration scattered. Cool off, re-enter the system, and listen again.");
+ if(g&&g->saga_chapter==1&&g->saga_step&&g->system==g->saga_dest){
+  int already_reset=(g->saga_flags&SAGA_OBSERVATION_RESET)!=0;
+  g->saga_flags&=~SAGA_OBSERVATION_DONE;g->saga_flags|=SAGA_OBSERVATION_RESET;
+  if(!already_reset)message(g,"Migration scattered. Cool off, re-enter the system, and listen again.");
+ }
+}
+static void saga_observation_reenter(Game *g){
+ if(g&&g->saga_chapter==1&&g->saga_step&&g->system==g->saga_dest&&(g->saga_flags&SAGA_OBSERVATION_RESET)){
+  g->saga_flags&=~SAGA_OBSERVATION_RESET;
+  message(g,"Fresh pass. Engines cool. Listen for the migration pause.");
  }
 }
 static void saga_story_scan(Game *g,int id){
  if(!g||!g->saga_step||id!=ANOMALY_ID_MIN||g->system!=g->saga_dest)return;
- if(g->saga_chapter==1&&!(g->saga_flags&SAGA_OBSERVATION_DONE)){
+ if(g->saga_chapter==1&&!(g->saga_flags&(SAGA_OBSERVATION_DONE|SAGA_OBSERVATION_RESET))){
   g->saga_flags|=SAGA_OBSERVATION_DONE;
   message(g,"Quiet pattern matched. Leave the migration route clear.");
   speak(g,VOICE_CONTACT,"There — the pause is a road-song, not a weapon.");

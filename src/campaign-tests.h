@@ -51,8 +51,20 @@ static void campaign_tests(FILE *f,int *failures){
  Game bespoke;game_init(&bespoke);bespoke.campaign_stage=6;bespoke.saga_chapter=1;saga_begin(&bespoke);bespoke.system=bespoke.saga_dest;bespoke.docked=0;game_spawn(&bespoke);
  int quiet_dest=bespoke.saga_dest;bespoke.anomaly[0].alive=1;bespoke.pos=bespoke.anomaly[0].pos;analysis_scan(&bespoke,ANOMALY_ID_MIN);
  CHECK(bespoke.saga_chapter==1&&quiet_dest==bespoke.system&&(bespoke.saga_flags&SAGA_OBSERVATION_DONE)&&saga_ready(&bespoke),"saga: Ch.03 authored signal scan advances the quiet observation");
- bespoke.saga_flags&=~SAGA_OBSERVATION_DONE;saga_observation_interrupt(&bespoke);
- CHECK((bespoke.saga_flags&SAGA_OBSERVATION_RESET)&&!saga_ready(&bespoke),"saga: firing or hot approach resets the observation without losing the chapter");
+ bespoke.saga_flags&=~SAGA_OBSERVATION_DONE;saga_observation_interrupt(&bespoke);char reset_note[96];snprintf(reset_note,sizeof(reset_note),"%s",bespoke.message);saga_observation_interrupt(&bespoke);
+ CHECK((bespoke.saga_flags&SAGA_OBSERVATION_RESET)&&!(bespoke.saga_flags&SAGA_OBSERVATION_DONE)&&!saga_ready(&bespoke)&&!strcmp(reset_note,bespoke.message),"saga: fire or heat resets once, blocks completion, and does not spam");
+ bespoke.anomaly[0].scanned=0;bespoke.pos=bespoke.anomaly[0].pos;analysis_scan(&bespoke,ANOMALY_ID_MIN);
+ CHECK(!(bespoke.saga_flags&SAGA_OBSERVATION_DONE),"saga: scan while reset cannot complete observation");
+ bespoke.system=(bespoke.saga_dest+1)&255;saga_observation_reenter(&bespoke);
+ CHECK((bespoke.saga_flags&SAGA_OBSERVATION_RESET),"saga: leaving for the wrong system does not re-arm observation");
+ bespoke.system=bespoke.saga_dest;saga_observation_reenter(&bespoke);
+ CHECK(!(bespoke.saga_flags&SAGA_OBSERVATION_RESET),"saga: re-entering the destination clears the reset state");
+ bespoke.anomaly[1].alive=1;bespoke.anomaly[1].scanned=0;bespoke.pos=bespoke.anomaly[1].pos;analysis_scan(&bespoke,ANOMALY_ID_MIN+1);
+ CHECK(!(bespoke.saga_flags&SAGA_OBSERVATION_DONE),"saga: unrelated anomaly cannot satisfy the authored signal");
+ bespoke.system=(bespoke.saga_dest+1)&255;bespoke.anomaly[0].alive=1;bespoke.anomaly[0].scanned=0;bespoke.pos=bespoke.anomaly[0].pos;analysis_scan(&bespoke,ANOMALY_ID_MIN);
+ CHECK(!(bespoke.saga_flags&SAGA_OBSERVATION_DONE),"saga: authored signal cannot complete in another system");
+ bespoke.system=quiet_dest;bespoke.anomaly[0].scanned=0;bespoke.pos=bespoke.anomaly[0].pos;analysis_scan(&bespoke,ANOMALY_ID_MIN);
+ CHECK((bespoke.saga_flags&SAGA_OBSERVATION_DONE)&&saga_ready(&bespoke),"saga: re-armed authored signal completes after a clean re-entry");
  /* Ch.04 requires the port stamp; the pod scan is optional but trust is once-only. */
  bespoke.saga_chapter=2;bespoke.saga_step=0;bespoke.saga_flags=0;saga_begin(&bespoke);bespoke.system=bespoke.saga_dest;bespoke.docked=1;saga_dock_event(&bespoke);
  CHECK((bespoke.saga_flags&SAGA_STAMP_FOUND)&&saga_ready(&bespoke),"saga: Ch.04 stamp is the required evidence");
