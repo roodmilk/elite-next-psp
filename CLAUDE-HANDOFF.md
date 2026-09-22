@@ -6,7 +6,7 @@ Prepared 22 September 2026. Current build: **2.5.2**.
 
 This is a native PSP homebrew game inspired by Elite-A and the wider Elite lineage. It is no longer a literal port: it has a new flight/world simulation, 256 seeded systems, modern PSP interface, multi-body systems, factions, missions, planetary flight/EVA, custom radio folders and an original Kei/Ryn campaign called **The Open Channel**.
 
-The root `README.md` is the **player-facing GitHub storefront** (download CTA, screenshots, short install). Keep it that way. Long version history lives in `docs/DEVELOPMENT-HISTORY.md`. Tagged builds ship from [Releases](https://github.com/roodmilk/elite-next-psp/releases/latest). Social/README images live in `assets/github/`.
+The root `README.md` is the **player-facing GitHub storefront** (download CTA, screenshots, short install). Keep it that way. Long version history lives in `docs/DEVELOPMENT-HISTORY.md`. Tagged builds ship from [Releases](https://github.com/roodmilk/elite-next-psp/releases/latest). Social/README images live in `assets/github/`. Post-merge About/topics/social checklist: `docs/GITHUB-STOREFRONT.md`.
 
 Read these documents in this order:
 
