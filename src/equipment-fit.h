@@ -14,6 +14,10 @@ static int equip_slot_for(int i){
  return -1; /* refuel / missiles are services, not slots */
 }
 
+static int fit_value_valid(int slot,int i){
+ return slot>=0&&slot<FIT_SLOTS&&(i==FIT_EMPTY||(i>0&&i<24&&equip_slot_for(i)==slot));
+}
+
 static int equip_mask_for(int i){
  if(i==4)return 1;
  if(i==5)return 1024;
