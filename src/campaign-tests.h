@@ -41,13 +41,21 @@ static void campaign_tests(FILE *f,int *failures){
  CHECK(saga_coda_pending==5&&strstr(saga_choice_blurb(5,1),"Slower"),"saga: Act I choice queues coda and shows consequence blurbs");
  saga_coda_pending=-1;
  CHECK(saga_has_coda(11)&&strstr(saga_coda_line1(10),"Amplifier")&&strstr(saga_beats[9].talk6,"grammar"),"saga: Act II page scripts and codas reach reunion / giants");
+ CHECK(saga_has_coda(17)&&strstr(saga_coda_line1(12),"Packets")&&strstr(saga_beats[12].line,"Three copies")&&strstr(saga_beats[17].talk6,"Ideals"),"saga: Act III page scripts and codas reach map / No Easy Flag");
+ CHECK(strstr(saga_choice_blurb(17,0),"Ideals")&&strstr(saga_beats[15].talk7,"throat")&&strstr(saga_beats[16].talk4,"unresolved"),"saga: Act III Alliance / Coldest / Flag blurbs from screenplay");
  CHECK(!strcmp(saga_choice_label(5,0),"Publish the ledger now")&&!strcmp(saga_choice_label(11,1),"Verify evidence first")&&!strcmp(saga_choice_label(17,2),"Lawful supervised force"),"saga: choice labels match each permanent decision");
  CHECK(SAGA_BRIEF_BEATS==8&&saga_beats[0].talk8&&saga_beats[0].ask8,"saga: briefs are eight-beat page scripts");
  CHECK(strstr(saga_beats[4].talk6,"spreadsheet")&&strstr(saga_beats[7].line,"tourists"),"saga: Nadi Voss-tape and Venn archive open from screenplay");
  epic.saga_chapter=11;epic.saga_step=1;epic.saga_choice=3;
  CHECK(saga_ready(&epic)&&saga_advance(&epic)&&epic.saga_trust[3]==1&&(epic.saga_flags&2),"saga: limited-alert choice raises Independent trust");
+ saga_coda_pending=-1;
  epic.docked=1;remove("test-saga.sav");remove("test-saga.sav.bak");
  CHECK(save_game(&epic,"test-saga.sav")&&load_game(&loaded,"test-saga.sav")&&loaded.saga_chapter==12&&loaded.saga_trust[1]==1&&loaded.saga_trust[3]==1,"save V9: long campaign chapter and choices survive reload");
+ remove("test-saga.sav");remove("test-saga.sav.bak");
+ epic.saga_chapter=17;epic.saga_step=0;saga_begin(&epic);epic.saga_choice=2;
+ CHECK(saga_ready(&epic)&&saga_advance(&epic)&&epic.saga_trust[1]==2&&saga_coda_pending==17&&strstr(saga_choice_reaction(17,1),"Guild"),"saga: No Easy Flag Guild coalition queues coda and reaction");
+ epic.docked=1;remove("test-saga.sav");remove("test-saga.sav.bak");
+ CHECK(save_game(&epic,"test-saga.sav")&&load_game(&loaded,"test-saga.sav")&&loaded.saga_chapter==18&&loaded.saga_trust[1]==2,"save V9: Act III Flag choice and chapter survive reload");
  remove("test-saga.sav");remove("test-saga.sav.bak");
  /* Display flip regression: IMMEDIATE must remain the present mode (see main.c). */
  CHECK(1,"display: PSP_DISPLAY_SETBUF_IMMEDIATE is required after vblank (NEXTFRAME strobes)");
