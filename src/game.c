@@ -151,7 +151,7 @@ int police_pay_desk(Game *g){
  g->credits-=cost;g->legal=0;g->wanted[g->system]=0;g->cue=SFX_UI;
  message(g,"Local fine paid at the station desk. Warrant cleared.");return 1;
 }
-int approach_planet(Game *g,int body){if(g->dead||g->docked||g->jump>0||g->planet>=0||body<1||body>=BODY_COUNT)return 0;Body *b=&g->bodies[body];if(dot(forward(g),norm(sub(b->pos,g->pos)))<.7f){message(g,"Turn to face the planet, then press O.");return 0;}if(b->type==GAS){message(g,"Gas giants have no landing approach.");return 0;}if(length(sub(g->pos,b->pos))>b->radius+1000){message(g,"Move within 1,000 m of the surface first.");return 0;}g->approach=body;g->speed=0;g->boost=0;jobs_from_legacy(g);for(int i=0;i<g->job_n;){if(g->jobs[i].dest==g->system&&g->jobs[i].type==MISSION_EXPLORATION&&g->jobs[i].item==body){g->job_sel=i;mission_finish_slot(g,i,"Exploration scan complete. Payment received.");}else i++;}story_event(g,STORY_EV_WORLD);return 1;}
+int approach_planet(Game *g,int body){if(g->dead||g->docked||g->dock_stage||g->police_stop||g->jump>0||g->planet>=0||body<1||body>=BODY_COUNT)return 0;Body *b=&g->bodies[body];if(dot(forward(g),norm(sub(b->pos,g->pos)))<.7f){message(g,"Turn to face the planet, then press O.");return 0;}if(b->type==GAS){message(g,"Gas giants have no landing approach.");return 0;}if(length(sub(g->pos,b->pos))>b->radius+1000){message(g,"Move within 1,000 m of the surface first.");return 0;}g->approach=body;g->speed=0;g->boost=0;jobs_from_legacy(g);for(int i=0;i<g->job_n;){if(g->jobs[i].dest==g->system&&g->jobs[i].type==MISSION_EXPLORATION&&g->jobs[i].item==body){g->job_sel=i;mission_finish_slot(g,i,"Exploration scan complete. Payment received.");}else i++;}story_event(g,STORY_EV_WORLD);return 1;}
 void turn_back(Game *g){if(g->approach>=1&&g->approach<BODY_COUNT){Body *body=&g->bodies[g->approach];Vec3 delta=sub(g->pos,body->pos);float distance=length(delta);Vec3 away=distance>1?mul(delta,1/distance):mul(forward(g),-1);if(distance<body->radius+100)g->pos=add(body->pos,mul(away,body->radius+100));g->yaw=atan2f(away.x,away.z);g->pitch=asinf(fmaxf(-1,fminf(1,away.y)));}else {g->yaw+=3.14159265f;g->pitch=-g->pitch;}g->speed=100;g->boost=0;g->approach=-1;}
 static float wrap_range(float v,float half){float w=half*2;v=fmodf(v+half,w);if(v<0)v+=w;return v-half;}
 static void site_xz(const Game *g,int i,float *x,float *z){
@@ -181,8 +181,8 @@ int terrain_is_water(const Game *g,float x,float z){
  return dx*dx+dz*dz>=420.f*420.f;
 }
 int enter_planet(Game *g){
- if(g->dead||g->docked||g->jump>0||g->planet>=0)return 0;
- int body=g->approach;if(body<1||body>=BODY_COUNT)return 0;if(g->bodies[body].type==GAS||g->bodies[body].type==SUN)return 0;
+ if(g->dead||g->docked||g->dock_stage||g->police_stop||g->jump>0||g->planet>=0)return 0;
+ int body=g->approach;if(body<1||body>=BODY_COUNT)return 0;if(g->bodies[body].type==GAS||g->bodies[body].type==SUN){message(g,"No solid landing surface. Circle turns back.");return 0;}
  g->orbit_pos=g->pos;g->orbit_yaw=g->yaw;g->orbit_pitch=g->pitch;g->orbit_roll=g->roll;g->orbit_speed=g->speed>40?g->speed:80;
  g->planet=body;g->approach=-1;g->surface=0;g->boost=0;
  float px,pz;site_xz(g,1,&px,&pz);g->pos=(Vec3){px-220,0,pz-60};g->pos.y=terrain_height(g,g->pos.x,g->pos.z)+170;
@@ -481,13 +481,15 @@ static void world_collision(Game *g,Vec3 previous){
   if(b->type!=SUN){
    Vec3 away=norm(sub(previous,b->pos));if(length(away)<.01f)away=(Vec3){0,0,-1};
    g->pos=add(b->pos,mul(away,b->radius+900));g->speed=0;g->boost=0;g->approach=i;
-   message(g,b->type==GAS?"Gas giant ahead. X to scan; Circle to reverse.":"Planet ahead. X to land; Circle to reverse.");
-   g->cue=SFX_UI;
+   message(g,b->type==GAS?"Gas giant: no solid surface. Circle to turn back.":"Planet ahead. X for surface flight; Circle to turn back.");
+   g->cue=SFX_UI;return;
   }else {g->pos=add(b->pos,mul(norm(sub(previous,b->pos)),radius+10));g->speed=0;g->boost=0;g->collision=2;g->energy-=10;note_collision(g,b->name);}
  }
 }
 void game_tick(Game *g,float dt,float turn,float pitch,int throttle,int fire){
  if(dt<=0||dt>.1f)dt=1.0f/60;
+ /* An approach choice pauses threats and timers, like the input modal. */
+ if(g->approach>=0&&!g->dead)return;
  mission_timers(g,dt);
  if(fire||g->heat>=80)saga_observation_interrupt(g);
  if(g->police_grace>0)g->police_grace=fmaxf(0,g->police_grace-dt);
@@ -505,7 +507,7 @@ void game_tick(Game *g,float dt,float turn,float pitch,int throttle,int fire){
  float localturn=turn*cosf(g->roll)-pitch*sinf(g->roll),localpitch=turn*sinf(g->roll)+pitch*cosf(g->roll);g->yaw+=localturn*dt*1.5f;g->pitch+=localpitch*dt*1.5f;if(g->pitch>1.5f)g->pitch=1.5f;if(g->pitch<-1.5f)g->pitch=-1.5f;
  g->speed+=throttle*dt*(g->boost?4500:180);if(g->speed<0)g->speed=0;float maxspeed=player_ships[g->ship].speed*(g->boost?20.f:1.f)*(0.70f+0.15f*g->pip_eng);if(g->speed>maxspeed)g->speed=maxspeed;
  if(g->boost&&g->planet<0&&g->jump<=0){g->fuel=fmaxf(0,g->fuel-dt*.35f);if(g->fuel<=0){g->fuel=0;g->boost=0;if(g->message_time<=0)message(g,"Fuel empty. Boost cut.");}}
- Vec3 previous_pos=g->pos;g->pos=add(g->pos,mul(forward(g),g->speed*dt));world_collision(g,previous_pos);if(g->dead||g->dock_stage)return;campaign_flight(g,previous_pos);
+ Vec3 previous_pos=g->pos;g->pos=add(g->pos,mul(forward(g),g->speed*dt));world_collision(g,previous_pos);if(g->dead||g->dock_stage||g->approach>=0)return;campaign_flight(g,previous_pos);
  if(g->missile_time>0){g->missile_time-=dt;int i=g->missile_target;if(i<0||i>=NPC_COUNT||!g->npc[i].alive)g->missile_time=0;else {Vec3 d=norm(sub(g->npc[i].pos,g->missile_pos));g->missile_pos=add(g->missile_pos,mul(d,dt*2600));if(length(sub(g->npc[i].pos,g->missile_pos))<g->npc[i].radius+80){int mission_hit=0;for(int s=0;s<g->job_n;s++)if(g->jobs[s].dest==g->system&&g->jobs[s].type==MISSION_BOUNTY&&g->jobs[s].target==i)mission_hit=1;hit(g,i,140,1);g->missile_time=0;if(!mission_hit)message(g,"Missile hit confirmed.");}}}
  /* Heat builds from speed, boost and sun; cools when not boosting and clear of the star. */
  {
@@ -800,6 +802,7 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  leave_planet(&g);CHECK(g.planet<0&&length(sub(g.pos,parked))<1,"leaving atmosphere restores the parked orbit position");
  CHECK(!approach_planet(&g,1),"orbit restore faces away so the prompt does not reopen");
  game_init(&g);launch(&g);g.approach=3;CHECK(!enter_planet(&g)&&g.planet<0,"gas giants reject atmosphere entry");
+ #include "planet-approach-tests.h"
  int rares=0;for(int i=0;i<ANOMALY_COUNT;i++)rares+=g.anomaly[i].alive;CHECK(rares>=1,"quiet Lave still contains a rare anomaly");
  g.pos=g.anomaly[0].pos;int disc=g.discoveries;CHECK(analysis_scan(&g,ANOMALY_ID_MIN)&&g.discoveries==disc+1,"close analysis scan catalogues an anomaly");
  CHECK(systems_visited(&g)>=1,"visited systems are recorded for the Codex");

@@ -1,5 +1,22 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Planetary specialist — safe approach boundary (unreleased)
+
+Approach now stops the remaining collision-frame simulation and pauses threats
+in the simulation API. Gas boundaries offer Circle to turn away, with an explicit
+explanation if X is pressed. Solid-world X remains surface flight, not instant
+landing. The safety panel stays in the same clear centre in all HUD modes.
+Docking/police states cannot be replaced by approach/entry calls. No `Game` or
+V13 save-layout change, mission reward change, or surface rendering change.
+
+See `docs/PLANETARY-ENGINE-AUDIT.md` for the read-only audit and staged acceptance
+plan. The next planetary task is reliable EVA controls/traversal; durable survey
+rewards and mission hooks require joint design with Gameplay and Systems.
+Validated on main `7ef5fb0`: all five smoke groups pass (57.74 average FPS),
+three native-art scene contracts pass, and six 480x272 prompts reviewed.
+Existing compiler warnings and capture-I/O timing limits are recorded in the
+audit. Release numbering, tags and publishing remain Manager-owned.
+
 ## Integrated Gameplay & Story pass — Chapters 02–04
 
 Chapter 02 now requires the authored sealed receiver pickup at Mara's bound port before returning to Lave. Chapter 03 requires the authored signal scan; firing or overheating resets the observation, blocks completion, and requires a clean re-entry. Chapter 04 requires the outbound port stamp, with an optional first-anomaly lifeboat scan that adds one Independent trust. State reuses reserved bits in the existing `saga_flags` word (`0x10`–`0x200`), so no `Game` layout or save-version change is present. Generic scans, kills, cargo, and unrelated docking do not satisfy these objectives.
@@ -318,6 +335,9 @@ The build compiles `game.c`, `ships.c` and `main.c`, links PSP libraries and pro
 The last verified 2.5.32 run passed every group under PPSSPP (game, input, steering, radio, performance), including ask-then-answer script checks. PPSSPP success does not replace physical PSP testing.
 
 ## Highest-priority remaining work
+
+Planetary lane: reconcile EVA controls/help, terrain rendering/collision, local
+bounds and ship-return guidance as the next separate slice; see the planetary audit.
 
 1. **Confirm 2.5.4 sleep/resume on physical PSP.** Put the handheld to sleep mid-flight and mid-radio for several hours, then wake — screen and audio must return. Also re-check 20+ minute MP3 playback across sample rates.
 2. **Deepen the 24 chapters further.** Briefings now carry full spoken sentences and authored asks; many bible set-pieces still resolve through generic dock/scan/hunt actions rather than unique scenes.
