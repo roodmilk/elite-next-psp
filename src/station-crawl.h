@@ -3,6 +3,7 @@
  * Soft look from ART DIRECTOR bake kit (PR #11 handoff + PR #12 station-art-kit.h).
  * Palette+styles via station-art-kit.h; this file owns geometry/input/state. */
 #include "station-art-kit.h"
+#include "native-art-scenes.h"
 enum {
  SC_R_ARRIVALS=0, SC_R_SHOP, SC_R_CANTEEN, SC_R_CARGO, SC_R_GUILD, SC_R_CLINIC, SC_R_CUSTOMS, SC_R_COUNT
 };
@@ -118,7 +119,7 @@ static void sc_build_map(void){
 static int sc_door_dir(int dir){(void)dir;return 1;}
 static int sc_door_ahead(void){return 1;}
 /* Shared MAIN + right options list — no verb row, no PACK chrome. */
-enum { SC_VX=6, SC_VY=20, SC_VW=340, SC_VH=168, SC_LX=354, SC_LY=20, SC_LW=120, SC_LH=168 };
+enum { SC_VX=NATIVE_ART_STATION_X, SC_VY=NATIVE_ART_STATION_Y, SC_VW=NATIVE_ART_STATION_W, SC_VH=NATIVE_ART_STATION_H, SC_LX=354, SC_LY=20, SC_LW=120, SC_LH=168 };
 /* Focal anchors only (art handoff: 3–5 interactables + people/doors/ship).
  * Doors sit as side hatches — never over the hero focal object. */
 static int sc_hotspots(ScHot *out,int maxn){

@@ -103,6 +103,7 @@ static void line(int x,int y,int xx,int yy,unsigned c){
 }
 #include "font8.h"
 #include "art-runtime.h"
+#include "native-art-scenes.h"
 #include "space-animation-kit.h"
 static void text(int x,int y,unsigned c,const char *fmt,...){
  char buf[128];va_list args;va_start(args,fmt);vsnprintf(buf,sizeof(buf),fmt,args);va_end(args);
@@ -910,7 +911,6 @@ int main(void){
  audio_stop();
  sceKernelExitGame();return 0;
 }
-
 
 
 

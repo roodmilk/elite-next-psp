@@ -7,6 +7,14 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 - Added sealed-receiver pickup and home delivery, quiet-signal observation with fire/heat reset and re-entry recovery, a required convoy port stamp, and an optional lifeboat scan that grants Independent trust once.
 - Reused reserved `saga_flags` bits without changing the save schema; unrelated scans, kills, cargo and generic docking cannot advance these objectives.
 
+## Unreleased — native art pipeline and benchmark scenes
+
+- Added a manifest and validator for 480×272, ARGB1555, nearest-neighbour,
+  palette-limited runtime art.
+- Registered Station Arrivals, Planet Approach and Campaign Dialogue as the
+  first native composition contracts and wired station viewport geometry to the
+  shared layout header.
+
 ## Unreleased — shared painted cover field
 
 - Flight, docking, and command-deck previews now share a deterministic stepped
