@@ -226,6 +226,7 @@ void leave_planet(Game *g){
 }
 int land_planet(Game *g){
  if(g->planet<0||g->surface||g->dead)return 0;
+ if(!story_landing_ready(g)){message(g,"Landing kit required. Return to the hub and follow Kei's briefing.");return 0;}
  float ground=terrain_height(g,g->pos.x,g->pos.z),alt=g->pos.y-ground;
  float px,pz;site_xz(g,1,&px,&pz);float pad=sqrtf((g->pos.x-px)*(g->pos.x-px)+(g->pos.z-pz)*(g->pos.z-pz));
  if(g->speed>48){message(g,"Too fast to land. Slow down.");return 0;}
@@ -812,7 +813,8 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  game_init(&g);launch(&g);g.pos=add(g.bodies[1].pos,(Vec3){0,0,-g.bodies[1].radius-500});g.yaw=g.pitch=0;Vec3 parked=g.pos;CHECK(approach_planet(&g,1)&&enter_planet(&g)&&g.planet==1&&g.approach<0,"approach X-path enters atmosphere flight");
  CHECK(g.planet==1&&g.pos.y>terrain_height(&g,g.pos.x,g.pos.z)+100,"atmosphere spawn sits above generated terrain");
  CHECK(!land_planet(&g),"cannot land while high and fast");
- Vec3 pad=surface_site(&g,1);g.pos=add(pad,(Vec3){0,20,0});g.speed=12;g.energy=100;CHECK(land_planet(&g)&&g.surface==1,"slow pad approach lands the ship");
+ Vec3 pad=surface_site(&g,1);g.pos=add(pad,(Vec3){0,20,0});g.speed=12;g.energy=100;CHECK(!land_planet(&g),"landing stays locked until the story awards the landing kit");
+ g.story_flags|=STORY_EV_LANDING_TECH;CHECK(land_planet(&g)&&g.surface==1,"story-awarded landing kit enables a slow pad approach");
  CHECK(eva_toggle(&g)&&g.surface==2,"commander can leave the landed ship");
  {int life=0;for(int i=0;i<LIFE_COUNT;i++)life+=g.life[i].alive;CHECK(life==LIFE_COUNT,"landed worlds spawn a full set of surface lifeforms");}
  {float farh=terrain_height(&g,pad.x+700,pad.z+700),nearh=terrain_height(&g,pad.x,pad.z);CHECK(nearh==24.f&&farh==24.f,"ocean island and visible water share a level surface");}
@@ -856,7 +858,7 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  story_on_open(&g,2);CHECK(g.story==STORY_POWER,"the map unlocks outfitting and power pips");
  CHECK(g.pip_sys==2&&g.pip_eng==2&&g.pip_wep==4,"default pips are two shields, two engines, four weapons");
  CHECK(pip_shift(&g,0)&&g.pip_sys==3&&g.pip_wep==3&&g.pip_sys+g.pip_eng+g.pip_wep==8,"pips steal from the strongest bank and keep eight assigned");
- CHECK(g.story==STORY_WORLD,"moving pips advances the dirt chapter");
+ CHECK(g.story==STORY_WORLD&&(g.story_flags&STORY_EV_LANDING_TECH),"moving pips advances the dirt chapter and awards the landing kit");
  {Game p=g;CHECK(pip_selected_move(&p,0,-1)&&p.pip_sys==2&&p.pip_eng==3,"taking a pip from SYS feeds the weakest bank");}
  story_event(&g,STORY_EV_WORLD);CHECK(g.story==STORY_ATLAS,"planet approach unlocks the Codex");
  story_on_open(&g,15);CHECK(g.story==STORY_FREE&&g.credits==3500,"codex completes the campaign with a Guild payout");
@@ -867,6 +869,5 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
 #include "freight-tests.h"
  fprintf(f,"RESULT %d failures\n",fails);fclose(f);return fails;
 }
-
 
 

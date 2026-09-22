@@ -4,7 +4,7 @@ enum {
  STORY_BRIEF=0, STORY_LAUNCH, STORY_SIGHT, STORY_RETURN, STORY_LOCAL, STORY_NET,
  STORY_WORK, STORY_HOLD, STORY_MAP, STORY_POWER, STORY_WORLD, STORY_ATLAS, STORY_FREE
 };
-enum { STORY_EV_HELP=1, STORY_EV_LAUNCH=2, STORY_EV_TARGET=4, STORY_EV_DOCK=8, STORY_EV_PAGE=16, STORY_EV_WORLD=32, STORY_EV_SCAN=64, STORY_EV_PIP=128 };
+enum { STORY_EV_HELP=1, STORY_EV_LAUNCH=2, STORY_EV_TARGET=4, STORY_EV_DOCK=8, STORY_EV_PAGE=16, STORY_EV_WORLD=32, STORY_EV_SCAN=64, STORY_EV_PIP=128, STORY_EV_LANDING_TECH=256 };
 static void story_complete(Game *g){g->story=STORY_FREE;g->story_flags|=0xffff;}
 static int story_menu_ok(const Game *g,int home_index){(void)g;(void)home_index;return 1;}
 static inline const char *story_title(const Game *g){
@@ -23,7 +23,7 @@ static inline const char *story_line(const Game *g,int line){
   {"A hold is a promise to come back with what you said you would carry.","Open Cargo. I packed you food because hunger makes heroes into statistics.","Eat. Stay clean if you can — Dockhand_77 still teases a dirty bay like it is a moral failing.","What you carry tells people whether your word survives a jump."},
   {"The map is a promise to a star, not a dare written in empty fuel.","Open Galaxy Map and pick one destination you can explain to yourself.","You do not have to jump yet. Her echo is not waiting politely in Lave.","Plan the road before the road plans you."},
   {"Power is how you get home when the sky stops being generous.","Start pauses the three banks — SYS, ENG and WEP — the same lesson I taught Ryn.","Outfitting sells the rest; judgement decides whether you needed it.","Balance the pips like someone who intends to dock again."},
-  {"She loved dirt more than orbit, which is why the quiet worlds still feel like hers.","Tab to Planets, then press O to approach and X to go in when you mean it.","Land on the cyan cross, then walk. Looking is part of the work.","Bring back what you find without pretending the ground owes you a story."},
+  {"She loved dirt more than orbit, which is why the quiet worlds still feel like hers.","Venn found Ryn's atmospheric landing kit. It is yours now — use it carefully.","Tab to Planets, press O to approach, then X to enter when you mean it.","Bring back what you find without pretending the ground owes you a story."},
   {"The Codex is how we keep her — not as a relic, but as a record that can be checked.","O on an echo; Square on foot; then open Codex and log first light properly.","If it is hers, I will know. If it is not, we still owed the sky an honest entry.","Evidence without ownership. That is the Guild lesson I am still learning."},
   {"Every door is yours now. Ryn is still out there, and so am I.","I am still on this channel when you need a voice that talks too much while caring.","Fly like you mean to come home — home is rarer than jump fuel.","The Open Channel stays open. Use it."}
  };
@@ -85,10 +85,12 @@ static __attribute__((unused)) const char *story_hint(const Game *g){
 static void story_advance(Game *g,int to){
  if(g->story>=to||to>STORY_FREE)return;
  g->story=to;
- if(to==STORY_FREE){g->credits+=2500;speak(g,VOICE_KEI,"You made it. I am still here.");message(g,"Ryn's channel stays open.");}
+ if(to==STORY_WORLD){g->story_flags|=STORY_EV_LANDING_TECH;speak(g,VOICE_KEI,"Venn found Ryn's atmospheric landing kit in the locker. It is yours now. Take the ground seriously.");message(g,"Landing kit received. Planetary landing is now available.");}
+ else if(to==STORY_FREE){g->credits+=2500;speak(g,VOICE_KEI,"You made it. I am still here.");message(g,"Ryn's channel stays open.");}
  else speak(g,VOICE_KEI,story_radio(to)+5);
  g->cue=SFX_COMM;
 }
+static inline int story_landing_ready(const Game *g){return g->story>=STORY_WORLD||(g->story_flags&STORY_EV_LANDING_TECH);}
 static void story_try(Game *g){
  if(g->story>=STORY_FREE)return;
  if(g->story==STORY_BRIEF&&(g->story_flags&STORY_EV_HELP))story_advance(g,STORY_LAUNCH);

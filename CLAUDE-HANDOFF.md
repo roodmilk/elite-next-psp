@@ -64,6 +64,8 @@ Manager integration passed the PSP build and all five PPSSPP smoke groups: game,
 
 The Chapter 05 slice on `specialist/gameplay-story-ch05` adds the authored early-filing timestamp comparison at Lave, then exposes inspection/protest evidence choices. It reuses `saga_flags` bits `0x400`–`0x2000`, preserves the sealed records, and requires both the sealed receiver and convoy port stamp before comparison can begin. Partial evidence, wrong-system docking, and repeated comparison actions are covered by campaign tests. Legacy Chapter 05 saves are explicitly reopened with both records at Lave rather than being permanently locked.
 
+The planetary story now awards an atmospheric landing kit when the existing coaching reaches **Her World**, after the power lesson. The award uses the existing `story_flags` word (`STORY_EV_LANDING_TECH`), so no `Game` layout or save-version change is present. Atmospheric approach remains available, but `land_planet()` requires the kit; completed/free-story saves and skipped coaching remain compatible. The handoff dialogue names the kit as recovered from Ryn's locker so the first landing reads as a deliberate story milestone.
+
 Prepared 23 September 2026. Current build: **2.5.47**.
 
 ## PSP UI/art specialist handoff — native deck readability

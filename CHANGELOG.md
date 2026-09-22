@@ -22,6 +22,11 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 - Approach text and actions stay inside the safety panel in Full, Minimal and Scenic HUD modes.
 - Added non-sun boundary, sun damage, turn-away, orbit return, PSP-input and native framebuffer regressions. Save V13 and mission rewards unchanged.
 
+## Unreleased — story-awarded planetary landing kit
+
+- Planetary landing is now gated behind an authored story milestone after the power lesson. Kei awards an atmospheric landing kit found in Ryn's locker, making the first landing a meaningful progression beat without adding a save-field or schema change.
+- Atmosphere approach remains available before the handoff, but landing on the surface pad is blocked until the kit is awarded. Completed/free-story saves remain compatible.
+
 ## Unreleased — authored Chapter 05 evidence loop
 
 - Added the timestamp comparison at Lave and inspection/protest/open-case choices for the early Meridian filing.
