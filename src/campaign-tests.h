@@ -89,6 +89,14 @@ static void campaign_tests(FILE *f,int *failures){
  Game legacy;game_init(&legacy);legacy.campaign_stage=6;legacy.saga_chapter=3;legacy.saga_step=1;legacy.saga_dest=7;legacy.saga_start=12;legacy.docked=1;
  saga_dock_event(&legacy);
  CHECK((legacy.saga_flags&(SAGA_CASE_HELD|SAGA_STAMP_FOUND|SAGA_TIMESTAMP_FOUND))==(SAGA_CASE_HELD|SAGA_STAMP_FOUND|SAGA_TIMESTAMP_FOUND),"saga: legacy Ch.05 save reopens both records and reaches timestamp comparison");
+ Game persisted,roundtrip;game_init(&persisted);persisted.campaign_stage=6;persisted.saga_chapter=3;persisted.saga_step=1;persisted.saga_dest=7;persisted.saga_start=-1;persisted.saga_flags=SAGA_CASE_HELD;persisted.docked=1;
+ remove("test-saga-ch5.sav");remove("test-saga-ch5.sav.bak");
+ CHECK(save_game(&persisted,"test-saga-ch5.sav")&&load_game(&roundtrip,"test-saga-ch5.sav")&&roundtrip.saga_start==-1&&roundtrip.saga_flags==SAGA_CASE_HELD,"save V9: new Ch.05 marker -1 survives round-trip");
+ saga_dock_event(&roundtrip);
+ CHECK(!(roundtrip.saga_flags&SAGA_TIMESTAMP_FOUND),"save V9: case-only evidence remains blocked after reload");
+ persisted.saga_flags=SAGA_STAMP_FOUND;CHECK(save_game(&persisted,"test-saga-ch5.sav")&&load_game(&roundtrip,"test-saga-ch5.sav")&&roundtrip.saga_start==-1&&roundtrip.saga_flags==SAGA_STAMP_FOUND,"save V9: stamp-only evidence survives round-trip");saga_dock_event(&roundtrip);
+ CHECK(!(roundtrip.saga_flags&SAGA_TIMESTAMP_FOUND),"save V9: stamp-only evidence remains blocked after reload");
+ remove("test-saga-ch5.sav");remove("test-saga-ch5.sav.bak");
  CHECK(!strcmp(saga_choice_label(5,0),"Publish the ledger now")&&!strcmp(saga_choice_label(11,1),"Verify evidence first")&&!strcmp(saga_choice_label(17,2),"Lawful supervised force"),"saga: choice labels match each permanent decision");
  CHECK(SAGA_BRIEF_BEATS==8&&saga_beats[0].talk8&&saga_beats[0].ask8,"saga: briefs are eight-beat page scripts");
  CHECK(strstr(saga_beats[4].talk6,"spreadsheet")&&strstr(saga_beats[7].line,"tourists"),"saga: Nadi Voss-tape and Venn archive open from screenplay");
