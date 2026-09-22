@@ -1,6 +1,6 @@
-# ELITE: NEXT — development build 2.5.32
+# ELITE: NEXT — development build 2.5.33
 
-## New in 2.5.32 — MacVenture station deck
+## New in 2.5.33 — MacVenture station deck
 
 - Illustrated station rooms with LOOK / SPEAK / GO / TAKE (Shadowgate-style windows).
 - Dense hotspots in every room; EXITS names doors; TRI or YOUR SHIP returns to the command deck.

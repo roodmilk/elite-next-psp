@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-Prepared 22 September 2026. Current build: **2.5.32**.
+Prepared 22 September 2026. Current build: **2.5.33**.
 
 ## Start here
 
@@ -64,7 +64,7 @@ Important controls:
 
 ## Recent changes that must be preserved
 
-### 2.5.32 — MacVenture station deck
+### 2.5.33 — MacVenture station deck
 
 Illustrated rooms + LOOK/SPEAK/GO/TAKE hotspots (Shadowgate / Deja Vu grammar). Dense clickables; named doors in EXITS; TRI / YOUR SHIP boards from any room. Small interior; maze crawl retired.
 
