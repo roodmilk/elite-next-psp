@@ -11,6 +11,13 @@ Story & Dialogue owns station exploration writing and speech-box flow; footer,
 help and chrome belong to the named PSP UI & Art managers. There is no separate
 "Art3" team member.
 
+The PSP UI & Art Manager is the department lead for visual direction and
+production across the whole game. That role coordinates the Procedural Room
+Composer and Reusable Element Kit across the thousands of first-person,
+point-and-click station screens, along with planetary, ship, GalNet and other
+game interfaces. The two specialist groups own their bounded implementations;
+the manager owns cohesion, allocation and native 480×272 art acceptance.
+
 ## Project-wide native-art acceptance rule
 
 All station artwork and station UI must be authored and judged at the PSP's
