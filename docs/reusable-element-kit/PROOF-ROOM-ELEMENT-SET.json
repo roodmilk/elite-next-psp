@@ -1,0 +1,35 @@
+{
+  "status": "frozen art handoff; runtime promotion pending integrated proof",
+  "selector_contract": "room-selector-v1",
+  "screen": {"width": 480, "height": 272, "room": [6, 20, 340, 168], "options": [354, 20, 120, 168], "feedback_y": 190, "ship_safe": [274, 158, 68, 26]},
+  "rooms": {
+    "qube-h0-freight": {
+      "station_role": "generic Freight proof room",
+      "required_elements": ["person-standing", "person-carrying", "person-seated", "counter", "task-lamp", "dock-window", "cargo-rack", "panel-sign", "door-hatch", "dice-prop"]
+    },
+    "xequerin-h0-research": {
+      "station_role": "Research family proof room",
+      "required_elements": ["research-specimen-cabinet", "research-survey-console", "research-telescope", "research-orbit-window", "research-standing-researcher", "research-seated-researcher"]
+    }
+  },
+  "elements": [
+    {"id":"person-standing","size":[24,52],"pivot":[12,52],"hitbox":[0,0,24,52],"authored":true,"procedural":false,"owner":"Reusable Element Kit","packed_4bit_bytes":624,"normal_asset":null,"contrast_asset":null,"asset_state":"missing_individual_pair_contact_sheet_only"},
+    {"id":"person-carrying","size":[28,52],"pivot":[14,52],"hitbox":[0,0,28,52],"authored":true,"procedural":false,"owner":"Reusable Element Kit","packed_4bit_bytes":728,"normal_asset":null,"contrast_asset":null,"asset_state":"missing_individual_pair_contact_sheet_only"},
+    {"id":"person-seated","size":[30,42],"pivot":[15,42],"hitbox":[0,0,30,42],"authored":true,"procedural":false,"owner":"Reusable Element Kit","packed_4bit_bytes":630,"normal_asset":null,"contrast_asset":null,"asset_state":"missing_individual_pair_contact_sheet_only"},
+    {"id":"counter","size":[96,42],"pivot":[0,42],"hitbox":[0,0,96,12],"authored":true,"procedural":false,"owner":"Reusable Element Kit","packed_4bit_bytes":2016,"normal_asset":null,"contrast_asset":null,"asset_state":"missing_individual_pair_contact_sheet_only"},
+    {"id":"task-lamp","size":[21,18],"pivot":[10,0],"hitbox":null,"authored":true,"procedural":true,"owner":"Reusable Element Kit","packed_4bit_bytes":189,"normal_asset":null,"contrast_asset":null,"asset_state":"missing_individual_pair_contact_sheet_only"},
+    {"id":"dock-window","size":[128,54],"pivot":[64,0],"hitbox":[0,44,128,10],"authored":true,"procedural":true,"owner":"Reusable Element Kit","packed_4bit_bytes":3456,"normal_asset":null,"contrast_asset":null,"asset_state":"missing_individual_pair_contact_sheet_only"},
+    {"id":"cargo-rack","size":[48,52],"pivot":[0,52],"hitbox":[0,0,48,52],"authored":true,"procedural":true,"owner":"Reusable Element Kit","packed_4bit_bytes":1248,"normal_asset":null,"contrast_asset":null,"asset_state":"missing_individual_pair_contact_sheet_only"},
+    {"id":"panel-sign","size":[48,24],"pivot":[0,0],"hitbox":[0,0,48,24],"authored":true,"procedural":true,"owner":"Reusable Element Kit","packed_4bit_bytes":576,"normal_asset":null,"contrast_asset":null,"asset_state":"missing_individual_pair_contact_sheet_only"},
+    {"id":"door-hatch","size":[52,60],"pivot":[26,60],"hitbox":[0,0,52,60],"authored":true,"procedural":false,"owner":"Reusable Element Kit","packed_4bit_bytes":1560,"normal_asset":null,"contrast_asset":null,"asset_state":"missing_individual_pair_contact_sheet_only"},
+    {"id":"dice-prop","size":[42,18],"pivot":[21,9],"hitbox":[0,0,42,18],"authored":true,"procedural":false,"owner":"Reusable Element Kit","packed_4bit_bytes":378,"normal_asset":null,"contrast_asset":null,"asset_state":"missing_individual_pair_contact_sheet_only"},
+    {"id":"research-specimen-cabinet","size":[64,86],"pivot":[32,86],"hitbox":[0,0,64,86],"authored":true,"procedural":false,"owner":"Reusable Element Kit","packed_4bit_bytes":2752,"normal_asset":"assets/preview/reusable-element-kit/family-elements/research-specimen-cabinet-normal.png","contrast_asset":"assets/preview/reusable-element-kit/family-elements/research-specimen-cabinet-contrast.png","asset_state":"candidate_pair"},
+    {"id":"research-survey-console","size":[70,44],"pivot":[35,44],"hitbox":[0,0,70,44],"authored":true,"procedural":false,"owner":"Reusable Element Kit","packed_4bit_bytes":1540,"normal_asset":"assets/preview/reusable-element-kit/family-elements/research-survey-console-normal.png","contrast_asset":"assets/preview/reusable-element-kit/family-elements/research-survey-console-contrast.png","asset_state":"candidate_pair"},
+    {"id":"research-telescope","size":[58,58],"pivot":[29,58],"hitbox":[0,0,58,58],"authored":true,"procedural":false,"owner":"Reusable Element Kit","packed_4bit_bytes":1682,"normal_asset":"assets/preview/reusable-element-kit/family-elements/research-telescope-normal.png","contrast_asset":"assets/preview/reusable-element-kit/family-elements/research-telescope-contrast.png","asset_state":"candidate_pair"},
+    {"id":"research-orbit-window","size":[104,64],"pivot":[52,0],"hitbox":[0,54,104,10],"authored":true,"procedural":false,"owner":"Reusable Element Kit","packed_4bit_bytes":3328,"normal_asset":"assets/preview/reusable-element-kit/family-elements/research-orbit-window-normal.png","contrast_asset":"assets/preview/reusable-element-kit/family-elements/research-orbit-window-contrast.png","asset_state":"candidate_pair"},
+    {"id":"research-standing-researcher","size":[18,48],"pivot":[9,48],"hitbox":[0,0,18,48],"authored":true,"procedural":false,"owner":"Reusable Element Kit","packed_4bit_bytes":432,"normal_asset":"assets/preview/reusable-element-kit/family-elements/research-standing-researcher-normal.png","contrast_asset":"assets/preview/reusable-element-kit/family-elements/research-standing-researcher-contrast.png","asset_state":"candidate_pair"},
+    {"id":"research-seated-researcher","size":[22,40],"pivot":[11,40],"hitbox":[0,0,22,40],"authored":true,"procedural":false,"owner":"Reusable Element Kit","packed_4bit_bytes":440,"normal_asset":"assets/preview/reusable-element-kit/family-elements/research-seated-researcher-normal.png","contrast_asset":"assets/preview/reusable-element-kit/family-elements/research-seated-researcher-contrast.png","asset_state":"candidate_pair"}
+  ],
+  "duplicate_owner_check": {"within_set": "pass", "duplicate_authored_people_doors_hatches": "none", "runtime_owner_conflicts": "pending Station/Composer reconciliation"},
+  "promotion_blockers": ["Qube Freight generic elements lack individual normal/contrast files", "Station/Gameplay hotspot binding pending", "Composer selector placement pending", "integrated native captures and performance report pending"]
+}
