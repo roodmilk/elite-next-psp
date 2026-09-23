@@ -330,24 +330,48 @@ static void equipment(void){
  footer(equipment_owned(i)&&i>0&&i!=3?"UP/DOWN  X FIT  SQUARE SELL  O BACK":"UP/DOWN   X BUY / REFUEL   O BACK");
 }
 /* Ship loadout — real fitted slots from fit[]. */
+/* Native PSP ship inventory: the pixel silhouette uses the same mesh identity as
+ * the 3D ship preview, so every hull stays visually consistent with the yard. */
+static void ship_loadout_art(int mesh,int cx,int cy){
+ unsigned hull=RGB(154,166,171),edge=RGB(224,181,105),shadow=RGB(43,58,72),glow=RGB(89,184,194);
+ int style=mesh%5;
+ rect(cx-58,cy-1,116,3,shadow);rect(cx-42,cy+2,84,3,hull);rect(cx-26,cy+5,52,3,hull);
+ if(style==0){rect(cx-12,cy-25,24,50,hull);rect(cx-30,cy-9,60,18,hull);rect(cx-48,cy-3,96,6,edge);rect(cx-8,cy-34,16,9,shadow);}
+ else if(style==1){rect(cx-8,cy-32,16,64,hull);rect(cx-40,cy-7,80,14,hull);rect(cx-54,cy-2,108,4,edge);rect(cx-18,cy-18,36,36,shadow);}
+ else if(style==2){rect(cx-18,cy-22,36,44,hull);rect(cx-48,cy-8,96,16,hull);rect(cx-62,cy-2,124,5,edge);rect(cx-9,cy-34,18,10,shadow);}
+ else if(style==3){rect(cx-10,cy-31,20,62,hull);rect(cx-34,cy-14,68,28,hull);rect(cx-58,cy-5,116,10,edge);rect(cx-5,cy-38,10,7,shadow);}
+ else {rect(cx-22,cy-18,44,36,hull);rect(cx-54,cy-6,108,12,hull);rect(cx-68,cy-2,136,5,edge);rect(cx-10,cy-29,20,7,shadow);}
+ rect(cx-5,cy-4,10,8,glow);rect(cx-2,cy-1,4,3,RGB(205,231,210));
+ line(cx-50,cy+13,cx-34,cy+13,shadow);line(cx+34,cy+13,cx+50,cy+13,shadow);
+}
 static void inventory_screen(void){
- header("SHIP LOADOUT / HOLD");panel(8,32,232,180);panel(248,32,224,180);
- text(2,5,CYAN,"EQUIP SLOTS");
+ header("SHIP LOADOUT");panel(8,32,230,180);panel(246,32,226,180);
  const char *slot[]={"WPN","DEF","NAV","HOLD","FUEL","UTIL"};
+ int mesh=mesh_id(player_ships[game.ship].name);
+ text(2,5,CYAN,"VISUAL LOADOUT");text(2,6,DIM,"%.20s  /  MESH %d",player_ships[game.ship].name,mesh);
+ ship_loadout_art(mesh,123,122);
  for(int i=0;i<6;i++){
-  int y=7+i*2,mod=game.fit[i];
-  if(!fit_value_valid(i,mod))mod=FIT_EMPTY;
-  const char *name=mod==FIT_EMPTY?(i==FIT_HOLD?"BASE HOLD":i==FIT_FUEL?"TANK ONLY":"NONE"):equipment_list_names[mod];
-  if(i==row)selected(y);text(2,y,i==row?GOLD:WHITE,"%-4s %.18s",slot[i],name);
+  int mod=game.fit[i];if(!fit_value_valid(i,mod))mod=FIT_EMPTY;
+  const char *name=mod==FIT_EMPTY?(i==FIT_HOLD?"BASE HOLD":i==FIT_FUEL?"TANK ONLY":"EMPTY"):equipment_list_names[mod];
+  int x=(i%2)?143:14,y=9+(i/2)*4;
+  if(i==row)rect(x-2,y*8-3,82,16,RGB(25,65,77));
+  text(x,y,i==row?GOLD:CYAN,"%s",slot[i]);text(x+5,y,mod==FIT_EMPTY?DIM:WHITE,"%.8s",name);
+  /* Slot markers sit on the hull, while the labels remain readable at 1x. */
+  static const int mx[]={123,123,93,153,104,142},my[]={98,139,117,117,144,144};
+  int marker_x=mx[i],marker_y=my[i];
+  rect(marker_x-3,marker_y-3,7,7,i==row?GOLD:CYAN);rect(marker_x-1,marker_y-1,3,3,RGB(21,28,39));
  }
- text(2,20,CYAN,"MISSILES %d",game.missiles);
- text(2,22,WHITE,"HOLD %d / %d T",cargo_used(&game),cargo_capacity(&game));
- text(32,5,CYAN,"CARGO MANIFEST");
- int line=7; for(int g=0;g<GOODS&&line<18;g++)if(game.cargo[g]>0){text(32,line,WHITE,"%-12.12s %d%c",goods[g].name,game.cargo[g],goods[g].unit);line++;}
- if(game.passenger_dest>=0){text(32,line,GOLD,"PASSENGER");line++;text(32,line,CYAN,"-> %.12s",game.systems[game.passenger_dest].name);line++;}
- if(line==7)text(32,7,DIM,"Hold empty.");
- text(32,20,DIM,"Shield %.1f/s",shield_regen_rate(&game));
- footer(game.docked?"UP/DOWN  X SELL 50%  O BACK":"UP/DOWN   O BACK");
+ text(2,24,DIM,"MISSILES %d   HOLD %d/%d T",game.missiles,cargo_used(&game),cargo_capacity(&game));
+ text(31,5,CYAN,"MODULES & CARGO");text(31,6,DIM,"X removes selected module");
+ for(int i=0;i<6;i++){
+  int mod=game.fit[i];if(!fit_value_valid(i,mod))mod=FIT_EMPTY;int y=8+i*2;
+  text(31,y,i==row?GOLD:WHITE,"%-4s",slot[i]);
+  if(mod==FIT_EMPTY)text(36,y,DIM,"EMPTY");else text(36,y,CYAN,"%.13s",equipment_list_names[mod]);
+ }
+ text(31,21,CYAN,"CARGO");int line=22;
+ for(int g=0;g<GOODS&&line<25;g++)if(game.cargo[g]>0){text(31,line,WHITE,"%.12s %d%c",goods[g].name,game.cargo[g],goods[g].unit);line++;}
+ if(line==22)text(31,22,DIM,"Hold empty.");
+ footer(game.docked?"UP/DOWN  X REMOVE  O BACK":"UP/DOWN   O BACK");
 }
 
 static void status(void){header("COMMANDER");panel(8,32,464,156);draw_portrait(14,40,92,78,game.system,EXPLORERS);draw_world_card(118,40,92,78,&game.bodies[1],game.bodies[1].seed);text(29,5,CYAN,"%.18s",player_ships[game.ship].name);text(29,8,WHITE,"%.1f units  Kills %d  Ms %d",game.credits*.1f,game.kills,game.missiles);text(29,11,game.legal?RED:CYAN,"Wanted [%s] %.10s",stars(wanted_level(&game)),game.systems[game.system].name);{int dirty=cargo_contraband(&game);if(dirty)text(29,12,AMBER,"Hold flagged %d t restricted",dirty);}text(29,13,GOLD,"SYS %d  ENG %d  WEP %d",game.pip_sys,game.pip_eng,game.pip_wep);text(3,17,WHITE,"Codex %d    Charted %d",game.discoveries,systems_visited(&game));if(game.job_n>0)text(3,19,GOLD,"Jobs %d/5  %s -> %s",game.job_n,mission_name(game.jobs[game.job_sel].type),game.systems[game.jobs[game.job_sel].dest].name);else text(3,19,DIM,"No active missions.");if(game.docked&&game.legal>0)text(3,21,GOLD,"X save  Square pay fine %.1f U  Tri load",police_fine(&game)*.1f);else text(3,21,WHITE,game.docked?"X save     Triangle load":"Dock to save or load.");footer(game.docked&&game.legal>0?"X SAVE   SQUARE PAY FINE   TRI LOAD   O BACK":"O BACK");}

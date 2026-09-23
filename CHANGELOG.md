@@ -424,3 +424,6 @@ The detailed development history, controls, implemented feature list, validation
 ## 2.5.56 - Outfitting loadout redesign
 - Replaced the flat equipment list with a three-panel PSP-native layout: current loadout, available modules, and a focused module card.
 - Added clear slot highlighting, fit/replacement state, page position, tech level, price, balance, and compact controls while preserving existing buy, fit, sell, and refuel behavior.
+## 2.5.57 - Visual ship loadout
+- Replaced the flat ship inventory list with a PSP-native pixel-art hull diagram tied to the selected ship mesh identity.
+- Added six overlaid equipment markers, fitted/empty slot states, module summary, cargo, missiles, and capacity readouts while preserving removal behavior.
