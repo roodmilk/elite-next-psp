@@ -1,8 +1,8 @@
 /* Stable service IDs keep existing tutorial hooks and shortcuts compatible. */
 #define DECK_ITEMS 22
 #define DECK_GROUPS 5
-static const int deck_rows[DECK_GROUPS][6]={{0,8,11,2,20,-1},{1,3,4,21,-1,-1},{17,12,13,7,14,-1},{15,-1,-1,-1,-1,-1},{5,6,16,19,9,-1}};
-static const int deck_sizes[]={5,4,5,1,5};
+static const int deck_rows[DECK_GROUPS][6]={{0,8,11,2,20,-1},{1,3,4,21,-1,-1},{17,12,13,7,-1,-1},{15,14,-1,-1,-1,-1},{5,6,16,19,9,-1}};
+static const int deck_sizes[]={5,4,4,2,5};
 static const char *deck_groups[]={"FLY","SHIP","WORK","DISCOVER","COMMANDER"};
 static int deck_focus[DECK_GROUPS]={0,1,17,15,5},deck_last=0,help_tab=0;
 static int nav_pages[8],nav_rows[8],nav_depth=0,nav_back=0;

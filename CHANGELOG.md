@@ -427,3 +427,7 @@ The detailed development history, controls, implemented feature list, validation
 ## 2.5.57 - Visual ship loadout
 - Replaced the flat ship inventory list with a PSP-native pixel-art hull diagram tied to the selected ship mesh identity.
 - Added six overlaid equipment markers, fitted/empty slot states, module summary, cargo, missiles, and capacity readouts while preserving removal behavior.
+## 2.5.58 - Clearer command deck navigation
+- GalacticNet now lives under Discovery with its own tab destination.
+- Mission Log separates main missions from side work at a glance.
+- Targeting Computer gains a compact CRT monitor bezel and status sticker while retaining the scanline display.
