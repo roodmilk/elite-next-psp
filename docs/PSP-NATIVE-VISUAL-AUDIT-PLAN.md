@@ -18,6 +18,12 @@ booth, floor rail and doors aligned to the existing exit rectangles.
 Acceptance: normal and high-contrast runtime captures, the existing BARTEND
 and TRAVELER hotspots still select correctly, and SHIP remains reachable.
 
+Composer review `75e5491` adds a promotion gate: Lave H0 is a Merchant family
+and needs its own approved family set. The `04a6098` direct-pixel scene is a
+candidate polish proof only until that family set and its normal/contrast
+capture pair are accepted; it must not be promoted as a tint or visual reuse
+of Reorte, Qube or Xequerin.
+
 ### 2. Generic station-room fallback
 
 The seven-room graph and procedural descriptors are present, but Lave’s
