@@ -9,6 +9,7 @@
   sc_built_for=-1;sc_build_map();sc_room=SC_R_CANTEEN;sc_menu=SC_MENU_NONE;
   sc_room=SC_R_ARRIVALS;
   INPUT_CHECK(station_authored_arrivals_at()&&strstr(sc_room_title(sc_room),"REORTE")!=NULL,"station shell: authored Arrivals plate is exact Reorte primary");
+  INPUT_CHECK(NATIVE_ART_SCREEN_W==W&&NATIVE_ART_SCREEN_H==H&&SC_VX>=0&&SC_VY>=0&&SC_VX+SC_VW<=W&&SC_VY+SC_VH<=H&&SC_LX+SC_LW<=W&&SC_LY+SC_LH<=H,"station shell: native PSP scene and option rail stay inside 480x272");
   game.station_variant=1;INPUT_CHECK(!station_authored_arrivals_at(),"station shell: secondary hub keeps generic Arrivals art");
   game.station_variant=0;sc_build_map();sc_room=SC_R_CANTEEN;
   ScNpc bp_npcs[3];int bp_n=sc_fill_npcs(sc_room,bp_npcs,3);
