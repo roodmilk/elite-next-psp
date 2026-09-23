@@ -29,6 +29,7 @@ for(const family_id of [0,1,2]) for(const hub_index of [0,1,2]) for(const room_c
     dialogue_truth:null,
     save_economy_safe:null,
     duplicate_anchor_check:null,
+    hotspot_ownership:null,
     static_asset_bytes:null,
     plan_bytes:null,
     draw_calls_per_frame:null,

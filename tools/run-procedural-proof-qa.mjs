@@ -29,12 +29,14 @@ status('selector_parity',selectorEvidence===required.length?'pass':'pending',{de
 
 const targetCount=extraction.value?.summary?.total||12;const candidateCount=extraction.value?.summary?.candidates||0;
 status('native_states',candidateCount===targetCount?'pending_capture':'blocked',{dimension_candidates:candidateCount,target_count:targetCount,normal_capture:extraction.value?.gates?.normal_capture||'missing',contrast_capture:extraction.value?.gates?.contrast_capture||'missing',deterministic_repeat:extraction.value?.gates?.deterministic_repeat||'missing'});
+status('native_runtime_capture','blocked',{normal_capture:'pending',high_contrast_capture:'pending',input_traversal:'pending',emulator_report:'blocked before game-check.txt'});
 const familyFits=familyBudget.value?.families&&Object.values(familyBudget.value.families).every(f=>f.normal_fits_room_ceiling&&f.contrast_fits_room_ceiling);
 const frozenFits=frozenBudget.value?.assembly_fits_room_candidate===true;
 const measuredBudgetSamples=required.filter(key=>['static_asset_bytes','plan_bytes','draw_calls_per_frame','peak_temp_memory_bytes','frame_time_ms'].every(field=>Number.isFinite(sampleByKey.get(key)?.[field]))).length;
 status('budget',familyFits&&frozenFits&&measuredBudgetSamples===required.length?'pass':'pending',{family_candidate_budget:familyFits?'pass':'missing',frozen_kit_budget:frozenFits?'pass':'missing',measured_runtime_samples:measuredBudgetSamples,required_samples:required.length});
 const boolGate=(field,name)=>{const passed=required.filter(key=>sampleByKey.get(key)?.[field]===true).length;status(name,passed===required.length?'pass':'pending',{passed,required:required.length});};
 boolGate('duplicate_anchor_check','duplicate_anchors');
+boolGate('hotspot_ownership','hotspot_ownership');
 boolGate('dialogue_truth','dialogue_truth');
 boolGate('save_economy_safe','save_economy_safety');
 const coverage=room.value?.coverage||room.value?.summary||{};

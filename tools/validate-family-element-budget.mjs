@@ -7,10 +7,12 @@ const arg=(name,fallback)=>{const i=process.argv.indexOf(name);return i>=0?proce
 const manifestPath=arg('--manifest');
 const out=arg('--out','work/planet-preview/family-element-budget.json');
 const ceiling=Number(arg('--ceiling','28560'));
+const family=arg('--family','ALL').toUpperCase();
 if(!manifestPath){console.error('Usage: node tools/validate-family-element-budget.mjs --manifest <family-elements/MANIFEST.json> [--out <report.json>]');process.exit(2);}
 const manifest=JSON.parse(fs.readFileSync(manifestPath,'utf8'));
 const entries=Array.isArray(manifest)?manifest:(manifest.elements||manifest.entries||[]);
 const expected={
+  FREIGHT:[['person-standing',[24,52]],['person-carrying',[28,52]],['person-seated',[30,42]],['counter',[96,42]],['task-lamp',[21,18]],['dock-window',[128,54]],['cargo-rack',[48,52]],['panel-sign',[48,24]],['door-hatch',[52,60]],['dice-prop',[42,18]]],
   PROSPECTOR:[['prospector-ore-wall',[92,72]],['prospector-assay-bench',[74,42]],['prospector-cargo-rack',[52,64]],['prospector-lander-window',[82,52]],['prospector-standing-sample-case',[18,48]],['prospector-seated-miner',[18,38]]],
   RESEARCH:[['research-specimen-cabinet',[64,86]],['research-survey-console',[70,44]],['research-telescope',[58,58]],['research-orbit-window',[104,64]],['research-standing-researcher',[18,48]],['research-seated-researcher',[22,40]]]
 };
@@ -24,7 +26,9 @@ for(const entry of entries){
   byId.set(key,{...entry,size});
 }
 const families={};
-for(const [family,targets] of Object.entries(expected)){
+const selected=family==='ALL'?expected:{[family]:expected[family]};
+if(family!=='ALL'&&!expected[family]){console.error(`Unknown family ${family}; use FREIGHT, PROSPECTOR, RESEARCH or ALL`);process.exit(2);}
+for(const [family,targets] of Object.entries(selected)){
   let normal=0;let contrast=0;let count=0;
   for(const [id,size] of targets){
     for(const variant of ['normal','contrast']){

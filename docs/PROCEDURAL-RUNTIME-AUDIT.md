@@ -70,7 +70,7 @@ capture, truth/safety boolean and numeric budget field starts as `null` and
 must be replaced by measured evidence. The proof covers Freight, Prospector
 and Research at H0/H1/H2 across all seven rooms,
 and refuses certification until selector parity, native normal/contrast captures,
-dialogue truth, save/economy safety, duplicate-anchor checks and numeric static/
+dialogue truth, save/economy safety, hotspot ownership, duplicate-anchor checks and numeric static/
 plan/draw/temp/frame measurements are present.
 
 Run the consolidated offline gate with:

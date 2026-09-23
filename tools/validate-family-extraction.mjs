@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const arg=(name,fallback)=>{const i=process.argv.indexOf(name);return i>=0?process.argv[i+1]:fallback;};
-const manifestPath=arg('--manifest');const out=arg('--out','work/planet-preview/family-extraction-audit.json');
+const manifestPath=arg('--manifest');const out=arg('--out','work/planet-preview/family-extraction-audit.json');const family=arg('--family','prospector-research').toUpperCase();
 if(!manifestPath){console.error('Usage: node tools/validate-family-extraction.mjs --manifest <ELEMENT-MANIFEST.json> [--out <audit.json>]');process.exit(2);}
 const manifest=JSON.parse(fs.readFileSync(manifestPath,'utf8'));
 const entries=Array.isArray(manifest)?manifest:(manifest.elements||manifest.entries||[]);
@@ -15,7 +15,9 @@ for(const entry of entries){
   const current=elements.get(entry.id);
   if(!current) elements.set(entry.id,{...entry,size});
 }
-const targets=[
+const targets=family==='FREIGHT' ? [
+ ['FREIGHT','standing person',['person-standing'],[24,52]],['FREIGHT','carrying worker',['person-carrying'],[28,52]],['FREIGHT','seated person',['person-seated'],[30,42]],['FREIGHT','service counter',['counter'],[96,42]],['FREIGHT','task lamp',['task-lamp'],[21,18]],['FREIGHT','dock window',['dock-window'],[128,54]],['FREIGHT','cargo rack',['cargo-rack'],[48,52]],['FREIGHT','panel sign',['panel-sign'],[48,24]],['FREIGHT','door hatch',['door-hatch'],[52,60]],['FREIGHT','dice prop',['dice-prop'],[42,18]]
+] : [
  ['PROSPECTOR','ore/sample wall with claim tags',['prospector-ore-wall'],[92,72]],['PROSPECTOR','assay bench and task lamp',['prospector-assay-bench','assay-bench'],[74,42]],['PROSPECTOR','cargo rack / packed crates',['prospector-cargo-rack','cargo-rack'],[52,64]],['PROSPECTOR','lander/desert window',['prospector-lander-window'],[82,52]],['PROSPECTOR','standing prospector with sample case',['prospector-standing-sample-case'],[18,48]],['PROSPECTOR','seated miner silhouette',['prospector-seated-miner'],[18,38]],
  ['RESEARCH','specimen cabinet',['research-specimen-cabinet'],[64,86]],['RESEARCH','survey console',['research-survey-console','survey-console'],[70,44]],['RESEARCH','telescope / orbit instrument',['research-telescope'],[58,58]],['RESEARCH','ringed-planet orbit window',['research-orbit-window'],[104,64]],['RESEARCH','standing researcher',['research-standing-researcher'],[18,48]],['RESEARCH','seated researcher / lounge chair',['research-seated-researcher'],[22,40]]
 ];

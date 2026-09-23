@@ -51,10 +51,14 @@ also accepts:
 ```text
 node tools/rebuild-procedural-pipeline.mjs --out work/planet-preview --register <ROOM-COVERAGE-REGISTER.json> --element-manifest <frozen ELEMENT-MANIFEST.json> --family-manifest <family-elements/MANIFEST.json>
 node tools/validate-family-extraction.mjs --manifest <family-elements/MANIFEST.json> --out work/planet-preview/family-extraction-audit-native.json
+node tools/validate-family-extraction.mjs --family FREIGHT --manifest <freight-elements/MANIFEST.json> --out work/planet-preview/freight-extraction-audit.json
+node tools/validate-family-element-budget.mjs --family FREIGHT --manifest <freight-elements/MANIFEST.json> --out work/planet-preview/freight-element-budget.json
 ```
 
-The current candidate result is 12 of 12 native dimension matches and both
-family variants fit the 28,560-byte room candidate ceiling. It is not runtime
+The current candidate result is 12 of 12 Prospector/Research native dimension
+matches plus 10 of 10 Freight matches; the updated Freight set is 11,405
+packed4bit bytes per variant and fits the 28,560-byte room candidate ceiling.
+These are deterministic candidate-art checks only. They are not runtime
 certification: hotspot ownership, selector placement, deterministic repeat,
 normal/high-contrast native captures, zero-allocation proof and integrated
 frame measurements remain pending.
