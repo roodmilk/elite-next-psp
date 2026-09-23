@@ -419,6 +419,15 @@ static void sc_illust_canteen(int x,int y,int w,int h){
  sc_scene_sky(x,y,w,h,mix_rgb(st->wall,SC_OCHRE,.3f),st->wall2);
  sc_wall_plates(x,y,w,h-52,mix_rgb(st->wall,SC_OLIVE,.15f),mix_rgb(SC_RUST,st->trim,.35f));
  sc_floor_planes(x,y,w,h,mix_rgb(st->trim,st->wall,.4f),st->wall,st->wall2);
+ /* Lave's public canteen gets a local identity stamp while keeping the
+  * generic room geometry and every existing hotspot unchanged. */
+ if(game.system==7){
+  rect(x+94,y+2,132,4,mix_rgb(SC_RUST,SC_OCHRE,.35f));
+  line(x+94,y+6,x+84,y+30,SC_OCHRE);line(x+226,y+6,x+236,y+30,SC_OCHRE);
+  rect(x+104,y+8,112,16,SC_SLATE);rect(x+108,y+10,104,1,SC_CREAM);
+  text((x+116)/8,(y+12)/8,SC_CREAM,"LAVE PUBLIC");
+  circle(x+238,y+18,5,SC_OCHRE);pixel(x+238,y+18,SC_CREAM);
+ }
  /* Back bar wall + few bottles with glints */
  rect(x+64,y+12,192,44,mix_rgb(st->wall,st->trim,.2f));
  for(int i=0;i<4;i++){

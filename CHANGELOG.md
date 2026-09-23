@@ -439,3 +439,6 @@ The detailed development history, controls, implemented feature list, validation
 - Added an animated native-pixel targeting scope signature to the monitor-themed targeting computer.
 - Added a compact stamped hull readout for Ship Loadout while preserving the fitted-slot inventory view.
 - Began the Lave acceptance audit across station, flight, mission, planetary, audio, and QA flows; runtime certification remains dependent on the smoke harness report.
+## 2.5.62 - Lave showcase visual pass
+- Added a Lave-specific public-canteen identity treatment: arch, LAVE PUBLIC sign, and station seal, while preserving generic room geometry and all existing hotspots.
+- Added the staged v0.5–v0.7 release plan and evidence gates to the repository.
