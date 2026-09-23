@@ -4,6 +4,7 @@
  * Palette+styles via station-art-kit.h; this file owns geometry/input/state. */
 #include "station-art-kit.h"
 #include "native-art-scenes.h"
+#include "station-bar-art.h"
 enum {
  SC_R_ARRIVALS=0, SC_R_SHOP, SC_R_CANTEEN, SC_R_CARGO, SC_R_GUILD, SC_R_CLINIC, SC_R_CUSTOMS, SC_R_COUNT
 };
@@ -37,9 +38,11 @@ static int sc_x=0, sc_y=0, sc_face=SC_S;
 static unsigned char sc_map[1][1], sc_door_n[1][1], sc_door_e[1][1];
 static const ArtRoomStyle *sc_style(void){return art_room_style(sc_art_id(sc_room));}
 typedef struct { const char *name; int role; int act; int shop_item; int gift_bit; int quest_pay; int taxi_pay; const char *line; const char *offer; } ScNpc;
+#include "station-bar-preview.h"
 enum { SC_ACT_TALK=0, SC_ACT_SHOP, SC_ACT_GIFT, SC_ACT_QUEST, SC_ACT_TAXI, SC_ACT_BOARD };
 typedef struct { int kind; int id; int x,y,w,h; const char *label; const char *look; } ScHot;
 static void sc_person_pos(int room,int i,int *ox,int *oy){
+ if(room==SC_R_CANTEEN&&bar_preview_at()){second_shift_person_pos(i,ox,oy);return;}
  /* Keep people inside the narrower MAIN (options list owns the right). */
  static const int pos[SC_R_COUNT][3][2]={
   {{90,88},{210,84},{0,0}},
@@ -54,14 +57,17 @@ static void sc_person_pos(int room,int i,int *ox,int *oy){
  *ox=pos[room][i][0];*oy=pos[room][i][1];
 }
 static const char *sc_room_title(int r){
+ if(r==SC_R_CANTEEN&&bar_preview_at())return "THE SECOND SHIFT";
  static const char *n[]={"ARRIVALS HALL","CHANDLERY","CANTEEN","CARGO BAY","GUILD DESK","MED CLINIC","CUSTOMS LOCK"};
  return r>=0&&r<SC_R_COUNT?n[r]:"DECK";
 }
 static const char *sc_room_short(int r){
+ if(r==SC_R_CANTEEN&&bar_preview_at())return "SECOND SHIFT";
  static const char *n[]={"ARRIVAL","SHOP","CANTEEN","CARGO","GUILD","CLINIC","CUSTOMS"};
  return r>=0&&r<SC_R_COUNT?n[r]:"DECK";
 }
 static const char *sc_room_blurb(int r){
+ if(r==SC_R_CANTEEN&&bar_preview_at())return "Three contacts, a world lead and free dice practice. Preview: no recorder contract or credit bets.";
  static const char *n[]={
   "One bright berth window. A freighter slips the lane. Board waits when you look.",
   "Cream walls, ochre counter. One ledger — deals happen here.",
@@ -83,8 +89,14 @@ static int sc_fill_npcs(int room,ScNpc *out,int maxn){
   SC_PUSH("CHANDLER",TRADERS,SC_ACT_SHOP,-1,-1,0,0,"I stock what the main board won't list.","Browse exclusive stock");
   if((h&3)==0)SC_PUSH("MECHANIC",TRADERS,SC_ACT_GIFT,-1,0,0,0,"Take a spare clamp. Once. Don't ask twice.","Accept free clamp");
  }else if(room==SC_R_CANTEEN){
+  if(bar_preview_at()){
+   SC_PUSH("LYSA KEST",TRADERS,SC_ACT_BAR_LYSA,-1,-1,0,0,bar_preview_notes[0],"Ask about REORTE I");
+   SC_PUSH("PELL SORN",EXPLORERS,SC_ACT_BAR_PELL,-1,-1,0,0,bar_preview_notes[1],"Target REORTE I");
+   SC_PUSH("DAX NERAL",TRADERS,SC_ACT_BAR_DAX,-1,-1,0,0,bar_preview_notes[2],"Free dice practice");
+  }else{
   SC_PUSH("BARTEND",TRADERS,SC_ACT_TALK,-1,-1,0,0,"Meridian tips well. Truth tips better.","Ask for a rumour");
   SC_PUSH("TRAVELER",EXPLORERS,SC_ACT_TAXI,-1,-1,0,1800,"Need a lift to another hub. One tonne seat.","Book taxi berth");
+  }
  }else if(room==SC_R_CARGO){
   SC_PUSH("LOADER",TRADERS,SC_ACT_QUEST,-1,-1,400,0,"Haul a crate mark to the board for me.","Take 40 U tip job");
  }else if(room==SC_R_CLINIC){
@@ -112,8 +124,9 @@ static int sc_exits(int room,int *out,int maxn){
  return n;
 }
 static void sc_build_map(void){
- if(sc_built_for==game.system)return;
- sc_built_for=game.system; sc_room=SC_R_ARRIVALS; sc_verb=SC_V_LOOK; sc_hot=0; sc_menu=0; sc_shop_row=0; sc_talk_row=0; sc_talk_who=0;
+ int identity=game.system*HUB_COUNT+game.station_variant;
+ if(sc_built_for==identity)return;
+ sc_built_for=identity; sc_room=SC_R_ARRIVALS; sc_verb=SC_V_LOOK; sc_hot=0; sc_menu=0; sc_shop_row=0; sc_talk_row=0; sc_talk_who=0;
  sc_x=0;sc_y=0;sc_face=SC_S;sc_map[0][0]=SC_R_ARRIVALS;sc_door_n[0][0]=1;sc_door_e[0][0]=1;
 }
 static int sc_door_dir(int dir){(void)dir;return 1;}
@@ -570,13 +583,14 @@ static void sc_illust_customs(int x,int y,int w,int h){
 }
 static void sc_draw_main_scene(void){
  const int VX=SC_VX,VY=SC_VY,VW=SC_VW,VH=SC_VH;
+ int second_shift=sc_room==SC_R_CANTEEN&&bar_preview_at();
  /* Illustrated room only — options list is the selector chrome. */
  rect(VX,VY,VW,VH,SC_VOID);
  rect(VX,VY,VW,1,SC_OCHRE);
  rect(VX,VY+VH-1,VW,1,SC_SLATE);
  if(sc_room==SC_R_ARRIVALS)sc_illust_arrivals(VX,VY,VW,VH);
  else if(sc_room==SC_R_SHOP)sc_illust_shop(VX,VY,VW,VH);
- else if(sc_room==SC_R_CANTEEN)sc_illust_canteen(VX,VY,VW,VH);
+ else if(sc_room==SC_R_CANTEEN){if(second_shift)sc_illust_second_shift(VX,VY,VW,VH);else sc_illust_canteen(VX,VY,VW,VH);}
  else if(sc_room==SC_R_CARGO)sc_illust_cargo(VX,VY,VW,VH);
  else if(sc_room==SC_R_GUILD)sc_illust_guild(VX,VY,VW,VH);
  else if(sc_room==SC_R_CLINIC)sc_illust_clinic(VX,VY,VW,VH);
@@ -586,7 +600,7 @@ static void sc_draw_main_scene(void){
  /* Hatches — silhouette only; names live in the right options list. */
  {
   int exit_ord=0;
-  for(int i=0;i<hn;i++)if(hot[i].kind==SC_H_EXIT&&hot[i].id!=SC_EXIT_SHIP){
+  for(int i=0;i<hn;i++)if(!second_shift&&hot[i].kind==SC_H_EXIT&&hot[i].id!=SC_EXIT_SHIP){
    int hero=exit_ord==0;
    unsigned frame=(hero||sc_hot==i)?mix_rgb(SC_CREAM,SC_OCHRE,.35f):mix_rgb(SC_SLATE,SC_CREAM,.2f);
    unsigned aperture=(hero||sc_hot==i)?mix_rgb(SC_VOID,SC_OCHRE,.2f):SC_VOID;
@@ -594,7 +608,7 @@ static void sc_draw_main_scene(void){
    exit_ord++;
   }
  }
- for(int i=0;i<pn;i++){
+ for(int i=0;i<pn&&!second_shift;i++){
   int px,py;sc_person_pos(sc_room,i,&px,&py);
   if(px==0&&py==0)continue;
   sc_draw_person_sprite(VX+px,VY+py,&people[i],sc_hot<hn&&hot[sc_hot].kind==SC_H_PERSON&&hot[sc_hot].id==i);
@@ -646,6 +660,11 @@ static void sc_draw_options(void){
 }
 /* Verb chrome retired — options list owns LOOK/SPEAK/GO/TAKE payoffs. */
 static int sc_talk_choices(const ScNpc *p,const char **out,int maxn){
+ if(bar_preview_action(p->act)&&maxn>=3){
+  out[0]=p->act==SC_ACT_BAR_DAX?"LOW - free practice":"Hear them out";
+  out[1]=p->act==SC_ACT_BAR_DAX?"HIGH - free practice":"Target REORTE I";
+  out[2]="Back";return 3;
+ }
  int n=0;
  #define SC_CH(S) do{if(n<maxn)out[n++]=(S);}while(0)
  SC_CH("Hear them out");
@@ -735,6 +754,7 @@ static void sc_do_npc_choice(ScNpc *p,int choice){
  const char *ch[4]; int cn=sc_talk_choices(p,ch,4);
  if(choice<0||choice>=cn)return;
  if(choice==cn-1){sc_menu=SC_MENU_NONE;message(&game,"You nod and step back.");game.cue=SFX_UI;return;}
+ if(bar_preview_action(p->act)){bar_preview_choose(p->act,choice);sc_menu=SC_MENU_NONE;return;}
  speak(&game,p->role==LAW?VOICE_LAW:p->role==EXPLORERS?VOICE_KEI:!strcmp(p->name,"VENN")?VOICE_VENN:VOICE_DOCK,p->line);
  if(choice==0){
   message(&game,p->line);sc_menu=SC_MENU_NONE;game.cue=SFX_UI;return;
@@ -787,6 +807,7 @@ static void sc_apply(void){
  if(h->kind==SC_H_PERSON){
   ScNpc people[3]; int pn=sc_fill_npcs(sc_room,people,3);
   if(h->id<0||h->id>=pn){message(&game,"They stepped away.");return;}
+  if(people[h->id].act==SC_ACT_BAR_DAX)bar_preview_token=bar_preview_practice.round_id+1;
   sc_menu=SC_MENU_TALK;sc_talk_who=h->id;sc_talk_row=0;game.cue=SFX_UI;return;
  }
  /* Props that own a deal open talk with that person; otherwise LOOK. */

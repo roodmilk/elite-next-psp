@@ -809,6 +809,7 @@ static void input_tests(void){
     INPUT_CHECK(gold,"graphics: Select deck top-right shows a third-person ship silhouette");
    }
    #include "menu-preview-tests.h"
+   #include "station-bar-preview-tests.h"
    {
     /* Engine roots must sit on the mesh aft tip — radius-scaled glow floated past wide ships. */
     int aft_ok=1;
@@ -976,7 +977,6 @@ int main(void){
  audio_stop();
  sceKernelExitGame();return 0;
 }
-
 
 
 
