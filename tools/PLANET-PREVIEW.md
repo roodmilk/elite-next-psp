@@ -45,6 +45,15 @@ node tools/validate-room-coverage.mjs --register <path-to-ROOM-COVERAGE-REGISTER
 node tools/validate-element-kit-budget.mjs --manifest <path-to-ELEMENT-MANIFEST.json> --out work/planet-preview/element-kit-budget.json
 ```
 
+For a clean end-to-end rebuild, use the orchestrator:
+
+```text
+node tools/rebuild-procedural-pipeline.mjs --out work/planet-preview --register <path-to-ROOM-COVERAGE-REGISTER.json> --element-manifest <path-to-ELEMENT-MANIFEST.json>
+```
+
+It regenerates both versioned sidecars before validation, so reports cannot
+silently describe stale manifests or atlas previews.
+
 This emits three stable station records per system for the hub, relay, and
 frontier outpost. It is intentionally offline until the Station owner signs
 off on the runtime presentation interface.
