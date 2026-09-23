@@ -397,3 +397,9 @@ All notable playable releases are recorded here. `VERSION` is the current canoni
 ## 2.5.1 and earlier
 
 The detailed development history, controls, implemented feature list, validation notes, and future design plan are retained in `README.md`, `docs/`, and the Git commit history.
+## 2.5.51 - Station Welcome mission
+
+- Added an automatic, session-local Station Welcome mission after the opening campaign is complete.
+- The mission plots a route from Lave to Reorte, then guides the commander to disembark, walk from Arrivals to **THE SECOND SHIFT**, and talk to **Lysa Kest**.
+- Added concise tracked-mission objectives and cockpit cues (`JUMP: REORTE`, `WALK: CANTEEN`, `TALK: LYSA KEST`) so the authored station art and bar features are easy to find.
+- The tour reuses existing station rooms, contacts, speech choices, and bar logic; it adds no save-format fields, rewards, or economy changes.

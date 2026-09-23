@@ -1,5 +1,14 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Integrated 2.5.51 — Station Welcome mission
+
+The current build adds a session-local onboarding mission once the opening campaign
+is complete. It plots Lave → Reorte, then changes its objective as the commander
+docks, disembarks, walks from Arrivals to **THE SECOND SHIFT**, and talks to
+**Lysa Kest**. Existing station-bar interactions are reused; no save fields,
+credits, rewards, or bar economy are changed. The cockpit cue stays short at the
+PSP's native width (`JUMP: REORTE`, `WALK: CANTEEN`, `TALK: LYSA KEST`).
+
 ## Integrated 2.5.50 — native station visual rollout
 
 The station crawl now uses a shared native 480×272 shell and an authored Reorte

@@ -1,5 +1,16 @@
 static void campaign_screen(void){
  header("TRACKED MISSION");panel(8,32,464,190);
+ if(station_tour_active()){
+  text(2,5,GOLD,"%.31s",station_tour_title());
+  draw_portrait(16,48,48,48,game.system*17+TRADERS,TRADERS);
+  speaker_name_tag(10,6,"STATION GUIDE",faction_colors[TRADERS]);
+  text(10,8,CYAN,"NEXT STEP / REORTE HUB BAR");
+  text(10,10,WHITE,"A short welcome tour of the authored station interior.");
+  panel(16,120,448,56);text(3,16,GOLD,"CURRENT OBJECTIVE");
+  text_wrap(3,18,54,2,WHITE,station_tour_objective(),0);
+  text(3,21,CYAN,"Reorte Hub  •  THE SECOND SHIFT  •  Lysa Kest");
+  footer("X FOLLOW NEXT STEP   SELECT MISSION LOG   O BACK");return;
+ }
  if(tracked_mission==1){
   text(2,5,GOLD,"EXPLORERS GUILD ASSIGNMENTS");
   draw_portrait(16,48,48,48,game.system*17+EXPLORERS,EXPLORERS);

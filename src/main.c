@@ -43,6 +43,10 @@ static Game game;
 static int page=0,row=0,paused=0,smoke=0,visual_hold=0,hud_hidden=0,hud_mode=0,high_contrast=0;
 /* 0 = Kei/Ryn campaign, 1 = Guild assignments, 2+ = accepted job slot. */
 static int tracked_mission=0;
+/* Short, session-local onboarding mission that showcases the authored station bar. */
+enum { STATION_TOUR_OFF=0, STATION_TOUR_ROUTE, STATION_TOUR_DOCK, STATION_TOUR_WALK, STATION_TOUR_BAR, STATION_TOUR_TALK, STATION_TOUR_DONE };
+#define STATION_TOUR_DEST 39
+static int station_tour_stage=STATION_TOUR_OFF;
 static int analog_center_x=128,analog_center_y=128;
 static int walk_kind=0;
 static float walk_x=0,walk_z=0,walk_yaw=0;
@@ -393,6 +397,7 @@ static void space(void){
 #include "ship-preview.h"
 #include "ui-modern.h"
 #include "station-crawl.h"
+#include "station-tour.h"
 #include "narrative-nav.h"
 #include "guild-ui.h"
 #include "campaign-ui.h"
@@ -425,6 +430,7 @@ static unsigned flight_steer_buttons(unsigned buttons){
 }
 static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
  static unsigned in_held=0;static int sq_arm=0;
+ station_tour_tick();
  unsigned released=in_held&~held;in_held=held;if(page!=FLIGHT||paused||game.police_stop||game.approach>=0||game.dock_stage)sq_arm=0;
  if(!(held&PSP_CTRL_CROSS))fire_blocked=0;
  square_held=page==FLIGHT&&game.planet<0&&game.jump<=0&&!game.dock_stage&&!game.dead&&(held&PSP_CTRL_SQUARE);
@@ -554,7 +560,10 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
  else change_page(row==3?RADIO:HELP);
 }
 else if(page==CAMPAIGN&&(pressed&PSP_CTRL_CROSS)){
- if(tracked_mission==0&&prologue_brief_locked()){
+ if(station_tour_active()){
+  station_tour_action();
+ }
+ else if(tracked_mission==0&&prologue_brief_locked()){
   if(prologue_brief_beat<PROLOGUE_BRIEF_BEATS-1){
    if(!prologue_brief_echo&&prologue_brief_needs_echo(prologue_brief_beat)){prologue_brief_echo=1;row=0;game.cue=SFX_SELECT;}
    else {
@@ -977,9 +986,6 @@ int main(void){
  audio_stop();
  sceKernelExitGame();return 0;
 }
-
-
-
 
 
 
