@@ -435,3 +435,7 @@ The detailed development history, controls, implemented feature list, validation
 - Added Fer-de-Lance, Krait, and Ophidian as purchasable player ships using existing detailed ship meshes, with distinct speed, range, capacity, and price profiles.
 ## 2.5.60 - Crew-decaled targeting monitor
 - Added native PSP bezel decals to the full-screen targeting computer: peace symbol, heart sticker, and a small crew marker on the physical monitor frame.
+## 2.5.61 - Lave acceptance visual slice
+- Added an animated native-pixel targeting scope signature to the monitor-themed targeting computer.
+- Added a compact stamped hull readout for Ship Loadout while preserving the fitted-slot inventory view.
+- Began the Lave acceptance audit across station, flight, mission, planetary, audio, and QA flows; runtime certification remains dependent on the smoke harness report.

@@ -53,6 +53,14 @@ static void targeting_bezel_stickers(void){
  rect(45,181,28,7,RGB(74,46,57));pixel(51,183,RGB(250,138,158));pixel(55,183,RGB(250,138,158));rect(50,184,7,2,RGB(250,138,158));pixel(51,186,RGB(250,138,158));pixel(56,186,RGB(250,138,158));
  rect(409,181,35,7,RGB(63,53,37));pixel(416,184,GOLD);pixel(418,182,GOLD);pixel(420,184,GOLD);pixel(418,186,GOLD);
  }
+static void targeting_scope_stamp(int x,int y,int id){
+ unsigned frame=RGB(90,96,76),glass=RGB(10,20,29),dim=RGB(55,101,111),ink=valid_target(id)?contact_color(id):DIM;
+ rect(x,y,50,30,glass);rect(x,y,50,1,frame);rect(x+49,y,1,30,frame);rect(x,y+29,50,1,RGB(41,54,70));
+ line(x+24,y+4,x+24,y+25,dim);line(x+12,y+14,x+37,y+14,dim);line(x+19,y+9,x+29,y+9,dim);line(x+19,y+19,x+29,y+19,dim);
+ pixel(x+24,y+14,ink);line(x+22,y+12,x+26,y+12,ink);line(x+22,y+16,x+26,y+16,ink);
+ int sweep=3+(int)(preview_time*9.f)%42;rect(x+sweep,y+2,1,26,RGB(28,66,77));
+ if(valid_target(id)){int pulse=(int)(preview_time*6.f)&1;pixel(x+24-pulse,y+14,ink);pixel(x+24+pulse,y+14,ink);}
+}
 static void targeting_screen(void){
  target_count=collect_scan_ids(target_ids,scan_cat);if(row>=target_count)row=0;
  header("TARGETING COMPUTER");page_number_at(52,4,target_count?row/7+1:1,target_count?(target_count+6)/7:1);
@@ -62,6 +70,7 @@ static void targeting_screen(void){
  targeting_bezel_stickers();
  rect(382,51,82,12,RGB(66,45,38));text(49,6,AMBER,"CRT-7 // LIVE");
  int first=row/7*7;for(int j=0;j<7&&first+j<target_count;j++){int i=first+j,id=target_ids[i],y=7+j*2;Vec3 p=camera(&game,target_position(id));if(i==row)selected(y);text(3,y,contact_color(id),"%s%-20.20s %6d M %-6s",is_mission_target(&game,id)?"[M] ":"    ",scanner_known(id)?target_name(id):"UNKNOWN CONTACT",(int)length(sub(target_position(id),game.pos)),p.z>=0?"AHEAD":"BEHIND");}if(!target_count)text(3,10,DIM,"Nothing in this band. L/R changes category.");
+ targeting_scope_stamp(414,156,target_count?target_ids[row]:-1);
  if(target_count){int id=target_ids[row];text(3,21,GOLD,"%s",target_status(id));if(target_details){if(IS_NPC_ID(id)){NPC *n=&game.npc[id-BODY_COUNT-1];if(scanner_known(id))text(3,22,WHITE,"%s  hull %d  %d m",faction_names[n->role],(int)n->health,(int)length(sub(n->pos,game.pos)));else text(3,22,WHITE,"Close in, or fit a long-range scanner.");}else if(IS_ANOMALY_ID(id))text(3,22,WHITE,"%s",game.anomaly[id-ANOMALY_ID_MIN].scanned?"Logged in Codex":"Close in. Press O.");else if(IS_DEBRIS_ID(id))text(3,22,WHITE,"%s",game.debris[id-DEBRIS_ID_MIN].rock?"Fire to fracture; Circle collects loose ore.":"Circle: collect within 500 m");else text(3,22,WHITE,"%s",id==0?station_name(&game):game.bodies[id-1].name);}else text(3,22,DIM,"Triangle for details.");}
  footer("L/R CATEGORY   X LOCK   TRI DETAILS   O BACK");}
 static void local_system(void){
