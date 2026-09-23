@@ -1,5 +1,13 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Project-wide native-art acceptance rule
+
+All station artwork and station UI must be authored and judged at the PSP's
+native 480×272 resolution. Larger exports are presentation derivatives only;
+they must never be the source design that is simply shrunk. Every scene must
+retain readable people, selectable hotspots, speech boxes, headings, page
+indicators and SHIP/navigation controls at 1:1 pixels before integration.
+
 ## Integrated 2.5.49 — The Second Shift playable preview
 
 Reorte's primary hub now has a playable illustrated bar reached through WALK,
