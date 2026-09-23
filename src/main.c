@@ -808,6 +808,7 @@ static void input_tests(void){
     int gold=0;for(int y=65;y<150;y++)for(int x=247;x<460;x++){unsigned p=pixels[y*STRIDE+x];if(p==GOLD||p==RGB(193,139,77)||((p&255)>180&&((p>>8)&255)>130))gold=1;}
     INPUT_CHECK(gold,"graphics: Select deck top-right shows a third-person ship silhouette");
    }
+   #include "menu-preview-tests.h"
    {
     /* Engine roots must sit on the mesh aft tip — radius-scaled glow floated past wide ships. */
     int aft_ok=1;
@@ -975,7 +976,6 @@ int main(void){
  audio_stop();
  sceKernelExitGame();return 0;
 }
-
 
 
 

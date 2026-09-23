@@ -51,32 +51,7 @@ static void station_window_animation(void){
  }
 }
 static void secondary_hubs(void);
-static void menu_space_view(int x,int y,int w,int h){
- rect(x,y,w,h,RGB(8,13,24));
- rect(x,y,w,1,RGB(193,139,77));rect(x,y+h-1,w,1,RGB(41,54,70));
- rect(x,y,1,h,RGB(90,96,76));rect(x+w-1,y,1,h,RGB(41,54,70));
- Vec3 oldpos=game.pos;float oldyaw=game.yaw,oldpitch=game.pitch,oldroll=game.roll;
- preview_clip(x+w/2,y+h/2+2,x+1,y+1,x+w-1,y+h-1);
- /* Third-person orbit of the fitted hull against local space — pulled back so the full silhouette reads. */
- {
-  float phase=preview_time*.1f; /* slow orbit — menu viewport, not flight */
-  Vec3 ship=game.docked?(Vec3){0,40,3180}:game.planet>=0?add(game.pos,(Vec3){0,80,0}):game.pos;
-  float dist=310.f;Vec3 cam=add(ship,(Vec3){sinf(phase)*dist,88.f+sinf(phase*.7f)*36.f,cosf(phase)*dist});
-  game.pos=cam;Vec3 aim=norm(sub(ship,cam));game.yaw=atan2f(aim.x,aim.z);float ap=aim.y;if(ap>1)ap=1;if(ap<-1)ap=-1;game.pitch=asinf(ap);game.roll=0;
-  starfield();space_fx_nebula();
-  /* Local scenery so the inset reads as “ship in this system,” not a void studio. */
-  if(game.docked||length(sub(ship,(Vec3){0,0,3500}))<14000){station_model();station_window_animation();}
-  else {
-   Body *b=&game.bodies[1];
-   Vec3 bp=camera(&game,b->pos);if(bp.z>80){Point p=project(bp);int r=(int)fminf(28,b->radius*240.f/bp.z);if(r>3&&p.x>x&&p.x<x+w&&p.y>y&&p.y<y+h)circle((int)p.x,(int)p.y,r,b->color);}
-  }
-  float yaw=game.docked?station_angle(&game)*.15f+phase*.05f:oldyaw;
-  shipmesh(mesh_id(player_ships[game.ship].name),ship,yaw,oldroll*.25f,1.85f,RGB(193,139,77),0);
-  flush_meshes();
- }
- preview_reset();game.pos=oldpos;game.yaw=oldyaw;game.pitch=oldpitch;game.roll=oldroll;
- text((x+6)/8,(y+h-10)/8,RGB(155,154,165),"3RD / %.10s",player_ships[game.ship].name);
-}
+#include "menu-ship-preview.h"
 static void ambient_space(void){
  if(system_whales(game.system)){Body *b=&game.bodies[3];for(int i=0;i<3;i++){float a=game.time*.028f+i*.62f;Vec3 pos=add(b->pos,(Vec3){cosf(a)*(b->radius+5600),700+sinf(a+i)*.5f*480,sinf(a)*(b->radius+5600)});if(length(sub(pos,game.pos))<14000)shipmesh(mesh_id("WORM"),pos,a+1.57f,sinf(game.time*.35f+i)*.16f,7.2f+i*1.3f,RGB(96,186,198),0);}}
  if(system_comet(game.system)){float a=game.time*.018f;Vec3 pos={cosf(a)*17000,1800,sinf(a)*17000};if(length(sub(pos,game.pos))<12000){shipmesh(mesh_id("BOULDER"),pos,a,a*.3f,1.4f,RGB(210,230,240),0);Vec3 tail=add(pos,(Vec3){sinf(a)*900,-200,-cosf(a)*900});Vec3 u=camera(&game,pos),v=camera(&game,tail);if(u.z>30&&v.z>30){Point p=project(u),q=project(v);if(p.y>view_top()&&p.y<view_bot()&&q.y>view_top()&&q.y<view_bot()){line((int)p.x,(int)p.y,(int)q.x,(int)q.y,RGB(85,160,200));if(!high_contrast){int top=view_top(),bot=view_bot();for(int k=0;k<5;k++){float t=k/4.f;int x=(int)(p.x+(q.x-p.x)*t),y=(int)(p.y+(q.y-p.y)*t);sfx_add(x,y,RGB(50,90,120),top,bot);}}}}}}

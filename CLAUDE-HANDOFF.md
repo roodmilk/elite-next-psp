@@ -10,6 +10,15 @@ viewport has a measurable cost. No physical PSP test or save-layout change.
 See docs/PLANETARY-EVA-HANDOFF.md for evidence, scope and next activity/revisit
 gaps. Lead owns integration and release. Story approved the coaching string.
 
+## Current-ship preview candidate
+
+specialist/menu-ship-preview branches from ac8a581. See
+docs/MENU-SHIP-PREVIEW.md for files, reserved interfaces, native captures,
+matched benchmark evidence and agreed Planetary integration checks.
+This candidate changes the menu inset only. No save/audio/input/planetary
+production changes. Lead must validate the combined build before release;
+version, main and release tags remain unchanged.
+
 ## Integrated 2.5.47 — safe planetary approach
 
 Approach now stops the remaining collision-frame simulation and pauses threats

@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased - current-ship menu beauty preview
+
+- The command-deck inset shows the actual owned hull in a quiet 96-second
+  flight loop with distant system planets, a steady sun and sparse stars.
+- Explicit panel clipping and an independent presentation camera replace
+  live-world camera mutation. The ship stays fitted throughout its camera arc.
+- Optional -MenuPreview smoke checks cover all owned hulls, clipping,
+  unchanged simulation, restored render state, loop continuity and timing.
+
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
 ## Unreleased — planetary EVA traversal

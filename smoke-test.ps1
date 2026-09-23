@@ -1,10 +1,11 @@
-param([string]$Emulator="$PSScriptRoot/../../work/ppsspp/PPSSPPWindows64.exe")
+param([string]$Emulator="$PSScriptRoot/../../work/ppsspp/PPSSPPWindows64.exe", [switch]$MenuPreview)
 $ErrorActionPreference='Stop'
 $testDir=Join-Path $PSScriptRoot ('../../work/smoke-'+(Get-Date -Format 'yyyyMMdd-HHmmss-fff'))
 New-Item -ItemType Directory -Path $testDir | Out-Null
 $testDir=(Resolve-Path -LiteralPath $testDir).Path
 Copy-Item -LiteralPath "$PSScriptRoot/EBOOT.PBP" -Destination $testDir
 Set-Content -LiteralPath (Join-Path $testDir 'smoke.flag') -Value '1'
+if ($MenuPreview) { Set-Content -LiteralPath (Join-Path $testDir 'menu-preview.flag') -Value '1' }
 $eboot=Join-Path $testDir 'EBOOT.PBP'
 $process=Start-Process -FilePath (Resolve-Path -LiteralPath $Emulator).Path -ArgumentList ('"'+$eboot+'"') -WorkingDirectory $testDir -WindowStyle Hidden -PassThru
 try {
