@@ -32,12 +32,13 @@ for(const r of data.records||[]){
   check(r.asset?.asset_bytes===null||Number.isInteger(r.asset?.asset_bytes)||Array.isArray(r.asset?.asset_bytes),'asset byte field must remain null, integer, or array');
   if(r.family_selector?.selector_version==null||r.family_selector?.selector_hash==null)pending++;
   if(r.visual_plan?.current_fallback==='generic renderer')fallback++;
-  if(/Reorte H0 (Arrivals|Second Shift)/.test(`${r.art_status} ${r.no_bespoke_reason}`))authored++;
+  if(r.system_id===39&&r.hub_index===0&&(r.room_code==='ARRIVALS'||r.room_code==='CANTEEN'))authored++;
   if(r.current_actions.every(action=>r.capability_manifest.actions.includes(action))&&r.planned_actions.every(action=>!r.capability_manifest.actions.includes(action)))truthfulDialogue++;
 }
 for(const [hub,count] of roomCounts)check(count===7,`hub ${hub} has ${count} room records`);
 check(hubIds.size===768,'register does not cover all hubs');
 check(data.production_split?.authored_exceptions?.length===2,'authored exception count must remain two');
+check(authored===2,'register must identify exactly two authored exception records');
 const sourceHash=crypto.createHash('sha256').update(fs.readFileSync(registerPath)).digest('hex');
 const report={report_version:1,register_schema:data.schema_version,register_source_sha:data.source_sha,register_file_sha256:sourceHash,coverage:{systems:256,hubs:hubIds.size,rooms:ids.size,rooms_per_hub:7,selector_pending:pending,generic_fallback:fallback,authored_exception_mentions:authored,truthful_dialogue_records:truthfulDialogue},dialogue_qa:{status:'fixture_pending',native_resolution:[480,272],required_checks:['long-name speech wrapping','choice wrapping and clipping','normal/high-contrast readability','repeated conversation state','unavailable and completed outcome text','pause/exit/save/reload stability','no text for unavailable capabilities'],source:'Story & Dialogue fixtures plus authoritative Gameplay/Station capability manifest'},activation:{runtime_art_activation:false,capability_manifest_read_only:true,save_schema_change:false,selector_version:'pending',selector_hash:'pending',generator_version:'pending',generator_hash:'pending',native_capture:'pending',draw_cost:'pending'},notes:['This is a build-time planning validation report.','Do not treat planned procedural variants as shipped art or gameplay capability.','Generic station behavior remains the truthful fallback until freeze gates pass.']};
 if(fail.length){console.error(`Room coverage validation failed (${fail.length} issue${fail.length===1?'':'s'})`);for(const msg of fail.slice(0,30))console.error(`- ${msg}`);process.exit(1);}
