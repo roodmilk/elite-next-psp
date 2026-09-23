@@ -439,7 +439,31 @@ static void factions(void){
  footer("UP/DOWN   X LORE   TRI SCAN   O BACK");
 }
 static void mission_board(void){header("MISSION BOARD");panel(8,32,464,156);if(!game.docked){text(3,8,WHITE,"Dock to take work.");text(3,10,DIM,"You can hold five jobs.");footer("O BACK");return;}int count=mission_count(&game);text(2,5,game.job_n>=MISSION_SLOTS?RED:GOLD,"Log %d/5%s",game.job_n,game.job_n>=MISSION_SLOTS?"  full":"   X accept  |  10 units  |  5:00");text(5,7,CYAN,"%-16s %-8s %s","JOB","DEST","REWARD");for(int i=0;i<count&&i<6;i++){int id=mission_destination(&game,i),type=mission_type_for_offer(&game,i),y=9+i*2,active=mission_offer_active(&game,i),risk=mission_risk(&game,i);if(i==row)selected(y);draw_icon(12,y*8-1,12+type,i==row);text(5,y,active?GOLD:risk>=4?RED:WHITE,"%-16.16s %-8.8s %6.1f",mission_name(type),game.systems[id].name,mission_reward(&game,i)*.1f);text(38,y,risk>=4?RED:AMBER,"%d/5",risk);if(active)text(43,y,GOLD,"LIVE");}if(count){text_wrap(3,21,40,1,DIM,mission_brief(&game,row<count?row:0),0);text(34,23,mission_risk(&game,row<count?row:0)>=4?RED:CYAN,"RISK %d/5",mission_risk(&game,row<count?row:0));}footer(game.job_n>=MISSION_SLOTS?"LOG FULL   SELECT > LOG   O BACK":"UP/DOWN   X ACCEPT   SELECT > LOG");}
-static void mission_log(void){header("MISSION LOG / CHOOSE TRACKED");panel(8,32,464,156);text(2,5,CYAN,"MAIN MISSIONS");text(30,5,DIM,"SIDE MISSIONS");int total=2+game.job_n;for(int i=0;i<total;i++){int y=i<2?7+i*2:7+(i+1)*2;if(i==row)selected(y);unsigned ink=i==tracked_mission?GOLD:i==row?WHITE:DIM;if(i==0)text(2,y,ink,"%s MAIN STORY / KEI + RYN",i==tracked_mission?"*":" ");else if(i==1)text(2,y,ink,"%s EXPLORERS GUILD",i==tracked_mission?"*":" ");else {Job *j=&game.jobs[i-2];text(30,y,ink,"%s %-14.14s -> %-8.8s",i==tracked_mission?"*":" ",mission_name(j->type),game.systems[j->dest].name);}}rect(8,165,464,23,RGB(15,31,39));const char *objective=row==0?(game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT?saga_beats[game.saga_chapter].objective:campaign_task(&game)):row==1?guild_objective(&game):mission_objective_at(&game,row-2);if(abandon_confirm)text(2,21,RED,"WARNING: ABANDON? X CONFIRM / O CANCEL");else{text(2,21,GOLD,"NEXT:");text_wrap(8,21,48,1,GOLD,objective,0);}footer("X TRACK   SELECT NEXT STEP   TRI ABANDON   O BACK");}
+static void mission_log(void){
+ header("MISSION LOG / CHOOSE TRACKED");panel(8,32,464,154);
+ text(2,5,CYAN,"MAIN MISSIONS");text(43,5,DIM,"* TRACKED");
+ int total=2+game.job_n;
+ if(row<0)row=0;if(row>=total)row=total-1;
+ for(int i=0;i<total;i++){
+  int y=i<2?7+i*2:13+(i-2)*2;
+  if(i==row)selected(y);
+  unsigned ink=i==tracked_mission?GOLD:i==row?WHITE:DIM;
+  if(i==0)text(2,y,ink,"%s KEI + RYN / OPEN CHANNEL",i==tracked_mission?"*":" ");
+  else if(i==1)text(2,y,ink,"%s EXPLORERS GUILD",i==tracked_mission?"*":" ");
+  else {
+   Job *j=&game.jobs[i-2];
+   text(2,y,ink,"%s %.24s",i==tracked_mission?"*":" ",mission_name(j->type));
+   text(33,y,ink,"%.24s",game.systems[j->dest].name);
+  }
+ }
+ text(2,11,CYAN,"SIDE MISSIONS");text(33,11,DIM,"DESTINATION");
+ if(!game.job_n)text(2,13,DIM,"No contracts. Visit a station mission board.");
+ rect(8,190,464,42,RGB(15,31,39));
+ const char *objective=row==0?(game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT?saga_beats[game.saga_chapter].objective:campaign_task(&game)):row==1?guild_objective(&game):mission_objective_at(&game,row-2);
+ if(abandon_confirm){text(2,24,RED,"ABANDON THIS CONTRACT?");text(2,26,WHITE,"X CONFIRM / O CANCEL");}
+ else {text(2,24,GOLD,"NEXT:");text_wrap(8,24,49,3,GOLD,objective,0);}
+ footer(row>=2?"X TRACK   SELECT NEXT STEP   TRI ABANDON   O BACK":"X TRACK   SELECT NEXT STEP   O BACK");
+}
 static void navigate_job(int index){if(index<0||index>=game.job_n)return;Job *j=&game.jobs[index];game.job_sel=index;route_set_goal(&game,j->dest);game.destination=j->dest;if(game.system!=j->dest){int jumps=0,hop=route_next_hop(&game,j->dest,&jumps);if(hop>=0){game.destination=hop;change_page(CHART);char note[96];snprintf(note,sizeof(note),"Route: %d jump%s. Refuel at intermediate hubs.",jumps,jumps==1?"":"s");message(&game,note);}else message(&game,"No fuel-safe route. Refuel at the hub first.");}else {route_clear(&game);int id=mission_target_id(&game,index);if(id>=0&&valid_target(id)){selected_target=id;scan_cat=target_category(id);autoaim=1;message(&game,"Mission target locked. Auto-align active.");if(!game.docked)change_page(FLIGHT);}else if(game.docked)message(&game,"Launch to continue this objective in the system.");else message(&game,"Objective unavailable. Re-enter this system.");}}
 static int galnet_tab=0;
 static int galnet_rows(void){return galnet_tab==3?7:5;}

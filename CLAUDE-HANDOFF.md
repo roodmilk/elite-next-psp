@@ -1,5 +1,20 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Pending combined release — full Mission Log layout
+
+Main/side missions now form two vertically separated groups. All five contract
+rows fit above an independent three-line objective area. Main missions no
+longer advertise the inapplicable Abandon action. Selection/tracking indices
+and job behavior remain unchanged. Two full-capacity native captures and a
+framebuffer assertion cover the formerly hidden fifth contract.
+
+All five smoke suites passed in `work/smoke-20260923-125242-382`.
+Development EBOOT SHA256: `53607524418DB88A6AC4348EDC5CC4915212BB90E1B2303162D434B4F5704902`.
+Normal full-log capture was visually inspected at 480x272. This supersedes the
+earlier pending loadout binary while retaining that fix. No new package/tag:
+the combined Lave/station release remains pending. The existing 2.5.67 release
+does not contain these pending UI corrections.
+
 ## Pending combined release — loadout readability correction
 
 Main now corrects loadout labels that used pixel positions as text columns.

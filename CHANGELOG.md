@@ -2,6 +2,8 @@
 
 ## Unreleased — loadout readability
 
+- Separated Mission Log main/side sections and objective area so all five contracts remain visible. Hide the Abandon prompt on main missions.
+
 - Corrected pixel/character coordinate confusion that hid ship slot labels.
 - Kept module names in the details panel and made the in-flight hint explain docking is required.
 - Verified all six selected labels in both palettes, with native captures and a passing emulator smoke run.

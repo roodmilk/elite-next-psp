@@ -833,6 +833,21 @@ static void input_tests(void){
     row=saved_row;high_contrast=saved_contrast;
    }
    {
+    Job saved_jobs[MISSION_SLOTS];memcpy(saved_jobs,game.jobs,sizeof(saved_jobs));
+    int saved_n=game.job_n,saved_row=row,saved_track=tracked_mission,saved_confirm=abandon_confirm,saved_contrast=high_contrast;
+    game.job_n=MISSION_SLOTS;row=MISSION_SLOTS+1;tracked_mission=0;abandon_confirm=0;
+    for(int i=0;i<MISSION_SLOTS;i++){memset(&game.jobs[i],0,sizeof(Job));game.jobs[i].type=MISSION_DELIVERY;game.jobs[i].dest=i;game.jobs[i].time=300;}
+    int visible=1;
+    for(int mode=0;mode<2;mode++){
+     high_contrast=mode;memset(pixels,0,STRIDE*H*sizeof(unsigned));mission_log();
+     int label=0;for(int yy=168;yy<176;yy++)for(int xx=32;xx<216;xx++)if(pixels[yy*STRIDE+xx]==WHITE)label++;
+     if(!label)visible=0;
+     dump_native_bmp(mode?"mission-log-full-contrast.bmp":"mission-log-full-normal.bmp");
+    }
+    INPUT_CHECK(visible,"mission log: fifth contract remains visible above the objective in both palettes");
+    memcpy(game.jobs,saved_jobs,sizeof(saved_jobs));game.job_n=saved_n;row=saved_row;tracked_mission=saved_track;abandon_confirm=saved_confirm;high_contrast=saved_contrast;
+   }
+   {
     /* Engine roots must sit on the mesh aft tip — radius-scaled glow floated past wide ships. */
     int aft_ok=1;
     for(int mesh=0;mesh<mesh_count;mesh++){
@@ -999,4 +1014,3 @@ int main(void){
  audio_stop();
  sceKernelExitGame();return 0;
 }
-
