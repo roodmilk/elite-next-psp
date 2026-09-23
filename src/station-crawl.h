@@ -661,8 +661,8 @@ static void sc_draw_options(void){
 /* Verb chrome retired — options list owns LOOK/SPEAK/GO/TAKE payoffs. */
 static int sc_talk_choices(const ScNpc *p,const char **out,int maxn){
  if(bar_preview_action(p->act)&&maxn>=3){
-  out[0]=p->act==SC_ACT_BAR_DAX?"LOW - free practice":"Hear them out";
-  out[1]=p->act==SC_ACT_BAR_DAX?"HIGH - free practice":"Target REORTE I";
+  out[0]=p->act==SC_ACT_BAR_DAX?"LOW 2-6 / 7 draw - FREE":"Hear them out";
+  out[1]=p->act==SC_ACT_BAR_DAX?"HIGH 8-12 / 7 draw - FREE":"Target REORTE I";
   out[2]="Back";return 3;
  }
  int n=0;
@@ -722,7 +722,7 @@ static void sc_draw_text_box(void){
   if(sc_talk_who<0||sc_talk_who>=pn){sc_menu=SC_MENU_NONE;return;}
   ScNpc *p=&people[sc_talk_who];
   text(1,row,SC_AMBER,"%.12s",p->name);
-  text_wrap(14,row,42,1,SC_CREAM,p->line,0);
+  text_wrap(14,row,42,bar_preview_action(p->act)?2:1,SC_CREAM,p->line,0);
   const char *ch[4]; int cn=sc_talk_choices(p,ch,4);
   if(sc_talk_row<0)sc_talk_row=0;if(sc_talk_row>=cn)sc_talk_row=cn-1;
   for(int i=0;i<cn&&i<3;i++){

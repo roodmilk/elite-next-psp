@@ -8,7 +8,7 @@ static uint32_t bar_preview_token;
 static char bar_preview_notes[3][96]={
  "Pell knows REORTE I. Ask about the world.",
  "Recorder work is not enabled in this preview.",
- "Free practice: LOW 2-6; HIGH 8-12; 7 draw."
+ "Free practice. No credits/rewards. Resets on restart. LOW 2-6; HIGH 8-12; 7 draw."
 };
 static int bar_preview_at(void){
  return game.system==39&&game.station_variant==0&&game.docked&&!game.dead;
