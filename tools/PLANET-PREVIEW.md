@@ -54,6 +54,9 @@ node tools/rebuild-procedural-pipeline.mjs --out work/planet-preview --register 
 It regenerates both versioned sidecars before validation, so reports cannot
 silently describe stale manifests or atlas previews. It also writes
 `pipeline-index.json`, a byte-size/SHA-256 inventory for the generated handoff.
+When a room register is supplied, it also emits 5,376 build-time room
+descriptors with stable selector fingerprints; these remain generic fallback
+descriptors until the owning managers approve runtime activation.
 
 This emits three stable station records per system for the hub, relay, and
 frontier outpost. It is intentionally offline until the Station owner signs
