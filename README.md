@@ -1,5 +1,20 @@
 # ELITE: NEXT — development build 2.5.39
 
+## Audio candidate — original event cues and bounded shuffle
+
+The audio candidate gives menu, scan, docking, combat and engine events distinct
+original synthesized cues with short fades and 20–300 ms durations. The five
+existing original stereo music stations and saved Music/FX levels are preserved.
+Shuffle tries each candidate once, leaving the previous track until all other
+candidates fail. This does not fix decoder failures or certify PSP crackle/sleep.
+
+Current library support is **MP3 only**, up to 24 files in each named `music/`
+station folder beside EBOOT. Startup/resume rescans without rebuilding; WAV and
+a live rescan button are not implemented. Empty stations use generated music.
+The current radio chassis shows folder detection, not a verified playback status
+or current filename. Never commit personal music. See
+[audio audit and hardware acceptance](docs/AUDIO-AUDIT.md).
+
 ## New in 2.5.39 — MacVenture cinematic polish
 
 - Station rooms restaged: one hero focus, three depth planes, warm ochre/cream staging.

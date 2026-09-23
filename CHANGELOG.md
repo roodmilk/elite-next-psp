@@ -2,6 +2,12 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## Unreleased — original event audio and bounded shuffle
+
+- Original 20–300 ms event cues give scans, docking, warnings, combat and engines distinct identities with smooth endpoints; existing stereo stations and volume preferences remain unchanged.
+- Shuffle visits each candidate once before giving up, deferring the previous track until alternatives fail.
+- Added duration, peak/headroom, candidate-order and optional original audition checks; documented MP3-only support and physical PSP crackle/suspend verification gaps.
+
 ## 2.5.47 - 2026-09-23
 
 - Planet approaches now stop the remaining collision frame safely, pause threats while the choice is open, and give gas giants truthful turn-away controls.

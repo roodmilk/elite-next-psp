@@ -1,5 +1,21 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Audio candidate — event identity and bounded shuffle
+
+Base `ac8a581`, branch `cursor/audio-bounded-shuffle`. Original event sounds move
+from 3–32 ms fragments to restrained 20–300 ms cues using the existing single
+mono voice. New pure candidate-order policy visits every track once, with the
+previous track last. Only the agreed selection and SFX rendering hunks in
+`audio.h` are in scope; Systems owns decoding, buffers, I/O and power recovery.
+No Game/save, main.c, music gain or station-composition change. See
+`docs/AUDIO-AUDIT.md` for source evidence, budget and acceptance matrix.
+Lead alone owns combined integration, versioning and release artifacts.
+Final candidate PSP build and all-five PPSSPP smoke passed (57.98 FPS average,
+33.37 ms worst, 44 existing warnings). Sampled music+SFX peak 11,161 with no
+clamps; no physical PSP listening or custom-MP3 certification. Detailed report
+and exact test-run identifier are in the audio audit. Combined integration remains
+Lead's gate; this isolated candidate is not yet a playable main release.
+
 ## Integrated 2.5.47 — safe planetary approach
 
 Approach now stops the remaining collision-frame simulation and pauses threats
@@ -366,6 +382,12 @@ The build compiles `game.c`, `ships.c` and `main.c`, links PSP libraries and pro
 The last verified 2.5.32 run passed every group under PPSSPP (game, input, steering, radio, performance), including ask-then-answer script checks. PPSSPP success does not replace physical PSP testing.
 
 ## Highest-priority remaining work
+
+Audio: measure malformed-file retry cost and output progress after sleep with
+Systems; current suspend assertions only prove calls returned. Physical crackle,
+custom-MP3 headroom and long sleep listening remain open. WAV/live rescan,
+per-station shuffle history, warning priority and sustained EVA layers are future
+coordinated slices, not implemented features of this candidate.
 
 Planetary lane: reconcile EVA controls/help, terrain rendering/collision, local
 bounds and ship-return guidance as the next separate slice; see the planetary audit.

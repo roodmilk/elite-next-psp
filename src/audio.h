@@ -6,6 +6,8 @@
 #include "radio-synth.h"
 #include "radio-config.h"
 #include "radio-files.h"
+#include "radio-playlist.h"
+#include "audio-sfx.h"
 static volatile int audio_run=0,audio_sfx=SFX_NONE,audio_scene=0,audio_ch=-1;
 static volatile int audio_duck=0;
 static volatile int mp3_frozen=0;
@@ -31,7 +33,9 @@ static int mp3_open_track(int station,int slot){
 }
 static int mp3_shuffle_track(int station){
  int count=radio_track_count[station];if(!count){mp3_close_track();return 0;}int previous=radio_file_station==station?radio_file_track:-1;
- for(int tries=0;tries<count;tries++){mp3_shuffle=mp3_shuffle*1664525u+1013904223u;int slot=(mp3_shuffle>>8)%count;if(count>1&&slot==previous)slot=(slot+1)%count;if(mp3_open_track(station,slot))return 1;}return 0;
+ int order[RADIO_TRACKS_PER_STATION];int candidates=radio_candidate_order(count,previous,&mp3_shuffle,order);
+ for(int i=0;i<candidates;i++)if(mp3_open_track(station,order[i]))return 1;
+ return 0;
 }
 static int mp3_decode_block(void){
  if(mp3_frozen||mp3_handle<0)return 0;
@@ -63,7 +67,6 @@ static int mp3_sample(int station,int *left,int *right){
  mp3_phase+=mp3_step;while(mp3_phase>=65536){mp3_phase-=65536;mp3_lm1=mp3_l0;mp3_rm1=mp3_r0;mp3_l0=mp3_l1;mp3_r0=mp3_r1;mp3_l1=mp3_l2;mp3_r1=mp3_r2;if(!mp3_source_frame(station,&mp3_l2,&mp3_r2)){mp3_resample_ready=0;break;}}
  return 1;
 }
-static int triangle_wave(unsigned phase){int x=(phase>>8)&255;return x<128?x-64:192-x;}
 static int audio_worker(SceSize n,void *a){
  (void)n;(void)a;short buf[AUDIO_FRAMES*2] __attribute__((aligned(64)));unsigned phase=0,noise=0x7141u;int sfx_t=0,sfx_id=SFX_NONE,sfx_len=800;
  static RadioSynth synth;int station=radio_station,music_gain=0,effects_gain=sound_volume*100,duck_gain=1000;
@@ -71,21 +74,7 @@ static int audio_worker(SceSize n,void *a){
  while(audio_run){
   if(audio_sfx){
    sfx_id=audio_sfx;audio_sfx=SFX_NONE;
-   if(sfx_id==SFX_SELECT)sfx_len=140;
-   else if(sfx_id==SFX_UI)sfx_len=280;
-   else if(sfx_id==SFX_COMM)sfx_len=640;
-   else if(sfx_id==SFX_TALK)sfx_len=980;
-   else if(sfx_id==SFX_LASER)sfx_len=420;
-   else if(sfx_id==SFX_HIT)sfx_len=520;
-   else if(sfx_id==SFX_SCAN)sfx_len=720;
-   else if(sfx_id==SFX_LAND)sfx_len=900;
-   else if(sfx_id==SFX_DOCK)sfx_len=760;
-   else if(sfx_id==SFX_MISSILE)sfx_len=980;
-   else if(sfx_id==SFX_ALERT)sfx_len=1400;
-   else if(sfx_id==SFX_WARP)sfx_len=1500;
-   else if(sfx_id==SFX_DEATH)sfx_len=1700;
-   else if(sfx_id==SFX_BOOST)sfx_len=500;
-   else sfx_len=700;
+   sfx_len=audio_sfx_length(sfx_id);phase=0;
    sfx_t=sfx_len;
   }
   for(int i=0;i<AUDIO_FRAMES;i++){
@@ -101,26 +90,7 @@ static int audio_worker(SceSize n,void *a){
    if(!radio_off&&!tuning){if(!mp3_sample(station,&music_l,&music_r))radio_synth_sample(&synth,&music_l,&music_r);}
    if(tuning){noise=noise*1664525u+1013904223u;int crackle=((int)((noise>>24)&255)-128)*22;music_l=crackle;music_r=((int)((noise>>16)&255)-128)*18;}
    int sfx=0;if(sfx_t>0){
-    noise=noise*1664525u+1013904223u;int wave=triangle_wave(phase*13),e=sfx_t,den=sfx_len>0?sfx_len:1;
-    if(sfx_id==SFX_SELECT)sfx=triangle_wave(phase*21)*52*e/den;
-    else if(sfx_id==SFX_UI)sfx=wave*40*e/den;
-    else if(sfx_id==SFX_COMM)sfx=triangle_wave(phase*(e>320?11:7))*42*e/den;
-    else if(sfx_id==SFX_TALK){
-     /* Battle talk: gated radio voice — formant buzz + grit, not a flat beep. */
-     int gate=((e/38)&1),buzz=triangle_wave(phase*(8+(e%5))),grit=((int)((noise>>24)&255)-128);
-     sfx=gate?(buzz*30+grit*12)*e/den:triangle_wave(phase*3)*8*e/den;
-    }
-    else if(sfx_id==SFX_LASER)sfx=wave*50*e/den;
-    else if(sfx_id==SFX_HIT)sfx=((int)((noise>>24)&255)-128)*24*e/den;
-    else if(sfx_id==SFX_WARP)sfx=triangle_wave(phase*(3+(den-e)/90))*44*e/den;
-    else if(sfx_id==SFX_SCAN)sfx=triangle_wave(phase*17)*36*e/den;
-    else if(sfx_id==SFX_LAND)sfx=triangle_wave(phase*4)*44*e/den;
-    else if(sfx_id==SFX_MINE)sfx=((int)((noise>>25)&127)-64)*36*e/den;
-    else if(sfx_id==SFX_BOOST)sfx=triangle_wave(phase*6)*30*e/den;
-    else if(sfx_id==SFX_DOCK)sfx=triangle_wave(phase*3)*34*e/den+triangle_wave(phase*15)*16*(e<220?e:220)/den;
-    else if(sfx_id==SFX_MISSILE)sfx=triangle_wave(phase*(4+(den-e)/70))*42*e/den;
-    else if(sfx_id==SFX_ALERT)sfx=((e/70)&1)?triangle_wave(phase*15)*50*e/den:0;
-    else if(sfx_id==SFX_DEATH)sfx=((int)((noise>>24)&255)-128)*30*e/den;
+    sfx=audio_sfx_sample(sfx_id,sfx_len-sfx_t,&phase,&noise);
     sfx_t--;
    }
    sfx=sfx*effects_gain/1000;
@@ -131,7 +101,6 @@ static int audio_worker(SceSize n,void *a){
    if(right>30000)right=30000;
    if(right<-30000)right=-30000;
    buf[i*2]=(short)left;buf[i*2+1]=(short)right;
-   phase++;
   }
   if(radio_static_ms>0)radio_static_ms--;
   if(sceAudioOutputBlocking(audio_ch,PSP_AUDIO_VOLUME_MAX/3,buf)<0){audio_run=0;break;}
