@@ -3,6 +3,7 @@
  * Soft look from ART DIRECTOR bake kit (PR #11 handoff + PR #12 station-art-kit.h).
  * Palette+styles via station-art-kit.h; this file owns geometry/input/state. */
 #include "station-art-kit.h"
+#include "station-bar-art.h"
 #include "native-art-scenes.h"
 #include "procedural-room-plan.h"
 enum {
@@ -52,6 +53,10 @@ static int sc_proc_plan(ProcRoomPlan *out){
 typedef struct { const char *name; int role; int act; int shop_item; int gift_bit; int quest_pay; int taxi_pay; const char *line; const char *offer; } ScNpc;
 enum { SC_ACT_TALK=0, SC_ACT_SHOP, SC_ACT_GIFT, SC_ACT_QUEST, SC_ACT_TAXI, SC_ACT_BOARD };
 typedef struct { int kind; int id; int x,y,w,h; const char *label; const char *look; } ScHot;
+static int sc_second_shift_active(int room){
+ /* The authored preview is the exact Reorte H0 Canteen proof room. */
+ return room==SC_R_CANTEEN&&game.system==39&&game.station_variant==0;
+}
 static void sc_person_pos(int room,int i,int *ox,int *oy){
  /* Keep people inside the narrower MAIN (options list owns the right). */
  static const int pos[SC_R_COUNT][3][2]={
@@ -65,6 +70,7 @@ static void sc_person_pos(int room,int i,int *ox,int *oy){
  };
  if(room<0||room>=SC_R_COUNT)room=0;if(i<0)i=0;if(i>2)i=2;
  *ox=pos[room][i][0];*oy=pos[room][i][1];
+ if(sc_second_shift_active(room))second_shift_person_pos(i,ox,oy);
 }
 static const char *sc_room_title(int r){
  static const char *n[]={"ARRIVALS HALL","CHANDLERY","CANTEEN","CARGO BAY","GUILD DESK","MED CLINIC","CUSTOMS LOCK"};
@@ -322,6 +328,12 @@ static void sc_draw_person_sprite(int x,int y,const ScNpc *p,int selected){
  else draw_portrait(x+8,y+2,28,28,game.system*37+p->role*17+(int)(p->name[0]*3),p->role);
  rect(x+8,y+28,32,1,ink);
  text((x+4)/8,(y+58)/8,selected?SC_AMBER:SC_CREAM,"%.8s",p->name);
+}
+static void sc_draw_authored_person_marker(int x,int y,int selected){
+ if(!selected)return;
+ /* Preserve the painted figure; selection is the only runtime ink on it. */
+ rect(x-2,y-2,52,1,SC_AMBER);rect(x-2,y+65,52,1,SC_AMBER);
+ rect(x-2,y-2,1,68,SC_AMBER);rect(x+51,y-2,1,68,SC_AMBER);
 }
 static void sc_draw_proc_accents(int x,int y,const ProcRoomPlan *p){
  const ArtRoomStyle *st=sc_style();
@@ -614,11 +626,13 @@ static void sc_illust_customs(int x,int y,int w,int h){
 }
 static void sc_draw_main_scene(void){
  const int VX=SC_VX,VY=SC_VY,VW=SC_VW,VH=SC_VH;
+ const int authored=sc_second_shift_active(sc_room);
  /* Illustrated room only — options list is the selector chrome. */
  rect(VX,VY,VW,VH,SC_VOID);
  rect(VX,VY,VW,1,SC_OCHRE);
  rect(VX,VY+VH-1,VW,1,SC_SLATE);
- if(sc_room==SC_R_ARRIVALS)sc_illust_arrivals(VX,VY,VW,VH);
+ if(authored)sc_illust_second_shift(VX,VY,VW,VH);
+ else if(sc_room==SC_R_ARRIVALS)sc_illust_arrivals(VX,VY,VW,VH);
  else if(sc_room==SC_R_SHOP)sc_illust_shop(VX,VY,VW,VH);
  else if(sc_room==SC_R_CANTEEN)sc_illust_canteen(VX,VY,VW,VH);
  else if(sc_room==SC_R_CARGO)sc_illust_cargo(VX,VY,VW,VH);
@@ -627,12 +641,12 @@ static void sc_draw_main_scene(void){
  else sc_illust_customs(VX,VY,VW,VH);
  {
   ProcRoomPlan plan;
-  if(sc_proc_plan(&plan))sc_draw_proc_accents(VX,VY,&plan);
+  if(!authored&&sc_proc_plan(&plan))sc_draw_proc_accents(VX,VY,&plan);
  }
  ScNpc people[3]; int pn=sc_fill_npcs(sc_room,people,3);
  ScHot hot[24]; int hn=sc_hotspots(hot,24);
  /* Hatches — silhouette only; names live in the right options list. */
- {
+ if(!authored){
   int exit_ord=0;
   for(int i=0;i<hn;i++)if(hot[i].kind==SC_H_EXIT&&hot[i].id!=SC_EXIT_SHIP){
    int hero=exit_ord==0;
@@ -645,7 +659,9 @@ static void sc_draw_main_scene(void){
  for(int i=0;i<pn;i++){
   int px,py;sc_person_pos(sc_room,i,&px,&py);
   if(px==0&&py==0)continue;
-  sc_draw_person_sprite(VX+px,VY+py,&people[i],sc_hot<hn&&hot[sc_hot].kind==SC_H_PERSON&&hot[sc_hot].id==i);
+  int selected=sc_hot<hn&&hot[sc_hot].kind==SC_H_PERSON&&hot[sc_hot].id==i;
+  if(authored)sc_draw_authored_person_marker(VX+px,VY+py,selected);
+  else sc_draw_person_sprite(VX+px,VY+py,&people[i],selected);
  }
  for(int i=0;i<hn;i++){
   if(hot[i].kind==SC_H_PERSON||hot[i].kind==SC_H_EXIT)continue;
