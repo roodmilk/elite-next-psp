@@ -416,3 +416,8 @@ The detailed development history, controls, implemented feature list, validation
 
 - Stacked targeted ship hull and shield meters into separate compact rows in the lower-left target card.
 - Kept the target distance, radar, power banks, and footer clear at the PSP’s native resolution.
+## 2.5.55 - Dismissible conversations
+
+- Circle now backs out of campaign conversations without advancing or losing the current dialogue position.
+- Select can open the mission log while a conversation is paused, so players can return to what they were doing.
+- Updated conversation footers to show the real available controls instead of claiming Circle and Select were locked.

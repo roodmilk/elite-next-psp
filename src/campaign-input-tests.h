@@ -2,9 +2,10 @@
  TEST_INIT();change_page(HOME);row=17;input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(page==CAMPAIGN,"campaign UI: visible Story menu opens the next step");
  input(PSP_CTRL_CIRCLE,0,.016f,0,0);
- INPUT_CHECK(page==CAMPAIGN&&!game.campaign_stage,"campaign UI: Circle stays locked until the conversation ends");
+ INPUT_CHECK(page==HOME&&!game.campaign_stage,"campaign UI: Circle backs out without advancing the conversation");
+ change_page(CAMPAIGN);
  input(PSP_CTRL_SELECT,0,.016f,0,0);
- INPUT_CHECK(page==CAMPAIGN&&!game.campaign_stage,"campaign UI: Select stays locked until the conversation ends");
+ INPUT_CHECK(page==MISSIONLOG&&!game.campaign_stage,"campaign UI: Select opens the mission log without advancing the conversation");
  /* Ask-then-answer: each non-final beat needs Cross to speak, then Cross to hear Kei. */
  for(int i=0;i<PROLOGUE_BRIEF_BEATS-1;i++){
   input(PSP_CTRL_CROSS,0,.016f,0,0);
@@ -41,8 +42,9 @@
  /* Open Channel brief: ask echo then answer for each beat, Select/Circle blocked, then accept. */
  saga_brief_beat=0;saga_brief_echo=0;saga_brief_chapter=game.saga_chapter;row=0;
  INPUT_CHECK(saga_brief_locked()&&!game.saga_step,"saga brief: chapter opens locked before accept");
- input(PSP_CTRL_CIRCLE,0,.016f,0,0);INPUT_CHECK(page==CAMPAIGN&&!game.saga_step,"saga brief: Circle blocked mid-conversation");
- input(PSP_CTRL_SELECT,0,.016f,0,0);INPUT_CHECK(page==CAMPAIGN&&!game.saga_step,"saga brief: Select blocked mid-conversation");
+ input(PSP_CTRL_CIRCLE,0,.016f,0,0);INPUT_CHECK(page!=CAMPAIGN&&!game.saga_step,"saga brief: Circle backs out mid-conversation");
+ change_page(CAMPAIGN);input(PSP_CTRL_SELECT,0,.016f,0,0);INPUT_CHECK(page==MISSIONLOG&&!game.saga_step,"saga brief: Select opens the mission log mid-conversation");
+ change_page(CAMPAIGN);
  for(int i=0;i<SAGA_BRIEF_BEATS-1;i++){
   input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(saga_brief_echo==1&&!game.saga_step,"saga brief: Cross speaks before the next NPC line");
   input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(saga_brief_echo==0&&saga_brief_beat==i+1&&!game.saga_step,"saga brief: second Cross walks to the next NPC beat");
@@ -59,7 +61,7 @@
  INPUT_CHECK(saga_ready(&game),"saga coda: delivery chapter is ready at destination");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(saga_coda_pending==0&&game.saga_chapter==1&&saga_coda_locked(),"saga coda: Act I chapter complete opens a locked coda page");
- input(PSP_CTRL_CIRCLE,0,.016f,0,0);INPUT_CHECK(page==CAMPAIGN&&saga_coda_pending==0,"saga coda: Circle stays locked on the coda page");
+ input(PSP_CTRL_CIRCLE,0,.016f,0,0);INPUT_CHECK(page!=CAMPAIGN&&saga_coda_pending==0,"saga coda: Circle backs out on the coda page");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(saga_coda_pending<0&&!saga_coda_locked()&&saga_brief_locked(),"saga coda: Cross dismisses coda and unlocks the next brief");
  INPUT_CHECK(strstr(saga_choice_blurb(5,0),"pirates")||strstr(saga_choice_blurb(5,0),"Pirates")||strstr(saga_choice_blurb(5,0),"Loud"),"saga choice: consequence blurbs stay on the decision screen");

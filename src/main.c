@@ -522,7 +522,7 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
    if(page==CHART&&chart_mode&&(pressed&(PSP_CTRL_LTRIGGER|PSP_CTRL_RTRIGGER))){chart_zoom+=pressed&PSP_CTRL_RTRIGGER?1:-1;if(chart_zoom<1)chart_zoom=1;if(chart_zoom>4)chart_zoom=4;game.cue=SFX_SELECT;}
    if(page==GALNET&&(pressed&(PSP_CTRL_LTRIGGER|PSP_CTRL_RTRIGGER))){galnet_tab=(galnet_tab+(pressed&PSP_CTRL_RTRIGGER?1:5))%6;row=0;}
    if(page==CODEX&&(pressed&(PSP_CTRL_LTRIGGER|PSP_CTRL_RTRIGGER))){codex_tab=(codex_tab+(pressed&PSP_CTRL_RTRIGGER?1:5))%6;row=0;}
-   if(pressed&PSP_CTRL_CIRCLE){if(page==CAMPAIGN&&story_brief_locked()){message(&game,"Finish this conversation first.");game.cue=SFX_UI;return;}if(page==MISSIONLOG&&abandon_confirm){abandon_confirm=0;message(&game,"Abandon cancelled. Your job is safe.");return;}if((page==RADIO||page==COMMS_PANEL||page==COMFORT)&&radio_dirty&&!radio_save_settings("radio.cfg")){message(&game,"Audio settings could not be saved. Try again.");return;}if(page==COMMS_PANEL)change_page(comms_return);else if(page==TARGETING){if(game.docked)menu_back();else change_page(FLIGHT);}else if(page==GALNET)change_page(HOME);else if(page==HOME){if(!game.docked)change_page(FLIGHT);}else menu_back();}
+   if(pressed&PSP_CTRL_CIRCLE){if(page==MISSIONLOG&&abandon_confirm){abandon_confirm=0;message(&game,"Abandon cancelled. Your job is safe.");return;}if((page==RADIO||page==COMMS_PANEL||page==COMFORT)&&radio_dirty&&!radio_save_settings("radio.cfg")){message(&game,"Audio settings could not be saved. Try again.");return;}if(page==COMMS_PANEL)change_page(comms_return);else if(page==TARGETING){if(game.docked)menu_back();else change_page(FLIGHT);}else if(page==GALNET)change_page(HOME);else if(page==HOME){if(!game.docked)change_page(FLIGHT);}else menu_back();}
    else if(page==COMMS&&(pressed&PSP_CTRL_SQUARE))change_page(RADIO);
    else if(page==STORY&&(pressed&PSP_CTRL_CROSS)){
     if(row==1&&game.story<STORY_FREE){story_skip(&game);change_page(HOME);}
@@ -539,7 +539,7 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
     else {selected_target=BODY_COUNT+1+best;scan_cat=target_category(selected_target);autoaim=!game.docked;message(&game,"Faction contact locked.");if(!game.docked)change_page(FLIGHT);game.cue=SFX_SELECT;}
    }
   else if(page==COMMS&&(pressed&PSP_CTRL_TRIANGLE)){comms_rescue_confirm=!comms_rescue_confirm;}else if(page==COMMS&&(pressed&PSP_CTRL_CROSS)){if(comms_rescue_confirm){if(emergency_rescue(&game)){selected_target=0;autoaim=0;change_page(HOME);}return;}if(game.docked){message(&game,"Already docked.");game.cue=SFX_UI;}else if(dock(&game)){selected_target=0;autoaim=0;change_page(FLIGHT);}}
-   else if(page==CAMPAIGN&&(pressed&PSP_CTRL_SELECT)){if(story_brief_locked()){message(&game,"Finish this conversation first.");game.cue=SFX_UI;return;}change_page(MISSIONLOG);}
+   else if(page==CAMPAIGN&&(pressed&PSP_CTRL_SELECT)){change_page(MISSIONLOG);}
    else if(page==MISSIONS&&(pressed&PSP_CTRL_SELECT))change_page(MISSIONLOG);
    else if(page==MISSIONLOG&&(pressed&PSP_CTRL_SELECT)){tracked_mission=row;change_page(CAMPAIGN);}
    else if(page==MISSIONS&&(pressed&PSP_CTRL_CROSS)){accept_mission(&game,row);}
@@ -987,6 +987,5 @@ int main(void){
  audio_stop();
  sceKernelExitGame();return 0;
 }
-
 
 

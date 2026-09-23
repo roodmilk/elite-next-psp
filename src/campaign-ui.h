@@ -36,7 +36,7 @@ static void campaign_screen(void){
    panel(16,124,448,45);text(3,16,GOLD,"AFTERMATH");
    text_wrap(3,18,54,2,WHITE,saga_coda_line2(ch),0);
    narrative_reply_choice(0,22,"Continue");
-   footer("X CONTINUE   (O/SELECT LOCKED)");return;
+   footer("X CONTINUE   O BACK   SELECT LOG");return;
   }
   /* Note: speech bubble wrap allows three lines so chapter dialogue can breathe. */
   const SagaBeat *b=&saga_beats[game.saga_chapter];unsigned ink=saga_speaker_color(b);
@@ -61,7 +61,7 @@ static void campaign_screen(void){
     text(3,20,AMBER,"%d / %d",beat+1,SAGA_BRIEF_BEATS);
     narrative_reply_choice(0,22,saga_brief_reply(b,beat));
    }
-   footer("X CONTINUE   (O/SELECT LOCKED)");return;
+  footer("X CONTINUE   O BACK   SELECT LOG");return;
   }
   saga_speaker_face(16,56,48,b);
   rect(76,54,388,68,RGB(14,29,39));rect(76,54,388,2,ink);rect(76,120,388,2,RGB(30,78,86));rect(462,54,2,68,ink);
@@ -98,7 +98,7 @@ static void campaign_screen(void){
    text(3,20,AMBER,"%d / %d",beat+1,PROLOGUE_BRIEF_BEATS);
    narrative_reply_choice(0,22,prologue_brief_reply(beat));
   }
-  footer("X CONTINUE   (O/SELECT LOCKED UNTIL ACCEPT)");return;
+  footer("X CONTINUE   O BACK   SELECT LOG");return;
  }
  const char *a="Return safely to Lave Hub.";
  const char *b="Docking guidance can bring you inside if the approach turns into a dare.";
