@@ -50,9 +50,11 @@ $bytes=[Collections.Generic.List[byte]]::new()
 for($y=20;$y-lt188;$y++){for($x=6;$x-lt346;$x+=2){
  $a=$nativeBitmap.GetPixel($x,$y);$b=$nativeBitmap.GetPixel($x+1,$y)
  $left=Closest $a;$right=Closest $b
+ if($left -gt 10 -or $right -gt 10){throw 'Palette index escaped the 11-colour runtime palette'}
  $bytes.Add([byte](($left -shl 4) -bor $right))
 }}
 $nativeBitmap.Dispose()
+if($bytes.Count -ne 28560){throw "Expected 28560 packed bytes; got $($bytes.Count)"}
 $writer=[IO.StreamWriter]::new((Join-Path (Get-Location) $Header),$false,[Text.UTF8Encoding]::new($false))
 try{
  $writer.WriteLine('/* Generated native340x168,4bit palette indices. Source: assets/second-shift-native-v2-source.png. */')
