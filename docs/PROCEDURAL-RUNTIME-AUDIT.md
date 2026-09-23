@@ -52,3 +52,7 @@ keeps `selector_version` as the version gate.
 Remaining acceptance evidence is native normal/high-contrast capture and
 measured plan/temporary-memory/draw/frame cost; this audit does not claim those
 are complete, and it does not merge or release the Art branch.
+
+The Reusable Element Kit extraction audit is intentionally a separate gate:
+`tools/validate-family-extraction.mjs` refuses certification while required
+Prospector/Research anchors are missing or have the wrong native dimensions.
