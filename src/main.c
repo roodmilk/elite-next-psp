@@ -821,6 +821,18 @@ static void input_tests(void){
    #include "menu-preview-tests.h"
    #include "station-bar-preview-tests.h"
    {
+    int saved_row=row,saved_contrast=high_contrast,labels_ok=1;
+    for(int contrast=0;contrast<2;contrast++)for(int slot=0;slot<6;slot++){
+     high_contrast=contrast;row=slot;memset(pixels,0,STRIDE*H*sizeof(unsigned));inventory_screen();
+     int glyphs=0,col=(slot&1)?23:2,baseline=9+(slot/2)*4;
+     for(int yy=baseline*8;yy<baseline*8+8;yy++)for(int xx=col*8;xx<col*8+32;xx++)if(pixels[yy*STRIDE+xx]==GOLD)glyphs++;
+     if(!glyphs)labels_ok=0;
+     char capture[64];snprintf(capture,sizeof(capture),"loadout-slot-%d-%s.bmp",slot,contrast?"contrast":"normal");dump_native_bmp(capture);
+    }
+    INPUT_CHECK(labels_ok,"loadout: all six selected hull labels render visibly in both palettes");
+    row=saved_row;high_contrast=saved_contrast;
+   }
+   {
     /* Engine roots must sit on the mesh aft tip — radius-scaled glow floated past wide ships. */
     int aft_ok=1;
     for(int mesh=0;mesh<mesh_count;mesh++){
@@ -987,5 +999,4 @@ int main(void){
  audio_stop();
  sceKernelExitGame();return 0;
 }
-
 

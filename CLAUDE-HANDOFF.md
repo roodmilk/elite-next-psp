@@ -1,5 +1,25 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Pending combined release — loadout readability correction
+
+Main now corrects loadout labels that used pixel positions as text columns.
+The hull panel shows six short slot labels; the right panel owns module names.
+In-flight help says to dock before changing modules. The internal release
+number remains 2.5.67 pending the combined Lave/station integration; the existing
+2.5.67 ZIP does not contain this pending source change.
+
+Validation: all five smoke suites pass in `work/smoke-20260923-124844-899`.
+Development EBOOT SHA256: `51885875FC631491078011628C885C70C5EE32D7CEE62E30EB60AF1EE09565C1`.
+Twelve native captures cover every selected slot in both palettes; framebuffer
+assertions require visible selected label glyphs. Normal DEF and contrast UTIL
+captures were visually reviewed. Average 56.63 FPS, worst 33.37 ms, 23 frames
+over 25 ms; this does not satisfy a stricter no-slow-frame gate.
+
+Highest-priority remaining work: integrate the corrected station composer
+without replacing newer main behavior; complete the Systems QA continuous
+Lave traversal/capture fixture; review native Lave art quality and memory
+evidence; then produce one combined, versioned release. v0.7 remains incomplete.
+
 ## Integrated 2.5.51 — Station Welcome mission
 
 The current build adds a session-local onboarding mission once the opening campaign

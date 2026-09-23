@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — loadout readability
+
+- Corrected pixel/character coordinate confusion that hid ship slot labels.
+- Kept module names in the details panel and made the in-flight hint explain docking is required.
+- Verified all six selected labels in both palettes, with native captures and a passing emulator smoke run.
+
 ## 2.5.67 - Lave signage draw-order fix
 
 - Moved the Lave Public canteen identity signage after the back-wall layer so the nameplate remains visible at native resolution.

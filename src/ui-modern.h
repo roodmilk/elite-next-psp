@@ -365,21 +365,22 @@ static void inventory_screen(void){
  header("SHIP LOADOUT");panel(8,32,230,180);panel(246,32,226,180);
  const char *slot[]={"WPN","DEF","NAV","HOLD","FUEL","UTIL"};
  int mesh=mesh_id(player_ships[game.ship].name);
- text(2,5,CYAN,"VISUAL LOADOUT");text(2,6,DIM,"%.20s  /  MESH %d",player_ships[game.ship].name,mesh);
+ text(2,5,CYAN,"VISUAL LOADOUT");text(2,6,DIM,"%.26s",player_ships[game.ship].name);
  ship_loadout_art(mesh,123,122);
  for(int i=0;i<6;i++){
   int mod=game.fit[i];if(!fit_value_valid(i,mod))mod=FIT_EMPTY;
-  const char *name=mod==FIT_EMPTY?(i==FIT_HOLD?"BASE HOLD":i==FIT_FUEL?"TANK ONLY":"EMPTY"):equipment_list_names[mod];
-  int x=(i%2)?143:14,y=9+(i/2)*4;
-  if(i==row)rect(x-2,y*8-3,82,16,RGB(25,65,77));
-  text(x,y,i==row?GOLD:CYAN,"%s",slot[i]);text(x+5,y,mod==FIT_EMPTY?DIM:WHITE,"%.8s",name);
+  /* Labels use character columns; rectangles use pixels. Full module names
+   * live in the right panel so neither label bank covers the ship silhouette. */
+  int col=(i%2)?23:2,y=9+(i/2)*4;
+  if(i==row)rect(col*8-2,y*8-3,42,14,RGB(25,65,77));
+  text(col,y,i==row?GOLD:CYAN,"%s",slot[i]);
   /* Slot markers sit on the hull, while the labels remain readable at 1x. */
   static const int mx[]={123,123,93,153,104,142},my[]={98,139,117,117,144,144};
   int marker_x=mx[i],marker_y=my[i];
   rect(marker_x-3,marker_y-3,7,7,i==row?GOLD:CYAN);rect(marker_x-1,marker_y-1,3,3,RGB(21,28,39));
  }
  text(2,24,DIM,"MISSILES %d   HOLD %d/%d T",game.missiles,cargo_used(&game),cargo_capacity(&game));
- text(31,5,CYAN,"MODULES & CARGO");text(31,6,DIM,"X removes selected module");
+ text(31,5,CYAN,"MODULES & CARGO");text(31,6,DIM,game.docked?"X removes selected module":"Dock to change modules");
  for(int i=0;i<6;i++){
   int mod=game.fit[i];if(!fit_value_valid(i,mod))mod=FIT_EMPTY;int y=8+i*2;
   text(31,y,i==row?GOLD:WHITE,"%-4s",slot[i]);
