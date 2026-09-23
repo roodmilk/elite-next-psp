@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /* Rebuild the complete offline procedural/content validation chain. */
 import {spawnSync} from 'node:child_process';
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -21,4 +22,7 @@ run('tools/validate-planet-previews.mjs',['--manifest',path.join(out,'planet-pro
 run('tools/validate-art-pipeline.mjs',['--dir',out,'--contract',contract,'--pack','planet.content']);
 if(register)run('tools/validate-room-coverage.mjs',['--register',register,'--station',path.join(out,'station-activity.json'),'--out',path.join(out,'room-coverage-report.json')]);
 if(elementManifest)run('tools/validate-element-kit-budget.mjs',['--manifest',elementManifest,'--out',path.join(out,'element-kit-budget.json')]);
+const files=['planet-profiles.json','planet-profiles.ppm','station-activity.json','planet-art-atlas.json','planet-art-atlas.ppm','psp-art-budget.json','planet.content','station.content','room-coverage-report.json','element-kit-budget.json'].filter(name=>fs.existsSync(path.join(out,name))||fs.existsSync(name));
+const artifacts={};for(const name of files){const file=fs.existsSync(path.join(out,name))?path.join(out,name):name;const bytes=fs.readFileSync(file);artifacts[name]={path:file,bytes:bytes.length,sha256:crypto.createHash('sha256').update(bytes).digest('hex')};}
+fs.writeFileSync(path.join(out,'pipeline-index.json'),JSON.stringify({index_version:1,contract_version:JSON.parse(fs.readFileSync(contract,'utf8')).contract_version,profile_version:1,generated_by:'tools/rebuild-procedural-pipeline.mjs',artifacts},null,2)+'\n');
 console.log(`Procedural pipeline rebuild passed: ${out}`);

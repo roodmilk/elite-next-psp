@@ -52,7 +52,8 @@ node tools/rebuild-procedural-pipeline.mjs --out work/planet-preview --register 
 ```
 
 It regenerates both versioned sidecars before validation, so reports cannot
-silently describe stale manifests or atlas previews.
+silently describe stale manifests or atlas previews. It also writes
+`pipeline-index.json`, a byte-size/SHA-256 inventory for the generated handoff.
 
 This emits three stable station records per system for the hub, relay, and
 frontier outpost. It is intentionally offline until the Station owner signs
