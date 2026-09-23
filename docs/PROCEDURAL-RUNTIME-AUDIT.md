@@ -40,8 +40,15 @@ Until those gates pass, the Systems-generated descriptors remain build-time
 planning artifacts and the existing truthful station renderer remains the
 authoritative fallback.
 
-Follow-up Art commit `48871ba` addresses items 2–4 and adds a draw-call bound,
-but its live adapter still derives descriptor fields from `System`; it does not
-yet consume the generated descriptor source. Systems treats `art_version` as a
-compatibility field, not a fingerprint input, and keeps `selector_version` as
-the version gate.
+Follow-up Art commits `48871ba` and `d0c2cd4` address the selector/hash,
+exception, draw-bound and descriptor-source gaps. Re-audit evidence: the
+generated header embeds the SHA-256 of the Systems descriptor JSON, lookup is
+bounded to 256×3×7 records, and the live adapter consumes the baked family,
+layout, landmark, material, art-version, exception and selector-hash fields.
+The plan rejects mismatched hashes and unsupported selector versions. Systems
+treats `art_version` as a compatibility field, not a fingerprint input, and
+keeps `selector_version` as the version gate.
+
+Remaining acceptance evidence is native normal/high-contrast capture and
+measured plan/temporary-memory/draw/frame cost; this audit does not claim those
+are complete, and it does not merge or release the Art branch.
