@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
+#include "generated/procedural-room-descriptors.h"
 
 #define PROC_ROOM_PLAN_VERSION 1u
 #define PROC_ROOM_PLAN_MAX_ELEMENTS 12u

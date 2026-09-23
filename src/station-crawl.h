@@ -38,19 +38,15 @@ static int sc_x=0, sc_y=0, sc_face=SC_S;
 static unsigned char sc_map[1][1], sc_door_n[1][1], sc_door_e[1][1];
 static const ArtRoomStyle *sc_style(void){return art_room_style(sc_art_id(sc_room));}
 static int sc_proc_plan(ProcRoomPlan *out){
- System *s; ProcRoomIdentity id; int sys=game.system,hub=game.station_variant;
+ ProcRoomIdentity id; const ProcRoomDescriptor *d; int sys=game.system,hub=game.station_variant;
  if(sys<0)sys=0;if(sys>255)sys=255;if(hub<0)hub=0;hub%=3;
- s=&game.systems[sys];
+ d=proc_room_descriptor_at(sys,hub,sc_room);if(!d)return 0;
  id.galaxy=0;id.system_id=(uint16_t)sys;id.hub_index=(uint8_t)hub;
  id.room_id=(uint8_t)sc_room;
- id.family_id=(uint8_t)((s->economy*3+s->government+s->tech+hub*2)%PROC_FAMILY_COUNT);
- id.arrangement_id=(uint8_t)((s->economy+hub)%3);
- id.landmark_id=(uint8_t)((s->tech+s->government+sc_room)%4);
- id.material_id=(uint8_t)((s->economy+s->government+hub)%4);
- id.art_version=1;id.selector_version=PROC_ROOM_PLAN_VERSION;id.exception_id=
-  (sys==39&&hub==0&&sc_room==SC_R_ARRIVALS)?1:
-  (sys==39&&hub==0&&sc_room==SC_R_CANTEEN)?2:0;
- id.selector_hash=0;
+ id.family_id=d->family_id;id.arrangement_id=d->arrangement_id;
+ id.landmark_id=d->landmark_id;id.material_id=d->material_id;
+ id.art_version=d->art_version;id.selector_version=PROC_ROOM_PLAN_VERSION;
+ id.exception_id=d->exception_id;id.selector_hash=d->selector_hash;
  return proc_room_plan_make(&id,high_contrast,out);
 }
 typedef struct { const char *name; int role; int act; int shop_item; int gift_bit; int quest_pay; int taxi_pay; const char *line; const char *offer; } ScNpc;
