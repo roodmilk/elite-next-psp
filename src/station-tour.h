@@ -16,7 +16,7 @@ static const char *station_tour_objective(void){
 static void station_tour_begin(void){
  if(station_tour_stage!=STATION_TOUR_OFF)return;
  if(smoke)return; /* automated smoke scenes must remain deterministic */
- if(game.docked&&game.system==7){
+ if(game.story==STORY_FREE&&game.docked&&game.system==7){
   station_tour_stage=STATION_TOUR_ROUTE;
   message(&game,"NEW MISSION: Station Welcome. Reorte Hub has a bar to explore.");
   game.cue=SFX_UI;

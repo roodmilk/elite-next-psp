@@ -408,3 +408,7 @@ The detailed development history, controls, implemented feature list, validation
 - The Station Welcome mission now advances only after docking at Reorte’s primary Hub H0, which is the station identity that owns the lush authored Second Shift scene.
 - Secondary Reorte hubs now explain that the commander must use the primary Hub instead of silently advancing into the generic canteen renderer.
 - Kept generic canteen rooms separate until their own native 480×272 art families pass the palette, payload, contrast, and traversal gates.
+## 2.5.53 - Optional Station Welcome
+
+- The bar tour no longer overrides the opening story or forces a Reorte jump. It becomes available after the opening campaign is complete and can then be followed from the tracked-mission screen.
+- Reorte’s authored Second Shift scene remains restricted to the primary Hub H0 identity, with secondary hubs clearly identified instead of falsely advancing the tour.
