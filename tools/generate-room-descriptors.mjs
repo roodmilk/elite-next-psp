@@ -20,6 +20,6 @@ for(const r of source.records||[]){
 }
 check(source.schema_version===1,'unsupported source register schema');check(records.length===5376,'descriptor count must be 5376');check(ids.size===records.length&&fingerprints.size===records.length,'descriptor identity/fingerprint collision');
 if(fail.length){console.error(`Room descriptor generation failed (${fail.length} issue${fail.length===1?'':'s'})`);for(const msg of fail.slice(0,20))console.error(`- ${msg}`);process.exit(1);}
-const output={descriptor_version:1,source_register_sha:source.source_sha,selector:{version:1,algorithm:'FNV-1a over UTF-8 canonical room-selector-v1 tuple',inputs:['galaxy_id','system_id','hub_index','room_id','family_id','arrangement_id','landmark_id','material_id','art_version','exception_id'],runtime_activation:false},counts:{systems:256,hubs:768,rooms:records.length},records};
+const output={descriptor_version:1,source_register_sha:source.source_sha,selector:{version:1,algorithm:'FNV-1a over UTF-8 canonical room-selector-v1 tuple',fingerprint_inputs:['galaxy_id','system_id','hub_index','room_code','family_id','arrangement_id','landmark_id','material_id','exception_id'],compatibility_fields:['selector_version','art_version'],runtime_activation:false},counts:{systems:256,hubs:768,rooms:records.length},records};
 fs.mkdirSync(path.dirname(out),{recursive:true});fs.writeFileSync(out,JSON.stringify(output,null,2)+'\n');
 console.log(`Generated ${records.length} build-time room descriptors with stable selector fingerprints`);console.log(`Wrote ${out}`);

@@ -39,3 +39,9 @@ save, economy, mission, NPC or capability writes are permitted.
 Until those gates pass, the Systems-generated descriptors remain build-time
 planning artifacts and the existing truthful station renderer remains the
 authoritative fallback.
+
+Follow-up Art commit `48871ba` addresses items 2–4 and adds a draw-call bound,
+but its live adapter still derives descriptor fields from `System`; it does not
+yet consume the generated descriptor source. Systems treats `art_version` as a
+compatibility field, not a fingerprint input, and keeps `selector_version` as
+the version gate.
