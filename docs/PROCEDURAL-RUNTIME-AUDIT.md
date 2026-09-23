@@ -40,6 +40,18 @@ Until those gates pass, the Systems-generated descriptors remain build-time
 planning artifacts and the existing truthful station renderer remains the
 authoritative fallback.
 
+The Art-only authored dispatch boundary is checked without merging the Art branch:
+
+```text
+node tools/validate-authored-station-dispatch.mjs --art-root <station-art-rollout> --systems-root . --out work/planet-preview/authored-station-dispatch-report.json
+```
+
+This gate verifies that Reorte H0 (`system_id=39`, `hub_index=0`, Canteen) keeps its
+exact authored selector, that its pixel payload is still the expected export, and
+that Reorte's secondary hubs remain on the generic canteen fallback. Other
+family-specific selectors are owned by their own rollout gates. It reports native
+normal/high-contrast capture and runtime budgets separately as pending.
+
 Follow-up Art commits `48871ba` and `d0c2cd4` address the selector/hash,
 exception, draw-bound and descriptor-source gaps. Re-audit evidence: the
 generated header embeds the SHA-256 of the Systems descriptor JSON, lookup is

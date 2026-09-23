@@ -6,6 +6,7 @@ enum {
 };
 enum { STORY_EV_HELP=1, STORY_EV_LAUNCH=2, STORY_EV_TARGET=4, STORY_EV_DOCK=8, STORY_EV_PAGE=16, STORY_EV_WORLD=32, STORY_EV_SCAN=64, STORY_EV_PIP=128 };
 static void story_complete(Game *g){g->story=STORY_FREE;g->story_flags|=0xffff;}
+static inline int story_station_tour_ready(const Game *g){return g->docked&&g->story>=STORY_FREE;}
 static int story_menu_ok(const Game *g,int home_index){(void)g;(void)home_index;return 1;}
 static inline const char *story_title(const Game *g){
  static const char *t[]={"HER CHANNEL","FIRST FLIGHT","EYES OPEN","BERTH","THE ROOM","LAST PING","PAID WORK","THE HOLD","A STAR","THREE EDGES","HER WORLD","FIRST LIGHT","STILL HERE"};

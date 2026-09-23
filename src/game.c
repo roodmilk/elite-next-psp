@@ -819,6 +819,7 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  CHECK(g.cargo[0]==2&&story_hint(&g)[0]&&story_home_row(&g)==6,"new commander starts with food and a Controls lesson");
  CHECK(story_line(&g,0)[0]&&strstr(story_task(&g),"CONTROLS")&&story_title(&g)[0],"guild briefing names the controls lesson");
  CHECK(strstr(story_line(&g,0),"Ryn")!=0,"guild briefing names the missing surveyor");
+ {Game opening=g;opening.docked=0;story_event(&opening,STORY_EV_HELP);CHECK(opening.story==STORY_LAUNCH&&!opening.docked,"opening story advances without Station Welcome activation");}
  Game skipped;game_init(&skipped);story_skip(&skipped);CHECK(skipped.story==STORY_FREE&&story_menu_ok(&skipped,3),"skipping the campaign unlocks every deck");
  story_event(&g,STORY_EV_HELP);CHECK(g.story==STORY_LAUNCH&&g.voice_who==VOICE_KEI&&g.voice_time>0,"opening controls advances the briefing");
  launch(&g);CHECK(g.story==STORY_SIGHT,"first launch advances the campaign");
