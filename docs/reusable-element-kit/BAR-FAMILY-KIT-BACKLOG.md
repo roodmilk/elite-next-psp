@@ -67,6 +67,22 @@ danger. Dice, gambling, jobs, services and faction meaning appear only when the
 Station and Gameplay state enables them. Procedural variation changes fittings,
 materials, outside view and wear, not capability truth.
 
+## Fidelity gate
+
+The kit must satisfy `station-art-rollout/docs/SECOND-SHIFT-FIDELITY-GATE.md`.
+The six-family concept sheet and Second Shift native room are references only,
+but their authored richness is mandatory at 480×272: foreground/midground/
+background depth, one-second hero landmark, 3–5 real anchors, at least two
+readable people or activity silhouettes when inhabitants are enabled, material
+clusters, deliberate lighting with controlled accents, route/door read and
+clear SHIP return. Options, speech and feedback bands remain UI-owned.
+
+The current assembled kit frames are layout/contrast evidence only and are
+explicitly **not acceptable vertical-slice room art**: their simplified tokens
+must not be promoted as final procedural rooms. A valid slice needs readable
+head/torso/pose/role cues, depth/shadow variants, family identity motifs and
+truthful capability states. Sparse geometric placeholders fail the gate.
+
 ## First vertical slice
 
 1. Freight: add clerk/carrying-worker, timetable board and berth-window depth
