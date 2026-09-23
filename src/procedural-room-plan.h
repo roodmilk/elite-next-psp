@@ -8,6 +8,7 @@
 #include "generated/procedural-room-descriptors.h"
 
 #define PROC_ROOM_PLAN_VERSION 1u
+#define PROC_ROOM_SELECTOR_VERSION 1u
 #define PROC_ROOM_PLAN_MAX_ELEMENTS 12u
 #define PROC_ROOM_PLAN_MAX_DRAW_CALLS 12u
 #define PROC_ROOM_SCREEN_W 480
@@ -35,10 +36,11 @@ enum {
  PROC_FREIGHT=0, PROC_PROSPECTOR, PROC_RESEARCH,
  PROC_MERCHANT, PROC_FRONTIER, PROC_OUTLAW, PROC_FAMILY_COUNT
 };
+/* Stable IDs mirror docs/reusable-element-kit/ELEMENT-MANIFEST.json. */
 enum {
- PROC_E_PERSON=0, PROC_E_COUNTER, PROC_E_LAMP, PROC_E_WINDOW,
- PROC_E_RACK, PROC_E_ASSAY, PROC_E_CONSOLE, PROC_E_PANEL,
- PROC_E_HATCH, PROC_E_DICE, PROC_E_COUNT
+ PROC_E_PERSON_STANDING=0, PROC_E_PERSON_CARRYING, PROC_E_PERSON_SEATED,
+ PROC_E_COUNTER, PROC_E_LAMP, PROC_E_WINDOW, PROC_E_RACK, PROC_E_ASSAY,
+ PROC_E_CONSOLE, PROC_E_PANEL, PROC_E_HATCH, PROC_E_DICE, PROC_E_COUNT
 };
 enum { PROC_LAYER_BACK=0, PROC_LAYER_MID, PROC_LAYER_FRONT, PROC_LAYER_UI };
 enum { PROC_PLACE_AUTHORED=1u, PROC_PLACE_PROCEDURAL=2u, PROC_PLACE_CONTRAST=4u };
@@ -93,7 +95,7 @@ static uint8_t proc_room_family(uint8_t family){
 /* Returns 1 for a composed plan, 0 for unsupported identity/fallback. */
 static int proc_room_plan_make(const ProcRoomIdentity *id,int high_contrast,
                                ProcRoomPlan *out){
- uint32_t h;if(!id||!out||id->selector_version!=PROC_ROOM_PLAN_VERSION||
+ uint32_t h;if(!id||!out||id->selector_version!=PROC_ROOM_SELECTOR_VERSION||
     id->room_id>=PROC_ROOM_COUNT)return 0;
  if(id->selector_hash&&id->selector_hash!=proc_room_selector_hash(id))return 0;
  out->version=PROC_ROOM_PLAN_VERSION;out->family_id=proc_room_family(id->family_id);
@@ -112,7 +114,8 @@ static int proc_room_plan_make(const ProcRoomIdentity *id,int high_contrast,
   proc_room_push(out,PROC_E_COUNTER,id->arrangement_id%3u,PROC_LAYER_FRONT,PROC_PLACE_AUTHORED,64,100);
   proc_room_push(out,PROC_E_LAMP,(h>>5)&3u,PROC_LAYER_BACK,PROC_PLACE_PROCEDURAL,126,32);
   proc_room_push(out,PROC_E_WINDOW,(h>>7)&3u,PROC_LAYER_BACK,PROC_PLACE_PROCEDURAL,176,28);
-  if(id->exception_id)proc_room_push(out,PROC_E_DICE,0,PROC_LAYER_MID,PROC_PLACE_AUTHORED,220,126);
+  /* Dice/cards require a Station/Gameplay capability view; identity alone
+   * must never imply a game, wager, faction or playable service. */
  }else if(id->room_id==PROC_ROOM_CARGO){
   proc_room_push(out,PROC_E_RACK,id->arrangement_id%3u,PROC_LAYER_BACK,PROC_PLACE_AUTHORED,62,45);
   proc_room_push(out,PROC_E_PANEL,id->landmark_id&3u,PROC_LAYER_MID,PROC_PLACE_PROCEDURAL,166,36);
