@@ -5,8 +5,8 @@
  * the Station owner allocates a runtime consumer for these records. */
 #define STATION_PACK_MAX 768
 typedef struct {uint8_t system,hub,architecture,arrangement,landmark,windows,traffic,security,service;uint32_t seed;} StationPackRecord;
-static StationPackRecord station_pack_records[STATION_PACK_MAX];
-static unsigned station_pack_count=0,station_pack_loaded=0;
+extern StationPackRecord station_pack_records[STATION_PACK_MAX];
+extern unsigned station_pack_count,station_pack_loaded;
 static uint32_t station_pack_checksum(const uint8_t *data,unsigned len){uint32_t h=2166136261u;for(unsigned i=0;i<len;i++){h^=data[i];h*=16777619u;}return h;}
 static int station_pack_record_valid(const StationPackRecord *r){return r&&r->hub<3&&r->architecture<6&&r->arrangement<8&&r->landmark<8&&r->windows>=4&&r->windows<=13&&r->traffic>=2&&r->traffic<=10&&r->security>=1&&r->security<=7&&r->service>=1&&r->service<=5;}
 static int station_pack_load(const char *path){

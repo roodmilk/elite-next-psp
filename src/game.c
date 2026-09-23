@@ -13,6 +13,10 @@
 #include "planet-pack.h"
 #include "station-profile.h"
 #include "station-pack.h"
+PlanetPackRecord planet_pack_records[PLANET_PACK_MAX];
+unsigned planet_pack_count=0,planet_pack_loaded=0;
+StationPackRecord station_pack_records[STATION_PACK_MAX];
+unsigned station_pack_count=0,station_pack_loaded=0;
 const Good goods[GOODS]={
  {"Food",19,-2,6,1,'t'},{"Textiles",20,-1,10,3,'t'},
  {"Radioactives",65,-3,2,7,'t'},{"Slaves",40,-5,226,31,'t'},

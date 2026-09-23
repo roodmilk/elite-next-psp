@@ -6,8 +6,8 @@
  * a pack being present. */
 #define PLANET_PACK_MAX 768
 typedef struct {uint8_t system,body,type,family,terrain_style,palette,sea_level,prop_density,activity_density;uint32_t seed;} PlanetPackRecord;
-static PlanetPackRecord planet_pack_records[PLANET_PACK_MAX];
-static unsigned planet_pack_count=0,planet_pack_loaded=0;
+extern PlanetPackRecord planet_pack_records[PLANET_PACK_MAX];
+extern unsigned planet_pack_count,planet_pack_loaded;
 static uint32_t planet_pack_checksum(const uint8_t *data,unsigned len){uint32_t h=2166136261u;for(unsigned i=0;i<len;i++){h^=data[i];h*=16777619u;}return h;}
 static int planet_pack_record_valid(const PlanetPackRecord *r){
  return r&&r->body>=1&&r->body<5&&r->type<=1&&r->family<=4&&r->terrain_style<4&&r->palette<8&&r->prop_density>=35&&r->prop_density<=80&&r->activity_density>=20&&r->activity_density<=80&&(r->type==0?r->family==0:r->family==1+(r->seed%4));
