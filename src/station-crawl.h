@@ -27,6 +27,7 @@ enum { SC_EXIT_SHIP=-1 };
 #define SC_DANGER ART_DANGER
 #include "station-shell.h"
 #include "station-authored-art.h"
+#include "station-arrivals-authored-art.h"
 /* MacVenture room ids → art kit (bake mapper still tracks old grid enums). */
 static int sc_art_id(int room){
  static const int map[SC_R_COUNT]={
@@ -592,7 +593,7 @@ static void sc_draw_main_scene(void){
  rect(VX,VY,VW,1,SC_OCHRE);
  rect(VX,VY+VH-1,VW,1,SC_SLATE);
  if(sc_room==SC_R_ARRIVALS){
-  if(station_authored_arrivals_at())sc_illust_authored_arrivals(VX,VY,VW,VH);
+  if(station_authored_arrivals_at())station_arrivals_authored_draw(VX,VY,VW,VH);
   else sc_illust_arrivals(VX,VY,VW,VH);
  }
  else if(sc_room==SC_R_SHOP)sc_illust_shop(VX,VY,VW,VH);
