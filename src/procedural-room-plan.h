@@ -9,6 +9,8 @@
 
 #define PROC_ROOM_PLAN_VERSION 1u
 #define PROC_ROOM_SELECTOR_VERSION 1u
+/* Candidate kit IDs are not runtime-ready until native dispatch is certified. */
+#define PROC_ROOM_KIT_RUNTIME_READY 0u
 #define PROC_ROOM_PLAN_MAX_ELEMENTS 12u
 #define PROC_ROOM_PLAN_MAX_DRAW_CALLS 12u
 #define PROC_ROOM_SCREEN_W 480
@@ -111,7 +113,11 @@ static int proc_room_plan_make(const ProcRoomIdentity *id,int high_contrast,
   proc_room_push(out,PROC_E_PANEL,id->landmark_id&3u,PROC_LAYER_BACK,PROC_PLACE_PROCEDURAL,122,35);
   proc_room_push(out,PROC_E_RACK,(h>>4)&3u,PROC_LAYER_FRONT,PROC_PLACE_PROCEDURAL,238,94);
  }else if(id->room_id==PROC_ROOM_CANTEEN){
-  proc_room_push(out,PROC_E_COUNTER,id->arrangement_id%3u,PROC_LAYER_FRONT,PROC_PLACE_AUTHORED,64,100);
+ proc_room_push(out,PROC_E_COUNTER,id->arrangement_id%3u,PROC_LAYER_FRONT,PROC_PLACE_AUTHORED,64,100);
+  if(id->family_id==PROC_RESEARCH){
+   out->count=0;
+   proc_room_push(out,PROC_E_CONSOLE,id->landmark_id&3u,PROC_LAYER_FRONT,PROC_PLACE_AUTHORED,64,100);
+  }
   proc_room_push(out,PROC_E_LAMP,(h>>5)&3u,PROC_LAYER_BACK,PROC_PLACE_PROCEDURAL,126,32);
   proc_room_push(out,PROC_E_WINDOW,(h>>7)&3u,PROC_LAYER_BACK,PROC_PLACE_PROCEDURAL,176,28);
   /* Dice/cards require a Station/Gameplay capability view; identity alone

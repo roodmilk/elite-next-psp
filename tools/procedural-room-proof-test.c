@@ -27,6 +27,31 @@ static int proof_one(int system_id, uint8_t expected_family){
      a.element[i].x!=b.element[i].x||a.element[i].y!=b.element[i].y)return 6;
   if(!(c.element[i].flags&PROC_PLACE_CONTRAST))return 7;
  }
+ if(system_id==4&&a.element[0].element_id!=PROC_E_CONSOLE)return 8;
+ return 0;
+}
+
+static int proof_qube_cargo(void){
+ const ProcRoomDescriptor *d=proc_room_descriptor_at(1,0,PROC_ROOM_CARGO);
+ ProcRoomIdentity id={0};
+ ProcRoomPlan a,b;
+ if(!d||d->family_id!=PROC_FREIGHT)return 10;
+ id.galaxy=0;id.system_id=1;id.hub_index=0;id.room_id=PROC_ROOM_CARGO;
+ id.family_id=d->family_id;id.arrangement_id=d->arrangement_id;
+ id.landmark_id=d->landmark_id;id.material_id=d->material_id;
+ id.art_version=d->art_version;id.exception_id=d->exception_id;
+ id.selector_version=PROC_ROOM_SELECTOR_VERSION;id.selector_hash=d->selector_hash;
+ if(!proc_room_plan_make(&id,0,&a)||!proc_room_plan_make(&id,1,&b))return 11;
+ if(a.selector_hash!=d->selector_hash||a.count!=3||b.count!=a.count)return 12;
+ if(a.element[0].element_id!=PROC_E_RACK||
+    a.element[1].element_id!=PROC_E_PANEL||
+    a.element[2].element_id!=PROC_E_COUNTER)return 13;
+ if(a.element[0].x!=62||a.element[0].y!=45||
+    a.element[1].x!=166||a.element[1].y!=36||
+    a.element[2].x!=118||a.element[2].y!=112)return 14;
+ if(!(b.element[0].flags&PROC_PLACE_CONTRAST)||
+    !(b.element[1].flags&PROC_PLACE_CONTRAST)||
+    !(b.element[2].flags&PROC_PLACE_CONTRAST))return 15;
  return 0;
 }
 
@@ -35,5 +60,7 @@ int main(void){
  if(proof_one(1,PROC_FREIGHT))return 1;
  if(proof_one(4,PROC_RESEARCH))return 2;
  if(proof_one(39,PROC_FRONTIER))return 3;
+ /* Next bounded proof room: Qube H0 CARGO / Freight. */
+ if(proof_qube_cargo())return 4;
  return 0;
 }

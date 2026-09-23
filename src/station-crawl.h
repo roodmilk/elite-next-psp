@@ -39,6 +39,12 @@ static int sc_x=0, sc_y=0, sc_face=SC_S;
 static unsigned char sc_map[1][1], sc_door_n[1][1], sc_door_e[1][1];
 static const ArtRoomStyle *sc_style(void){return art_room_style(sc_art_id(sc_room));}
 static int sc_proc_plan(ProcRoomPlan *out){
+#if !PROC_ROOM_KIT_RUNTIME_READY
+ (void)out;
+ /* Do not expose placeholder primitives as family art. Until native kit
+  * dispatch is certified, the truthful room renderer remains authoritative. */
+ return 0;
+#else
  ProcRoomIdentity id; const ProcRoomDescriptor *d; int sys=game.system,hub=game.station_variant;
  if(sys<0)sys=0;if(sys>255)sys=255;if(hub<0)hub=0;hub%=3;
  d=proc_room_descriptor_at(sys,hub,sc_room);if(!d)return 0;
@@ -49,6 +55,7 @@ static int sc_proc_plan(ProcRoomPlan *out){
  id.art_version=d->art_version;id.selector_version=PROC_ROOM_PLAN_VERSION;
  id.exception_id=d->exception_id;id.selector_hash=d->selector_hash;
  return proc_room_plan_make(&id,high_contrast,out);
+#endif
 }
 typedef struct { const char *name; int role; int act; int shop_item; int gift_bit; int quest_pay; int taxi_pay; const char *line; const char *offer; } ScNpc;
 enum { SC_ACT_TALK=0, SC_ACT_SHOP, SC_ACT_GIFT, SC_ACT_QUEST, SC_ACT_TAXI, SC_ACT_BOARD };
