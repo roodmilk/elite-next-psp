@@ -5,12 +5,14 @@ Station-owner gated.
 
 ## Input and identity
 
-The authoring source is `tools/generate-station-activity.mjs`. Each record is
+The authoring source is `tools/generate-station-activity.mjs`; the C-side
+selector contract is `src/station-profile.h`. Each record is
 identified by `(system, hub)` where `hub` is `0` for the primary hub, `1` for
 the outer relay, and `2` for the frontier outpost. The record seed is derived
 from those IDs and is stable across revisits.
 
-The runtime adapter must derive the same record from current system data or
+The runtime adapter must derive the same record from current compiled `System`
+fields or
 consume the validated `planet.content`-style sidecar. It must not add a
 commander-save field, use gameplay RNG, or mutate mission/reward state.
 
@@ -23,6 +25,10 @@ commander-save field, use gameplay RNG, or mutate mission/reward state.
 | `security` | 1–7 | signage, patrol/readability treatment |
 | `service` | 1–5 | authored service/room emphasis |
 | `mood` | quiet/working/busy/crowded | text/art direction label only |
+
+The immutable identity tuple is `(system, hub, architecture, arrangement,
+landmark, seed)`. Architecture/arrangement/landmark are authored selectors;
+they are not mission or save identifiers.
 
 The first vertical slice should use `windows` and `mood` in presentation only.
 Traffic, security, and service should remain available to station-room art and
