@@ -63,13 +63,19 @@ enum { SC_ACT_TALK=0, SC_ACT_SHOP, SC_ACT_GIFT, SC_ACT_QUEST, SC_ACT_TAXI, SC_AC
 typedef struct { int kind; int id; int x,y,w,h; const char *label; const char *look; } ScHot;
 static int sc_second_shift_active(int room){
  /* The authored preview is the exact Reorte H0 Canteen proof room. */
- return room==SC_R_CANTEEN&&game.system==39&&game.station_variant==0;
+ const ProcRoomDescriptor *d=proc_room_descriptor_at(game.system,game.station_variant,room);
+ return room==SC_R_CANTEEN&&game.system==39&&game.station_variant==0&&d&&
+  d->family_id==PROC_FRONTIER&&d->exception_id==2&&d->selector_hash==0x193c0782u;
 }
 static int sc_qube_freight_active(int room){
- return room==SC_R_CANTEEN&&game.system==1&&game.station_variant==0;
+ const ProcRoomDescriptor *d=proc_room_descriptor_at(game.system,game.station_variant,room);
+ return room==SC_R_CANTEEN&&game.system==1&&game.station_variant==0&&d&&
+  d->family_id==PROC_FREIGHT&&d->exception_id==0&&d->selector_hash==0x2e5fa27cu;
 }
 static int sc_xequerin_research_active(int room){
- return room==SC_R_CANTEEN&&game.system==4&&game.station_variant==0;
+ const ProcRoomDescriptor *d=proc_room_descriptor_at(game.system,game.station_variant,room);
+ return room==SC_R_CANTEEN&&game.system==4&&game.station_variant==0&&d&&
+  d->family_id==PROC_RESEARCH&&d->exception_id==0&&d->selector_hash==0x5dd95221u;
 }
 static int sc_native_canteen_active(int room){
  return sc_second_shift_active(room)||sc_qube_freight_active(room)||sc_xequerin_research_active(room);
