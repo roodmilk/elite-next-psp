@@ -27,6 +27,14 @@ static int audio_sfx_preview_wav(void){
  if(fclose(f))ok=0;
  return ok;
 }
+static int radio_wait_submissions(uint32_t before){
+ SceInt64 deadline=sceKernelGetSystemTimeWide()+500000;
+ while((uint32_t)(audio_submitted_blocks-before)<2u){
+  if(sceKernelGetSystemTimeWide()>=deadline)return 0;
+  sceKernelDelayThread(1000);
+ }
+ return 1;
+}
 static void radio_tests(void){
  FILE *f=fopen("radio-check.txt","w");if(!f)return;int failures=0;
  #define RADIO_CHECK(c,n) do{int ok=(c);fprintf(f,"%s %s\n",ok?"PASS":"FAIL",n);failures+=!ok;}while(0)
@@ -90,11 +98,26 @@ static void radio_tests(void){
  RADIO_CHECK(radio_load_settings("test-radio.cfg")&&radio_station==3,"invalid settings recover previous valid backup");
  remove("test-radio.cfg");remove("test-radio.cfg.bak");remove("test-radio.cfg.tmp");
  radio_station=0;radio_volume=5;sound_volume=8;radio_dirty=0;
- /* Suspend prep must leave MP3 frozen without waiting; resume path restarts audio. */
- audio_prepare_suspend();
- RADIO_CHECK(1,"suspend: power callback can freeze MP3 without blocking the main thread");
- audio_stop();audio_init();audio_stop();
- RADIO_CHECK(1,"suspend: repeated audio stop/start recovers without hanging the commander");
+ /* Real worker submissions, not unconditional success after lifecycle calls.
+  * This is synchronous API recovery; hardware power callbacks remain manual. */
+ for(int cycle=0;cycle<3;cycle++){
+  uint32_t submitted=audio_submitted_blocks,errors=audio_output_errors,decoded=mp3_decoded_blocks;
+  audio_init();
+  RADIO_CHECK(audio_run&&audio_ch>=0&&audio_thread>=0&&!mp3_frozen,"recovery: channel reserved and worker started");
+  int progressed=radio_wait_submissions(submitted);
+  RADIO_CHECK(progressed,"recovery: two PCM block submissions within 500 ms");
+  audio_prepare_suspend();
+  RADIO_CHECK(mp3_frozen&&!audio_run,"recovery: suspend preparation freezes decoding and requests worker stop");
+  audio_stop();
+  RADIO_CHECK(!audio_run&&audio_thread<0&&audio_ch<0&&mp3_handle<0&&!mp3_file&&!mp3_resource_ready&&!mp3_pcm,"recovery: stopped worker releases channel, file and decoder state");
+  uint32_t stopped=audio_submitted_blocks;
+  sceKernelDelayThread(20000);
+  RADIO_CHECK(audio_submitted_blocks==stopped,"recovery: stopped worker submits no further PCM blocks");
+  RADIO_CHECK(audio_output_errors==errors,"recovery: no new output API errors");
+  unsigned decode_delta=(uint32_t)(mp3_decoded_blocks-decoded);
+  fprintf(f,"INFO recovery cycle %d submitted %u decoded %u output_errors %u\n",cycle,(unsigned)(uint32_t)(stopped-submitted),decode_delta,(unsigned)(uint32_t)(audio_output_errors-errors));
+  if(!decode_delta)fprintf(f,"INFO MP3 recovery NOT VERIFIED: no decoded block in this cycle (normal smoke has no fixture)\n");
+ }
  fprintf(f,"RESULT %d failures\n",failures);fclose(f);
  #undef RADIO_CHECK
 }

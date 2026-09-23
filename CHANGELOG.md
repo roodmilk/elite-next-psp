@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — observable audio recovery checks
+
+- Replaced unconditional suspend-test passes with bounded PCM submission and resource-lifecycle assertions across startup and two restarts.
+- Added three worker-owned lifetime diagnostic counters without changing playback, decoder, shuffle, SFX or recovery policy. Reports distinguish queued PCM from audible output and mark absent MP3 evidence unverified.
+- Documented source-backed crackle hypotheses and a separate physical PSP test matrix.
+
 ## Unreleased - current-ship menu beauty preview
 
 - The command-deck inset shows the actual owned hull in a quiet 96-second

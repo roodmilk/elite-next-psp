@@ -1,5 +1,18 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Candidate — observable audio recovery on released 2.5.48
+
+`cursor/audio-recovery-evidence` starts from `1e3fab8`. Team assigned three
+worker-owned lifetime counters and the radio recovery test region; no playback,
+decoder/I/O/lifecycle policy or released SFX/shuffle behavior changed. Three
+start/restart cycles prove new queued PCM blocks, tracked cleanup and stopped
+stability, replacing unconditional success assertions. Empty-folder smoke reports
+MP3 recovery NOT VERIFIED. Physical crackle and long sleep remain untested.
+Build/all-five pass; baseline and candidate both 56.63 FPS average / 33.37 ms
+worst / 44 warnings. A frozen-counter negative control correctly fails three
+progress checks. See `docs/AUDIO-RECOVERY-EVIDENCE.md` for exact runs, 12-byte
+budget, source hypotheses and physical matrix. Lead combined gate remains.
+
 ## Integrated 2.5.48 — planetary EVA traversal
 
 The specialist/planetary-eva checkpoint adds independent look/walk/strafe/jet,
@@ -32,8 +45,11 @@ Lead alone owns combined integration, versioning and release artifacts.
 Final candidate PSP build and all-five PPSSPP smoke passed (57.98 FPS average,
 33.37 ms worst, 44 existing warnings). Sampled music+SFX peak 11,161 with no
 clamps; no physical PSP listening or custom-MP3 certification. Detailed report
-and exact test-run identifier are in the audio audit. Combined integration remains
-Lead's gate; this isolated candidate is not yet a playable main release.
+and exact test-run identifier are in the audio audit. Lead integrated the equivalent
+patch as `56998e3` and released it in v2.5.48 (`1e3fab8`). A fresh audit found no
+differences in the four audio source/test files from candidate `c673fa3`.
+See `docs/AUDIO-RECOVERY-EVIDENCE.md` for the next observable recovery checks and
+physical PSP crackle investigation; no physical fix is claimed by that release.
 
 ## Integrated 2.5.47 — safe planetary approach
 

@@ -1,8 +1,8 @@
 # ELITE: NEXT — development build 2.5.39
 
-## Audio candidate — original event cues and bounded shuffle
+## Audio in 2.5.48 — original event cues and bounded shuffle
 
-The audio candidate gives menu, scan, docking, combat and engine events distinct
+The released audio gives menu, scan, docking, combat and engine events distinct
 original synthesized cues with short fades and 20–300 ms durations. The five
 existing original stereo music stations and saved Music/FX levels are preserved.
 Shuffle tries each candidate once, leaving the previous track until all other
@@ -14,6 +14,8 @@ a live rescan button are not implemented. Empty stations use generated music.
 The current radio chassis shows folder detection, not a verified playback status
 or current filename. Never commit personal music. See
 [audio audit and hardware acceptance](docs/AUDIO-AUDIT.md).
+The next evidence slice is documented in
+[recovery evidence and PSP investigation](docs/AUDIO-RECOVERY-EVIDENCE.md).
 
 ## New in 2.5.39 — MacVenture cinematic polish
 

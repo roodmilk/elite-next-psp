@@ -11,6 +11,9 @@
 static volatile int audio_run=0,audio_sfx=SFX_NONE,audio_scene=0,audio_ch=-1;
 static volatile int audio_duck=0;
 static volatile int mp3_frozen=0;
+/* Worker-owned lifetime diagnostics. Individual snapshots, not a state lock.
+ * A successful output call queues PCM; it does not prove audible completion. */
+static volatile uint32_t audio_submitted_blocks=0,audio_output_errors=0,mp3_decoded_blocks=0;
 static int audio_thread=-1;
 #define AUDIO_FRAMES 2048
 /* A large encoded reservoir avoids audible gaps when the Memory Stick pauses
@@ -41,7 +44,9 @@ static int mp3_decode_block(void){
  if(mp3_frozen||mp3_handle<0)return 0;
  if(sceMp3CheckStreamDataNeeded(mp3_handle)>0)mp3_fill();
  short *decoded=0;int bytes=sceMp3Decode(mp3_handle,&decoded);if(bytes<=0)return 0;
- mp3_pcm=decoded;mp3_frames=bytes/(2*mp3_channels);mp3_frame=0;return mp3_frames>0;
+ mp3_pcm=decoded;mp3_frames=bytes/(2*mp3_channels);mp3_frame=0;
+ if(mp3_frames>0)mp3_decoded_blocks++;
+ return mp3_frames>0;
 }
 static int mp3_source_frame(int station,int *left,int *right){
  if(mp3_frozen||!radio_track_count[station])return 0;
@@ -103,7 +108,8 @@ static int audio_worker(SceSize n,void *a){
    buf[i*2]=(short)left;buf[i*2+1]=(short)right;
   }
   if(radio_static_ms>0)radio_static_ms--;
-  if(sceAudioOutputBlocking(audio_ch,PSP_AUDIO_VOLUME_MAX/3,buf)<0){audio_run=0;break;}
+  if(sceAudioOutputBlocking(audio_ch,PSP_AUDIO_VOLUME_MAX/3,buf)<0){audio_output_errors++;audio_run=0;break;}
+  audio_submitted_blocks++;
  }
  return 0;
 }
