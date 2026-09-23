@@ -47,9 +47,40 @@ static void targeting_crt_glass(int x,int y,int w,int h){
   fb[py*STRIDE+px]=(seed&7)==0?fleck_hi:fleck_lo;
  }
 }
+/* Tiny 1x bezel decals: fixed native pixels, deliberately outside scan data. */
+static void targeting_sticker_text(int x,int y,unsigned ink,const char *s){
+ for(;*s;s++,x+=4){
+  unsigned char rows[5]={0,0,0,0,0};
+  switch(*s){
+   case 'C':rows[0]=7;rows[1]=4;rows[2]=4;rows[3]=4;rows[4]=7;break;
+   case 'R':rows[0]=6;rows[1]=5;rows[2]=6;rows[3]=5;rows[4]=5;break;
+   case 'E':rows[0]=7;rows[1]=4;rows[2]=6;rows[3]=4;rows[4]=7;break;
+   case 'W':rows[0]=5;rows[1]=5;rows[2]=5;rows[3]=7;rows[4]=5;break;
+   case 'K':rows[0]=5;rows[1]=5;rows[2]=6;rows[3]=5;rows[4]=5;break;
+   case 'I':rows[0]=7;rows[1]=2;rows[2]=2;rows[3]=2;rows[4]=7;break;
+   case 'P':rows[0]=6;rows[1]=5;rows[2]=6;rows[3]=4;rows[4]=4;break;
+   case '+':rows[0]=2;rows[1]=2;rows[2]=7;rows[3]=2;rows[4]=2;break;
+   case ' ':x-=1;break;
+   default:break;
+  }
+  for(int yy=0;yy<5;yy++)for(int xx=0;xx<3;xx++)if(rows[yy]&(1u<<(2-xx)))pixel(x+xx,y+yy,ink);
+ }
+}
+static void targeting_bezel_decals(void){
+ const unsigned bezel=RGB(13,22,29),edge=RGB(41,54,70),cream=RGB(229,210,163),cyan=RGB(85,212,212),heart=RGB(200,90,75);
+ rect(8,22,464,8,bezel);rect(8,29,464,1,edge);
+ /* Peace symbol, 7x7. */
+ line(14,23,16,23,cream);line(13,24,17,24,cream);line(12,25,18,25,cream);pixel(11,26,cream);pixel(19,26,cream);
+ line(12,27,13,27,cream);line(17,27,18,27,cream);line(13,28,17,28,cream);pixel(15,26,cream);line(15,26,15,29,cream);
+ /* Heart sticker, 7x7. */
+ pixel(26,23,heart);pixel(29,23,heart);line(25,24,30,24,heart);line(25,25,30,25,heart);line(26,26,29,26,heart);line(27,27,28,27,heart);pixel(27,28,heart);
+ /* Crew label is a physical decal, not UI text. */
+ rect(39,23,44,7,RGB(41,54,70));rect(39,23,44,1,cream);rect(39,29,44,1,RGB(90,96,76));
+ targeting_sticker_text(42,24,cyan,"CREW+KEI");
+}
 static void targeting_screen(void){
  target_count=collect_scan_ids(target_ids,scan_cat);if(row>=target_count)row=0;
- header("TARGETING COMPUTER");page_number_at(52,4,target_count?row/7+1:1,target_count?(target_count+6)/7:1);
+ header("TARGETING COMPUTER");targeting_bezel_decals();page_number_at(52,4,target_count?row/7+1:1,target_count?(target_count+6)/7:1);
  for(int i=0;i<5;i++){int col=1+i*11;if(i==scan_cat)rect(col*8-2,30,84,14,RGB(25,65,77));text(col,4,i==scan_cat?GOLD:DIM,"%s",scan_cat_names[i]);}
  panel(8,47,464,140);
  targeting_crt_glass(8,47,464,140);
