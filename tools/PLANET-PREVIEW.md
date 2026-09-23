@@ -37,11 +37,16 @@ Station/activity authoring can be previewed independently with:
 
 ```text
 node tools/generate-station-activity.mjs --out work/planet-preview
+node tools/generate-planet-art-atlas.mjs --out work/planet-preview
 ```
 
 This emits three stable station records per system for the hub, relay, and
 frontier outpost. It is intentionally offline until the Station owner signs
 off on the runtime presentation interface.
+
+The art atlas produces 160 deterministic 32×32 reference tiles covering five
+families, four terrain styles, and eight palette slots. It is a reference/export
+artifact for native pixel-art review, not a runtime texture dependency.
 
 The exporter writes `EPWP` version 1: fixed-size 16-byte records with a
 checksum-protected header. The PSP loader validates the header and checksum,
