@@ -19,6 +19,22 @@ This candidate changes the menu inset only. No save/audio/input/planetary
 production changes. Lead must validate the combined build before release;
 version, main and release tags remain unchanged.
 
+## Audio candidate — event identity and bounded shuffle
+
+Base `ac8a581`, branch `cursor/audio-bounded-shuffle`. Original event sounds move
+from 3–32 ms fragments to restrained 20–300 ms cues using the existing single
+mono voice. New pure candidate-order policy visits every track once, with the
+previous track last. Only the agreed selection and SFX rendering hunks in
+`audio.h` are in scope; Systems owns decoding, buffers, I/O and power recovery.
+No Game/save, main.c, music gain or station-composition change. See
+`docs/AUDIO-AUDIT.md` for source evidence, budget and acceptance matrix.
+Lead alone owns combined integration, versioning and release artifacts.
+Final candidate PSP build and all-five PPSSPP smoke passed (57.98 FPS average,
+33.37 ms worst, 44 existing warnings). Sampled music+SFX peak 11,161 with no
+clamps; no physical PSP listening or custom-MP3 certification. Detailed report
+and exact test-run identifier are in the audio audit. Combined integration remains
+Lead's gate; this isolated candidate is not yet a playable main release.
+
 ## Integrated 2.5.47 — safe planetary approach
 
 Approach now stops the remaining collision-frame simulation and pauses threats
@@ -389,6 +405,12 @@ The last verified 2.5.32 run passed every group under PPSSPP (game, input, steer
 ## Highest-priority remaining work
 
 Planetary lane: the specialist/planetary-eva checkpoint now covers controls, shared terrain, local bounds and ship return (pending lead integration). Next, runtime-confirm mineral-free worlds and agree one guaranteed activity plus durable reward/revisit rules with Gameplay and Systems. See docs/PLANETARY-EVA-HANDOFF.md; do not promise these next mechanics as implemented.
+
+Audio: measure malformed-file retry cost and output progress after sleep with
+Systems; current suspend assertions only prove calls returned. Physical crackle,
+custom-MP3 headroom and long sleep listening remain open. WAV/live rescan,
+per-station shuffle history, warning priority and sustained EVA layers are future
+coordinated slices, not implemented features of this candidate.
 
 1. **Confirm 2.5.4 sleep/resume on physical PSP.** Put the handheld to sleep mid-flight and mid-radio for several hours, then wake — screen and audio must return. Also re-check 20+ minute MP3 playback across sample rates.
 2. **Deepen the 24 chapters further.** Briefings now carry full spoken sentences and authored asks; many bible set-pieces still resolve through generic dock/scan/hunt actions rather than unique scenes.
