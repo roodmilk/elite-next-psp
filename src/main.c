@@ -20,6 +20,7 @@
 #include "gu-accel.h"
 #include "localization.h"
 #include "planet-pack.h"
+#include "station-pack.h"
 #include "convoy.h"
 #include "radio-tests.h"
 #include "steering.h"
@@ -832,9 +833,9 @@ static void input_tests(void){
 int main(void){
  int cb=sceKernelCreateThread("Callbacks",callback_thread,0x11,4096,0,0);if(cb>=0)sceKernelStartThread(cb,0,0);
  scePowerSetClockFrequency(333,333,166);sceCtrlSetSamplingCycle(0);sceCtrlSetSamplingMode(PSP_CTRL_MODE_ANALOG);
- sceDisplaySetMode(0,W,H);pspDebugScreenInit();pspDebugScreenEnableBackColor(0);locale_load("language.cfg");locale_pack_load("content.pack");planet_pack_load("planet.content");gu_accel_init();
+ sceDisplaySetMode(0,W,H);pspDebugScreenInit();pspDebugScreenEnableBackColor(0);locale_load("language.cfg");locale_pack_load("content.pack");planet_pack_load("planet.content");station_pack_load("station.content");gu_accel_init();
  game_init(&game);deck_reset();FILE *flag=fopen("smoke.flag","r");if(flag){smoke=1;fclose(flag);FILE *visual=fopen("visual.flag","r");if(visual){visual_hold=1;fclose(visual);}FILE *log=fopen("boot-check.txt","w");if(log){fprintf(log,"PSP main reached; %d meshes loaded.\n",mesh_count);fclose(log);}}
-  if(smoke){radio_tests();steering_tests();game_tests("game-check.txt");input_tests();convoy_tests();locale_pack_tests();planet_pack_tests();}
+  if(smoke){radio_tests();steering_tests();game_tests("game-check.txt");input_tests();convoy_tests();locale_pack_tests();planet_pack_tests();station_pack_tests();}
   else {game.voice_time=0;change_page(INTRO);}
   {FILE *convoyflag=fopen("convoy.flag","r");if(convoyflag){fclose(convoyflag);convoy_mode=convoy_start();if(!convoy_mode)message(&game,"Convoy mode unavailable.");}}
  FILE *introflag=fopen("open-intro.flag","r");if(introflag){fclose(introflag);change_page(INTRO);intro_time=6;}FILE *socialflag=fopen("open-spacebook.flag","r");if(socialflag){fclose(socialflag);change_page(GALNET);galnet_tab=3;game.voice_time=0;}FILE *netflag=fopen("open-galnet.flag","r");if(netflag){int tab=0;fscanf(netflag,"%d",&tab);fclose(netflag);change_page(GALNET);galnet_tab=tab>=0&&tab<6?tab:0;row=0;game.voice_time=0;}FILE *helpflag=fopen("open-help.flag","r");if(helpflag){int tab=0;fscanf(helpflag,"%d",&tab);fclose(helpflag);change_page(HELP);help_tab=tab>=0&&tab<4?tab:0;}

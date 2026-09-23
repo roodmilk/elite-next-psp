@@ -12,6 +12,7 @@
 #include "planet-noise.h"
 #include "planet-pack.h"
 #include "station-profile.h"
+#include "station-pack.h"
 const Good goods[GOODS]={
  {"Food",19,-2,6,1,'t'},{"Textiles",20,-1,10,3,'t'},
  {"Radioactives",65,-3,2,7,'t'},{"Slaves",40,-5,226,31,'t'},
