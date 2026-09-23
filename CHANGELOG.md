@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — loadout readability
+## 2.5.68 — loadout and mission log readability
 
 - Separated Mission Log main/side sections and objective area so all five contracts remain visible. Hide the Abandon prompt on main missions.
 

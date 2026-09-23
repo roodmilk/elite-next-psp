@@ -1,6 +1,13 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-## Pending combined release — full Mission Log layout
+## Released 2.5.68 — development paused
+
+Loadout and Mission Log fixes below are now packaged and smoke-tested in 2.5.68.
+This supersedes their pending-release status. See docs/SMOKE-EVIDENCE-2.5.68.md.
+User requested stop after delivery to conserve credits. Do not resume goals until asked.
+Unintegrated station port and Lave fixture remain in specialist worktrees.
+
+## Previously pending — full Mission Log layout
 
 Main/side missions now form two vertically separated groups. All five contract
 rows fit above an independent three-line objective area. Main missions no
