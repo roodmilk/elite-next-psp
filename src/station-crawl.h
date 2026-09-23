@@ -513,6 +513,53 @@ static void sc_illust_canteen(int x,int y,int w,int h){
  rect(x+148,y+96,8,6,SC_CREAM);rect(x+150,y+92,4,4,mix_rgb(SC_CREAM,st->lamp,.3f));
  sc_warm_key(x+160,y+70,st->lamp);
 }
+/* Lave H0 canteen — native 1x identity scene, kept separate from the generic
+ * room composer so the starter station has a real authored visual anchor. */
+static void sc_illust_lave_canteen(int x,int y,int w,int h){
+ unsigned wall=high_contrast?SC_CHAR:RGB(57,55,54),wall2=high_contrast?SC_SLATE:RGB(34,43,52);
+ unsigned brass=high_contrast?SC_CREAM:SC_OCHRE,wood=high_contrast?SC_SLATE:RGB(88,58,42);
+ unsigned lamp=high_contrast?SC_CREAM:SC_AMBER,blue=high_contrast?SC_CYAN:RGB(58,128,143);
+ sc_scene_sky(x,y,w,h,mix_rgb(SC_OCHRE,wall,.3f),wall2);
+ sc_wall_plates(x,y,w,h-52,wall,mix_rgb(SC_RUST,brass,.3f));
+ sc_floor_planes(x,y,w,h,mix_rgb(wood,brass,.35f),wood,wall2);
+ /* Old GalCop arch: a single strong silhouette gives Lave its identity. */
+ rect(x+102,y+8,142,72,brass);
+ rect(x+108,y+14,130,66,SC_VOID);
+ rect(x+114,y+20,118,60,mix_rgb(SC_VOID,SC_CYAN,.12f));
+ sc_void_stars(x+118,y+24,110,48,game.bodies[0].seed^0x4C415645u);
+ draw_planet_disc(x+174,y+48,22,game.bodies[1].color,game.bodies[1].accent,game.bodies[1].seed,game.bodies[1].type);
+ rect(x+116,y+68,114,2,blue);
+ for(int i=0;i<5;i++)pixel(x+124+i*22,y+72,(i&1)?blue:lamp);
+ text((x+122)/8,(y+12)/8,SC_CREAM,"LAVE PUBLIC");
+ /* Ribbed overhead ducting and two warm practicals. */
+ rect(x+12,y+4,w-24,5,mix_rgb(wall,SC_RUST,.35f));
+ for(int i=0;i<7;i++)rect(x+22+i*42,y+6,2,10,mix_rgb(brass,SC_SLATE,.3f));
+ sc_warm_key(x+72,y+16,lamp);sc_warm_key(x+270,y+16,lamp);
+ /* Backbar: bottles are block silhouettes with deliberate 1x glints. */
+ rect(x+62,y+64,198,34,mix_rgb(wall,SC_RUST,.3f));
+ rect(x+62,y+96,198,4,brass);
+ for(int i=0;i<7;i++){
+  unsigned bottle=(i&1)?SC_LAV:SC_CYAN;int bx=x+76+i*25,by=y+70-(i%3)*3;
+  rect(bx,by,9,22,bottle);rect(bx+2,by-4,5,4,bottle);pixel(bx+3,by+3,lamp);
+ }
+ /* Hero counter and old station seal. */
+ rect(x+58,y+104,210,30,wood);rect(x+58,y+98,210,7,brass);
+ rect(x+78,y+108,58,18,mix_rgb(wall2,SC_OLIVE,.35f));
+ rect(x+146,y+108,54,18,mix_rgb(wall2,SC_OLIVE,.35f));
+ rect(x+218,y+108,34,18,mix_rgb(wall2,SC_OLIVE,.35f));
+ circle(x+174,y+78,10,blue);rect(x+171,y+69,6,18,brass);rect(x+166,y+75,18,6,brass);
+ if(sc_lamp_on(1,2.6f)<2)pixel(x+174,y+78,SC_CREAM);
+ /* Left jukebox and rumour booth stay readable under the people layer. */
+ rect(x+14,y+70,40,50,SC_SLATE);rect(x+18,y+76,32,18,blue);rect(x+24,y+82,20,5,lamp);
+ text((x+18)/8,(y+108)/8,SC_CREAM,"JUKE");
+ rect(x+18,y+118,54,22,wood);rect(x+22,y+114,46,5,brass);
+ /* Foreground rail, seat shadows and a few physical floor marks. */
+ rect(x+58,y+136,210,4,brass);rect(x+64,y+140,198,2,mix_rgb(SC_VOID,SC_CHAR,.45f));
+ for(int i=0;i<6;i++)rect(x+82+i*30,y+h-14,14,2,(i&1)?SC_RUST:SC_OLIVE);
+ /* Door silhouettes align with the existing top exit hotspots. */
+ sc_hatch(x+4,y+36,50,60,mix_rgb(brass,SC_CREAM,.2f),SC_VOID,0);
+ sc_hatch(x+286,y+36,50,60,mix_rgb(brass,SC_CREAM,.2f),SC_VOID,0);
+}
 static void sc_illust_cargo(int x,int y,int w,int h){
  const ArtRoomStyle *st=sc_style();
  /* Hero: tip crate centre. Three crates, one cool hoist. */
@@ -661,6 +708,7 @@ static void sc_draw_main_scene(void){
  else if(sc_xequerin_research_active(sc_room))sc_illust_xequerin_research(VX,VY,VW,VH);
  else if(sc_room==SC_R_ARRIVALS)sc_illust_arrivals(VX,VY,VW,VH);
  else if(sc_room==SC_R_SHOP)sc_illust_shop(VX,VY,VW,VH);
+ else if(sc_room==SC_R_CANTEEN&&game.system==7)sc_illust_lave_canteen(VX,VY,VW,VH);
  else if(sc_room==SC_R_CANTEEN)sc_illust_canteen(VX,VY,VW,VH);
  else if(sc_room==SC_R_CARGO)sc_illust_cargo(VX,VY,VW,VH);
  else if(sc_room==SC_R_GUILD)sc_illust_guild(VX,VY,VW,VH);

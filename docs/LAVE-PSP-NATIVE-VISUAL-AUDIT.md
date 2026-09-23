@@ -10,7 +10,7 @@ art or change gameplay/layout/hotspot code.
 |---|---|---|---|---|
 | Cockpit / command deck | 480x272 direct framebuffer; menu ship is clipped to a native viewport | Source uses `W=480`, `H=272` and integer pixel drawing; no Lave cockpit runtime frame is available | `BLOCKED` | Capture Lave boot/deck from a successfully booting PPSSPP run |
 | Station rooms | 340x168 scene inside 480x272 shell; native 1x cue assets | Lave arrivals normal/contrast frames plus cue-kit normal/contrast proof sheets | `PARTIAL` | Station must approve anchors; Lave still needs an integrated seven-room runtime capture |
-| Bar / canteen | Native authored room must be selected by a deterministic Lave identity | `second-shift-reference-native.png` is 480x272, but its runtime review is Reorte H0 (`system 39`), not Lave | `FAIL for Lave integration` | Author/select a Lave-specific canteen identity; do not silently reuse the Reorte exception |
+| Bar / canteen | Native authored room must be selected by a deterministic Lave identity | `second-shift-reference-native.png` is 480x272, but its runtime review is Reorte H0 (`system 39`), not Lave; commit `HEAD` now adds a direct-pixel Lave H0 canteen override | `PASS candidate / capture pending` | Capture the new Lave scene normal/high contrast; do not silently reuse the Reorte exception |
 | Ship / loadout | Native 1x slot chrome and hull stamp | `43f59d4` adds direct-pixel `loadout_hull_stamp`; no runtime frame yet | `PASS candidate` | Capture loadout normal and high contrast once PPSSPP boots |
 | Targeting computer | Native CRT glass, text, bezel and scope pixels | `43f59d4` adds direct-pixel `targeting_scope_stamp`; no runtime frame yet | `PASS candidate` | Capture targeting with station, planet and hostile rows on Lave |
 | Planet approach | Integer projection and native framebuffer path | No Lave approach frame in the available evidence set | `BLOCKED` | Capture approach normal/high contrast; check HUD/body identity at native size |
@@ -45,3 +45,9 @@ Therefore this audit does not claim runtime, frame-time, or integrated visual
 certification. The next useful step is to repair the emulator/package launch
 path, then capture the seven Lave surfaces from the same EBOOT and compare the
 normal/high-contrast pairs at exact native size.
+
+The first concrete polish patch is the Lave H0 canteen override in
+`src/station-crawl.h`: it preserves the existing bar/person/door hotspots and
+adds a direct 1x old-GalCop arch, Lave Public sign, bar back, jukebox, booth,
+floor rail and native door silhouettes. It is compiled but remains a candidate
+until the normal/high-contrast runtime pair is captured.
