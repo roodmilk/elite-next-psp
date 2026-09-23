@@ -8,6 +8,12 @@ they must never be the source design that is simply shrunk. Every scene must
 retain readable people, selectable hotspots, speech boxes, headings, page
 indicators and SHIP/navigation controls at 1:1 pixels before integration.
 
+Composition follows a practical golden-ratio hierarchy adapted to the small
+screen: one clear focal area, a stable information/selection column, safe edge
+spacing, and deliberate visual weight between art and controls. The ratio is a
+guide for placing important elements, never a reason to make text or controls
+too small. Native readability and separated hit areas always win.
+
 ## Integrated 2.5.49 — The Second Shift playable preview
 
 Reorte's primary hub now has a playable illustrated bar reached through WALK,
