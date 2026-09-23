@@ -1,0 +1,20 @@
+param([string]$Source=(Join-Path $PSScriptRoot '..\assets\source\station-art\family-references\family-element-atlas-source.png'),[string]$Output=(Join-Path $PSScriptRoot '..\assets\preview\reusable-element-kit\freight-elements'))
+$ErrorActionPreference='Stop';Add-Type -AssemblyName System.Drawing;New-Item -ItemType Directory -Force $Output|Out-Null
+$palette=@('080d18','151c27','293646','5a604c','8b4b37','c18b4d','e5d2a3','9b9aa5','55d4d4','f0b45b','c85a4b')|%{[Drawing.ColorTranslator]::FromHtml('#'+$_)}
+$targets=@(
+ @{id='person-standing';size=@(24,52);crop=@(30,365,220,270)},
+ @{id='person-carrying';size=@(28,52);crop=@(30,365,220,270)},
+ @{id='person-seated';size=@(30,42);crop=@(335,420,320,240)},
+ @{id='counter';size=@(96,42);crop=@(310,95,365,290)},
+ @{id='task-lamp';size=@(21,18);crop=@(470,55,160,120)},
+ @{id='dock-window';size=@(128,54);crop=@(1035,35,465,360)},
+ @{id='cargo-rack';size=@(48,52);crop=@(720,40,245,350)},
+ @{id='panel-sign';size=@(48,24);crop=@(55,190,100,100)},
+ @{id='door-hatch';size=@(52,60);crop=@(1035,35,465,360)}
+)
+function Pal([Drawing.Color]$c,[bool]$hi){if($c.A -lt 32){return [Drawing.Color]::Transparent};$best=$palette[0];$bd=[double]::MaxValue;foreach($p in $palette){$r=[int]$c.R;$g=[int]$c.G;$b=[int]$c.B;if($hi){$r=[Math]::Min(255,[int]($r*1.18));$g=[Math]::Min(255,[int]($g*1.18));$b=[Math]::Min(255,[int]($b*1.18))};$dr=$r-$p.R;$dg=$g-$p.G;$db=$b-$p.B;$d=$dr*$dr+$dg*$dg+$db*$db;if($d -lt $bd){$bd=$d;$best=$p}};return [Drawing.Color]::FromArgb(255,$best.R,$best.G,$best.B)}
+function Bake([Drawing.Bitmap]$src,$t,[bool]$hi){$cell=[Drawing.Bitmap]::new($t.crop[2],$t.crop[3]);$cg=[Drawing.Graphics]::FromImage($cell);$cg.InterpolationMode=2;$cg.PixelOffsetMode=4;$cg.DrawImage($src,[Drawing.Rectangle]::new(0,0,$t.crop[2],$t.crop[3]),$t.crop[0],$t.crop[1],$t.crop[2],$t.crop[3],[Drawing.GraphicsUnit]::Pixel);$out=[Drawing.Bitmap]::new($t.size[0],$t.size[1]);$og=[Drawing.Graphics]::FromImage($out);$og.Clear([Drawing.Color]::Transparent);$og.InterpolationMode=2;$og.PixelOffsetMode=4;$sc=[Math]::Min($t.size[0]/$cell.Width,$t.size[1]/$cell.Height);$dw=[Math]::Max(1,[int]($cell.Width*$sc));$dh=[Math]::Max(1,[int]($cell.Height*$sc));$og.DrawImage($cell,[Drawing.Rectangle]::new([int](($t.size[0]-$dw)/2),[int](($t.size[1]-$dh)/2),$dw,$dh),0,0,$cell.Width,$cell.Height,[Drawing.GraphicsUnit]::Pixel);for($y=0; $y -lt $t.size[1]; $y++){for($x=0; $x -lt $t.size[0]; $x++){$out.SetPixel($x,$y,(Pal $out.GetPixel($x,$y) $hi))}};$cg.Dispose();$og.Dispose();$cell.Dispose();return $out}
+$src=[Drawing.Bitmap]::new($Source);$rows=@();foreach($t in $targets){foreach($hi in @($false,$true)){$b=Bake $src $t $hi;$v=if($hi){'contrast'}else{'normal'};$b.Save((Join-Path $Output "$($t.id)-$v.png"),[Drawing.Imaging.ImageFormat]::Png);$rows+=[ordered]@{id=$t.id;variant=$v;width=$t.size[0];height=$t.size[1];packed_4bit_bytes=[int][Math]::Ceiling(($t.size[0]*$t.size[1])/2.0);runtime_ready=$false};$b.Dispose()}}
+# Dice are a real reusable prop candidate, drawn from canonical roles rather than cropped from the family atlas.
+foreach($hi in @($false,$true)){$v=if($hi){'contrast'}else{'normal'};$b=[Drawing.Bitmap]::new(42,18);$g=[Drawing.Graphics]::FromImage($b);$g.Clear([Drawing.Color]::Transparent);$edge=if($hi){$palette[6]}else{$palette[5]};$fill=$palette[2];$g.FillRectangle([Drawing.SolidBrush]::new($fill),2,4,13,12);$g.FillRectangle([Drawing.SolidBrush]::new($fill),25,2,14,12);$g.DrawRectangle([Drawing.Pen]::new($edge),2,4,13,12);$g.DrawRectangle([Drawing.Pen]::new($edge),25,2,14,12);$pip=if($hi){$palette[9]}else{$palette[6]};foreach($pt in @(@(6,8),@(11,12),@(29,5),@(35,9),@(29,13))){$g.FillRectangle([Drawing.SolidBrush]::new($pip),$pt[0],$pt[1],2,2)};$b.Save((Join-Path $Output "dice-prop-$v.png"),[Drawing.Imaging.ImageFormat]::Png);$rows+=[ordered]@{id='dice-prop';variant=$v;width=42;height=18;packed_4bit_bytes=378;runtime_ready=$false};$g.Dispose();$b.Dispose()}
+$rows|ConvertTo-Json -Depth 3|Set-Content (Join-Path $Output 'MANIFEST.json') -Encoding UTF8;$src.Dispose();Write-Output ("Baked {0} Freight IDs x 2 variants" -f ($targets.Count+1))

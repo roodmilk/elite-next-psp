@@ -13,4 +13,24 @@ C0941430199E044FFF1AFD14375199BB8FF18D1DB55087E364D06A5F12B56ED0  assets/preview
 9FF746A94C30A3F6CD214803EE3C207C8A13047A63F29D83DD028EEE9057903F  assets/preview/reusable-element-kit/family-elements/research-seated-researcher-normal.png
 3FE5B1483FF197F6CD21526491A2AFD8A96F0FB4EF5C9330AEA15DF162575DD4  assets/preview/reusable-element-kit/family-elements/research-seated-researcher-contrast.png
 
-Qube Freight generic per-element normal/contrast pairs are not hashed because only the contact sheet currently exists; this is the concrete missing dependency for that proof-room subset.
+Qube Freight candidate pairs baked in commit 3f59abe:
+6C95BDE75C949B5FD10B7A51642D757EDEF44D2AC265E4F3B411B62E672CA999  assets/preview/reusable-element-kit/freight-elements/cargo-rack-contrast.png
+8CE863624D6FE9B8ECDED60EDCEA862A7E1286ED2959052F6AB15476C69CE3C2  assets/preview/reusable-element-kit/freight-elements/cargo-rack-normal.png
+617E321A9CDF1AA56AEE01EEDDB9F6FE2716833E54720D35E22B6279C3FEA611  assets/preview/reusable-element-kit/freight-elements/counter-contrast.png
+B875A1D14730C1340D735A3BEFC70ABB76ECD89488E4792CC04857E9DCB3C5D2  assets/preview/reusable-element-kit/freight-elements/counter-normal.png
+9B45E6B448D734536428FEA0B7071B6E569432163774E1A9A743D8EEE2D3A509  assets/preview/reusable-element-kit/freight-elements/dice-prop-contrast.png
+A4AADD57D0031F2E89B5702CFA8317B343304CC45D7EA64C14719F57D841E292  assets/preview/reusable-element-kit/freight-elements/dice-prop-normal.png
+DFFCFF50044BDB7EC5CC43921EF40D0E6F469292F6FE3ECDF1D3A96BF84A2480  assets/preview/reusable-element-kit/freight-elements/dock-window-contrast.png
+BF5C8CC530606291A9B4AD1A4028BD843D381E1B8A59A8048E52A5EA970EAB5C  assets/preview/reusable-element-kit/freight-elements/dock-window-normal.png
+00AF999E41F5CA1C1B8375291808442D6326431723FAA5770641CFF79BDCAD44  assets/preview/reusable-element-kit/freight-elements/door-hatch-contrast.png
+A88869F3D2A40FA11EE74E40C5D2703E674908C8EFDD6F1B50E7BE2602CE1FEC  assets/preview/reusable-element-kit/freight-elements/door-hatch-normal.png
+59AE57E0C59DDFFC4190E082FE8B6A0730A5FC681A9F5B9981B1367A0D079BC4  assets/preview/reusable-element-kit/freight-elements/panel-sign-contrast.png
+261D0746EEF28E5C8B098DD2C3D6E86D3B4B69E66259CE25884768805D8FE7E0  assets/preview/reusable-element-kit/freight-elements/panel-sign-normal.png
+288806EE52E6AF032EEB01F765C392C3C9CE0E2AA6206107950F451DFDB96BD5  assets/preview/reusable-element-kit/freight-elements/person-carrying-contrast.png
+76D976C6AF396B63B95F2A16B82AD729D54656FEDD68D6262BC882917A8DC581  assets/preview/reusable-element-kit/freight-elements/person-carrying-normal.png
+AD8585BE7B660AC5E1C7A5759128EAA93ECBE374E93B9A0D227F6FD1490CC7CE  assets/preview/reusable-element-kit/freight-elements/person-seated-contrast.png
+5A40A091EEA2EEBC68454D75AF555836CF85B90ABD83A09BF1FA6893F4AFBDE6  assets/preview/reusable-element-kit/freight-elements/person-seated-normal.png
+610295A8465D7CAB58243903556B5300C1FC10D050F8A8796E37CD6D6F0D2CCA  assets/preview/reusable-element-kit/freight-elements/person-standing-contrast.png
+AD1FD3F1262251130DEC5D2FF72BDEBBDBF4DA6CB144F1C785FA1A5D91E2597F  assets/preview/reusable-element-kit/freight-elements/person-standing-normal.png
+E9A7245412771B1EAC55BEE51034AD8B0D4597304C0A678CB364658C2CC951FC  assets/preview/reusable-element-kit/freight-elements/task-lamp-contrast.png
+BF54F4CCDF8E7BF805AFC2B3C22ACE688622AE0DFD27136A4B1D78195856C16A  assets/preview/reusable-element-kit/freight-elements/task-lamp-normal.png

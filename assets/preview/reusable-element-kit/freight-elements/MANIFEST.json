@@ -1,0 +1,162 @@
+[
+  {
+    "id": "person-standing",
+    "variant": "normal",
+    "width": 24,
+    "height": 52,
+    "packed_4bit_bytes": 624,
+    "runtime_ready": false
+  },
+  {
+    "id": "person-standing",
+    "variant": "contrast",
+    "width": 24,
+    "height": 52,
+    "packed_4bit_bytes": 624,
+    "runtime_ready": false
+  },
+  {
+    "id": "person-carrying",
+    "variant": "normal",
+    "width": 28,
+    "height": 52,
+    "packed_4bit_bytes": 728,
+    "runtime_ready": false
+  },
+  {
+    "id": "person-carrying",
+    "variant": "contrast",
+    "width": 28,
+    "height": 52,
+    "packed_4bit_bytes": 728,
+    "runtime_ready": false
+  },
+  {
+    "id": "person-seated",
+    "variant": "normal",
+    "width": 30,
+    "height": 42,
+    "packed_4bit_bytes": 630,
+    "runtime_ready": false
+  },
+  {
+    "id": "person-seated",
+    "variant": "contrast",
+    "width": 30,
+    "height": 42,
+    "packed_4bit_bytes": 630,
+    "runtime_ready": false
+  },
+  {
+    "id": "counter",
+    "variant": "normal",
+    "width": 96,
+    "height": 42,
+    "packed_4bit_bytes": 2016,
+    "runtime_ready": false
+  },
+  {
+    "id": "counter",
+    "variant": "contrast",
+    "width": 96,
+    "height": 42,
+    "packed_4bit_bytes": 2016,
+    "runtime_ready": false
+  },
+  {
+    "id": "task-lamp",
+    "variant": "normal",
+    "width": 21,
+    "height": 18,
+    "packed_4bit_bytes": 189,
+    "runtime_ready": false
+  },
+  {
+    "id": "task-lamp",
+    "variant": "contrast",
+    "width": 21,
+    "height": 18,
+    "packed_4bit_bytes": 189,
+    "runtime_ready": false
+  },
+  {
+    "id": "dock-window",
+    "variant": "normal",
+    "width": 128,
+    "height": 54,
+    "packed_4bit_bytes": 3456,
+    "runtime_ready": false
+  },
+  {
+    "id": "dock-window",
+    "variant": "contrast",
+    "width": 128,
+    "height": 54,
+    "packed_4bit_bytes": 3456,
+    "runtime_ready": false
+  },
+  {
+    "id": "cargo-rack",
+    "variant": "normal",
+    "width": 48,
+    "height": 52,
+    "packed_4bit_bytes": 1248,
+    "runtime_ready": false
+  },
+  {
+    "id": "cargo-rack",
+    "variant": "contrast",
+    "width": 48,
+    "height": 52,
+    "packed_4bit_bytes": 1248,
+    "runtime_ready": false
+  },
+  {
+    "id": "panel-sign",
+    "variant": "normal",
+    "width": 48,
+    "height": 24,
+    "packed_4bit_bytes": 576,
+    "runtime_ready": false
+  },
+  {
+    "id": "panel-sign",
+    "variant": "contrast",
+    "width": 48,
+    "height": 24,
+    "packed_4bit_bytes": 576,
+    "runtime_ready": false
+  },
+  {
+    "id": "door-hatch",
+    "variant": "normal",
+    "width": 52,
+    "height": 60,
+    "packed_4bit_bytes": 1560,
+    "runtime_ready": false
+  },
+  {
+    "id": "door-hatch",
+    "variant": "contrast",
+    "width": 52,
+    "height": 60,
+    "packed_4bit_bytes": 1560,
+    "runtime_ready": false
+  },
+  {
+    "id": "dice-prop",
+    "variant": "normal",
+    "width": 42,
+    "height": 18,
+    "packed_4bit_bytes": 378,
+    "runtime_ready": false
+  },
+  {
+    "id": "dice-prop",
+    "variant": "contrast",
+    "width": 42,
+    "height": 18,
+    "packed_4bit_bytes": 378,
+    "runtime_ready": false
+  }
+]

@@ -1,6 +1,6 @@
 # Family element promotion gate
 
-This gate freezes the current Prospector/Research candidate set without promoting it to runtime.
+This gate freezes the current Freight/Prospector/Research candidate set without promoting it to runtime.
 
 ## Ready
 
@@ -10,6 +10,7 @@ This gate freezes the current Prospector/Research candidate set without promotin
 - Native `480x272` normal and high-contrast proof frames exist.
 - Systems reports all native dimensions valid, both family sets under the `28,560-byte` room ceiling, and selector scaffolding clean across 63 samples.
 - Composer has deterministic room-relative placement slots in its crosswalk.
+- Qube Freight now has ten individual normal/contrast candidate IDs at `11,405` packed bytes per variant set; its native proof captures are present.
 
 ## Still required before runtime promotion
 
