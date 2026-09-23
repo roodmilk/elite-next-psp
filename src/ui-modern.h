@@ -78,6 +78,18 @@ static void targeting_bezel_decals(void){
  rect(39,23,44,7,RGB(41,54,70));rect(39,23,44,1,cream);rect(39,29,44,1,RGB(90,96,76));
  targeting_sticker_text(42,24,cyan,"CREW+KEI");
 }
+/* Native 1x target signature: a tiny instrument readout, not a scaled icon. */
+static void targeting_scope_stamp(int x,int y,int id){
+ unsigned frame=RGB(90,96,76),glass=RGB(10,20,29),dim=RGB(55,101,111);
+ unsigned ink=valid_target(id)?contact_color(id):DIM;
+ rect(x,y,50,30,glass);rect(x,y,50,1,frame);rect(x+49,y,1,30,frame);rect(x,y+29,50,1,RGB(41,54,70));
+ line(x+24,y+4,x+24,y+25,dim);line(x+12,y+14,x+37,y+14,dim);
+ line(x+19,y+9,x+29,y+9,dim);line(x+19,y+19,x+29,y+19,dim);
+ pixel(x+24,y+14,ink);line(x+22,y+12,x+26,y+12,ink);line(x+22,y+16,x+26,y+16,ink);
+ /* The sweep is only four native pixels wide and never interpolates. */
+ int sweep=3+(int)(preview_time*9.f)%42;rect(x+sweep,y+2,1,26,RGB(28,66,77));
+ if(valid_target(id)){int pulse=(int)(preview_time*6.f)&1;pixel(x+24-pulse,y+14,ink);pixel(x+24+pulse,y+14,ink);}
+}
 static void targeting_screen(void){
  target_count=collect_scan_ids(target_ids,scan_cat);if(row>=target_count)row=0;
  header("TARGETING COMPUTER");targeting_bezel_decals();page_number_at(52,4,target_count?row/7+1:1,target_count?(target_count+6)/7:1);
@@ -85,6 +97,7 @@ static void targeting_screen(void){
  panel(8,47,464,140);
  targeting_crt_glass(8,47,464,140);
  int first=row/7*7;for(int j=0;j<7&&first+j<target_count;j++){int i=first+j,id=target_ids[i],y=7+j*2;Vec3 p=camera(&game,target_position(id));if(i==row)selected(y);text(3,y,contact_color(id),"%s%-20.20s %6d M %-6s",is_mission_target(&game,id)?"[M] ":"    ",scanner_known(id)?target_name(id):"UNKNOWN CONTACT",(int)length(sub(target_position(id),game.pos)),p.z>=0?"AHEAD":"BEHIND");}if(!target_count)text(3,10,DIM,"Nothing in this band. L/R changes category.");
+ targeting_scope_stamp(414,156,target_count?target_ids[row]:-1);
  if(target_count){int id=target_ids[row];text(3,21,GOLD,"%s",target_status(id));if(target_details){if(IS_NPC_ID(id)){NPC *n=&game.npc[id-BODY_COUNT-1];if(scanner_known(id))text(3,22,WHITE,"%s  hull %d  %d m",faction_names[n->role],(int)n->health,(int)length(sub(n->pos,game.pos)));else text(3,22,WHITE,"Close in, or fit a long-range scanner.");}else if(IS_ANOMALY_ID(id))text(3,22,WHITE,"%s",game.anomaly[id-ANOMALY_ID_MIN].scanned?"Logged in Codex":"Close in. Press O.");else if(IS_DEBRIS_ID(id))text(3,22,WHITE,"%s",game.debris[id-DEBRIS_ID_MIN].rock?"Fire to fracture; Circle collects loose ore.":"Circle: collect within 500 m");else text(3,22,WHITE,"%s",id==0?station_name(&game):game.bodies[id-1].name);}else text(3,22,DIM,"Triangle for details.");}
  footer("L/R CATEGORY   X LOCK   TRI DETAILS   O BACK");}
 static void local_system(void){
@@ -356,6 +369,24 @@ static void equipment(void){
  text(31,21,DIM,"Balance %.1f",game.credits*.1f);
  footer(equipment_owned(i)&&i>0&&i!=3?"UP/DOWN  X FIT  SQUARE SELL  O BACK":"UP/DOWN   X BUY / REFUEL   O BACK");
 }
+/* Native 1x loadout silhouette: each hull reads as a small stamped plate. */
+static void loadout_hull_stamp(int x,int y,int ship){
+ unsigned plate=RGB(10,20,29),edge=RGB(90,96,76),hull=RGB(193,139,77),hi=RGB(229,210,163),shadow=RGB(41,54,70);
+ int v=ship%3;
+ rect(x,y,54,32,plate);rect(x,y,54,1,edge);rect(x+53,y,1,32,edge);rect(x,y+31,54,1,shadow);
+ if(v==0){
+  line(x+8,y+16,x+45,y+16,hull);line(x+14,y+12,x+39,y+12,hull);line(x+14,y+20,x+39,y+20,hull);
+  line(x+22,y+9,x+32,y+9,hi);line(x+22,y+23,x+32,y+23,hi);rect(x+25,y+13,7,7,hi);
+ }else if(v==1){
+  line(x+7,y+16,x+47,y+16,hull);line(x+17,y+10,x+37,y+10,hull);line(x+17,y+22,x+37,y+22,hull);
+  line(x+28,y+7,x+28,y+25,hi);rect(x+22,y+14,13,4,hi);pixel(x+11,y+16,hi);
+ }else{
+  line(x+9,y+16,x+44,y+16,hull);line(x+18,y+11,x+35,y+11,hull);line(x+18,y+21,x+35,y+21,hull);
+  line(x+25,y+8,x+30,y+8,hi);line(x+25,y+24,x+30,y+24,hi);rect(x+27,y+13,5,7,hi);
+ }
+ unsigned engine=((int)(preview_time*8.f)&1)?CYAN:RGB(46,120,132);pixel(x+5,y+16,engine);pixel(x+6,y+16,engine);
+ text((x+2)/8,(y+24)/8,DIM,"HULL %d",ship+1);
+}
 /* Ship loadout — real fitted slots from fit[]. */
 static void inventory_screen(void){
  header("SHIP LOADOUT / HOLD");panel(8,32,232,180);panel(248,32,224,180);
@@ -373,6 +404,7 @@ static void inventory_screen(void){
  int line=7; for(int g=0;g<GOODS&&line<18;g++)if(game.cargo[g]>0){text(32,line,WHITE,"%-12.12s %d%c",goods[g].name,game.cargo[g],goods[g].unit);line++;}
  if(game.passenger_dest>=0){text(32,line,GOLD,"PASSENGER");line++;text(32,line,CYAN,"-> %.12s",game.systems[game.passenger_dest].name);line++;}
  if(line==7)text(32,7,DIM,"Hold empty.");
+ loadout_hull_stamp(402,156,game.ship);
  text(32,20,DIM,"Shield %.1f/s",shield_regen_rate(&game));
  footer(game.docked?"UP/DOWN  X SELL 50%  O BACK":"UP/DOWN   O BACK");
 }
