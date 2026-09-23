@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.67 - Lave signage draw-order fix
+
+- Moved the Lave Public canteen identity signage after the back-wall layer so the nameplate remains visible at native resolution.
+
 ## 2.5.66 - Lave canteen visual slice
 
 - Added a Lave-only native pixel-art window, crescent world, hanging lamps, booth silhouette and floor lighting to the public canteen.
