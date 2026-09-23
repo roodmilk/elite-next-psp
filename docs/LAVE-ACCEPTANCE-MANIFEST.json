@@ -1,0 +1,28 @@
+{
+  "status": "FAIL_BLOCKED",
+  "baseline": "Build 2.5.53",
+  "activation": false,
+  "native_screen": [480, 272],
+  "native_room": [340, 168],
+  "palette_roles": 11,
+  "validated_scripts": {
+    "tools/validate-native-art.ps1": "PASS",
+    "tools/test-station-cue-kit.ps1": "PASS"
+  },
+  "station": {
+    "system": 7,
+    "authored_arrivals": "PASS_WITH_SCOPE_LIMIT",
+    "other_rooms": "GENERIC_FALLBACK",
+    "procedural_room_kit_runtime_ready": false,
+    "new_hotspots_added": false
+  },
+  "ship_preview": {"static_native_grid": "PASS", "integrated_capture": "MISSING", "performance_report": "MISSING"},
+  "targeting": {"static_native_grid": "PASS", "integrated_capture": "MISSING", "input_report": "MISSING"},
+  "promotion_blockers": [
+    "Lave-native authored family art for six non-Arrivals rooms",
+    "Native normal/high-contrast Lave station traversal captures",
+    "Integrated ship/targeting captures",
+    "Deterministic packed-budget and performance evidence",
+    "Station/Gameplay/Story/Lead capability sign-off"
+  ]
+}
