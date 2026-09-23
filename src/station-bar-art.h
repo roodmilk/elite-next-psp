@@ -1,5 +1,5 @@
-/* Second Shift preview art. Read-only, native1x; caller owns location and UI.
- * Original generated illustration, native palette export. No gameplay state.
+/* Second Shift authored room. Read-only, native1x; caller owns location and UI.
+ * Native-grid pixel bake; no runtime scaling, filtering, or heap allocation.
  * Scene includes the three people: caller must not draw generic NPC sprites
  * or generic hatch artwork over this room. Keep options and SHIP overlays.
  */

@@ -26,7 +26,7 @@ rejects identity-only dice activation.
 
 | Target | Normal evidence | High-contrast evidence | Current status |
 |---|---|---|---|
-| Reorte | `assets/second-shift-native.png` | pending integrated capture | authored benchmark; not runtime proof |
+| Reorte | `assets/second-shift-native-v2.png` | pending integrated capture | native-grid authored benchmark; not runtime proof |
 | Qube | `assets/preview/reusable-element-kit/assembled-freight-normal.png` | `assets/preview/reusable-element-kit/assembled-freight-contrast.png` | layout/contrast evidence only |
 | Xequerin | `assets/preview/reusable-element-kit/assembled-research-normal.png` | `assets/preview/reusable-element-kit/assembled-research-contrast.png` | layout/contrast evidence only |
 
