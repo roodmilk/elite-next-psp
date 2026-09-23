@@ -12,9 +12,9 @@ Owns the canonical palette/layout contract, Second Shift benchmark, authored exc
 
 Owns deterministic assembly of room plans from stable station identity, room type and family. The composer chooses structural modules, depth ordering, lamp treatment, window/body treatment and constrained wear. It emits element references and native placements, not a new bitmap per station. It must preserve runtime-owned hitboxes, options, speech and SHIP rectangles.
 
-### Art 3 — reusable element-kit author
+### PSP UI & Art Reusable Element Kit
 
-Owns the authored native pieces that make compositions feel rich: people and poses, counters, benches, lamps, windows, panels, doors, racks, displays, signs, dice and mission props as assigned. Every piece has a native size, pivot/anchor, palette-role mask, high-contrast treatment and measured bytes. Art 3’s existing footer/help reservation remains separate from room assets.
+Owns the authored native pieces that make compositions feel rich: people and poses, counters, benches, lamps, windows, panels, doors, racks, displays, signs, dice and mission props as assigned. Every piece has a native size, pivot/anchor, palette-role mask, high-contrast treatment and measured bytes. Footer/help/chrome remains a Team-allocated responsibility between the named PSP UI & Art groups.
 
 ## Shared data boundary
 
