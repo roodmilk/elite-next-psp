@@ -44,15 +44,22 @@ static void targeting_crt_glass(int x,int y,int w,int h){
   seed=seed*1664525u+1013904223u;int py=y+2+(int)((seed>>8)%(unsigned)(h-4));
   unsigned cur=fb[py*STRIDE+px];
   if(cur!=base&&cur!=scan)continue;
-  fb[py*STRIDE+px]=(seed&7)==0?fleck_hi:fleck_lo;
+ fb[py*STRIDE+px]=(seed&7)==0?fleck_hi:fleck_lo;
  }
 }
+static void targeting_bezel_stickers(void){
+ /* Tiny crew decals live on the physical lower bezel, never in the scan area. */
+ rect(18,181,18,7,RGB(48,70,74));circle(27,184,3,RGB(120,224,194));line(27,181,27,187,RGB(120,224,194));line(24,184,30,184,RGB(120,224,194));
+ rect(45,181,28,7,RGB(74,46,57));pixel(51,183,RGB(250,138,158));pixel(55,183,RGB(250,138,158));rect(50,184,7,2,RGB(250,138,158));pixel(51,186,RGB(250,138,158));pixel(56,186,RGB(250,138,158));
+ rect(409,181,35,7,RGB(63,53,37));pixel(416,184,GOLD);pixel(418,182,GOLD);pixel(420,184,GOLD);pixel(418,186,GOLD);
+ }
 static void targeting_screen(void){
  target_count=collect_scan_ids(target_ids,scan_cat);if(row>=target_count)row=0;
  header("TARGETING COMPUTER");page_number_at(52,4,target_count?row/7+1:1,target_count?(target_count+6)/7:1);
  for(int i=0;i<5;i++){int col=1+i*11;if(i==scan_cat)rect(col*8-2,30,84,14,RGB(25,65,77));text(col,4,i==scan_cat?GOLD:DIM,"%s",scan_cat_names[i]);}
  panel(6,45,468,144);panel(10,49,460,136);
  targeting_crt_glass(10,49,460,136);
+ targeting_bezel_stickers();
  rect(382,51,82,12,RGB(66,45,38));text(49,6,AMBER,"CRT-7 // LIVE");
  int first=row/7*7;for(int j=0;j<7&&first+j<target_count;j++){int i=first+j,id=target_ids[i],y=7+j*2;Vec3 p=camera(&game,target_position(id));if(i==row)selected(y);text(3,y,contact_color(id),"%s%-20.20s %6d M %-6s",is_mission_target(&game,id)?"[M] ":"    ",scanner_known(id)?target_name(id):"UNKNOWN CONTACT",(int)length(sub(target_position(id),game.pos)),p.z>=0?"AHEAD":"BEHIND");}if(!target_count)text(3,10,DIM,"Nothing in this band. L/R changes category.");
  if(target_count){int id=target_ids[row];text(3,21,GOLD,"%s",target_status(id));if(target_details){if(IS_NPC_ID(id)){NPC *n=&game.npc[id-BODY_COUNT-1];if(scanner_known(id))text(3,22,WHITE,"%s  hull %d  %d m",faction_names[n->role],(int)n->health,(int)length(sub(n->pos,game.pos)));else text(3,22,WHITE,"Close in, or fit a long-range scanner.");}else if(IS_ANOMALY_ID(id))text(3,22,WHITE,"%s",game.anomaly[id-ANOMALY_ID_MIN].scanned?"Logged in Codex":"Close in. Press O.");else if(IS_DEBRIS_ID(id))text(3,22,WHITE,"%s",game.debris[id-DEBRIS_ID_MIN].rock?"Fire to fracture; Circle collects loose ore.":"Circle: collect within 500 m");else text(3,22,WHITE,"%s",id==0?station_name(&game):game.bodies[id-1].name);}else text(3,22,DIM,"Triangle for details.");}

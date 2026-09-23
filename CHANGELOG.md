@@ -433,3 +433,5 @@ The detailed development history, controls, implemented feature list, validation
 - Targeting Computer gains a compact CRT monitor bezel and status sticker while retaining the scanline display.
 ## 2.5.59 - New player hulls
 - Added Fer-de-Lance, Krait, and Ophidian as purchasable player ships using existing detailed ship meshes, with distinct speed, range, capacity, and price profiles.
+## 2.5.60 - Crew-decaled targeting monitor
+- Added native PSP bezel decals to the full-screen targeting computer: peace symbol, heart sticker, and a small crew marker on the physical monitor frame.
