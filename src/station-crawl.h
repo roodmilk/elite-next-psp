@@ -4,6 +4,7 @@
  * Palette+styles via station-art-kit.h; this file owns geometry/input/state. */
 #include "station-art-kit.h"
 #include "native-art-scenes.h"
+#include "procedural-room-plan.h"
 enum {
  SC_R_ARRIVALS=0, SC_R_SHOP, SC_R_CANTEEN, SC_R_CARGO, SC_R_GUILD, SC_R_CLINIC, SC_R_CUSTOMS, SC_R_COUNT
 };
@@ -36,6 +37,20 @@ static int sc_room=SC_R_ARRIVALS, sc_verb=SC_V_LOOK, sc_hot=0, sc_menu=0, sc_sho
 static int sc_x=0, sc_y=0, sc_face=SC_S;
 static unsigned char sc_map[1][1], sc_door_n[1][1], sc_door_e[1][1];
 static const ArtRoomStyle *sc_style(void){return art_room_style(sc_art_id(sc_room));}
+static int sc_proc_plan(ProcRoomPlan *out){
+ System *s; ProcRoomIdentity id; int sys=game.system,hub=game.station_variant;
+ if(sys<0)sys=0;if(sys>255)sys=255;if(hub<0)hub=0;hub%=3;
+ s=&game.systems[sys];
+ id.galaxy=0;id.system_id=(uint16_t)sys;id.hub_index=(uint8_t)hub;
+ id.room_id=(uint8_t)sc_room;
+ id.family_id=(uint8_t)((s->economy*3+s->government+s->tech+hub*2)%PROC_FAMILY_COUNT);
+ id.arrangement_id=(uint8_t)((s->economy+hub)%3);
+ id.landmark_id=(uint8_t)((s->tech+s->government+sc_room)%4);
+ id.material_id=(uint8_t)((s->economy+s->government+hub)%4);
+ id.selector_version=PROC_ROOM_PLAN_VERSION;id.exception_id=0;
+ id.stable_seed=0x9e3779b9u^((unsigned)sys*2654435761u)^((unsigned)hub*40503u);
+ return proc_room_plan_make(&id,high_contrast,out);
+}
 typedef struct { const char *name; int role; int act; int shop_item; int gift_bit; int quest_pay; int taxi_pay; const char *line; const char *offer; } ScNpc;
 enum { SC_ACT_TALK=0, SC_ACT_SHOP, SC_ACT_GIFT, SC_ACT_QUEST, SC_ACT_TAXI, SC_ACT_BOARD };
 typedef struct { int kind; int id; int x,y,w,h; const char *label; const char *look; } ScHot;
@@ -310,6 +325,37 @@ static void sc_draw_person_sprite(int x,int y,const ScNpc *p,int selected){
  rect(x+8,y+28,32,1,ink);
  text((x+4)/8,(y+58)/8,selected?SC_AMBER:SC_CREAM,"%.8s",p->name);
 }
+static void sc_draw_proc_accents(int x,int y,const ProcRoomPlan *p){
+ const ArtRoomStyle *st=sc_style();
+ int i;
+ if(!p||!p->valid)return;
+ /* Cosmetic-only pass: plans may enrich a room, but never own doors, people or UI. */
+ for(i=0;i<p->count;i++){
+  const ProcRoomPlacement *e=&p->element[i];
+  int px=x+e->x,py=y+e->y;
+  unsigned ink=p->contrast?SC_CREAM:st->accent;
+  if(e->flags&PROC_PLACE_CONTRAST)ink=SC_CREAM;
+  if(e->element_id==PROC_E_PANEL){
+   rect(px,py,24,10,mix_rgb(st->wall2,st->trim,.35f));
+   rect(px+1,py+1,22,1,ink);rect(px+3,py+4,8,1,st->lamp);
+   pixel(px+18,py+5,SC_CREAM);
+  }else if(e->element_id==PROC_E_LAMP){
+   rect(px,py,12,2,st->trim);rect(px+4,py+2,4,2,st->lamp);
+   if(!p->contrast)pixel(px+6,py+4,mix_rgb(st->lamp,SC_CREAM,.3f));
+  }else if(e->element_id==PROC_E_RACK){
+   rect(px,py,16,1,st->trim);rect(px+2,py+1,1,14,st->trim);
+   rect(px+13,py+1,1,14,st->trim);rect(px+4,py+4,8,2,st->lamp);
+  }else if(e->element_id==PROC_E_CONSOLE){
+   rect(px,py,20,8,st->wall2);rect(px+2,py+2,16,1,ink);
+   rect(px+4,py+5,4,1,st->lamp);rect(px+10,py+5,5,1,st->lamp);
+  }else if(e->element_id==PROC_E_COUNTER){
+   rect(px,py,28,2,st->trim);rect(px+4,py+2,18,1,ink);
+  }else if(e->element_id==PROC_E_WINDOW){
+   rect(px,py,24,1,st->trim);rect(px+2,py+2,20,1,st->accent);
+   if((e->variant&1u)==0)pixel(px+16,py+4,st->lamp);
+  }
+ }
+}
 static void sc_illust_arrivals(int x,int y,int w,int h){
  const ArtRoomStyle *st=sc_style();
  /* Hero: berth window at upper third. Layers: void lane / cream hall / rail. */
@@ -581,6 +627,10 @@ static void sc_draw_main_scene(void){
  else if(sc_room==SC_R_GUILD)sc_illust_guild(VX,VY,VW,VH);
  else if(sc_room==SC_R_CLINIC)sc_illust_clinic(VX,VY,VW,VH);
  else sc_illust_customs(VX,VY,VW,VH);
+ {
+  ProcRoomPlan plan;
+  if(sc_proc_plan(&plan))sc_draw_proc_accents(VX,VY,&plan);
+ }
  ScNpc people[3]; int pn=sc_fill_npcs(sc_room,people,3);
  ScHot hot[24]; int hn=sc_hotspots(hot,24);
  /* Hatches — silhouette only; names live in the right options list. */
