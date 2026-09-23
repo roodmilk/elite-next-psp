@@ -1,5 +1,14 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Candidate — strange-world arrivals art (not integrated)
+
+Based on released1e3fab8, cursor/strange-worlds-art changes only the arrivals
+backdrop plus opt-in tests. See docs/STRANGE-WORLDS-ARRIVALS.md for scope,
+superseded6048a23, native review and measured draw-cost increase. No new bitmap,
+Game/save/audio/input change; original Art retains bar work. Lead owns combined
+validation, versioning and release. Remaining art work: authored room variants,
+portraits and world props are separate; this is not whole-game completion.
+
 ## Integrated 2.5.48 — planetary EVA traversal
 
 The specialist/planetary-eva checkpoint adds independent look/walk/strafe/jet,

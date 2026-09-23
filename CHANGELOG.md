@@ -1,5 +1,13 @@
 # Changelog
 
+## Candidate — strange-world arrivals art
+
+- Original native-pixel sculptural concourse, swept freighter and current-system
+  planet window; unchanged people, room controls, services and SHIP exit.
+- Zero added bitmap residency; optional native capture, state, clipping,
+  palette and matched draw-cost checks. See docs/STRANGE-WORLDS-ARRIVALS.md.
+- Historical unintegrated arrivals board6048a23 superseded with owner consent.
+
 ## Unreleased - current-ship menu beauty preview
 
 - The command-deck inset shows the actual owned hull in a quiet 96-second

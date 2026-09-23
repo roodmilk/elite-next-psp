@@ -310,60 +310,9 @@ static void sc_draw_person_sprite(int x,int y,const ScNpc *p,int selected){
  rect(x+8,y+28,32,1,ink);
  text((x+4)/8,(y+58)/8,selected?SC_AMBER:SC_CREAM,"%.8s",p->name);
 }
+#include "station-arrivals-art.h"
 static void sc_illust_arrivals(int x,int y,int w,int h){
- const ArtRoomStyle *st=sc_style();
- /* Hero: berth window at upper third. Layers: void lane / cream hall / rail. */
- sc_scene_sky(x,y,w,h,mix_rgb(SC_OCHRE,st->wall,.45f),mix_rgb(st->wall2,SC_RUST,.25f));
- sc_wall_plates(x,y,w,h-48,mix_rgb(st->wall,SC_CREAM,.08f),mix_rgb(SC_OLIVE,SC_RUST,.35f));
- sc_floor_planes(x,y,w,h,mix_rgb(SC_CREAM,st->wall,.35f),mix_rgb(st->wall,st->wall2,.4f),st->wall2);
- /* Overhead conduit strip — lamps blink gently */
- rect(x+8,y+2,w-16,4,mix_rgb(st->trim,SC_OLIVE,.4f));
- {
-  int lx[]={24,w/2-8,w-40};int lw[]={12,16,12};
-  for(int i=0;i<3;i++){
-   unsigned lamp=sc_lamp_on(i,2.2f)<3?st->lamp:mix_rgb(st->lamp,SC_VOID,.45f);
-   rect(x+lx[i],y+6,lw[i],2,lamp);
-   if(sc_lamp_on(i,2.2f)==0)pixel(x+lx[i]+lw[i]/2,y+5,SC_CREAM);
-  }
- }
- /* Distant coral haze through the aperture */
- rect(x+72,y+10,176,70,SC_VOID);
- rect(x+72,y+10,176,3,SC_CREAM);
- rect(x+72,y+10,3,70,mix_rgb(SC_CREAM,st->trim,.4f));
- rect(x+245,y+10,3,70,mix_rgb(SC_CREAM,st->trim,.4f));
- rect(x+72,y+77,176,3,mix_rgb(SC_CREAM,st->wall,.3f));
- sc_void_stars(x+78,y+16,164,58,game.bodies[0].seed^(unsigned)game.system*17u);
- /* Soft warm spill */
- for(int row=0;row<28;row++)rect(x+78,y+16+row,164,1,mix_rgb(SC_VOID,SC_OCHRE,row/40.f));
- /* Animated freighter crossing the berth — one ship, readable at 1× */
- sc_traffic_silhouette(x+78,y+18,164,52,st->wall,st->lamp);
- /* Soft berth lamp — cream pixel pulse, not a four-point glitter mask. */
- if(sc_lamp_on(0,2.5f)<2){pixel(x+118,y+28,mix_rgb(st->lamp,SC_CREAM,.35f));pixel(x+119,y+28,mix_rgb(st->lamp,SC_VOID,.4f));}
- sc_warm_key(x+160,y+84,st->lamp);
- /* Mid: traffic board — berth slots blink occupancy */
- rect(x+196,y+84,90,40,st->wall2);
- rect(x+196,y+84,90,2,SC_CREAM);
- rect(x+200,y+88,82,12,mix_rgb(st->accent,st->wall,.4f));
- text((x+204)/8,(y+90)/8,st->accent,"BERTHS");
- for(int i=0;i<6;i++){
-  int on=sc_lamp_on(i+(game.system&3),1.6f)<2;
-  unsigned slot=on?st->lamp:mix_rgb(SC_OLIVE,st->wall2,.5f);
-  rect(x+202+i*13,y+104,10,6,slot);
-  if(on&&(i&1)==0)pixel(x+206+i*13,y+106,SC_CREAM);
- }
- rect(x+200,y+116,40,4,sc_lamp_on(0,3.f)<2?st->lamp:mix_rgb(st->lamp,SC_VOID,.4f));
- /* Cargo-loader cycle under the board — ART DIRECTOR HUB production target. */
- {
-  int bob=(int)(sinf(game.time*2.2f)*3);
-  rect(x+248,y+100+bob,18,28,mix_rgb(st->wall,SC_OLIVE,.4f));
-  rect(x+252,y+92+bob,10,10,st->trim);
-  rect(x+250,y+128+bob,14,4,SC_RUST);
-  if(sc_lamp_on(2,3.f)<2)pixel(x+256,y+96+bob,SC_CREAM);
- }
- /* Fore: rail + contact shadow */
- rect(x+72,y+118,160,4,st->trim);
- rect(x+72,y+122,160,3,SC_OLIVE);
- rect(x+80,y+126,144,2,mix_rgb(SC_VOID,SC_CHAR,.5f));
+ sc_arrivals_cover_art(x,y,w,h);
 }
 static void sc_illust_shop(int x,int y,int w,int h){
  const ArtRoomStyle *st=sc_style();
