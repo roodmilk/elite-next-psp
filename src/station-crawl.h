@@ -4,6 +4,7 @@
  * Palette+styles via station-art-kit.h; this file owns geometry/input/state. */
 #include "station-art-kit.h"
 #include "station-bar-art.h"
+#include "station-family-art.h"
 #include "native-art-scenes.h"
 #include "procedural-room-plan.h"
 enum {
@@ -64,6 +65,15 @@ static int sc_second_shift_active(int room){
  /* The authored preview is the exact Reorte H0 Canteen proof room. */
  return room==SC_R_CANTEEN&&game.system==39&&game.station_variant==0;
 }
+static int sc_qube_freight_active(int room){
+ return room==SC_R_CANTEEN&&game.system==1&&game.station_variant==0;
+}
+static int sc_xequerin_research_active(int room){
+ return room==SC_R_CANTEEN&&game.system==4&&game.station_variant==0;
+}
+static int sc_native_canteen_active(int room){
+ return sc_second_shift_active(room)||sc_qube_freight_active(room)||sc_xequerin_research_active(room);
+}
 static void sc_person_pos(int room,int i,int *ox,int *oy){
  /* Keep people inside the narrower MAIN (options list owns the right). */
  static const int pos[SC_R_COUNT][3][2]={
@@ -78,6 +88,8 @@ static void sc_person_pos(int room,int i,int *ox,int *oy){
  if(room<0||room>=SC_R_COUNT)room=0;if(i<0)i=0;if(i>2)i=2;
  *ox=pos[room][i][0];*oy=pos[room][i][1];
  if(sc_second_shift_active(room))second_shift_person_pos(i,ox,oy);
+ else if(sc_qube_freight_active(room))station_family_person_pos(STATION_FAMILY_QUBE,i,ox,oy);
+ else if(sc_xequerin_research_active(room))station_family_person_pos(STATION_FAMILY_XEQUERIN,i,ox,oy);
 }
 static const char *sc_room_title(int r){
  static const char *n[]={"ARRIVALS HALL","CHANDLERY","CANTEEN","CARGO BAY","GUILD DESK","MED CLINIC","CUSTOMS LOCK"};
@@ -633,12 +645,14 @@ static void sc_illust_customs(int x,int y,int w,int h){
 }
 static void sc_draw_main_scene(void){
  const int VX=SC_VX,VY=SC_VY,VW=SC_VW,VH=SC_VH;
- const int authored=sc_second_shift_active(sc_room);
+ const int authored=sc_native_canteen_active(sc_room);
  /* Illustrated room only — options list is the selector chrome. */
  rect(VX,VY,VW,VH,SC_VOID);
  rect(VX,VY,VW,1,SC_OCHRE);
  rect(VX,VY+VH-1,VW,1,SC_SLATE);
- if(authored)sc_illust_second_shift(VX,VY,VW,VH);
+ if(sc_second_shift_active(sc_room))sc_illust_second_shift(VX,VY,VW,VH);
+ else if(sc_qube_freight_active(sc_room))sc_illust_qube_freight(VX,VY,VW,VH);
+ else if(sc_xequerin_research_active(sc_room))sc_illust_xequerin_research(VX,VY,VW,VH);
  else if(sc_room==SC_R_ARRIVALS)sc_illust_arrivals(VX,VY,VW,VH);
  else if(sc_room==SC_R_SHOP)sc_illust_shop(VX,VY,VW,VH);
  else if(sc_room==SC_R_CANTEEN)sc_illust_canteen(VX,VY,VW,VH);

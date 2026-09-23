@@ -2,7 +2,8 @@ param(
  [string]$Source='assets/second-shift-native-v2-source.png',
  [string]$BaseReview='assets/second-shift-native.png',
  [string]$Review='assets/second-shift-native-v2.png',
- [string]$Header='src/generated/second-shift-pixels.h'
+ [string]$Header='src/generated/second-shift-pixels.h',
+ [string]$Symbol='second_shift_pixels'
 )
 $ErrorActionPreference='Stop'
 Add-Type -AssemblyName System.Drawing
@@ -57,8 +58,9 @@ $nativeBitmap.Dispose()
 if($bytes.Count -ne 28560){throw "Expected 28560 packed bytes; got $($bytes.Count)"}
 $writer=[IO.StreamWriter]::new((Join-Path (Get-Location) $Header),$false,[Text.UTF8Encoding]::new($false))
 try{
- $writer.WriteLine('/* Generated native340x168,4bit palette indices. Source: assets/second-shift-native-v2-source.png. */')
- $writer.WriteLine('static const unsigned char second_shift_pixels[28560]={')
+ $sourceLabel=$Source.Replace('\','/')
+ $writer.WriteLine("/* Generated native340x168,4bit palette indices. Source: $sourceLabel. */")
+ $writer.WriteLine("static const unsigned char $Symbol[28560]={")
  for($i=0;$i-lt$bytes.Count;$i+=24){
   $last=[Math]::Min($i+23,$bytes.Count-1)
   $writer.WriteLine(' '+(($bytes[$i..$last] | ForEach-Object {'0x{0:x2}' -f $_}) -join ',')+',')
