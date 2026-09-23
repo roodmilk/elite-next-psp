@@ -22,8 +22,8 @@ B875A1D14730C1340D735A3BEFC70ABB76ECD89488E4792CC04857E9DCB3C5D2  assets/preview
 A4AADD57D0031F2E89B5702CFA8317B343304CC45D7EA64C14719F57D841E292  assets/preview/reusable-element-kit/freight-elements/dice-prop-normal.png
 DFFCFF50044BDB7EC5CC43921EF40D0E6F469292F6FE3ECDF1D3A96BF84A2480  assets/preview/reusable-element-kit/freight-elements/dock-window-contrast.png
 BF5C8CC530606291A9B4AD1A4028BD843D381E1B8A59A8048E52A5EA970EAB5C  assets/preview/reusable-element-kit/freight-elements/dock-window-normal.png
-00AF999E41F5CA1C1B8375291808442D6326431723FAA5770641CFF79BDCAD44  assets/preview/reusable-element-kit/freight-elements/door-hatch-contrast.png
-A88869F3D2A40FA11EE74E40C5D2703E674908C8EFDD6F1B50E7BE2602CE1FEC  assets/preview/reusable-element-kit/freight-elements/door-hatch-normal.png
+1A2CF981B35EC9533141CAAA3E2EE8DC5F46FAB4CADBA84CC5227C33EF016A65  assets/preview/reusable-element-kit/freight-elements/door-hatch-contrast.png
+0DB271B8E87F511670AD4EA3671B7B4F86C14B404371113CEE7692ADC1D42B6D  assets/preview/reusable-element-kit/freight-elements/door-hatch-normal.png
 59AE57E0C59DDFFC4190E082FE8B6A0730A5FC681A9F5B9981B1367A0D079BC4  assets/preview/reusable-element-kit/freight-elements/panel-sign-contrast.png
 261D0746EEF28E5C8B098DD2C3D6E86D3B4B69E66259CE25884768805D8FE7E0  assets/preview/reusable-element-kit/freight-elements/panel-sign-normal.png
 288806EE52E6AF032EEB01F765C392C3C9CE0E2AA6206107950F451DFDB96BD5  assets/preview/reusable-element-kit/freight-elements/person-carrying-contrast.png
