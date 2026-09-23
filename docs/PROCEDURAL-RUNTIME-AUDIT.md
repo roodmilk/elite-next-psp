@@ -1,0 +1,41 @@
+# Procedural runtime compatibility audit
+
+Audit target: Art runtime `specialist/station-art-rollout` commit `4a4a9ab`.
+This is a read-only audit; Systems did not merge or modify the Art branch.
+
+## Compatible boundary
+
+- `ProcRoomIdentity` uses the intended compact identity shape and
+  `PROC_ROOM_PLAN_MAX_ELEMENTS` is bounded at 12.
+- The native screen, room viewport, options panel, feedback band and SHIP
+  rectangle match the Systems/Art1 contract.
+- The plan API has an explicit version and unsupported versions return fallback.
+
+## Activation blockers
+
+1. `sc_proc_plan()` recomputes family, arrangement, landmark and material from
+   live `System` fields instead of consuming the Systems `room-descriptors.json`
+   fields. That can disagree with the canonical register and offline bake.
+2. The Art hash uses `proc_room_mix`, while Systems descriptors use FNV-1a over
+   the canonical selector tuple. Repeated identity parity is therefore not
+   demonstrated across the two implementations.
+3. `stable_seed` is an additional selector input not present in the Systems
+   descriptor contract and is not versioned in the room fingerprint.
+4. Runtime construction forces `exception_id=0`, so the two authored Reorte H0
+   exceptions are not preserved by this path.
+5. The runtime plan does not enforce the measured static asset, plan, temporary
+   memory, draw-call or frame-time budgets. The 12-element count is only a
+   structural bound, not a PSP performance certification.
+
+## Required compatibility handoff
+
+Before activation, Art should either consume the Systems descriptor directly or
+provide an exact C-parity adapter for its fields and fingerprint. The adapter
+must preserve authored exception IDs, reject unsupported selector versions,
+retain the generic renderer fallback, and emit a measured native normal/
+high-contrast capture plus plan/draw/temp/frame budget report. No gameplay,
+save, economy, mission, NPC or capability writes are permitted.
+
+Until those gates pass, the Systems-generated descriptors remain build-time
+planning artifacts and the existing truthful station renderer remains the
+authoritative fallback.
