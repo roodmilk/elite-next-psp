@@ -205,6 +205,10 @@ int enter_planet(Game *g){
  float px,pz;site_xz(g,1,&px,&pz);g->pos=(Vec3){px-220,0,pz-60};g->pos.y=terrain_height(g,g->pos.x,g->pos.z)+170;
  g->yaw=atan2f(px-g->pos.x,pz-g->pos.z);g->pitch=-.22f;g->roll=0;g->speed=48;g->hazard=0;g->cue=SFX_LAND;
  for(int i=0;i<LIFE_COUNT;i++){Lifeform *l=&g->life[i];l->alive=1;l->scanned=0;unsigned h=sector_hash(g->bodies[body].seed+i*131u);l->kind=g->bodies[body].type==OCEAN?(i%5==0?LIFE_MINERAL:(i&1?LIFE_FLORA:LIFE_FAUNA)):(h%3);float a=i*.95f+(h%7)*.1f;float rad=100.f+(h%90)+i*18;l->pos=(Vec3){px+cosf(a)*rad,0,pz+sinf(a)*rad};if(terrain_is_water(g,l->pos.x,l->pos.z)){l->pos.x=px+cosf(a)*140;l->pos.z=pz+sinf(a)*140;}l->pos.y=terrain_height(g,l->pos.x,l->pos.z)+(l->kind==LIFE_FAUNA?16:7);}
+ /* Final activity floor: preserve generated geometry and populated pools.
+  * Keep this after any future profile/density selection. */
+ int minerals=0;for(int i=0;i<LIFE_COUNT;i++)minerals+=g->life[i].alive&&g->life[i].kind==LIFE_MINERAL;
+ if(!minerals)g->life[0].kind=LIFE_MINERAL;
  message(g,"Atmosphere. Fly to the cyan pad. Triangle returns to orbit.");
  {
   const Body *wb=&g->bodies[body];
@@ -838,6 +842,7 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  game_init(&g);launch(&g);g.approach=3;CHECK(!enter_planet(&g)&&g.planet<0,"gas giants reject atmosphere entry");
  #include "planet-approach-tests.h"
  #include "planet-eva-tests.h"
+ #include "planet-activity-tests.h"
  int rares=0;for(int i=0;i<ANOMALY_COUNT;i++)rares+=g.anomaly[i].alive;CHECK(rares>=1,"quiet Lave still contains a rare anomaly");
  g.pos=g.anomaly[0].pos;int disc=g.discoveries;CHECK(analysis_scan(&g,ANOMALY_ID_MIN)&&g.discoveries==disc+1,"close analysis scan catalogues an anomaly");
  CHECK(systems_visited(&g)>=1,"visited systems are recorded for the Codex");

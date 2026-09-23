@@ -1,5 +1,14 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Pending integration — minimum planetary activity
+
+On released1e3fab8, runtime reproduction found19/768 solid pools without minerals.
+The bounded correction changes only slot0.kind in empty pools after generation;
+all6144 object records preserve positions and other fields. All five smoke groups
+pass (331game/309input), matched56.63FPS baseline/candidate; released menu-preview
+checks also pass. No Game/save/payout changes. See docs/PLANETARY-ACTIVITY-MINIMUM.md
+and separate read-only docs/PLANETARY-REVISIT-POLICY-OPTIONS.md. Lead integrates.
+
 ## Integrated 2.5.48 — planetary EVA traversal
 
 The specialist/planetary-eva checkpoint adds independent look/walk/strafe/jet,
@@ -404,7 +413,7 @@ The last verified 2.5.32 run passed every group under PPSSPP (game, input, steer
 
 ## Highest-priority remaining work
 
-Planetary lane: the specialist/planetary-eva checkpoint now covers controls, shared terrain, local bounds and ship return (pending lead integration). Next, runtime-confirm mineral-free worlds and agree one guaranteed activity plus durable reward/revisit rules with Gameplay and Systems. See docs/PLANETARY-EVA-HANDOFF.md; do not promise these next mechanics as implemented.
+Planetary lane: traversal/landing access is released in2.5.48. Minimum mineral activity is ready on specialist/planetary-activity-minimum, pending lead integration. Next agree durable revisit/reward policy with Gameplay/Systems; the bar recorder remains a separate mission/save contract. See docs/PLANETARY-ACTIVITY-MINIMUM.md.
 
 Audio: measure malformed-file retry cost and output progress after sleep with
 Systems; current suspend assertions only prove calls returned. Physical crackle,

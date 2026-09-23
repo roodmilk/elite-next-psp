@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased — minimum planetary mineral activity
+
+- Every generated solid world offers at least one mineral; only an otherwise-empty pool converts its first existing object. Positions, populated pools, payout rules and save layout are preserved.
+- Added all-world semantic comparison and fallback scan/refinery/full-hold/return/save/sale regressions. Revisit reward farming remains unchanged and is documented separately.
+
 ## Unreleased - current-ship menu beauty preview
 
 - The command-deck inset shows the actual owned hull in a quiet 96-second
