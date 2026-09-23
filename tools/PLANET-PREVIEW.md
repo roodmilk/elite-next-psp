@@ -38,6 +38,7 @@ Station/activity authoring can be previewed independently with:
 ```text
 node tools/generate-station-activity.mjs --out work/planet-preview
 node tools/generate-planet-art-atlas.mjs --out work/planet-preview
+node tools/validate-art-pipeline.mjs --dir work/planet-preview --contract tools/planet-art-contract.json --pack planet.content
 ```
 
 This emits three stable station records per system for the hub, relay, and
