@@ -7,6 +7,7 @@ Copy-Item -LiteralPath "$PSScriptRoot/EBOOT.PBP" -Destination $testDir
 if(Test-Path -LiteralPath "$PSScriptRoot/language.cfg"){Copy-Item -LiteralPath "$PSScriptRoot/language.cfg" -Destination $testDir}
 if(Test-Path -LiteralPath "$PSScriptRoot/content.pack"){Copy-Item -LiteralPath "$PSScriptRoot/content.pack" -Destination $testDir}
 if(Test-Path -LiteralPath "$PSScriptRoot/planet.content"){Copy-Item -LiteralPath "$PSScriptRoot/planet.content" -Destination $testDir}
+if(Test-Path -LiteralPath "$PSScriptRoot/station.content"){Copy-Item -LiteralPath "$PSScriptRoot/station.content" -Destination $testDir}
 Set-Content -LiteralPath (Join-Path $testDir 'smoke.flag') -Value '1'
 $eboot=Join-Path $testDir 'EBOOT.PBP'
 $process=Start-Process -FilePath (Resolve-Path -LiteralPath $Emulator).Path -ArgumentList ('"'+$eboot+'"') -WorkingDirectory $testDir -WindowStyle Hidden -PassThru

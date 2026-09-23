@@ -1,0 +1,9 @@
+#!/usr/bin/env node
+/* Export the C-parity station manifest as a deterministic EPST v1 pack. */
+import fs from 'node:fs';
+
+const input=process.argv[process.argv.indexOf('--manifest')+1],out=process.argv[process.argv.indexOf('--out')+1];
+if(!input||!out){console.error('Usage: node tools/export-station-content-pack.mjs --manifest <station-activity.json> --out <station.content>');process.exit(2);}
+const manifest=JSON.parse(fs.readFileSync(input,'utf8'));if(manifest.activity_version!==1||!Array.isArray(manifest.records)||manifest.records.length!==768)throw new Error('incomplete station manifest');
+const records=[];for(const r of manifest.records){if(r.system<0||r.system>=256||r.hub<0||r.hub>=3||r.architecture<0||r.architecture>=6||r.arrangement<0||r.arrangement>=8||r.landmark<0||r.landmark>=8||r.windows<4||r.windows>13||r.traffic<2||r.traffic>10||r.security<1||r.security>7||r.service<1||r.service>5)throw new Error(`invalid station record ${r.system}/${r.hub}`);const b=Buffer.alloc(16);b.writeUInt8(r.system,0);b.writeUInt8(r.hub,1);b.writeUInt8(r.architecture,2);b.writeUInt8(r.arrangement,3);b.writeUInt8(r.landmark,4);b.writeUInt8(r.windows,5);b.writeUInt8(r.traffic,6);b.writeUInt8(r.security,7);b.writeUInt8(r.service,8);b.writeUInt32LE(r.seed>>>0,12);records.push(b);}
+const payload=Buffer.concat(records);let checksum=2166136261>>>0;for(const byte of payload){checksum^=byte;checksum=Math.imul(checksum,16777619)>>>0;}const header=Buffer.alloc(16);header.write('EPST',0,'ascii');header.writeUInt8(1,4);header.writeUInt16LE(records.length,6);header.writeUInt32LE(payload.length,8);header.writeUInt32LE(checksum,12);fs.writeFileSync(out,Buffer.concat([header,payload]));console.log(`Exported EPST v1: ${records.length} records, checksum ${checksum.toString(16).padStart(8,'0')}`);console.log(`Wrote ${out}`);
