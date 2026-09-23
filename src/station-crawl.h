@@ -457,6 +457,26 @@ static void sc_illust_canteen(int x,int y,int w,int h){
  }
  rect(x+148,y+96,8,6,SC_CREAM);rect(x+150,y+92,4,4,mix_rgb(SC_CREAM,st->lamp,.3f));
  sc_warm_key(x+160,y+70,st->lamp);
+ /* Lave showcase: a small authored window and lived-in foreground cues make
+  * the public canteen read as a place, while staying native 1x and keeping
+  * the existing person/door hotspot geometry untouched. */
+ if(game.system==7){
+  rect(x+118,y+28,122,46,SC_SLATE);rect(x+122,y+32,114,38,SC_VOID);
+  for(int i=0;i<13;i++){
+   int sx=x+126+((i*29+(int)(game.time*3))%104),sy=y+35+((i*17)%30);
+   pixel(sx,sy,(i&3)==0?SC_CREAM:SC_LAV);
+  }
+  circle(x+202,y+51,14,SC_OCHRE);circle(x+207,y+47,13,SC_VOID);
+  rect(x+124,y+66,110,2,SC_CYAN);
+  text((x+126)/8,(y+34)/8,SC_CREAM,"LAVE // PUBLIC");
+  /* Pendant lights and a booth silhouette create a clear foreground layer. */
+  line(x+84,y+28,x+84,y+52,SC_SLATE);circle(x+84,y+56,5,st->lamp);
+  line(x+270,y+24,x+270,y+50,SC_SLATE);circle(x+270,y+54,5,st->lamp);
+  rect(x+274,y+82,44,42,mix_rgb(st->wall2,SC_SLATE,.35f));
+  rect(x+280,y+76,32,8,st->trim);rect(x+286,y+88,4,26,SC_RUST);
+  rect(x+276,y+118,42,5,SC_OCHRE);
+  for(int i=0;i<4;i++)rect(x+92+i*34,y+132,20,3,(i&1)?SC_OCHRE:SC_RUST);
+ }
 }
 static void sc_illust_cargo(int x,int y,int w,int h){
  const ArtRoomStyle *st=sc_style();

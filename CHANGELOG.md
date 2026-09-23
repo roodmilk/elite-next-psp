@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.66 - Lave canteen visual slice
+
+- Added a Lave-only native pixel-art window, crescent world, hanging lamps, booth silhouette and floor lighting to the public canteen.
+- Preserved the existing station room graph, selectors, NPC hotspots and PSP 480x272 layout.
+
 ## 2.5.65 - v0.5 gate repair
 
 - Corrected the campaign input regression harness to return to the briefing after opening Mission Log and after backing out of a coda.
