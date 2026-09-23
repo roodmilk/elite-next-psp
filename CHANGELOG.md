@@ -431,3 +431,5 @@ The detailed development history, controls, implemented feature list, validation
 - GalacticNet now lives under Discovery with its own tab destination.
 - Mission Log separates main missions from side work at a glance.
 - Targeting Computer gains a compact CRT monitor bezel and status sticker while retaining the scanline display.
+## 2.5.59 - New player hulls
+- Added Fer-de-Lance, Krait, and Ophidian as purchasable player ships using existing detailed ship meshes, with distinct speed, range, capacity, and price profiles.

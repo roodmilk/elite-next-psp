@@ -23,7 +23,10 @@ const PlayerShip player_ships[]={
  {"ADDER",8,0,360,60},{"GECKO",9,25000,450,70},
  {"MORAY",11,65000,380,80},{"COBRA MK 1",15,120000,390,70},
  {"COBRA MK 3",20,250000,420,70},{"PYTHON",60,800000,300,90},
- {"ANACONDA",100,1500000,240,100}};
+ {"ANACONDA",100,1500000,240,100},
+ {"FER DE LANCE",28,420000,520,76},
+ {"KRAIT",36,680000,470,84},
+ {"OPHIDIAN",48,980000,410,92}};
 const int player_ship_count=sizeof(player_ships)/sizeof(*player_ships);
 Vec3 add(Vec3 a,Vec3 b){return (Vec3){a.x+b.x,a.y+b.y,a.z+b.z};}
 Vec3 sub(Vec3 a,Vec3 b){return (Vec3){a.x-b.x,a.y-b.y,a.z-b.z};}
@@ -869,5 +872,4 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
 #include "freight-tests.h"
  fprintf(f,"RESULT %d failures\n",fails);fclose(f);return fails;
 }
-
 
