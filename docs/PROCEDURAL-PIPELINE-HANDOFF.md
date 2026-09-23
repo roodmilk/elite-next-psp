@@ -24,6 +24,15 @@ Branch: `specialist/systems-qa`
 - `tools/export-station-content-pack.mjs`: `station.content` / `EPST` v1.
 - `tools/validate-art-pipeline.mjs`: contract, bounds, identity uniqueness,
   pack-header, payload-size, and checksum gate.
+- `tools/rebuild-procedural-pipeline.mjs`: one deterministic rebuild/index step
+  for the planet, station, pack, room-descriptor and element-kit outputs.
+- `tools/create-station-proof-scaffold.mjs` and
+  `tools/validate-station-proof-slice.mjs`: 63-sample owner handoff and proof
+  gate for Freight/Prospector/Research at H0/H1/H2 across seven rooms.
+- `tools/validate-family-extraction.mjs`: native-size audit for the authored
+  Prospector/Research candidate manifest.
+- `tools/validate-family-element-budget.mjs`: per-family packed4bit budget
+  check that keeps candidate art separate from the frozen generic kit.
 
 Regenerate and validate the complete pipeline with:
 
@@ -36,6 +45,20 @@ node tools/export-station-content-pack.mjs --manifest work/planet-preview/statio
 node tools/validate-art-pipeline.mjs --dir work/planet-preview --contract tools/planet-art-contract.json --pack planet.content
 ```
 
+With the Station Art Manager's native candidate manifest, the complete rebuild
+also accepts:
+
+```text
+node tools/rebuild-procedural-pipeline.mjs --out work/planet-preview --register <ROOM-COVERAGE-REGISTER.json> --element-manifest <frozen ELEMENT-MANIFEST.json> --family-manifest <family-elements/MANIFEST.json>
+node tools/validate-family-extraction.mjs --manifest <family-elements/MANIFEST.json> --out work/planet-preview/family-extraction-audit-native.json
+```
+
+The current candidate result is 12 of 12 native dimension matches and both
+family variants fit the 28,560-byte room candidate ceiling. It is not runtime
+certification: hotspot ownership, selector placement, deterministic repeat,
+normal/high-contrast native captures, zero-allocation proof and integrated
+frame measurements remain pending.
+
 ## Safety boundary
 
 No `Game` or commander-save fields were added. Sidecars are advisory inputs;
@@ -46,3 +69,9 @@ allocation and the acceptance matrix in `docs/STATION-ACTIVITY-INTEGRATION.md`.
 
 Latest validated checkpoints include `f636bff` and `471eb4d`; the complete
 branch history remains reviewable and unmerged.
+
+The current PSP smoke harness still fails before `game-check.txt` and the other
+report files are emitted. Build and offline validation pass; no native runtime,
+input traversal, save/economy, dialogue, or performance certification is
+claimed until the emulator/report boundary is repaired and the owner proof
+packet is populated.

@@ -61,10 +61,14 @@ The three-family proof gate is `tools/validate-station-proof-slice.mjs`. Run it
 with the descriptor bake and a proof manifest containing 63 samples:
 
 ```text
+node tools/create-station-proof-scaffold.mjs --descriptors work/planet-preview/room-descriptors.json --out work/planet-preview/station-proof-slice.json
 node tools/validate-station-proof-slice.mjs --descriptors work/planet-preview/room-descriptors.json --proof work/planet-preview/station-proof-slice.json --out work/planet-preview/station-proof-report.json
 ```
 
-It covers Freight, Prospector and Research at H0/H1/H2 across all seven rooms,
+The scaffold is a deterministic owner handoff artifact, not evidence: every
+capture, truth/safety boolean and numeric budget field starts as `null` and
+must be replaced by measured evidence. The proof covers Freight, Prospector
+and Research at H0/H1/H2 across all seven rooms,
 and refuses certification until selector parity, native normal/contrast captures,
 dialogue truth, save/economy safety, duplicate-anchor checks and numeric static/
 plan/draw/temp/frame measurements are present.
