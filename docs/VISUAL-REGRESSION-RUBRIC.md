@@ -4,7 +4,10 @@
 
 **Runtime target:** PSP 480×272, native 1× raster art, nearest-neighbour sampling, fixed-size pools.
 
-This is an acceptance rubric, not a release claim. A visual result is never certified
+This rubric assumes the underlying bars, stations, planets, FX, ships, UI and audio
+features already exist. Its job is to measure before/after polish, feedback,
+consistency and reliability; it does not authorize replacing working mechanics or
+expanding feature breadth. This is an acceptance rubric, not a release claim. A visual result is never certified
 from a stale EBOOT, a different branch, or a screenshot whose source build cannot be
 identified. Art-only evidence may pass its offline gates while remaining blocked on
 native runtime evidence.
@@ -190,4 +193,3 @@ If any unchecked item is required by the handoff, label the result
 `FAIL_BLOCKED`, list the exact missing file or metric, and keep generic fallback
 authoritative. Do not merge, release or widen runtime generation to make a
 visual review appear complete.
-
