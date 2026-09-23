@@ -39,7 +39,9 @@ Station/activity authoring can be previewed independently with:
 node tools/generate-station-activity.mjs --out work/planet-preview
 node tools/generate-planet-art-atlas.mjs --out work/planet-preview
 node tools/export-station-content-pack.mjs --manifest work/planet-preview/station-activity.json --out station.content
+node tools/measure-psp-art-budget.mjs --dir work/planet-preview --contract tools/planet-art-contract.json --planet-pack planet.content --station-pack station.content
 node tools/validate-art-pipeline.mjs --dir work/planet-preview --contract tools/planet-art-contract.json --pack planet.content
+node tools/validate-room-coverage.mjs --register <path-to-ROOM-COVERAGE-REGISTER.json> --station work/planet-preview/station-activity.json
 ```
 
 This emits three stable station records per system for the hub, relay, and
@@ -53,6 +55,12 @@ artifact for native pixel-art review, not a runtime texture dependency.
 The station exporter writes `EPST` version 1 with 768 fixed-size records. It is
 kept separate from `EPWP` so station and planet schemas can evolve independently
 without changing commander saves or invalidating planet packs.
+
+The budget report records measured manifest, pack, and atlas sizes plus bounded
+packed4bit projections for the atlas and the 340×168 room candidate. Draw cost is
+explicitly marked uninstrumented until PSP or emulator capture measures the
+runtime draw list and frame cost; this keeps offline art growth from silently
+becoming a runtime regression.
 
 The exporter writes `EPWP` version 1: fixed-size 16-byte records with a
 checksum-protected header. The PSP loader validates the header and checksum,
