@@ -48,6 +48,25 @@ the cosmetic palette.
 | Frontier Repair Mess | service hatch, repair bench, lockers | tools, ration tin, mechanic case | low olive worklight, slate utility depth |
 | Outlaw Coded Den | guarded hatch, notice wall, card table | coded board, cards/dice, screened booth | shaded rust; danger red only for real danger |
 
+## Micro-identities
+
+Each family gets one readable hero, one repeatable motif and one short local
+dialogue hook. These are visual/story prompts, not automatic gameplay unlocks:
+
+| Family | Hero landmark | Repeatable motif | Dialogue hook seed |
+|---|---|---|---|
+| Freight | arrival board + cargo window | shift mug marks | delay or berth change |
+| Prospector | sample shelf / claim wall | scratched claim tags | sample quality or survey lead |
+| Research | telescope/orbit window | specimen case | quiet terminal observation |
+| Merchant | private booth / manifest canopy | route cards and ledger ribbons | price or passenger introduction |
+| Frontier | tool wall / repair bench | patched lockers | repair queue or practical favour |
+| Outlaw | guarded door / covered notice wall | coded notice slips | local rumour only when enabled |
+
+Outlaw visuals do not automatically imply illegal service, faction presence or
+danger. Dice, gambling, jobs, services and faction meaning appear only when the
+Station and Gameplay state enables them. Procedural variation changes fittings,
+materials, outside view and wear, not capability truth.
+
 ## First vertical slice
 
 1. Freight: add clerk/carrying-worker, timetable board and berth-window depth
