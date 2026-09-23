@@ -692,26 +692,70 @@ static void sc_draw_header(void){
  text(1,1,SC_AMBER,"%.18s",sc_room_title(sc_room));
  text(28,1,SC_LAV,"U/D  X do  TRI ship");
 }
-/* Right-side people / options list — the only selector. */
+/* Right-side point-and-click directory — contacts and destinations are the selector. */
+typedef struct { int hot_index; int category; } ScOptionLine;
+enum { SC_OPT_CONTACTS=1, SC_OPT_AREAS, SC_OPT_SHIP, SC_OPT_ROOM };
+static int sc_option_category(const ScHot *h){
+ if(h->kind==SC_H_PERSON)return SC_OPT_CONTACTS;
+ if(h->kind==SC_H_EXIT)return h->id==SC_EXIT_SHIP?SC_OPT_SHIP:SC_OPT_AREAS;
+ return SC_OPT_ROOM;
+}
+static const char *sc_option_category_name(int category){
+ if(category==SC_OPT_CONTACTS)return "CONTACTS";
+ if(category==SC_OPT_AREAS)return "NEARBY AREAS";
+ if(category==SC_OPT_SHIP)return "RETURN";
+ return "ROOM FEATURES";
+}
+static const char *sc_npc_action_label(int act){
+ if(act==SC_ACT_SHOP)return "SHOP";
+ if(act==SC_ACT_GIFT)return "GIFT";
+ if(act==SC_ACT_QUEST)return "JOB";
+ if(act==SC_ACT_TAXI)return "TAXI";
+ return "TALK";
+}
+static void sc_option_item_label(const ScHot *h,char *line,int cap){
+ if(h->kind==SC_H_PERSON){
+  ScNpc people[3]; int pn=sc_fill_npcs(sc_room,people,3); const char *action="TALK";
+  if(h->id>=0&&h->id<pn)action=sc_npc_action_label(people[h->id].act);
+  snprintf(line,cap,"%.8s %.4s",h->label,action);
+ }else if(h->kind==SC_H_EXIT&&h->id==SC_EXIT_SHIP)snprintf(line,cap,"BOARD SHIP");
+ else if(h->kind==SC_H_EXIT)snprintf(line,cap,"-> %.12s",h->label);
+ else snprintf(line,cap,"LOOK %.10s",h->label);
+}
+static int sc_option_lines(const ScHot *hot,int hn,ScOptionLine *out,int maxn){
+ int n=0,last=0;
+ for(int i=0;i<hn;i++){
+  int category=sc_option_category(&hot[i]);
+  if(category!=last){
+   if(n<maxn){out[n].hot_index=-1;out[n].category=category;n++;}
+   last=category;
+  }
+  if(n<maxn){out[n].hot_index=i;out[n].category=category;n++;}
+ }
+ return n;
+}
 static void sc_draw_options(void){
  rect(SC_LX,SC_LY,SC_LW,SC_LH,mix_rgb(SC_CHAR,SC_VOID,.35f));
  rect(SC_LX,SC_LY,SC_LW,1,SC_OCHRE);
  rect(SC_LX,SC_LY+SC_LH-1,SC_LW,1,SC_SLATE);
  rect(SC_LX,SC_LY,1,SC_LH,SC_OCHRE);
- text((SC_LX+8)/8,(SC_LY+4)/8,SC_LAV,"OPTIONS");
+ text((SC_LX+8)/8,(SC_LY+4)/8,SC_LAV,"STATION LIST");
  ScHot hot[24]; int hn=sc_hotspots(hot,24);
  if(sc_hot<0)sc_hot=0;if(hn>0&&sc_hot>=hn)sc_hot=hn-1;
- int rows=(SC_LH-20)/12;if(rows<4)rows=4;if(rows>12)rows=12;
- int first=0;if(hn>rows){first=sc_hot-(rows/2);if(first<0)first=0;if(first>hn-rows)first=hn-rows;}
- for(int j=0;j<rows&&first+j<hn;j++){
-  int i=first+j,y=SC_LY+16+j*12;
-  unsigned ink=i==sc_hot?SC_AMBER:SC_CREAM;
-  if(i==sc_hot)rect(SC_LX+2,y-1,SC_LW-4,11,mix_rgb(SC_OCHRE,SC_CHAR,.28f));
-  char line[20];
-  if(hot[i].kind==SC_H_PERSON)snprintf(line,sizeof(line),"%.14s",hot[i].label);
-  else if(hot[i].kind==SC_H_EXIT&&hot[i].id==SC_EXIT_SHIP)snprintf(line,sizeof(line),"YOUR SHIP");
-  else if(hot[i].kind==SC_H_EXIT)snprintf(line,sizeof(line),"-> %.11s",hot[i].label);
-  else snprintf(line,sizeof(line),"%.14s",hot[i].label);
+ ScOptionLine lines[32]; int line_count=sc_option_lines(hot,hn,lines,32);
+ int selected_line=0;
+ for(int i=0;i<line_count;i++)if(lines[i].hot_index==sc_hot){selected_line=i;break;}
+ int rows=(SC_LH-16)/8;if(rows<8)rows=8;if(rows>18)rows=18;
+ int first=0;if(line_count>rows){first=selected_line-(rows/2);if(first<0)first=0;if(first>line_count-rows)first=line_count-rows;}
+ for(int j=0;j<rows&&first+j<line_count;j++){
+  ScOptionLine *entry=&lines[first+j]; int y=SC_LY+16+j*8;
+  if(entry->hot_index<0){
+   text((SC_LX+6)/8,y/8,SC_LAV,"%.14s",sc_option_category_name(entry->category));
+   continue;
+  }
+  int i=entry->hot_index; unsigned ink=i==sc_hot?SC_AMBER:SC_CREAM;
+  if(i==sc_hot)rect(SC_LX+2,y-1,SC_LW-4,8,mix_rgb(SC_OCHRE,SC_CHAR,.28f));
+  char line[20]; sc_option_item_label(&hot[i],line,sizeof(line));
   text((SC_LX+6)/8,y/8,ink,"%s",line);
  }
 }
