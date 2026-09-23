@@ -5,6 +5,7 @@ Generate an offline profile manifest and 256-system atlas with:
 ```text
 node tools/generate-planet-previews.mjs --out work/planet-preview
 node tools/validate-planet-previews.mjs --manifest work/planet-preview/planet-profiles.json
+node tools/export-planet-content-pack.mjs --manifest work/planet-preview/planet-profiles.json --out work/planet-preview/planet.content
 ```
 
 The Node generator mirrors the deterministic arithmetic in `src/planet-profile.h`
@@ -41,3 +42,8 @@ node tools/generate-station-activity.mjs --out work/planet-preview
 This emits three stable station records per system for the hub, relay, and
 frontier outpost. It is intentionally offline until the Station owner signs
 off on the runtime presentation interface.
+
+The exporter writes `EPWP` version 1: fixed-size 16-byte records with a
+checksum-protected header. The PSP does not load this pack yet; a future loader
+must validate the header and checksum before exposing records to traversal or
+art systems.
