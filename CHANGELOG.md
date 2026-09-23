@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.5.65 - v0.5 gate repair
+
+- Corrected the campaign input regression harness to return to the briefing after opening Mission Log and after backing out of a coda.
+- Updated the undocked deck expectation to match the intended hidden-service list: Shipyard, Outfitting and Mission Board are removed from navigation while flying.
+- Full emulator smoke now passes game, input, steering, radio and performance checks.
+
 ## 2.5.64 - planetary presentation polish
 
 - Added compact native-resolution contact shadows beneath surface flora, bushes and rocks so close props read as grounded in the terrain.

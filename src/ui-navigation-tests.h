@@ -24,7 +24,7 @@
  {int ship_vis[6],ship_n=deck_fill(1,ship_vis),work_vis[6],work_n=deck_fill(2,work_vis),hidden=0;
   for(int i=0;i<ship_n;i++)if(ship_vis[i]==3||ship_vis[i]==4)hidden=1;
   for(int i=0;i<work_n;i++)if(work_vis[i]==12)hidden=1;
-  INPUT_CHECK(!hidden&&ship_n==2&&work_n==4,"deck: Shipyard, Outfitting and Mission board hide while undocked");}
+ INPUT_CHECK(!hidden&&ship_n==2&&work_n==3,"deck: Shipyard, Outfitting and Mission board hide while undocked");}
  row=3;deck_clamp_row();INPUT_CHECK(row!=3&&deck_service_visible(row),"deck: undocked focus clamps off hidden station services");
  int distinct=1;for(unsigned seed=0;seed<256;seed++)for(int role=0;role<FACTION_COUNT;role++){
   int id=faction_portrait_index(seed,role);if(id<0||id>=8||id%4!=role)distinct=0;
