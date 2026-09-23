@@ -7,6 +7,9 @@ primary Arrivals scene in the Second Shift visual language. The existing bar,
 hotspots, options rail, speech area and SHIP return remain intact. Arrivals is
 the first additional authored room; Market, Shipyard, Mission Board and GalNet
 art families remain in rollout and must pass native 1:1 review before adoption.
+Story & Dialogue owns station exploration writing and speech-box flow; footer,
+help and chrome belong to the named PSP UI & Art managers. There is no separate
+"Art3" team member.
 
 ## Project-wide native-art acceptance rule
 

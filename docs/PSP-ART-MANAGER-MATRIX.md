@@ -18,9 +18,9 @@ Agreed 23 September 2026 against main `1e3fab88090e328916dc487f1c99031daf0a9061`
 |---|---|---|---|
 | PSP UI & Art 1 | Second Shift / Canteen / Bar | authored room, Lysa/Pell/Dax visual language, bar scene helper and shared station style/layout contract | native bar asset delivered separately; interaction/runtime integration pending |
 | PSP UI & Art 2 | Arrivals, station exteriors, planet/body windows | arrivals room art, exterior silhouette families, authoritative body-window composition and scene dispatch | Arrivals native-first candidate in this branch; runtime dispatch pending |
-| PSP UI & Art 3 | presentation chrome | narrow bar footer/help framing and exceptional-action readability | footer candidate `f97626fa9d313509ee54d4a5eb90a10c6ce9f4fc`; no room asset ownership |
+| PSP UI & Art Manager | presentation chrome | shared footer/help framing, exceptional-action readability and station-wide visual cohesion | footer candidate `f97626fa9d313509ee54d4a5eb90a10c6ce9f4fc`; no separate chrome-only team |
 
-Market, Shipyard/Outfitting, Mission Board and GalNet remain Team-allocated categories, not silently assigned to Art 3. They use the shared contract and should be assigned explicitly before production edits.
+Market, Shipyard/Outfitting, Mission Board and GalNet remain Team-allocated categories, not silently assigned to an unnamed art group. They use the shared contract and should be assigned explicitly before production edits. Story & Dialogue owns station writing, speech-box flow and state-specific copy with the named art managers.
 
 ## Integration order
 
