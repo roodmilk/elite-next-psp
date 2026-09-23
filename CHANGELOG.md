@@ -421,3 +421,6 @@ The detailed development history, controls, implemented feature list, validation
 - Circle now backs out of campaign conversations without advancing or losing the current dialogue position.
 - Select can open the mission log while a conversation is paused, so players can return to what they were doing.
 - Updated conversation footers to show the real available controls instead of claiming Circle and Select were locked.
+## 2.5.56 - Outfitting loadout redesign
+- Replaced the flat equipment list with a three-panel PSP-native layout: current loadout, available modules, and a focused module card.
+- Added clear slot highlighting, fit/replacement state, page position, tech level, price, balance, and compact controls while preserving existing buy, fit, sell, and refuel behavior.

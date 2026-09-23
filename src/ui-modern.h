@@ -302,27 +302,31 @@ static void sell_equipment_row(int i){
 }
 static int equip_row_count(void){int list[EQUIP_COUNT];return equipment_stock_list(list,EQUIP_COUNT);}
 static void equipment(void){
- header("OUTFITTING");if(!game.docked){text(3,8,DIM,"Dock to view equipment and fuel.");footer("O BACK");return;}
- panel(8,32,225,156);panel(241,32,231,156);
+ header("OUTFITTING");
+ if(!game.docked){text(3,8,DIM,"Dock to view equipment and fuel.");footer("O BACK");return;}
+ panel(8,32,145,156);panel(159,32,145,156);panel(310,32,162,156);
  int list[EQUIP_COUNT],n=equipment_stock_list(list,EQUIP_COUNT);
- if(n<1){text(2,8,DIM,"No stock today.");footer("O BACK");return;}
+ if(n<1){text(2,5,CYAN,"OUTFITTING");text(3,9,DIM,"No compatible stock today.");footer("O BACK");return;}
  if(row<0)row=0; if(row>=n)row=n-1;
- int first=row/6*6,fuelcost=(int)ceilf(player_ships[game.ship].range-game.fuel)*2;
- text(2,5,CYAN,"IN STOCK");page_number_at(18,5,row/6+1,(n+5)/6);
- for(int j=0;j<6&&first+j<n;j++){int disp=first+j,i=list[disp],y=7+j*3;if(disp==row)rect(10,y*8-3,220,15,RGB(25,65,77));text(2,y,equipment_owned(i)?CYAN:disp==row?WHITE:DIM,"%-4s %-14s%s",equip_cat_name(i),equipment_label(i),equipment_owned(i)?" *":"");}
- int i=list[row],slot=equip_slot_for(i);
- text(31,5,GOLD,"%.22s",equipment_names[i]);
- text(31,7,CYAN,"%.22s",i==0||i==3?"SERVICE":(slot>=0?((const char*[]){"WPN","DEF","NAV","HOLD","FUEL","UTIL"})[slot]:equip_cat_name(i)));
- text(31,9,WHITE,"%.28s",equipment_details[i]);
- text(31,12,CYAN,"%.28s",equipment_effects[i]);
- if(equipment_owned(i))text(31,15,CYAN,i==3?"Missile rack full":i==0?"Fuel tank full":"Fitted — Square sells 50%");
- else if(slot>=0&&game.fit[slot]!=FIT_EMPTY)text(31,15,AMBER,"Replaces %.14s",equipment_list_names[game.fit[slot]]);
- else text(31,15,CYAN,"In stock at this hub");
- text(31,17,DIM,"Hub tech %d",game.systems[game.system].tech+1);
- {int price=i==0?fuelcost:equipment_costs[i],show=price;
-  if(!equipment_owned(i)&&slot>=0&&game.fit[slot]!=FIT_EMPTY&&i>0&&i!=3){show=price-equip_sell_price(game.fit[slot]);if(show<0)show=0;}
-  text(31,19,equipment_owned(i)?DIM:WHITE,equipment_owned(i)?"--":"%.1f units",show*.1f);}
- text(31,21,DIM,"Balance %.1f",game.credits*.1f);
+ int first=row/5*5;
+ const char *slots[]={"WPN","DEF","NAV","HOLD","FUEL","UTIL"};
+ text(2,5,CYAN,"LOADOUT");text(2,6,DIM,"CURRENT SHIP");text(2,7,WHITE,"%.17s",player_ships[game.ship].name);
+ for(int sl=0;sl<6;sl++){
+  int mod=game.fit[sl];if(!fit_value_valid(sl,mod))mod=FIT_EMPTY;
+  const char *name=mod==FIT_EMPTY?(sl==FIT_HOLD?"BASE HOLD":sl==FIT_FUEL?"TANK ONLY":"EMPTY"):equipment_list_names[mod];
+  int y=10+sl*2;if(equip_slot_for(list[row])==sl)rect(12,y*8-3,129,14,RGB(25,65,77));
+  text(2,y,equip_slot_for(list[row])==sl?GOLD:WHITE,"%s",slots[sl]);text(7,y,mod==FIT_EMPTY?DIM:CYAN,"%.11s",name);
+ }
+ text(2,23,DIM,"HOLD %d/%d T",cargo_used(&game),cargo_capacity(&game));text(2,24,DIM,"CREDITS %.1f",game.credits*.1f);
+ text(20,5,CYAN,"AVAILABLE");page_number_at(34,5,row/5+1,(n+4)/5);
+ for(int j=0;j<5&&first+j<n;j++){int disp=first+j,i=list[disp],y=8+j*3;if(disp==row)rect(163,y*8-3,137,16,RGB(25,65,77));text(21,y,disp==row?WHITE:DIM,"%-4s",equip_cat_name(i));text(26,y,equipment_owned(i)?CYAN:disp==row?WHITE:DIM,"%.10s",equipment_label(i));if(equipment_owned(i))text(41,y,CYAN,"FIT");}
+ int i=list[row],slot=equip_slot_for(i),price=0,show=0;
+ if(i==0)price=(int)ceilf(player_ships[game.ship].range-game.fuel)*2;else if(i>0&&i<EQUIP_COUNT)price=equipment_costs[i];show=price;
+ if(!equipment_owned(i)&&slot>=0&&game.fit[slot]!=FIT_EMPTY&&i>0&&i!=3){show=price-equip_sell_price(game.fit[slot]);if(show<0)show=0;}
+ text(39,5,GOLD,"MODULE");text(39,7,WHITE,"%.18s",equipment_names[i]);text(39,8,CYAN,"%s",i==0||i==3?"SERVICE":(slot>=0?slots[slot]:equip_cat_name(i)));
+ text(39,10,DIM,"%.19s",equipment_details[i]);text(39,13,CYAN,"EFFECT");text(39,14,WHITE,"%.19s",equipment_effects[i]);
+ if(equipment_owned(i))text(39,17,CYAN,i==3?"Missile rack full":i==0?"Fuel tank full":"Already fitted");else if(slot>=0&&game.fit[slot]!=FIT_EMPTY)text(39,17,AMBER,"REPLACES %.12s",equipment_list_names[game.fit[slot]]);else text(39,17,CYAN,"READY TO FIT");
+ text(39,19,DIM,"TECH %d   COST",game.systems[game.system].tech+1);text(39,20,equipment_owned(i)?DIM:WHITE,equipment_owned(i)?"--":"%.1f units",show*.1f);text(39,22,DIM,"Square sell 50%%");
  footer(equipment_owned(i)&&i>0&&i!=3?"UP/DOWN  X FIT  SQUARE SELL  O BACK":"UP/DOWN   X BUY / REFUEL   O BACK");
 }
 /* Ship loadout — real fitted slots from fit[]. */
