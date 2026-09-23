@@ -72,3 +72,12 @@ and Research at H0/H1/H2 across all seven rooms,
 and refuses certification until selector parity, native normal/contrast captures,
 dialogue truth, save/economy safety, duplicate-anchor checks and numeric static/
 plan/draw/temp/frame measurements are present.
+
+Run the consolidated offline gate with:
+
+```text
+node tools/run-procedural-proof-qa.mjs --dir work/planet-preview --out work/planet-preview/procedural-proof-qa-report.json
+```
+
+This report separates descriptor/fingerprint consistency and candidate budget
+passes from pending native captures and per-sample runtime truth/safety evidence.
