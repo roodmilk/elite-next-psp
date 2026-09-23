@@ -44,6 +44,10 @@ frontier outpost. It is intentionally offline until the Station owner signs
 off on the runtime presentation interface.
 
 The exporter writes `EPWP` version 1: fixed-size 16-byte records with a
-checksum-protected header. The PSP does not load this pack yet; a future loader
-must validate the header and checksum before exposing records to traversal or
-art systems.
+checksum-protected header. The PSP loader validates the header and checksum,
+but the pack remains advisory until Planetary approves using records to drive
+traversal or art systems.
+
+When `planet.content` is placed beside `EBOOT.PBP`, the optional loader validates
+and accepts it at boot. The smoke harness copies that sidecar automatically;
+missing packs still use deterministic runtime generation.
