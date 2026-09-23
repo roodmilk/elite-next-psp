@@ -1,0 +1,24 @@
+{
+  "status": "native-first reusable art handoff; not runtime-wired",
+  "screen": {"width":480,"height":272,"room":[6,20,340,168],"options":[354,20,120,168],"feedback_y":190,"ship_safe":[274,158,68,26]},
+  "palette_owner": "station-art-kit.h / station-art-style.h",
+  "sampling": "nearest",
+  "static_cost_basis": "packed 4-bit indices; measured native dimensions, excludes compiler alignment and shared 44-byte palette",
+  "elements": [
+    {"id":"person-standing","size":[24,52],"pivot":[12,52],"hitbox":[0,0,24,52],"roles":["FREIGHT","PROSPECTOR","RESEARCH"],"contrast":"preserve silhouette; accent to CREAM","authored":true,"procedural":false,"packed_4bit_bytes":624},
+    {"id":"person-carrying","size":[28,52],"pivot":[14,52],"hitbox":[0,0,28,52],"roles":["FREIGHT","PROSPECTOR","RESEARCH"],"contrast":"arm/tool silhouette stays readable","authored":true,"procedural":false,"packed_4bit_bytes":728},
+    {"id":"person-seated","size":[30,42],"pivot":[15,42],"hitbox":[0,0,30,42],"roles":["FREIGHT","RESEARCH"],"contrast":"head/torso remains distinct","authored":true,"procedural":false,"packed_4bit_bytes":630},
+    {"id":"counter","size":[96,42],"pivot":[0,42],"hitbox":[0,0,96,12],"roles":["FREIGHT","PROSPECTOR"],"contrast":"bright top edge","authored":true,"procedural":false,"packed_4bit_bytes":2016,"variants":["counter-front","counter-front-shadow"]},
+    {"id":"task-lamp","size":[21,18],"pivot":[10,0],"hitbox":null,"roles":["FREIGHT","PROSPECTOR","RESEARCH"],"contrast":"fixture silhouette retained","authored":true,"procedural":true,"packed_4bit_bytes":189},
+    {"id":"dock-window","size":[128,54],"pivot":[64,0],"hitbox":[0,44,128,10],"roles":["FREIGHT","PROSPECTOR","RESEARCH"],"contrast":"frame/body silhouette retained","authored":true,"procedural":true,"packed_4bit_bytes":3456,"variants":["window-frame","window-body"]},
+    {"id":"cargo-rack","size":[48,52],"pivot":[0,52],"hitbox":[0,0,48,52],"roles":["FREIGHT","PROSPECTOR","RESEARCH"],"contrast":"rack bars visible","authored":true,"procedural":true,"packed_4bit_bytes":1248,"variants":["rack-full","rack-sparse"]},
+    {"id":"assay-bench","size":[88,28],"pivot":[0,28],"hitbox":[0,0,88,10],"roles":["PROSPECTOR"],"contrast":"work surface bright","authored":true,"procedural":false,"packed_4bit_bytes":1232},
+    {"id":"survey-console","size":[64,46],"pivot":[32,46],"hitbox":[0,0,64,46],"roles":["RESEARCH"],"contrast":"CYAN functional bars retained","authored":true,"procedural":false,"packed_4bit_bytes":1472},
+    {"id":"panel-sign","size":[48,24],"pivot":[0,0],"hitbox":[0,0,48,24],"roles":["FREIGHT","PROSPECTOR","RESEARCH"],"contrast":"label field CREAM","authored":true,"procedural":true,"packed_4bit_bytes":576},
+    {"id":"door-hatch","size":[52,60],"pivot":[26,60],"hitbox":[0,0,52,60],"roles":["FREIGHT","PROSPECTOR","RESEARCH"],"contrast":"outline never disappears","authored":true,"procedural":false,"packed_4bit_bytes":1560},
+    {"id":"dice-prop","size":[42,18],"pivot":[21,9],"hitbox":[0,0,42,18],"roles":["FREIGHT"],"contrast":"pips CREAM/AMBER when active","authored":true,"procedural":false,"packed_4bit_bytes":378}
+  ],
+  "assembly_cost_bytes": {"freight_core":11055,"prospector_core":11108,"research_core":10872},
+  "shared_palette_bytes": 44,
+  "owners": {"bar":"Art1","arrivals_exteriors_windows":"Art2","chrome_footer_help":"Art3","other_screen_content":"Team allocation required"}
+}
