@@ -116,4 +116,27 @@ static inline BarResult bar_dice_confirm(BarDiceState *s,int *credits,uint32_t e
  int balance=*credits-(int)stake+bar_dice_return(choice,stake,next.die1,next.die2);
  *s=next;*credits=balance;return bar_result(BAR_APPLIED,BAR_EVENT_DICE_SETTLED);
 }
+/* Free preview activity. This type has no stake, balance, mission or save data.
+ * Keep one instance for the app session; back/exit/reveal never call confirm.
+ * UI labels: "FREE PRACTICE" / "No credits or rewards. Resets on restart." */
+typedef struct { uint32_t round_id,rng,choice,die1,die2; } BarPracticeState;
+enum { BAR_PRACTICE_LOSS=-1, BAR_PRACTICE_DRAW=0, BAR_PRACTICE_WIN=1 };
+static inline int bar_practice_valid(const BarPracticeState *s){
+ if(!s)return 0;
+ if(!s->round_id)return !s->choice&&!s->die1&&!s->die2;
+ return s->choice<=BAR_HIGH&&s->die1>=1&&s->die1<=6&&s->die2>=1&&s->die2<=6;
+}
+/* Call outcome only for a valid state with round_id > 0. */
+static inline int bar_practice_outcome(const BarPracticeState *s){
+ uint32_t sum=s->die1+s->die2;
+ if(sum==7)return BAR_PRACTICE_DRAW;
+ return ((s->choice==BAR_LOW&&sum<7)||(s->choice==BAR_HIGH&&sum>7))?BAR_PRACTICE_WIN:BAR_PRACTICE_LOSS;
+}
+static inline BarResult bar_practice_confirm(BarPracticeState *s,uint32_t expected_round_id,uint32_t choice){
+ if(!bar_practice_valid(s)||choice>BAR_HIGH)return bar_result(BAR_ERR_ARGUMENT,0);
+ if(s->round_id==UINT32_MAX||expected_round_id!=s->round_id+1)return bar_result(BAR_ERR_TOKEN,0);
+ BarPracticeState next=*s;next.choice=choice;
+ next.die1=bar_dice_roll(&next.rng);next.die2=bar_dice_roll(&next.rng);next.round_id=expected_round_id;
+ *s=next;return bar_result(BAR_APPLIED,BAR_EVENT_DICE_SETTLED);
+}
 #endif

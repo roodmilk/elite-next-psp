@@ -101,6 +101,18 @@ static int tests(FILE *f){
    CHECK(ca==before-(int)stake+bar_dice_return(choice,stake,a.die1,a.die2),"each confirmed balance equals net outcome");
   }}
  {BarDiceState live={0,77,0,0,0,0},pending=live;int live_cash=1000,pending_cash=live_cash;bar_dice_confirm(&pending,&pending_cash,1,BAR_HIGH,100);CHECK(live.round_id==0&&live.rng==77&&live_cash==1000&&pending.round_id==1,"discarded dice transaction leaves live RNG and money untouched");}
+ {BarPracticeState p={0,77,0,0,0};
+  r=bar_practice_confirm(&p,1,BAR_LOW);
+  CHECK(r.status==BAR_APPLIED&&p.round_id==1,"free practice confirms without any credit input");
+  BarPracticeState before=p;
+  r=bar_practice_confirm(&p,1,BAR_HIGH);
+  CHECK(r.status==BAR_ERR_TOKEN&&!r.event&&p.rng==before.rng&&p.die1==before.die1&&p.die2==before.die2,"held or repeated practice confirmation never rerolls");
+  for(int n=0;n<10;n++)CHECK(bar_practice_outcome(&p)==bar_practice_outcome(&before)&&p.rng==before.rng&&p.round_id==before.round_id,"reveal/back/reentry uses unchanged session result");
+  CHECK(bar_practice_confirm(&p,2,2).status==BAR_ERR_ARGUMENT&&p.rng==before.rng,"invalid practice side leaves stream unchanged");
+  CHECK(bar_practice_confirm(&p,2,BAR_HIGH).status==BAR_APPLIED&&p.round_id==2,"fresh explicit practice confirmation starts next round");
+  for(uint32_t side=0;side<2;side++){int win=0,lose=0,draw=0;for(uint32_t a=1;a<=6;a++)for(uint32_t b=1;b<=6;b++){BarPracticeState s={1,0,side,a,b};int result=bar_practice_outcome(&s);win+=result==1;lose+=result==-1;draw+=result==0;}CHECK(win==15&&lose==15&&draw==6,"free practice has15wins15losses6draws");}
+  p.round_id=UINT32_MAX;CHECK(bar_practice_confirm(&p,0,BAR_LOW).status==BAR_ERR_TOKEN,"practice token never wraps");
+ }
  fprintf(f,"CHECKS %d\nRESULT %d failures\n",checks,failed);return failed;
 #undef CHECK
 }
