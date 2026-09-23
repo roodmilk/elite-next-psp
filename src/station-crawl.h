@@ -47,8 +47,10 @@ static int sc_proc_plan(ProcRoomPlan *out){
  id.arrangement_id=(uint8_t)((s->economy+hub)%3);
  id.landmark_id=(uint8_t)((s->tech+s->government+sc_room)%4);
  id.material_id=(uint8_t)((s->economy+s->government+hub)%4);
- id.selector_version=PROC_ROOM_PLAN_VERSION;id.exception_id=0;
- id.stable_seed=0x9e3779b9u^((unsigned)sys*2654435761u)^((unsigned)hub*40503u);
+ id.art_version=1;id.selector_version=PROC_ROOM_PLAN_VERSION;id.exception_id=
+  (sys==39&&hub==0&&sc_room==SC_R_ARRIVALS)?1:
+  (sys==39&&hub==0&&sc_room==SC_R_CANTEEN)?2:0;
+ id.selector_hash=0;
  return proc_room_plan_make(&id,high_contrast,out);
 }
 typedef struct { const char *name; int role; int act; int shop_item; int gift_bit; int quest_pay; int taxi_pay; const char *line; const char *offer; } ScNpc;
