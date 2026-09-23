@@ -17,6 +17,17 @@ This batch expands the Second Shift bar into six distinct station identities whi
 | Frontier Repair Mess | service hatch + repair bench | hatch, bench, locker, tool rack, mechanic pose | repairs, ration trade, practical favours |
 | Outlaw Coded Den | guarded hatch + notice wall | screened booth, card/dice table, coded board, shaded lamp | rumours, covert jobs, faction pressure; danger red only when gameplay says danger |
 
+## Approved micro-identities
+
+Each family gets one hero landmark, one repeatable prop motif and one local dialogue hook. Variation may change fittings, materials, outside view and wear; it must not imply a job, gambling, service or faction capability that Station and Gameplay have not enabled.
+
+- **Freight:** arrival board; cargo window; shift mug marks.
+- **Prospector:** sample shelf; scratched claim tags; one lit survey lamp.
+- **Research:** telescope/orbit window; specimen case; quiet terminal.
+- **Merchant:** route cards; ledger ribbons; private booth.
+- **Frontier:** tool wall; patched lockers; repair queue board.
+- **Outlaw:** covered lights; coded notice slips; guarded door, with no automatic illegal service.
+
 ## Kit extraction rules
 
 - Extract shared structural pieces first: wall ribs, floor bands, hatch, window frame/body, counter, booth, rail, shelf, board and lamp.
