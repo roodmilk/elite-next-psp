@@ -249,8 +249,10 @@ static void cockpit(void){
    NPC *n=&game.npc[id-BODY_COUNT-1];
    float mh=n->freighter?900.f:n->role==LAW?110.f:80.f,ms=n->freighter?100.f:n->role==LAW?60.f:40.f;
    int hull=(int)fmaxf(0,fminf(100,100.f*n->health/mh)),shld=(int)fmaxf(0,fminf(100,100.f*n->shield/fmaxf(1.f,ms)));
-   text(1,31,RGB(155,154,165),"HULL");pip_bar(40,250,70,4,hull,hull<30?RED:(n->freighter?RGB(240,180,91):RGB(85,212,212)));
-   text(15,31,RGB(155,154,165),"SHLD");pip_bar(128,250,50,4,shld,RGB(85,212,212));
+   /* Stack the two compact target bars vertically. They share the target card
+    * but never compete for the same row or overlap the radar/power columns. */
+   text(1,31,RGB(155,154,165),"HULL");pip_bar(40,248,72,4,hull,hull<30?RED:(n->freighter?RGB(240,180,91):RGB(85,212,212)));
+   text(1,32,RGB(155,154,165),"SHLD");pip_bar(40,258,72,3,shld,RGB(85,212,212));
   }else if(autoaim)text(1,31,RGB(85,212,212),"LOCKED / ALIGNING");
  }
  else {text(1,27,RGB(155,154,165),"NO TARGET");text(1,30,RGB(229,210,163),"SQUARE TO SELECT");}

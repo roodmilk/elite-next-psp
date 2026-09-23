@@ -412,3 +412,7 @@ The detailed development history, controls, implemented feature list, validation
 
 - The bar tour no longer overrides the opening story or forces a Reorte jump. It becomes available after the opening campaign is complete and can then be followed from the tracked-mission screen.
 - Reorte’s authored Second Shift scene remains restricted to the primary Hub H0 identity, with secondary hubs clearly identified instead of falsely advancing the tour.
+## 2.5.54 - Compact target status card
+
+- Stacked targeted ship hull and shield meters into separate compact rows in the lower-left target card.
+- Kept the target distance, radar, power banks, and footer clear at the PSP’s native resolution.
