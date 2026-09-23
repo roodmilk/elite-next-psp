@@ -4,6 +4,13 @@ Candidate extraction commit: `8ce19e4`
 Status: native candidate evidence only; not runtime-ready and not a replacement
 for the frozen generic manifest.
 
+Freight generic proof commit: `ff42a70`. It now supplies individual normal /
+contrast pairs for the frozen Freight IDs under
+`assets/preview/reusable-element-kit/freight-elements/`, plus the native
+480×272 proof compose. These are a one-to-one asset crosswalk, not new
+hotspots or gameplay state; Station’s existing graph remains authoritative and
+the manifest still keeps `runtime_ready:false`.
+
 The family candidates are richer authored variants with deliberately different
 footprints from the generic Element Kit. They must therefore receive new stable
 manifest IDs or an approved variant mapping; they must not be silently cast to a
