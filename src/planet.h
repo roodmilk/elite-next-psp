@@ -258,7 +258,17 @@ static void planet_view(void){
   (void)D0;
   flush_meshes();
  }
- if(game.surface)shipwire_stretched(mesh_id(player_ships[game.ship].name),game.surface==1?game.pos:game.ship_pos,game.surface==1?game.yaw:0,.85f,1.f,GOLD);
+ /* Keep the parked hull readable as a ship, not a debug-sized wireframe.
+  * The close surface camera has very little depth, so use a restrained native
+  * scale while retaining the same mesh identity and landing/boarding state. */
+ if(game.surface){
+  Vec3 ship_pos=game.surface==1?game.pos:game.ship_pos;
+  Vec3 ship_cam=camera(&game,ship_pos);
+  if(ship_cam.z>18){Point sp=project(ship_cam);int sw=game.surface==1?18:14;
+   rect((int)sp.x-sw,(int)sp.y+7,sw*2,2,RGB(28,36,42));
+  }
+  shipwire_stretched(mesh_id(player_ships[game.ship].name),ship_pos,game.surface==1?game.yaw:0,game.surface==1?.66f:.72f,1.f,GOLD);
+ }
  for(int i=0;i<LIFE_COUNT;i++)if(game.life[i].alive)draw_life_billboard(&game.life[i]);
  if(game.surface!=2){line(227,110,236,110,RGB(193,139,77));line(244,110,253,110,RGB(193,139,77));line(240,97,240,106,RGB(193,139,77));line(240,114,240,123,RGB(193,139,77));}
 }

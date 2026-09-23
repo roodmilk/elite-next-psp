@@ -442,3 +442,6 @@ The detailed development history, controls, implemented feature list, validation
 ## 2.5.62 - Lave showcase visual pass
 - Added a Lave-specific public-canteen identity treatment: arch, LAVE PUBLIC sign, and station seal, while preserving generic room geometry and all existing hotspots.
 - Added the staged v0.5–v0.7 release plan and evidence gates to the repository.
+## 2.5.63 - Grounded planetary ship presentation
+- Reduced the close surface ship wireframe scale so it reads as a parked ship instead of a debug overlay.
+- Added a restrained native contact shadow beneath the hull while preserving the existing mesh, landing, EVA, boarding, and takeoff contracts.
