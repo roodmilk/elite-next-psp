@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.5.50 - native station visual rollout
+
+- Added a shared native 480×272 station presentation shell with consistent headers, options rail, feedback area and SHIP return treatment.
+- Added an authored Reorte primary Arrivals scene using the Second Shift palette and staging language.
+- Kept all existing station hotspots and interaction behavior intact while the remaining room art is upgraded.
+
 ## 2.5.49 - 2026-09-23
 
 - Added the playable Second Shift bar at Reorte's primary hub using the approved native PSP pixel artwork.

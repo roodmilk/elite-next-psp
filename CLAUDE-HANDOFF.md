@@ -1,5 +1,13 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Integrated 2.5.50 — native station visual rollout
+
+The station crawl now uses a shared native 480×272 shell and an authored Reorte
+primary Arrivals scene in the Second Shift visual language. The existing bar,
+hotspots, options rail, speech area and SHIP return remain intact. Arrivals is
+the first additional authored room; Market, Shipyard, Mission Board and GalNet
+art families remain in rollout and must pass native 1:1 review before adoption.
+
 ## Project-wide native-art acceptance rule
 
 All station artwork and station UI must be authored and judged at the PSP's
