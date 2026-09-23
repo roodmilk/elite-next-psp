@@ -2,7 +2,7 @@
 {
  int terrain_ok=1,roundtrip_ok=1;
  for(int system=0;system<256;system+=17){
-  game_init(&g);g.system=system;game_spawn(&g);launch(&g);
+  game_init(&g);g.system=system;game_spawn(&g);launch(&g);g.story_flags|=STORY_EV_LANDING_TECH;
   for(int body=1;body<BODY_COUNT;body++)if(g.bodies[body].type!=GAS){
    g.approach=body;g.pos=add(g.bodies[body].pos,(Vec3){0,0,-g.bodies[body].radius-900});
    roundtrip_ok &= enter_planet(&g);
@@ -20,7 +20,7 @@
  }
  CHECK(terrain_ok,"EVA terrain matches both rendered triangles and is continuous across cell edges");
  CHECK(roundtrip_ok,"seeded landable worlds permit land, disembark, immediate board, takeoff and orbit return");
- game_init(&g);launch(&g);g.approach=2;enter_planet(&g);g.bodies[2].type=ROCKY;
+ game_init(&g);launch(&g);g.story_flags|=STORY_EV_LANDING_TECH;g.approach=2;enter_planet(&g);g.bodies[2].type=ROCKY;
  Vec3 pad=surface_site(&g,1);g.pos=pad;g.speed=8;land_planet(&g);eva_toggle(&g);
  Vec3 before=g.pos;game_eva_tick(&g,.1f,1,1,0,0,0);
  CHECK(g.pos.x==before.x&&g.pos.z==before.z&&g.pitch>0&&g.roll==0,"EVA look changes camera without translating or rolling");
@@ -49,7 +49,7 @@
  /* Existing resource arithmetic, not a new reward or persistence rule. */
  int resource_ok=1;
  for(int refinery=0;refinery<2;refinery++)for(int full=0;full<2;full++){
-  game_init(&g);launch(&g);g.approach=1;enter_planet(&g);g.pos=surface_site(&g,1);g.speed=8;land_planet(&g);eva_toggle(&g);
+  game_init(&g);launch(&g);g.story_flags|=STORY_EV_LANDING_TECH;g.approach=1;enter_planet(&g);g.pos=surface_site(&g,1);g.speed=8;land_planet(&g);eva_toggle(&g);
   if(refinery){g.fit[FIT_UTIL]=21;fit_rebuild(&g);}
   memset(g.cargo,0,sizeof(g.cargo));g.cargo[0]=cargo_capacity(&g)-(full?0:1);
   for(int i=1;i<LIFE_COUNT;i++)g.life[i].alive=0;

@@ -1,6 +1,6 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-## Pending integration — planetary EVA traversal
+## Integrated 2.5.48 — planetary EVA traversal
 
 The specialist/planetary-eva checkpoint adds independent look/walk/strafe/jet,
 grounded boarding, continuous shared terrain, shore/field bounds and clear ship
@@ -10,7 +10,7 @@ viewport has a measurable cost. No physical PSP test or save-layout change.
 See docs/PLANETARY-EVA-HANDOFF.md for evidence, scope and next activity/revisit
 gaps. Lead owns integration and release. Story approved the coaching string.
 
-## Current-ship preview candidate
+## Integrated 2.5.48 — current-ship preview
 
 specialist/menu-ship-preview branches from ac8a581. See
 docs/MENU-SHIP-PREVIEW.md for files, reserved interfaces, native captures,
@@ -19,7 +19,7 @@ This candidate changes the menu inset only. No save/audio/input/planetary
 production changes. Lead must validate the combined build before release;
 version, main and release tags remain unchanged.
 
-## Audio candidate — event identity and bounded shuffle
+## Integrated 2.5.48 — event identity and bounded shuffle
 
 Base `ac8a581`, branch `cursor/audio-bounded-shuffle`. Original event sounds move
 from 3–32 ms fragments to restrained 20–300 ms cues using the existing single
@@ -91,7 +91,7 @@ The Chapter 05 slice on `specialist/gameplay-story-ch05` adds the authored early
 
 The planetary story now awards an atmospheric landing kit when the existing coaching reaches **Her World**, after the power lesson. The award uses the existing `story_flags` word (`STORY_EV_LANDING_TECH`), so no `Game` layout or save-version change is present. Atmospheric approach remains available, but `land_planet()` requires the kit; completed/free-story saves and skipped coaching remain compatible. The handoff dialogue names the kit as recovered from Ryn's locker so the first landing reads as a deliberate story milestone.
 
-Prepared 23 September 2026. Current build: **2.5.47**.
+Prepared 23 September 2026. Current build: **2.5.48**.
 
 ## PSP UI/art specialist handoff — native deck readability
 

@@ -11,6 +11,13 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.48 - 2026-09-23
+
+- Reworked planetary EVA with separate look and movement, shared rendered/collision terrain, bounded shores and fields, jet descent, reliable boarding, ship guidance, suit status and the full scan-to-sale regression journey.
+- Added a story-awarded atmospheric landing kit while preserving atmosphere escape and completed, skipped and older-story compatibility.
+- Replaced the static menu ship inset with a clipped looping beauty view of the commander’s actual ship, current-system sun and planets.
+- Added 15 longer original action cues and bounded radio shuffle ordering without changing decoder, sleep, save or game-state formats.
+
 ## Unreleased — planetary EVA traversal
 
 - Separate on-foot look, walk/strafe and hold-R jet controls; analog-off fallback and a dedicated fifth Help page.
