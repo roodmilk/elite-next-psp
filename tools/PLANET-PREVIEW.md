@@ -31,3 +31,13 @@ defines the independent seed channels, family mapping, stable scannable rule,
 native PSP budgets, and representative capture matrix. Blender, Aseprite, or
 heightfield exporters should consume this contract rather than inventing new
 runtime-facing IDs.
+
+Station/activity authoring can be previewed independently with:
+
+```text
+node tools/generate-station-activity.mjs --out work/planet-preview
+```
+
+This emits three stable station records per system for the hub, relay, and
+frontier outpost. It is intentionally offline until the Station owner signs
+off on the runtime presentation interface.
