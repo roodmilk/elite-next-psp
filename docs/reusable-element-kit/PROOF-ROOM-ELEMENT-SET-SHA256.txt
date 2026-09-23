@@ -1,0 +1,16 @@
+SHA256 candidate asset hashes for commit 7584b83
+
+BB96CDED44656E407130492A609719EE8A8049D2088938734B0228CA607D3013  assets/preview/reusable-element-kit/family-elements/research-specimen-cabinet-normal.png
+1FC2FF31B836FF22E61BA18D020C318803F256EC098120EF34CB6659FA569C4A  assets/preview/reusable-element-kit/family-elements/research-specimen-cabinet-contrast.png
+9579C6AA771DFEC60D36E0D23B5A0065DC803E0FBC083D572A77F8FAF068EB59  assets/preview/reusable-element-kit/family-elements/research-survey-console-normal.png
+DBB01056E78733841680AA465C88DFB4108840CE4DB29ED27ACA773C04F2276B  assets/preview/reusable-element-kit/family-elements/research-survey-console-contrast.png
+5708B58045E84F7CC9B997F45A4179A8C97F83688E28E5E3B0A52553761414B3  assets/preview/reusable-element-kit/family-elements/research-telescope-normal.png
+94CDB46D680201E121A884BFD470575A04D195F1D500D5A0BAF44D9C68ED3E8B  assets/preview/reusable-element-kit/family-elements/research-telescope-contrast.png
+C1338CB1EA473943E73A83FC6C6286224FC3083BD3C3A2DEAD6360DC4DD7E7A2  assets/preview/reusable-element-kit/family-elements/research-orbit-window-normal.png
+7879A1C4E740362F8EFC6B17775A1C7D1F537FDFDF8E6EB80572542441BCA88C  assets/preview/reusable-element-kit/family-elements/research-orbit-window-contrast.png
+C0941430199E044FFF1AFD14375199BB8FF18D1DB55087E364D06A5F12B56ED0  assets/preview/reusable-element-kit/family-elements/research-standing-researcher-normal.png
+759F2C40CD5B4B90679B86B44A68A9BB480CA09F3B858107729510925497CE86  assets/preview/reusable-element-kit/family-elements/research-standing-researcher-contrast.png
+9FF746A94C30A3F6CD214803EE3C207C8A13047A63F29D83DD028EEE9057903F  assets/preview/reusable-element-kit/family-elements/research-seated-researcher-normal.png
+3FE5B1483FF197F6CD21526491A2AFD8A96F0FB4EF5C9330AEA15DF162575DD4  assets/preview/reusable-element-kit/family-elements/research-seated-researcher-contrast.png
+
+Qube Freight generic per-element normal/contrast pairs are not hashed because only the contact sheet currently exists; this is the concrete missing dependency for that proof-room subset.
