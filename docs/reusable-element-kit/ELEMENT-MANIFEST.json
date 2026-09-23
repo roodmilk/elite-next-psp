@@ -1,9 +1,17 @@
 {
   "status": "native-first reusable art handoff; not runtime-wired",
+  "selector_contract": {
+    "version": "room-selector-v1",
+    "identity_order": ["galaxy","system_id","hub_index","room_id","family_id","arrangement_id","landmark_id","material_id","art_version","exception_id"],
+    "runtime_fields": ["selector_version","selector_hash"],
+    "hash": "FNV-1a over room-selector-v1|g%u:s%u:h%u:r%s|family|arrangement|landmark|material|exception",
+    "gameplay_state_source": "Station/Gameplay; cosmetic channels must not choose capability state"
+  },
   "screen": {"width":480,"height":272,"room":[6,20,340,168],"options":[354,20,120,168],"feedback_y":190,"ship_safe":[274,158,68,26]},
   "palette_owner": "station-art-kit.h / station-art-style.h",
   "sampling": "nearest",
   "static_cost_basis": "packed 4-bit indices; measured native dimensions, excludes compiler alignment and shared 44-byte palette",
+  "required_state_coverage": ["default","selected","speech","disabled","result","normal","high_contrast"],
   "elements": [
     {"id":"person-standing","size":[24,52],"pivot":[12,52],"hitbox":[0,0,24,52],"roles":["FREIGHT","PROSPECTOR","RESEARCH"],"contrast":"preserve silhouette; accent to CREAM","authored":true,"procedural":false,"packed_4bit_bytes":624},
     {"id":"person-carrying","size":[28,52],"pivot":[14,52],"hitbox":[0,0,28,52],"roles":["FREIGHT","PROSPECTOR","RESEARCH"],"contrast":"arm/tool silhouette stays readable","authored":true,"procedural":false,"packed_4bit_bytes":728},

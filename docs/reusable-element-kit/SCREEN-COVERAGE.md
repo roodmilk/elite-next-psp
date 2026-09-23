@@ -42,3 +42,21 @@ selected, speech, disabled and result states as applicable; static packed bytes;
 frame-time delta; safe-area/SHIP checks; repeatable identity; and unchanged
 generic fallback on other rooms/hubs. The current assembled kit frames are
 layout/contrast evidence only, not runtime captures.
+
+## Proof-first station order
+
+The first full graph is ARRIVALS, CANTEEN/BAR, SHOP/CHANDLERY, CARGO,
+GUILD/MISSION, CLINIC and CUSTOMS on Reorte H0, Qube H0 Freight and Xequerin
+H0 Research. H1/H2 retain the generic room graph until the proof slice passes.
+
+The shared selector proposal is `room-selector-v1`; Systems bounds runtime plans
+to at most 12 elements / 12 draw calls with zero runtime allocation. Current
+assembly ceilings are Freight 11,055 B, Prospector 11,108 B and Research 10,872
+B, under the 28,560 B native room candidate ceiling. Peak temporary memory and
+frame-time deltas remain capture gates, not assumptions.
+
+The current hotspot contract is authoritative: people talk, doors and SHIP
+exit, props/features look except named deal props routed to their owner. Art
+does not add hotspots. Reorte H0 is the only named bar exception; H1/H2 retain
+generic canteens. Disabled/unavailable visuals must reflect actual credits,
+hold, cabin, story or capability prerequisites.
