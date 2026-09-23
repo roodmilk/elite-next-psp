@@ -15,7 +15,7 @@ $rooms=@(
  @{id=2;label='CANTEEN';role='AMBER';bg='RUST';motif='mug'},
  @{id=3;label='CARGO';role='OCHRE';bg='OCHRE';motif='cargo'},
  @{id=4;label='GUILD';role='CYAN';bg='SLATE';motif='star'},
- @{id=5;label='CLINIC';role='CREAM';bg='CREAM';motif='cross'},
+ @{id=5;label='CLINIC';role='DANGER';bg='CREAM';motif='cross'},
  @{id=6;label='CUSTOMS';role='CYAN';bg='SLATE';motif='gate'}
 )
 function CuePixel($b,$x,$y,$c){if($x-ge 0 -and $y-ge 0 -and $x-lt $b.Width -and $y-lt $b.Height){$b.SetPixel($x,$y,$c)}}
@@ -30,7 +30,7 @@ function CueColor($name,$contrast){
  }
 }
 $glyph=@{
- A=@(6,9,9,15,9,9,9); C=@(7,8,8,8,8,8,7); D=@(14,9,9,9,9,9,14); E=@(15,8,8,14,8,8,15)
+ A=@(6,9,9,15,9,9,9); B=@(14,9,9,14,9,9,14); C=@(7,8,8,8,8,8,7); D=@(14,9,9,9,9,9,14); E=@(15,8,8,14,8,8,15)
  G=@(7,8,8,11,9,9,7); H=@(9,9,9,15,9,9,9); I=@(15,2,2,2,2,2,15); L=@(8,8,8,8,8,8,15)
  M=@(17,27,21,21,17,17,17); N=@(9,13,13,11,11,9,9); O=@(6,9,9,9,9,9,6); P=@(14,9,9,14,8,8,8)
  R=@(14,9,9,14,10,9,9); S=@(7,8,8,6,1,1,14); T=@(15,2,2,2,2,2,2); U=@(9,9,9,9,9,9,6)
@@ -49,8 +49,20 @@ function Motif($b,$x,$y,$kind,$ink,$dark){
   'gate'{CueVLine $b ($x+6) ($y+2) 22 $ink;CueVLine $b ($x+23) ($y+2) 22 $ink;CueHLine $b ($x+9) ($y+3) 14 $ink;CuePixel $b ($x+13) ($y+13) $hi;CuePixel $b ($x+17) ($y+13) $hi}
  }
 }
-function MakeSign($room,$contrast){$b=[Drawing.Bitmap]::new(80,20,[Drawing.Imaging.PixelFormat]::Format24bppRgb);$bg=if($contrast){$pal.CHAR}else{CueColor $room.bg $false};CueRect $b 0 0 80 20 $bg;CueRect $b 0 0 80 1 (CueColor 'CREAM' $contrast);CueRect $b 0 19 80 1 (CueColor 'SLATE' $contrast);CueVLine $b 0 0 20 (CueColor 'CREAM' $contrast);CueVLine $b 79 0 20 (CueColor 'SLATE' $contrast);Motif $b 3 0 $room.motif (CueColor $room.role $contrast) (CueColor 'CHAR' $contrast);Text5 $b 35 6 $room.label (CueColor 'CREAM' $contrast);return $b}
+function SmallMotif($b,$x,$y,$kind,$ink,$dark){
+ switch($kind){
+  'window'{CueRect $b ($x+1) ($y+2) 12 6 $dark;CueHLine $b $x ($y+1) 14 $ink;CueVLine $b ($x+6) $y 9 $ink;CuePixel $b ($x+3) ($y+5) $pal.CREAM}
+  'wrench'{CueHLine $b ($x+2) ($y+4) 9 $ink;CueVLine $b ($x+6) ($y+2) 6 $ink;CuePixel $b $x ($y+3) $pal.CREAM;CuePixel $b ($x+11) ($y+3) $pal.CREAM}
+  'mug'{CueRect $b ($x+3) ($y+2) 7 6 $ink;CueRect $b ($x+10) ($y+3) 3 4 $ink;CueHLine $b ($x+3) ($y+9) 7 $ink;CueVLine $b ($x+5) $y 2 $pal.CREAM}
+  'cargo'{CueRect $b ($x+1) ($y+4) 5 5 $ink;CueRect $b ($x+7) ($y+4) 5 5 $ink;CueRect $b ($x+4) ($y+1) 5 4 $ink}
+  'star'{CuePixel $b ($x+6) $y $ink;CueHLine $b ($x+3) ($y+5) 7 $ink;CueVLine $b ($x+6) ($y+2) 7 $ink;CuePixel $b ($x+1) ($y+5) $ink;CuePixel $b ($x+12) ($y+5) $ink}
+  'cross'{CueRect $b ($x+5) $y 4 11 $ink;CueRect $b ($x+2) ($y+3) 10 4 $ink}
+  'gate'{CueVLine $b ($x+2) $y 10 $ink;CueVLine $b ($x+11) $y 10 $ink;CueHLine $b ($x+4) ($y+1) 6 $ink;CuePixel $b ($x+6) ($y+6) $pal.CREAM}
+ }
+}
+function MakeSign($room,$contrast){$b=[Drawing.Bitmap]::new(80,16,[Drawing.Imaging.PixelFormat]::Format24bppRgb);$bg=if($contrast){$pal.CHAR}else{CueColor $room.bg $false};$labelInk=if(!$contrast -and $room.bg -eq 'CREAM'){$pal.CHAR}else{CueColor 'CREAM' $contrast};CueRect $b 0 0 80 16 $bg;CueRect $b 0 0 80 1 (CueColor 'CREAM' $contrast);CueRect $b 0 15 80 1 (CueColor 'SLATE' $contrast);CueVLine $b 0 0 16 (CueColor 'CREAM' $contrast);CueVLine $b 79 0 16 (CueColor 'SLATE' $contrast);SmallMotif $b 3 2 $room.motif (CueColor $room.role $contrast) (CueColor 'CHAR' $contrast);Text5 $b 21 4 $room.label $labelInk;return $b}
 function MakeDoor($room,$contrast){$b=[Drawing.Bitmap]::new(52,60,[Drawing.Imaging.PixelFormat]::Format24bppRgb);$frame=CueColor 'SLATE' $contrast;$dark=CueColor 'CHAR' $contrast;$ink=CueColor $room.role $contrast;CueRect $b 0 0 52 60 $frame;CueRect $b 3 3 46 49 $dark;CueRect $b 7 8 38 37 (CueColor 'VOID' $contrast);CueRect $b 5 3 42 3 $ink;CueRect $b 5 52 42 5 (CueColor 'OCHRE' $contrast);for($i=0;$i-lt 6;$i++){if(($i%2)-eq 0){CueRect $b (6+$i*7) 52 4 5 $dark}};Motif $b 8 13 $room.motif $ink $dark;CueRect $b 8 45 36 2 (CueColor 'SLATE' $contrast);return $b}
+function MakeLowDoor($room,$contrast){$b=[Drawing.Bitmap]::new(42,26,[Drawing.Imaging.PixelFormat]::Format24bppRgb);$frame=CueColor 'SLATE' $contrast;$dark=CueColor 'CHAR' $contrast;$ink=CueColor $room.role $contrast;CueRect $b 0 0 42 26 $frame;CueRect $b 3 3 36 17 $dark;CueRect $b 6 6 30 10 (CueColor 'VOID' $contrast);CueRect $b 4 3 34 2 $ink;for($i=0;$i-lt 5;$i++){if(($i%2)-eq 0){CueRect $b (5+$i*7) 21 4 3 (CueColor 'OCHRE' $contrast)}};SmallMotif $b 14 6 $room.motif $ink $dark;return $b}
 function MakeRoute($contrast){$b=[Drawing.Bitmap]::new(16,8,[Drawing.Imaging.PixelFormat]::Format24bppRgb);CueRect $b 0 0 16 8 (CueColor 'VOID' $contrast);CueHLine $b 1 3 9 (CueColor 'CYAN' $contrast);CueHLine $b 1 4 9 (CueColor 'CYAN' $contrast);CuePixel $b 10 2 (CueColor 'CREAM' $contrast);CuePixel $b 11 3 (CueColor 'CREAM' $contrast);CueRect $b 12 2 2 4 (CueColor 'CREAM' $contrast);CuePixel $b 14 3 (CueColor 'CREAM' $contrast);CuePixel $b 14 4 (CueColor 'CREAM' $contrast);return $b}
 function MakeShipMarker($contrast){$b=[Drawing.Bitmap]::new(24,12,[Drawing.Imaging.PixelFormat]::Format24bppRgb);CueRect $b 0 0 24 12 (CueColor 'VOID' $contrast);$ink=CueColor 'CREAM' $contrast;$glow=CueColor 'AMBER' $contrast;CuePixel $b 4 6 $glow;CueHLine $b 6 5 10 $ink;CueHLine $b 7 6 12 $ink;CueHLine $b 8 7 10 $ink;CuePixel $b 9 4 $ink;CuePixel $b 9 8 $ink;CuePixel $b 18 5 $ink;CuePixel $b 18 7 $ink;CueHLine $b 1 10 5 (CueColor 'CYAN' $contrast);return $b}
 function MakeArrivalWindow($contrast){$b=[Drawing.Bitmap]::new(128,54,[Drawing.Imaging.PixelFormat]::Format24bppRgb);$frame=CueColor 'SLATE' $contrast;$dark=CueColor 'VOID' $contrast;$cool=CueColor 'CYAN' $contrast;$warm=CueColor 'OCHRE' $contrast;$cream=CueColor 'CREAM' $contrast;CueRect $b 0 0 128 54 $frame;CueRect $b 4 4 120 46 $dark;CueRect $b 7 7 114 37 (CueColor 'CHAR' $contrast);for($i=0;$i-lt 10;$i++){CuePixel $b (12+$i*9) (10+($i*7)%24) $cool};CueHLine $b 8 44 112 $cool;CueRect $b 42 29 50 4 $warm;CueRect $b 50 25 32 4 $cream;CueRect $b 58 21 14 4 $cream;CueRect $b 44 33 8 2 $cool;CueRect $b 84 33 8 2 $cool;CuePixel $b 39 31 $cool;CuePixel $b 94 31 $cool;return $b}
@@ -58,13 +70,14 @@ function Blit($dst,$src,$x,$y){for($yy=0;$yy-lt $src.Height;$yy++){for($xx=0;$xx
 New-Item -ItemType Directory -Force $OutputDir | Out-Null
 $normal=[Drawing.Bitmap]::new(480,272,[Drawing.Imaging.PixelFormat]::Format24bppRgb);$contrast=[Drawing.Bitmap]::new(480,272,[Drawing.Imaging.PixelFormat]::Format24bppRgb);CueRect $normal 0 0 480 272 $pal.VOID;CueRect $contrast 0 0 480 272 $pal.VOID
 for($i=0;$i-lt $rooms.Count;$i++){
- $room=$rooms[$i];$id=$room.id.ToString('00');$sn=MakeSign $room $false;$sc=MakeSign $room $true;$dn=MakeDoor $room $false;$dc=MakeDoor $room $true
- $sn.Save((Join-Path $OutputDir "room-$id-sign-normal.png"),[Drawing.Imaging.ImageFormat]::Png);$sc.Save((Join-Path $OutputDir "room-$id-sign-contrast.png"),[Drawing.Imaging.ImageFormat]::Png);$dn.Save((Join-Path $OutputDir "room-$id-door-normal.png"),[Drawing.Imaging.ImageFormat]::Png);$dc.Save((Join-Path $OutputDir "room-$id-door-contrast.png"),[Drawing.Imaging.ImageFormat]::Png)
+ $room=$rooms[$i];$id=$room.id.ToString('00');$sn=MakeSign $room $false;$sc=MakeSign $room $true;$dn=MakeDoor $room $false;$dc=MakeDoor $room $true;$ln=MakeLowDoor $room $false;$lc=MakeLowDoor $room $true
+ $sn.Save((Join-Path $OutputDir "room-$id-sign-normal.png"),[Drawing.Imaging.ImageFormat]::Png);$sc.Save((Join-Path $OutputDir "room-$id-sign-contrast.png"),[Drawing.Imaging.ImageFormat]::Png);$dn.Save((Join-Path $OutputDir "room-$id-door-normal.png"),[Drawing.Imaging.ImageFormat]::Png);$dc.Save((Join-Path $OutputDir "room-$id-door-contrast.png"),[Drawing.Imaging.ImageFormat]::Png);$ln.Save((Join-Path $OutputDir "room-$id-low-door-normal.png"),[Drawing.Imaging.ImageFormat]::Png);$lc.Save((Join-Path $OutputDir "room-$id-low-door-contrast.png"),[Drawing.Imaging.ImageFormat]::Png)
  $col=($i%4)*120;$row=[Math]::Floor($i/4)*126;Blit $normal $sn ($col+18) ($row+6);Blit $normal $dn ($col+32) ($row+30);Blit $contrast $sc ($col+18) ($row+6);Blit $contrast $dc ($col+32) ($row+30)
- $sn.Dispose();$sc.Dispose();$dn.Dispose();$dc.Dispose()
+ $sn.Dispose();$sc.Dispose();$dn.Dispose();$dc.Dispose();$ln.Dispose();$lc.Dispose()
 }
 $normal.Save((Join-Path $OutputDir 'station-cue-kit-normal-native.png'),[Drawing.Imaging.ImageFormat]::Png);$contrast.Save((Join-Path $OutputDir 'station-cue-kit-contrast-native.png'),[Drawing.Imaging.ImageFormat]::Png);$normal.Dispose();$contrast.Dispose()
 $routeN=MakeRoute $false;$routeC=MakeRoute $true;$shipN=MakeShipMarker $false;$shipC=MakeShipMarker $true;$winN=MakeArrivalWindow $false;$winC=MakeArrivalWindow $true
 $routeN.Save((Join-Path $OutputDir 'route-marker-normal.png'),[Drawing.Imaging.ImageFormat]::Png);$routeC.Save((Join-Path $OutputDir 'route-marker-contrast.png'),[Drawing.Imaging.ImageFormat]::Png);$shipN.Save((Join-Path $OutputDir 'ship-return-marker-normal.png'),[Drawing.Imaging.ImageFormat]::Png);$shipC.Save((Join-Path $OutputDir 'ship-return-marker-contrast.png'),[Drawing.Imaging.ImageFormat]::Png);$winN.Save((Join-Path $OutputDir 'arrival-window-normal.png'),[Drawing.Imaging.ImageFormat]::Png);$winC.Save((Join-Path $OutputDir 'arrival-window-contrast.png'),[Drawing.Imaging.ImageFormat]::Png)
 $wn=[Drawing.Bitmap]::new(480,272,[Drawing.Imaging.PixelFormat]::Format24bppRgb);$wc=[Drawing.Bitmap]::new(480,272,[Drawing.Imaging.PixelFormat]::Format24bppRgb);CueRect $wn 0 0 480 272 $pal.VOID;CueRect $wc 0 0 480 272 $pal.VOID;Blit $wn $winN 12 10;Blit $wc $winC 12 10;for($i=0;$i-lt 6;$i++){Blit $wn $routeN (12+$i*24) 76;Blit $wc $routeC (12+$i*24) 76};Blit $wn $shipN 12 100;Blit $wc $shipC 12 100;Text5 $wn 44 101 'SHIP RETURN' $pal.CREAM;Text5 $wc 44 101 'SHIP RETURN' $pal.CREAM;Text5 $wn 12 124 'ARRIVAL WINDOW / BERTH SILHOUETTE' $pal.CREAM;Text5 $wc 12 124 'ARRIVAL WINDOW / BERTH SILHOUETTE' $pal.CREAM;$wn.Save((Join-Path $OutputDir 'wayfinding-normal-native.png'),[Drawing.Imaging.ImageFormat]::Png);$wc.Save((Join-Path $OutputDir 'wayfinding-contrast-native.png'),[Drawing.Imaging.ImageFormat]::Png);$wn.Dispose();$wc.Dispose();$routeN.Dispose();$routeC.Dispose();$shipN.Dispose();$shipC.Dispose();$winN.Dispose();$winC.Dispose()
-Write-Output "Baked 7 room signs and 7 doorway cues with normal/high-contrast variants; native proof sheets are 480x272"
+$lowerN=[Drawing.Bitmap]::new(480,272,[Drawing.Imaging.PixelFormat]::Format24bppRgb);$lowerC=[Drawing.Bitmap]::new(480,272,[Drawing.Imaging.PixelFormat]::Format24bppRgb);CueRect $lowerN 0 0 480 272 $pal.VOID;CueRect $lowerC 0 0 480 272 $pal.VOID;for($i=0;$i-lt $rooms.Count;$i++){$room=$rooms[$i];$ln=MakeLowDoor $room $false;$lc=MakeLowDoor $room $true;$col=($i%4)*120;$row=[Math]::Floor($i/4)*80;Blit $lowerN $ln ($col+38) ($row+8);Blit $lowerC $lc ($col+38) ($row+8);$ln.Dispose();$lc.Dispose()};$lowerN.Save((Join-Path $OutputDir 'lower-door-normal-native.png'),[Drawing.Imaging.ImageFormat]::Png);$lowerC.Save((Join-Path $OutputDir 'lower-door-contrast-native.png'),[Drawing.Imaging.ImageFormat]::Png);$lowerN.Dispose();$lowerC.Dispose()
+Write-Output "Baked 7 room signs, full/lower doorway cues and wayfinding markers with normal/high-contrast variants; native proof sheets are 480x272"

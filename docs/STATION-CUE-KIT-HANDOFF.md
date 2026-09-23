@@ -2,7 +2,8 @@
 
 Status: candidate art-only handoff. No Station or gameplay runtime code is changed.
 
-The kit supplies seven destination-room plaques, seven matching doorway cues,
+The kit supplies seven destination-room plaques, seven full side-hatch cues and
+seven compact lower-door cues,
 route and ship-return markers, and one arrival-window identity treatment, each
 in normal and high-contrast variants. It is authored as hard 1× pixels for the
 PSP room viewport, not as a reduced large illustration.
@@ -14,17 +15,17 @@ Station remains authoritative for the existing `SC_H_EXIT` hotspots and
 cue by its destination room ID and place it in one of the existing four door
 slots from `src/station-crawl.h`; no new hotspot or action is implied.
 
-| Slot | Door scene-local anchor | Sign scene-local anchor | Existing geometry |
+| Slot | Door/cue scene-local anchor | Sign scene-local anchor | Existing geometry |
 |---|---:|---:|---|
-| TOP_LEFT | `(4,36) 50×60` | `(4,20) 80×20` | `door_xy[0]` |
-| TOP_RIGHT | `(286,36) 50×60` | `(260,20) 80×20` | `door_xy[1]` |
-| LOW_LEFT | `(70,120) 42×26` | `(50,100) 80×20` | `door_xy[2]` |
-| LOW_RIGHT | `(180,120) 42×26` | `(160,100) 80×20` | `door_xy[3]` |
+| TOP_LEFT | `(4,36) 50×60` | `(4,20) 80×16` | `door_xy[0]` |
+| TOP_RIGHT | `(286,36) 50×60` | `(260,20) 80×16` | `door_xy[1]` |
+| LOW_LEFT | `(70,120) 42×26` | `(50,100) 80×16` | `door_xy[2]` |
+| LOW_RIGHT | `(180,120) 42×26` | `(160,100) 80×16` | `door_xy[3]` |
 
-The lower doorway anchors are intentionally documented as cue-safe artwork
-placements. Station must crop or choose the smaller lower-door cue geometry
-when the existing 42×26 hotspot is used; the 52×60 art is the full side-hatch
-variant and must not be allowed to obscure a focal object.
+The top plaques now end at y36, exactly where the top door hotspots begin, so
+they do not overlap. Lower exits use the dedicated `42×26` compact cue; the
+`52×60` art is only for the full side-hatch variant and must not be cropped at
+runtime or allowed to obscure a focal object.
 
 The arrival-window treatment is `128×54` at scene-local `(80,20)`, inside the
 existing `BERTH WINDOW` feature hotspot `(72,10) 176×70`. The `24×12` ship-return
@@ -47,7 +48,7 @@ exact draw point.
 ## Files and generation
 
 `assets/preview/station-cue-kit/STATION-CUE-KIT.json` is the manifest. The
-fourteen room PNG pairs plus the wayfinding PNG pairs are native-size
+twenty-one room PNG pairs plus the wayfinding PNG pairs are native-size
 candidates; the room and wayfinding `*-native.png` files are 480×272 proof
 sheets. Rebuild them with:
 
