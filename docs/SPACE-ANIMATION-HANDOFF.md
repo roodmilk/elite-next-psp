@@ -4,6 +4,13 @@
 **Resolution:** native 480×272 software framebuffer  
 **Ownership:** visual presentation only; no station-crawl input/state changes
 
+## Where the sheets are
+
+- **Current in-game masks:** `src/space-animation-kit.h`. Review image: `assets/preview/pixel-sheets/current-8x8-masks.png`.
+- **Colored sprite sheet:** `assets/preview/pixel-sheets/proposed-sprite-sheet.png` and the 1× atlas `proposed-sprite-sheet-native.png`.
+- **Animation:** `assets/preview/pixel-sheets/proposed-sprite-anim.gif`.
+- **Baked runtime pixels:** `src/pixel-sprite-sheet.h`, included from `src/main.c`. The engine flare draws the colored plume. Station windows still use the smaller 8×8 beacon so distant lights stay readable.
+
 ## Current animated coverage
 
 The unified release already contains these bounded animation families:
@@ -18,7 +25,8 @@ The unified release already contains these bounded animation families:
 | Warp/speed | `src/flight-extras.h`, `src/voyage.h` | speed/jump-driven primitives | motion and acceleration language |
 | Engine/freighter wakes | `src/voyage.h`, `src/flight-extras.h` | speed/faction/state-driven | ship scale and traffic readability |
 | Station windows | `src/voyage.h` | bounded 1px practical-light pulses | lived-in orbital station exterior |
-| Native animation masks | `src/space-animation-kit.h` | 3 families × 4 8×8 frames | shared plume, beacon and sparkle language |
+| Native animation masks | `src/space-animation-kit.h` | 3 families × 4 8×8 frames | shared plume, beacon and sparkle language, already drawn in flight |
+| Colored sprite sheet | `src/pixel-sprite-sheet.h` | plume/beacon/lamp/crate 16×16 × 4, courier 24×16 × 4 | authored pixel sheet; plume is drawn on the engine flare |
 
 ## Current batch: station exterior windows + shared masks
 
