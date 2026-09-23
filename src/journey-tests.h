@@ -34,6 +34,35 @@ static void journey_tests(FILE *f,int *failures){
  CHECK(mission_cargo_reserved(&g,0)==1&&!trade(&g,0,0)&&g.cargo[0]==1,"journey: delivery crate cannot be accidentally sold");
  g.cargo[0]++;CHECK(trade(&g,0,0)&&g.cargo[0]==1,"journey: surplus personal cargo remains tradable");
  int cash=g.credits;CHECK(abandon_mission(&g,0)&&!g.cargo[0]&&g.credits==cash+100,"journey: abandonment returns crate instead of minting free cargo");
+ /* Station Welcome is a real state boundary: entry, welcome dwell, then services. */
+ game_init(&g);g.dock_stage=2;g.dock_timer=2.99f;docking_tick(&g,.01f);
+ CHECK(g.dock_stage==3&&!g.docked,"welcome: entry transitions to the welcome dwell before services");
+ g.dock_timer=1.39f;docking_tick(&g,.009f);
+ CHECK(g.dock_stage==3&&!g.docked,"welcome: services stay closed during the welcome dwell");
+ docking_tick(&g,.001f);CHECK(g.dock_stage==0&&g.docked&&g.energy==100,"welcome: completed dwell opens services with a restored berth");
+ /* Delivery and smuggling packages stay active when absent and complete once. */
+ game_init(&g);g.job_n=1;g.jobs[0]=(Job){g.system,MISSION_DELIVERY,0,-1,1,g.system,1000,300};g.cargo[0]=0;cash=g.credits;docking_complete(&g);
+ CHECK(g.job_n==1&&g.credits==cash&&g.cargo[0]==0&&strstr(g.message,"missing"),"welcome: missing delivery package keeps the mission active");
+ g.docked=0;g.cargo[0]=1;docking_complete(&g);
+ CHECK(g.job_n==0&&g.credits==cash+1000&&!g.cargo[0],"welcome: delivered package completes once and is consumed");
+ game_init(&g);g.job_n=1;g.jobs[0]=(Job){g.system,MISSION_SMUGGLING,0,-1,1,g.system,1200,300};g.cargo[6]=0;cash=g.credits;docking_complete(&g);
+ CHECK(g.job_n==1&&g.credits==cash&&strstr(g.message,"missing"),"welcome: missing smuggling package keeps the mission active");
+ g.docked=0;g.cargo[6]=1;docking_complete(&g);
+ CHECK(g.job_n==0&&g.credits==cash+1200&&!g.cargo[6],"welcome: smuggling package completes once and is consumed");
+ /* Rescue uses the same welcome path but requires the rescued pilot aboard. */
+ game_init(&g);g.job_n=1;g.jobs[0]=(Job){g.system,MISSION_RESCUE,0,-1,1,g.system,1400,300};cash=g.credits;docking_complete(&g);
+ CHECK(g.job_n==1&&g.credits==cash&&strstr(g.message,"not yet aboard"),"welcome: rescue mission stays active before pickup");
+ g.docked=0;g.jobs[0].stage=1;docking_complete(&g);
+ CHECK(g.job_n==0&&g.credits==cash+1400,"welcome: rescued pilot return completes once at the station");
+ /* Guided entry must expose the same arrival and welcome stages as manual entry. */
+ game_init(&g);launch(&g);g.pos=(Vec3){0,0,2800};g.speed=300;int saw_entry=0,saw_welcome=0;
+ CHECK(dock(&g)&&g.dock_stage==1&&!g.docked,"route: communicator starts guided station entry without teleporting");
+ for(int i=0;i<1400&&!g.docked&&!g.dead;i++){game_tick(&g,1.f/60,0,0,0,0);saw_entry|=g.dock_stage==2;saw_welcome|=g.dock_stage==3;}
+ CHECK(saw_entry&&saw_welcome&&g.docked&&!g.dead,"route: guidance crosses entry, welcome and services without hull damage");
+ /* The reserved delivery package survives a save/load round trip unchanged. */
+ game_init(&g);g.docked=1;g.job_n=1;g.jobs[0]=(Job){g.system,MISSION_DELIVERY,0,-1,1,g.system,1000,300};g.cargo[0]=1;
+ CHECK(save_game(&g,"test-welcome-package.sav")&&load_game(&loaded,"test-welcome-package.sav")&&loaded.job_n==1&&loaded.jobs[0].type==MISSION_DELIVERY&&loaded.cargo[0]==1&&mission_cargo_reserved(&loaded,0)==1,"package: reserved delivery survives save/load without mutation");
+ remove("test-welcome-package.sav");remove("test-welcome-package.sav.bak");
  game_init(&g);g.approach=1;g.pos=g.bodies[1].pos;turn_back(&g);
  CHECK(length(sub(g.pos,g.bodies[1].pos))>=g.bodies[1].radius+99&&!approach_planet(&g,1),"journey: turnback escapes invalid planet position and faces away");
  game_init(&g);launch(&g);g.credits=0;g.fuel=0;g.legal=5;g.pos=(Vec3){0,0,-20000};

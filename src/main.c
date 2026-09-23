@@ -710,6 +710,15 @@ static void input_tests(void){
   for(int i=0;i<hn;i++)if(hot[i].kind==SC_H_EXIT&&hot[i].id!=SC_EXIT_SHIP){ex=i;break;}
   if(ex>=0){sc_hot=ex;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(sc_room!=start,"station: X on a door changes room");}
   else INPUT_CHECK(0,"station: arrivals must list at least one exit hotspot");}
+ /* The welcome slice reaches the bar through the room graph and enters its named contact. */
+ TEST_INIT();change_page(HOME);row=20;input(PSP_CTRL_CROSS,0,.016f,0,0);input(0,0,.016f,0,0);
+ sc_room=SC_R_ARRIVALS;sc_built_for=-1;sc_build_map();
+ {ScHot hot[24];int hn=sc_hotspots(hot,24),bar_exit=-1;for(int i=0;i<hn;i++)if(hot[i].kind==SC_H_EXIT&&hot[i].id==SC_R_CANTEEN){bar_exit=i;break;}
+  INPUT_CHECK(bar_exit>=0,"station welcome: arrivals exposes the canteen/bar entry");
+  if(bar_exit>=0){sc_hot=bar_exit;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(sc_room==SC_R_CANTEEN,"station welcome: door entry reaches the bar room");}
+  input(0,0,.016f,0,0);hn=sc_hotspots(hot,24);int bartender=-1;for(int i=0;i<hn;i++)if(hot[i].kind==SC_H_PERSON&&!strcmp(hot[i].label,"BARTEND")){bartender=i;break;}
+  INPUT_CHECK(bartender>=0,"station welcome: bar room exposes the named bartender contact");
+  if(bartender>=0){sc_hot=bartender;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(sc_menu==SC_MENU_TALK,"station welcome: bartender entry opens contact dialogue");input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(strstr(game.message,"Meridian tips well")!=0,"station welcome: bartender dialogue keeps the authored bar contact line");}}
  TEST_INIT();launch(&game);page=FLIGHT;game.approach=1;enter_planet(&game);{Vec3 pad=surface_site(&game,1);game.pos=add(pad,(Vec3){0,18,0});game.speed=8;land_planet(&game);eva_toggle(&game);}
  {Vec3 before=game.pos;input(0,0,.05f,0,.9f);INPUT_CHECK(game.surface==2&&length(sub(game.pos,before))>1.f,"planet EVA: nub forward walks across the surface");}
  #include "journey-input-tests.h"
