@@ -50,6 +50,14 @@ static void draw_tree_billboard(float x,float z,unsigned h,int kind){
  if(biome==BIOME_ICE){leaf=mix_rgb(b->accent,RGB(180,210,230),.5f);dark=mix_rgb(leaf,RGB(80,120,150),.35f);trunk=mix_rgb(b->color,RGB(160,180,200),.45f);}
  if(biome==BIOME_VOLCANIC){leaf=mix_rgb(b->accent,RGB(180,60,40),.4f);dark=mix_rgb(leaf,RGB(40,20,20),.4f);trunk=mix_rgb(b->color,RGB(50,40,40),.5f);}
  if(biome==BIOME_FOREST)leaf=mix_rgb(b->accent,RGB(36,110,42),.4f);
+ /* Ground contact cue: a compact, low-contrast shadow keeps small native
+  * billboards attached to the terrain instead of reading as floating HUD art. */
+ if(!high_contrast){
+  unsigned shade=mix_rgb(b->color,RGB(18,22,24),.72f);
+  int sw=kind==2?s+2:kind==1?s+1:(s*3)/4;
+  if(sw<3)sw=3;
+  planet_cliprect(x0-sw/2,y1-1,sw,2,shade);
+ }
  if(kind==2){
   unsigned rock=mix_rgb(b->color,RGB(110,96,78),.45f);
   if(biome==BIOME_ICE)rock=mix_rgb(b->accent,RGB(200,220,235),.4f);

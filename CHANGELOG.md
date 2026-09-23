@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.64 - planetary presentation polish
+
+- Added compact native-resolution contact shadows beneath surface flora, bushes and rocks so close props read as grounded in the terrain.
+- Kept the effect low-contrast and disabled in high-contrast mode; collision, terrain and EVA behavior are unchanged.
+
 ## 2.5.50 - native station visual rollout
 
 - Added a shared native 480×272 station presentation shell with consistent headers, options rail, feedback area and SHIP return treatment.
