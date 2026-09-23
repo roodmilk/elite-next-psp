@@ -47,6 +47,7 @@ static int tracked_mission=0;
 enum { STATION_TOUR_OFF=0, STATION_TOUR_ROUTE, STATION_TOUR_DOCK, STATION_TOUR_WALK, STATION_TOUR_BAR, STATION_TOUR_TALK, STATION_TOUR_DONE };
 #define STATION_TOUR_DEST 39
 static int station_tour_stage=STATION_TOUR_OFF;
+static int station_tour_wrong_hub_notice=0;
 static int analog_center_x=128,analog_center_y=128;
 static int walk_kind=0;
 static float walk_x=0,walk_z=0,walk_yaw=0;
@@ -986,7 +987,6 @@ int main(void){
  audio_stop();
  sceKernelExitGame();return 0;
 }
-
 
 
 

@@ -32,10 +32,14 @@ static void station_tour_tick(void){
    message(&game,"Station Welcome: follow the plotted route to Reorte.");
   }
  }else if(station_tour_stage==STATION_TOUR_DOCK){
-  if(game.system==STATION_TOUR_DEST&&game.docked){
+  if(game.system==STATION_TOUR_DEST&&game.docked&&game.station_variant==0){
    station_tour_stage=STATION_TOUR_WALK;
    route_clear(&game);
    message(&game,"Docked at Reorte Hub. Disembark, then walk to CANTEEN.");
+  }else if(game.system==STATION_TOUR_DEST&&game.docked&&game.station_variant!=0&&!station_tour_wrong_hub_notice){
+   station_tour_wrong_hub_notice=1;
+   message(&game,"Station Welcome: secondary hub. Dock at Reorte primary Hub for THE SECOND SHIFT.");
+   game.cue=SFX_UI;
   }
  }else if(station_tour_stage==STATION_TOUR_WALK){
   if(page==WALK&&sc_room==SC_R_CANTEEN&&bar_preview_at()){
