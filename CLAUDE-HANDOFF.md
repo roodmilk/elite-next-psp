@@ -1,5 +1,15 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Integrated 2.5.49 — The Second Shift playable preview
+
+Reorte's primary hub now has a playable illustrated bar reached through WALK,
+ARRIVALS and CANTEEN. Lysa Kest, Pell Sorn and Dax Neral provide short dialogue,
+Reorte I navigation help and free session-only High Orbit practice. The activity
+does not write credits, cargo, jobs or saves; secondary hubs and other systems
+retain their ordinary canteens. The PSP build completes successfully. The local
+PPSSPP launcher produced no smoke reports during packaging, so physical PSP and
+fresh-emulator interaction remain the immediate verification step.
+
 ## Integrated 2.5.48 — planetary EVA traversal
 
 The specialist/planetary-eva checkpoint adds independent look/walk/strafe/jet,
@@ -91,7 +101,7 @@ The Chapter 05 slice on `specialist/gameplay-story-ch05` adds the authored early
 
 The planetary story now awards an atmospheric landing kit when the existing coaching reaches **Her World**, after the power lesson. The award uses the existing `story_flags` word (`STORY_EV_LANDING_TECH`), so no `Game` layout or save-version change is present. Atmospheric approach remains available, but `land_planet()` requires the kit; completed/free-story saves and skipped coaching remain compatible. The handoff dialogue names the kit as recovered from Ryn's locker so the first landing reads as a deliberate story milestone.
 
-Prepared 23 September 2026. Current build: **2.5.48**.
+Prepared 23 September 2026. Current build: **2.5.49**.
 
 ## PSP UI/art specialist handoff — native deck readability
 

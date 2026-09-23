@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.5.49 - 2026-09-23
+
+- Added the playable Second Shift bar at Reorte's primary hub using the approved native PSP pixel artwork.
+- Added Lysa Kest, Pell Sorn and Dax Neral conversations, safe Reorte I navigation guidance, and free High Orbit dice practice.
+- Kept the preview session-only: dice cannot change credits, cargo, missions or saves, and ordinary canteens in other hubs remain unchanged.
+
 ## Unreleased - current-ship menu beauty preview
 
 - The command-deck inset shows the actual owned hull in a quiet 96-second
