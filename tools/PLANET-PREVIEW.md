@@ -42,6 +42,7 @@ node tools/export-station-content-pack.mjs --manifest work/planet-preview/statio
 node tools/measure-psp-art-budget.mjs --dir work/planet-preview --contract tools/planet-art-contract.json --planet-pack planet.content --station-pack station.content
 node tools/validate-art-pipeline.mjs --dir work/planet-preview --contract tools/planet-art-contract.json --pack planet.content
 node tools/validate-room-coverage.mjs --register <path-to-ROOM-COVERAGE-REGISTER.json> --station work/planet-preview/station-activity.json
+node tools/validate-element-kit-budget.mjs --manifest <path-to-ELEMENT-MANIFEST.json> --out work/planet-preview/element-kit-budget.json
 ```
 
 This emits three stable station records per system for the hub, relay, and
