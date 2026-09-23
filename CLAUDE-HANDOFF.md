@@ -18,6 +18,18 @@ point-and-click station screens, along with planetary, ship, GalNet and other
 game interfaces. The two specialist groups own their bounded implementations;
 the manager owns cohesion, allocation and native 480×272 art acceptance.
 
+## Manager operating contract
+
+The PSP is the primary platform. Every manager designs and tests against native
+480×272 first, including memory, framebuffer, input, audio and performance
+limits. Larger previews are derivatives only. A feature is not complete from a
+concept, plan or compile alone: it needs an integrated build, native normal and
+high-contrast evidence, real input/state checks, truthful capability text,
+save/economy safety and performance evidence. Generic fallback is unfinished
+and must not imply unsupported gameplay. Managers coordinate before shared
+edits and keep their ownership boundaries explicit; the Lead integrates and
+releases.
+
 ## Project-wide native-art acceptance rule
 
 All station artwork and station UI must be authored and judged at the PSP's
