@@ -15,5 +15,5 @@ depth variants and stable content channels.
 
 This freeze changes kit metadata, documentation and preview assets only. It
 does not change station runtime, selector/version, saves, gameplay, audio or
-the Art3 footer candidate. Art2 may reference IDs after Systems freezes the
+the separate shared footer candidate. PSP UI & Art Procedural Room Composer may reference IDs after Systems freezes the
 selector/generator hash and Team reserves the composer include/dispatch hunk.

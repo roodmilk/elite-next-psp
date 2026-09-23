@@ -77,8 +77,9 @@ claims. The manifest records assembly totals once a pose/content set is frozen.
 
 ## Gaps and ownership
 
-Art1 owns Second Shift/Canteen/Bar scene assembly. Art2 owns Arrivals, station
-exteriors and planet/body window visuals. Art3 owns shared chrome, footer/help
-and screen framing. Market, Shipyard, Outfitting, Mission Board and GalNet
+PSP UI & Art Manager owns Second Shift/Canteen/Bar scene assembly and shared
+presentation. PSP UI & Art Procedural Room Composer owns Arrivals, station
+exteriors and planet/body window composition. PSP UI & Art Reusable Element Kit
+owns these modular pieces. Market, Shipyard, Outfitting, Mission Board and GalNet
 content art still require Team allocation. No shared runtime hunk is requested
 by this kit; Team must reserve the eventual asset include/dispatch points.

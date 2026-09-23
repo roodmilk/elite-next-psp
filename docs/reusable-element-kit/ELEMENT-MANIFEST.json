@@ -20,5 +20,5 @@
   ],
   "assembly_cost_bytes": {"freight_core":11055,"prospector_core":11108,"research_core":10872},
   "shared_palette_bytes": 44,
-  "owners": {"bar":"Art1","arrivals_exteriors_windows":"Art2","chrome_footer_help":"Art3","other_screen_content":"Team allocation required"}
+  "owners": {"bar":"PSP UI & Art Manager","arrivals_exteriors_windows":"PSP UI & Art Procedural Room Composer","element_kit":"PSP UI & Art Reusable Element Kit","chrome_footer_help":"PSP UI & Art Manager","other_screen_content":"Team allocation required"}
 }
