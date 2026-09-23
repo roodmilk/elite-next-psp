@@ -25,6 +25,8 @@ enum { SC_EXIT_SHIP=-1 };
 #define SC_CYAN ART_CYAN
 #define SC_AMBER ART_AMBER
 #define SC_DANGER ART_DANGER
+#include "station-shell.h"
+#include "station-authored-art.h"
 /* MacVenture room ids → art kit (bake mapper still tracks old grid enums). */
 static int sc_art_id(int room){
  static const int map[SC_R_COUNT]={
@@ -57,6 +59,7 @@ static void sc_person_pos(int room,int i,int *ox,int *oy){
  *ox=pos[room][i][0];*oy=pos[room][i][1];
 }
 static const char *sc_room_title(int r){
+ if(r==SC_R_ARRIVALS&&station_authored_arrivals_at())return "REORTE TRANSIT";
  if(r==SC_R_CANTEEN&&bar_preview_at())return "THE SECOND SHIFT";
  static const char *n[]={"ARRIVALS HALL","CHANDLERY","CANTEEN","CARGO BAY","GUILD DESK","MED CLINIC","CUSTOMS LOCK"};
  return r>=0&&r<SC_R_COUNT?n[r]:"DECK";
@@ -588,7 +591,10 @@ static void sc_draw_main_scene(void){
  rect(VX,VY,VW,VH,SC_VOID);
  rect(VX,VY,VW,1,SC_OCHRE);
  rect(VX,VY+VH-1,VW,1,SC_SLATE);
- if(sc_room==SC_R_ARRIVALS)sc_illust_arrivals(VX,VY,VW,VH);
+ if(sc_room==SC_R_ARRIVALS){
+  if(station_authored_arrivals_at())sc_illust_authored_arrivals(VX,VY,VW,VH);
+  else sc_illust_arrivals(VX,VY,VW,VH);
+ }
  else if(sc_room==SC_R_SHOP)sc_illust_shop(VX,VY,VW,VH);
  else if(sc_room==SC_R_CANTEEN){if(second_shift)sc_illust_second_shift(VX,VY,VW,VH);else sc_illust_canteen(VX,VY,VW,VH);}
  else if(sc_room==SC_R_CARGO)sc_illust_cargo(VX,VY,VW,VH);
@@ -630,26 +636,27 @@ static void sc_draw_main_scene(void){
 }
 /* Room title only — no verb buttons, no PACK hold cue. */
 static void sc_draw_header(void){
+ StationShellStyle shell=station_shell_style();
  rect(0,0,W,SC_VY-2,SC_CHAR);
- rect(0,SC_VY-3,W,1,SC_OCHRE);
- text(1,1,SC_AMBER,"%.18s",sc_room_title(sc_room));
- text(28,1,SC_LAV,"U/D  X do  TRI ship");
+ rect(0,SC_VY-3,W,1,shell.rule);
+ text(1,1,shell.warm,"%.18s",sc_room_title(sc_room));
+ text(24,1,shell.cyan,"%.18s",station_shell_tag(sc_room));
+ text(46,1,shell.cream,"U/D X  TRI SHIP");
 }
 /* Right-side people / options list — the only selector. */
 static void sc_draw_options(void){
+ StationShellStyle shell=station_shell_style();
  rect(SC_LX,SC_LY,SC_LW,SC_LH,mix_rgb(SC_CHAR,SC_VOID,.35f));
- rect(SC_LX,SC_LY,SC_LW,1,SC_OCHRE);
- rect(SC_LX,SC_LY+SC_LH-1,SC_LW,1,SC_SLATE);
- rect(SC_LX,SC_LY,1,SC_LH,SC_OCHRE);
- text((SC_LX+8)/8,(SC_LY+4)/8,SC_LAV,"OPTIONS");
+ station_shell_frame(SC_LX,SC_LY,SC_LW,SC_LH,0);
+ text((SC_LX+8)/8,(SC_LY+4)/8,shell.cyan,"OPTIONS");
  ScHot hot[24]; int hn=sc_hotspots(hot,24);
  if(sc_hot<0)sc_hot=0;if(hn>0&&sc_hot>=hn)sc_hot=hn-1;
  int rows=(SC_LH-20)/12;if(rows<4)rows=4;if(rows>12)rows=12;
  int first=0;if(hn>rows){first=sc_hot-(rows/2);if(first<0)first=0;if(first>hn-rows)first=hn-rows;}
  for(int j=0;j<rows&&first+j<hn;j++){
   int i=first+j,y=SC_LY+16+j*12;
-  unsigned ink=i==sc_hot?SC_AMBER:SC_CREAM;
-  if(i==sc_hot)rect(SC_LX+2,y-1,SC_LW-4,11,mix_rgb(SC_OCHRE,SC_CHAR,.28f));
+  unsigned ink=i==sc_hot?shell.warm:shell.cream;
+  if(i==sc_hot)rect(SC_LX+2,y-1,SC_LW-4,11,mix_rgb(shell.rule,shell.ink,.28f));
   char line[20];
   if(hot[i].kind==SC_H_PERSON)snprintf(line,sizeof(line),"%.14s",hot[i].label);
   else if(hot[i].kind==SC_H_EXIT&&hot[i].id==SC_EXIT_SHIP)snprintf(line,sizeof(line),"YOUR SHIP");
@@ -705,8 +712,9 @@ static void sc_talk_tip(const ScNpc *p){
 static void sc_draw_text_box(void){
  /* Feedback band under MAIN + options — label + look only. */
  const int ty=SC_VY+SC_VH+2;
- rect(0,ty,W,H-ty,mix_rgb(SC_VOID,SC_CHAR,.6f));
- rect(0,ty,W,1,SC_OCHRE);
+ StationShellStyle shell=station_shell_style();
+ rect(0,ty,W,H-ty,mix_rgb(shell.panel,shell.ink,.6f));
+ station_shell_rule(0,ty,W,shell.cyan);
  int row=ty/8+1;
  ScHot hot[24]; int hn=sc_hotspots(hot,24);
  if(sc_menu==SC_MENU_SHOP){
