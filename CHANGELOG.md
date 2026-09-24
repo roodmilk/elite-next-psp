@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.92 — richer cockpit radio chatter
+
+- Expanded each radio station’s cockpit ticker from 10 to 24 snippets, including adverts, alien call-ins, arguments and strange talk-show moments.
+- Added a short varied pause before each new ticker line begins scrolling, making broadcasts feel less mechanical while staying PSP/60 FPS friendly.
+
 ## 2.5.91 — solar-system Discovery Codex
 
 - Discovery Codex now drills down from visited solar systems into their station, star and four worlds.

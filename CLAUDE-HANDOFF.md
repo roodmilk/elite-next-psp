@@ -1,5 +1,9 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.92 — richer cockpit radio chatter
+
+Expanded the five cockpit radio stations to 24 snippets each, with more adverts and alien talk-show comedy. Added a lightweight varied pause before each ticker line begins.
+
 ## Released 2.5.91 — solar-system Discovery Codex
 
 Discovery Codex is now organized as a hierarchy: visited systems → station/star/world records → planet flora and fauna details. System pages also summarize mineral signatures, echoes and local life/traffic records.
