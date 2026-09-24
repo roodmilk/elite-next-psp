@@ -1,5 +1,9 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.91 — solar-system Discovery Codex
+
+Discovery Codex is now organized as a hierarchy: visited systems → station/star/world records → planet flora and fauna details. System pages also summarize mineral signatures, echoes and local life/traffic records.
+
 ## Released 2.5.90 — expanded Galactic Lore archive
 
 Galactic Lore is now a first-class Discover menu entry beside Discovery Codex and GalacticNet. Its archive has twelve longer entries and a full readable detail panel. The station action is labelled `DISEMBARK`.

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.5.91 — solar-system Discovery Codex
+
+- Discovery Codex now drills down from visited solar systems into their station, star and four worlds.
+- World records show potential flora and fauna; system records summarize minerals, echoes, life logs and station traffic.
+- Added X to open a selected record and Circle to step back through the hierarchy.
+
 ## 2.5.90 — expanded Galactic Lore archive
 
 - Added `GALACTIC LORE` as its own Discover menu entry beside Discovery Codex and GalacticNet.
