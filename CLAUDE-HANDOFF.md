@@ -1,5 +1,10 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.71 — clearer held-Square target controls
+
+The held-Square scan banner now shows `L TARGET IN FRONT` and `R LOCK ON`;
+the old `D-PAD BANDS`/cycle-view wording is removed.
+
 ## Released 2.5.70 — unrestricted flight pitch
 
 Space and atmospheric flight pitch now wraps continuously at ±π instead of

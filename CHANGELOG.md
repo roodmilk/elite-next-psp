@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.71 — clearer held-Square target controls
+
+- Replaced the old `D-PAD BANDS` scan hint with `L TARGET IN FRONT` and `R LOCK ON`.
+
 ## 2.5.70 — unrestricted flight pitch
 
 - Removed the artificial up/down pitch limits during space and atmospheric flight.

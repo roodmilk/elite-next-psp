@@ -259,7 +259,7 @@ static void cockpit(void){
   text(cols-inset-clen,0,RGB(240,180,91),"%.*s",clen,cue);
  }
  if(game.dock_stage==1){rect(8,24,464,16,RGB(21,28,39));rect(8,24,464,1,RGB(193,139,77));text(2,4,RGB(85,212,212),"DOCKING GUIDANCE ACTIVE");}
- else if(square_held){rect(8,24,464,32,RGB(21,28,39));rect(8,24,464,1,RGB(193,139,77));for(int i=0;i<5;i++)text(1+i*11,4,i==scan_cat?RGB(240,180,91):RGB(155,154,165),"%s",scan_cat_names[i]);text(2,6,RGB(85,212,212),"D-PAD BANDS   L CYCLE VIEW");text(35,6,RGB(240,180,91),"R LOCK");}
+ else if(square_held){rect(8,24,464,32,RGB(21,28,39));rect(8,24,464,1,RGB(193,139,77));for(int i=0;i<5;i++)text(1+i*11,4,i==scan_cat?RGB(240,180,91):RGB(155,154,165),"%s",scan_cat_names[i]);text(2,6,RGB(85,212,212),"L TARGET IN FRONT");text(35,6,RGB(240,180,91),"R LOCK ON");}
  else if(game.approach<0&&!game.police_stop&&!game.dead&&!game.dock_stage&&game.jump<=0)speech_box(8,24,464);
  combat_alert_banner();
  rect(0,192,W,80,RGB(21,28,39));rect(0,192,W,1,RGB(193,139,77));
