@@ -202,10 +202,11 @@ static void codex_screen(void){
   text(32,20,DIM,sys==game.system?"In this system":"Discovered on visit");
  }else if(codex_tab==6){
   for(int j=0;j<7&&first+j<count;j++){int i=first+j,y=7+j*2;if(i==row)rect(10,y*8-2,220,13,RGB(25,65,77));text(3,y,i==row?WHITE:DIM,"%.22s",milky_way_topics[i]);}
-  text(32,13,GOLD,"%.22s",milky_way_topics[row]);
-  text(32,16,WHITE,"MILKY WAY FILE");
-  text(32,18,DIM,"%.29s",milky_way_notes[row]);
-  text(32,20,DIM,"Shipboard reference / original brief");
+  text(32,14,GOLD,"GALACTIC LORE");
+  text(32,17,WHITE,"Select a topic for the brief.");
+  panel(8,188,464,50);
+  text(3,24,GOLD,"%.54s",milky_way_topics[row]);
+  text_wrap(3,25,54,3,WHITE,milky_way_notes[row],0);
  }else if(n<=0){text(3,10,DIM,"Nothing logged yet.");text(32,10,WHITE,"Scan on foot. Square.");}
  else {
   for(int j=0;j<7&&first+j<count;j++){int i=first+j,y=7+j*2;char name[24],where[24];codex_life_label(codex_tab,i,name,sizeof(name),where,sizeof(where));if(i==row)rect(10,y*8-2,220,13,RGB(25,65,77));text(3,y,i==row?WHITE:DIM,"%.22s",name);}

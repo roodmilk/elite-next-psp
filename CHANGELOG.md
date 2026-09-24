@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.78 — readable Galactic Lore details
+
+- Galactic Lore entries now use a full-width bottom panel with wrapped text instead of the narrow right detail column.
+
 ## 2.5.77 — concise cargo menu label
 
 - The undocked SHIP menu now labels the cargo screen simply `Cargo`; docked stations retain `Cargo & market`.

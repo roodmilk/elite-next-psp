@@ -1,5 +1,9 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.78 — readable Galactic Lore details
+
+The Galactic Lore codex now places the selected topic and wrapped brief in a full-width bottom panel so longer entries are readable.
+
 ## Released 2.5.74 — Trader cargo offers
 
 Trader hails now create a system-local commodity exchange for ordinary traders. The player is told what cargo to buy, and hailing the same named contact again completes the swap. Scanner identification is stored on the live NPC slot so the targeting computer retains the trader's callsign after the player returns from the market. The offer is session-local; commander saves remain V13-compatible.
