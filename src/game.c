@@ -68,6 +68,9 @@ void encounter_respond(Game *g){
  speak(g,VOICE_CONTACT,"Safe flight, Commander. Keep your scanner open.");
 }
 static void mark_visited(Game *g){g->visited[g->system>>3]|=(uint8_t)(1u<<(g->system&7));}
+static const char *arrival_economy(int economy){static const char *names[]={"RICH INDUSTRIAL","AVERAGE INDUSTRIAL","POOR INDUSTRIAL","MAINLY INDUSTRIAL","RICH AGRICULTURAL","AVERAGE AGRICULTURAL","POOR AGRICULTURAL","MAINLY AGRICULTURAL"};return names[economy&7];}
+static const char *arrival_government(int government){static const char *names[]={"ANARCHY","FEUDAL","MULTI-GOVERNMENT","DICTATORSHIP","COMMUNIST","CONFEDERACY","DEMOCRACY","CORPORATE STATE"};return names[government&7];}
+static void first_arrival_brief(const Game *g,char *out,int cap){const System *s=&g->systems[g->system];snprintf(out,cap,"First arrival at %s. Economy %s. Government %s. Technology %d. Local danger %d of 5. Four planets and a station are now logged in your Discovery Codex.",s->name,arrival_economy(s->economy),arrival_government(s->government),s->tech+1,danger_rating(g,g->system));}
 int systems_visited(const Game *g){int n=0;for(int i=0;i<32;i++)for(int b=0;b<8;b++)n+=(g->visited[i]>>b)&1;return n;}
 static void twist(uint16_t s[3]){uint16_t t=(uint16_t)(s[0]+s[1]+s[2]);s[0]=s[1];s[1]=s[2];s[2]=t;}
 void galaxy(System out[256]){
@@ -731,12 +734,12 @@ static void game_step(Game *g,float dt,float turn,float pitch,int throttle,int f
    message(g,"Escape pod fired. Recovered to hub — pod spent.");speak(g,VOICE_COMP,"Escape pod recovered. Module consumed.");
   }else {g->dead=1;g->jump=0;g->cue=SFX_DEATH;message(g,"Ship destroyed. START for a new commander.");}
  }
- if(g->jump>0){g->jump-=dt;if(g->jump<=0){float spent=distance_ly(g,g->system,g->destination)*10;g->fuel-=spent;if(g->fuel<0)g->fuel=0;g->wanted[g->system]=g->legal;g->system=g->destination;g->legal=g->wanted[g->system];
+ if(g->jump>0){g->jump-=dt;if(g->jump<=0){float spent=distance_ly(g,g->system,g->destination)*10;g->fuel-=spent;if(g->fuel<0)g->fuel=0;g->wanted[g->system]=g->legal;int arriving=g->destination,first_arrival=!(g->visited[arriving>>3]&(1u<<(arriving&7)));g->system=arriving;g->legal=g->wanted[g->system];
   /* Arrive well short of the hub, from a system-unique bearing — always farther than a normal launch. */
   {unsigned h=sector_hash((g->system+1)*0xc2b2ae35u);float ang=g->system*1.918f+0.55f+((h&1023)*.001f);float dist=11000.f+(g->system%17)*780.f+((h>>10)%900);
    g->pos=(Vec3){sinf(ang)*dist*.62f,((int)((h>>18)%11)-5)*420.f,-dist*.78f};g->yaw=atan2f(-g->pos.x,STATION_Z-g->pos.z);g->pitch=0;g->speed=100;}
   travellers_advance(g,g->system);
-  market(g);game_spawn(g);saga_observation_reenter(g);route_refresh_destination(g);g->cue=SFX_WARP;char note[80];snprintf(note,sizeof(note),"Hyperspace complete. Fuel %.1f LY left.",g->fuel*.1f);message(g,note);speak(g,VOICE_COMP,"Hyperspace complete. Station ahead.");}}
+  market(g);game_spawn(g);saga_observation_reenter(g);route_refresh_destination(g);g->cue=SFX_WARP;char note[80];snprintf(note,sizeof(note),"Hyperspace complete. Fuel %.1f LY left.",g->fuel*.1f);message(g,note);if(first_arrival){char brief[160];first_arrival_brief(g,brief,sizeof(brief));message(g,"FIRST ARRIVAL: System data added to the Discovery Codex.");speak(g,VOICE_COMP,brief);}else speak(g,VOICE_COMP,"Hyperspace complete. Station ahead.");}}
 }
 void game_tick(Game *g,float dt,float turn,float pitch,int throttle,int fire){game_step(g,dt,turn,pitch,throttle,fire,0);}
 void game_eva_tick(Game *g,float dt,float turn,float pitch,int walk,float strafe,int jet){

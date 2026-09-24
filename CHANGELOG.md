@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.96 — first-arrival system briefings
+
+- On the first warp into a system, the ship computer now announces the arrival and reports its economy, government, technology and local danger level.
+- The briefing confirms that the system’s station and four planets were added to the Discovery Codex; repeat visits use the normal concise arrival message.
+
 ## 2.5.95 — matching Discovery Codex planets
 
 - Discovery Codex planet entries now use the exact in-system names (`Lave 1`, `Lave 2`, etc.) instead of generic World labels.

@@ -1,5 +1,9 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.96 — first-arrival system briefings
+
+Warp completion now detects first-time system entry before marking the system visited. The computer gives a one-time system briefing with economy, government, technology, danger and Codex coverage; repeat arrivals remain concise.
+
 ## Released 2.5.95 — matching Discovery Codex planets
 
 Discovery Codex now names and draws planets from the same deterministic system-body identity used by flight view, using names such as `Lave 1` and matching type, palette and artwork.
