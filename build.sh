@@ -25,6 +25,6 @@ psp-gcc -G0 "-L$SDK/lib" "-specs=$SDK/lib/prxspecs" -Wl,-q,-T"$SDK/lib/linkfile.
   -o "$BUILD/elite-a.elf"
 psp-fixup-imports "$BUILD/elite-a.elf"
 psp-prxgen "$BUILD/elite-a.elf" "$BUILD/elite-a.prx"
-  mksfoex -d MEMSIZE=0 'ELITE: NEXT 2.5.99' "$BUILD/PARAM.SFO"
+  mksfoex -d MEMSIZE=0 'ELITE: NEXT 2.5.100' "$BUILD/PARAM.SFO"
 pack-pbp "$ROOT/EBOOT.PBP" "$BUILD/PARAM.SFO" "$ROOT/assets/xmb/ICON0.PNG" NULL NULL "$ROOT/assets/xmb/PIC1.PNG" NULL "$BUILD/elite-a.prx" NULL
 echo "Built $ROOT/EBOOT.PBP"

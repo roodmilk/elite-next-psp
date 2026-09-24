@@ -3,7 +3,9 @@ static void comms_panel(void){
  if(game.encounter_kind!=ENCOUNTER_NONE&&game.encounter>0){
   header(comms_encounter_conversation?"INCOMING CHANNEL":"ENCOUNTER TRANSMISSION");panel(8,32,464,156);
   if(comms_encounter_conversation){
-   text(3,6,GOLD,"CONTACT RESPONSE");text_wrap(3,9,54,7,WHITE,game.voice[0]?game.voice:"Channel open.",0);text(3,20,CYAN,"X CONTINUE");text(30,20,DIM,"O RETURN TO FLIGHT");
+   text(3,6,GOLD,"CONTACT RESPONSE");text_wrap(3,9,54,5,WHITE,game.voice[0]?game.voice:"Channel open.",0);
+   const char *options[]={"CONTINUE DISCUSSION","ASK ABOUT THIS ENCOUNTER","END CHANNEL"};
+   for(int i=0;i<3;i++){int y=15+i*2;text(3,y,row==i?GOLD:WHITE,"%s%s",row==i?"> ":"  ",options[i]);}
   }else{
    text(3,6,GOLD,"NEW SPACE ENCOUNTER");text_wrap(3,9,54,5,WHITE,game.voice[0]?game.voice:"Transmission received.",0);text(3,20,row==0?GOLD:WHITE,"RESPOND");text(20,20,row==1?GOLD:WHITE,"IGNORE");
   }

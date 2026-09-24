@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.100 — quick-response comms
+
+- Triangle taps now ignore an incoming chat immediately.
+- Holding Triangle opens an in-flight Respond/Ignore overlay, while Respond continues into a fuller multi-option discussion screen.
+
 ## 2.5.99 — planet survey records
 
 - Removed Flora and Fauna from the Discovery Codex section cycle.

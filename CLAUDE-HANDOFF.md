@@ -1,5 +1,9 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.100 — quick-response comms
+
+Incoming chats can now be ignored with a Triangle tap. Holding Triangle opens a compact in-flight Respond/Ignore overlay; Respond opens the full channel with Continue, Ask About This Encounter and End Channel options.
+
 ## Released 2.5.99 — planet survey records
 
 Flora and Fauna are no longer top-level Discovery Codex sections. They are shown from each selected landed planet’s expanded survey record, alongside minerals and archive totals.

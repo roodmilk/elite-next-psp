@@ -129,6 +129,12 @@ static void speech_box(int x,int y,int w){
  button_icon(x+w-16,y,'T',ink);
  text_wrap(col,y/8+1,cap,3,RGB(229,210,163),s,0);
 }
+static void quick_comms_box(void){
+ if(!comms_quick||game.encounter_kind==ENCOUNTER_NONE)return;
+ int x=96,y=58,w=288,h=54;rect(x,y,w,h,RGB(10,18,35));rect(x,y,w,2,RGB(240,180,91));rect(x,y+ h-2,w,2,RGB(41,54,70));
+ text(14,8,RGB(85,212,212),"QUICK CHANNEL");text(14,10,RGB(229,210,163),"RESPOND OR IGNORE");
+ text(31,8,comms_quick_choice==0?RGB(240,180,91):RGB(155,154,165),"X RESPOND");text(31,10,comms_quick_choice==1?RGB(240,180,91):RGB(155,154,165),"X IGNORE");text(14,12,DIM,"UP/DOWN CHOOSE   O CLOSE");
+}
 static void pip_bar(int x,int y,int w,int h,int fill,unsigned c){
  if(fill<0)fill=0;
  if(fill>100)fill=100;
@@ -270,7 +276,7 @@ static void cockpit(void){
  }
  if(game.dock_stage==1){rect(8,24,464,16,RGB(21,28,39));rect(8,24,464,1,RGB(193,139,77));text(2,4,RGB(85,212,212),"DOCKING GUIDANCE ACTIVE");}
  else if(square_held){int under_attack=game.attacked>0||game.incoming_missile>0;rect(8,24,464,32,RGB(21,28,39));rect(8,24,464,1,RGB(193,139,77));for(int i=0;i<5;i++){unsigned tab=i==scan_cat?RGB(240,180,91):RGB(155,154,165);if(i==4&&under_attack)tab=((int)(game.time*8)&1)?RED:RGB(90,25,30);text(1+i*11,4,tab,"%s",scan_cat_names[i]);}text(2,6,RGB(85,212,212),"L TARGET IN FRONT");text(35,6,RGB(240,180,91),"R LOCK ON");}
- else if(game.approach<0&&!game.police_stop&&!game.dead&&!game.dock_stage&&game.jump<=0)speech_box(8,24,464);
+ else if(game.approach<0&&!game.police_stop&&!game.dead&&!game.dock_stage&&game.jump<=0){speech_box(8,24,464);quick_comms_box();}
  combat_alert_banner();
  rect(0,192,W,80,RGB(21,28,39));rect(0,192,W,1,RGB(193,139,77));
  line(155,198,155,258,RGB(41,54,70));line(323,198,323,258,RGB(41,54,70));
