@@ -1,5 +1,13 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.95 — matching Discovery Codex planets
+
+Discovery Codex now names and draws planets from the same deterministic system-body identity used by flight view, using names such as `Lave 1` and matching type, palette and artwork.
+
+## Released 2.5.94 — readable Start/Select icons
+
+Start, Select and L/R now use black rounded PSP-style mini-buttons with white pixel letters (`ST`, `SE`, `L`, `R`) for clearer recognition at a glance.
+
 ## Released 2.5.93 — unified PSP control icons
 
 Added one shared 10x10 pixel renderer for all PSP face buttons, D-pad directions, D-pad cluster, L/R shoulders, Start, Select and the analog nub. Footer prompts now resolve these tokens to aligned, consistently coloured symbols.

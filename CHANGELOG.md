@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.5.95 — matching Discovery Codex planets
+
+- Discovery Codex planet entries now use the exact in-system names (`Lave 1`, `Lave 2`, etc.) instead of generic World labels.
+- Codex planet records and previews now use the matching system body type, palette, seed and artwork.
+
+## 2.5.94 — readable Start/Select icons
+
+- Changed the tiny L/R, Start and Select symbols to black rounded PSP-style buttons with white letter marks.
+- Start shows `ST`, Select shows `SE`, and the shoulder buttons show `L`/`R` so they are immediately distinguishable at small size.
+
 ## 2.5.93 — unified PSP control icons
 
 - Added a shared tiny icon set for Cross, Circle, Triangle, Square, D-pad directions, the full D-pad, L/R shoulders, Start, Select and the analog nub.

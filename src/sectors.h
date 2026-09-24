@@ -28,7 +28,7 @@ void system_bodies(Game *g){
   b->color=i==0?suns[h%10]:worlds[(h>>8)%15];
   b->accent=worlds[(h>>16)%15];
   if(g->system==7&&i==1){b->type=OCEAN;b->color=0xc35f23;b->accent=0x4b9137;}
-  snprintf(b->name,sizeof(b->name),"%s %s",g->systems[g->system].name,i==0?"SUN":i==1?"I":i==2?"II":i==3?"III":"IV");
+  snprintf(b->name,sizeof(b->name),"%s %s",g->systems[g->system].name,i==0?"SUN":i==1?"1":i==2?"2":i==3?"3":"4");
  }
  /* Lave keeps the familiar sun / ocean / rocky / gas / rocky set for the opening chapter. */
  if(g->system==7){g->bodies[1].type=OCEAN;g->bodies[1].color=0xc35f23;g->bodies[1].accent=0x4b9137;g->bodies[2].type=ROCKY;g->bodies[3].type=GAS;g->bodies[4].type=ROCKY;}

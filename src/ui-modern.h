@@ -98,6 +98,12 @@ static void body_tint(int sys,int i,unsigned *col,unsigned *acc,int *type){
  *type=i==0?SUN:world_perm[perm][(i-1)&3];*col=i==0?suns[h%10]:worlds[(h>>8)%15];*acc=worlds[(h>>16)%15];
  if(sys==7&&i==1){*type=OCEAN;*col=0xc35f23;*acc=0x4b9137;}
 }
+static const char *codex_body_name(int sys,int body){
+ static char name[32];
+ if(sys==game.system&&body>=0&&body<BODY_COUNT)return game.bodies[body].name;
+ snprintf(name,sizeof(name),"%s %s",game.systems[sys].name,body==0?"SUN":body==1?"1":body==2?"2":body==3?"3":"4");
+ return name;
+}
 static void chart_system_preview(int dest){
  int xs[5]={352,394,436,373,415},ys[5]={58,52,58,92,96},rs[5]={16,12,10,14,11};
  for(int i=0;i<BODY_COUNT;i++){unsigned col,acc;int type;body_tint(dest,i,&col,&acc,&type);draw_planet_disc(xs[i],ys[i],rs[i],col,acc,body_art_seed(dest,i),type);}
@@ -174,8 +180,7 @@ static int codex_system_echoes(int sys){return (sys*7+game.systems[sys].governme
 static int codex_system_row(void){return codex_system>=0?codex_system:game.system;}
 static void codex_system_screen(void){
  int sys=codex_system_row(),count=codex_rows();header("DISCOVERY CODEX / SYSTEM");panel(8,47,232,180);panel(248,47,224,180);
- const char *items[]={"SPACE STATION","PRIMARY STAR","WORLD I","WORLD II","WORLD III","WORLD IV"};
- for(int i=0;i<count;i++){int y=7+i*3;if(i==row)rect(10,y*8-2,220,18,RGB(25,65,77));text(3,y,i==row?WHITE:DIM,"%s",items[i]);}
+ for(int i=0;i<count;i++){int y=7+i*3;if(i==row)rect(10,y*8-2,220,18,RGB(25,65,77));if(i==0)text(3,y,i==row?WHITE:DIM,"SPACE STATION");else text(3,y,i==row?WHITE:DIM,"%.22s",codex_body_name(sys,i-1));}
  text(32,9,CYAN,"%.24s",game.systems[sys].name);text(32,11,WHITE,"SYSTEM ARCHIVE");
  text(32,14,GOLD,"SPACE STATION");text(32,16,WHITE,"%.25s Hub",game.systems[sys].name);
  text(32,18,CYAN,"MINERALS %d   ECHOES %d",codex_system_minerals(sys),codex_system_echoes(sys));
@@ -187,7 +192,7 @@ static void codex_body_screen(void){
  int sys=codex_system_row(),body=codex_body,traders=0,law=0,pirates=0;for(int i=0;i<NPC_COUNT;i++)if(sys==game.system&&game.npc[i].alive){if(game.npc[i].role==TRADERS)traders++;else if(game.npc[i].role==LAW)law++;else if(game.npc[i].role==PIRATES)pirates++;}header("DISCOVERY CODEX / RECORD");panel(8,47,464,180);
  if(body==0){text(3,8,GOLD,"SPACE STATION / %.24s",game.systems[sys].name);text(3,11,WHITE,"Orbital hub and local traffic archive.");text(3,14,CYAN,"TRADERS %d   LAW %d   PIRATES %d",traders,law,pirates);text_wrap(3,18,56,5,DIM,"Stations connect pilots, markets, dock crews and travellers. Their local charter decides what counts as safe, legal or merely expensive.",0);}
  else if(body==1){text(3,8,GOLD,"PRIMARY STAR / %.24s",game.systems[sys].name);text(3,11,WHITE,"System anchor and mineral reference.");text(3,14,CYAN,"MINERAL SIGNATURES %d",codex_system_minerals(sys));text(3,16,AMBER,"ECHO SIGNALS %d",codex_system_echoes(sys));text_wrap(3,20,56,5,DIM,"The primary star shapes the system's routes, light and heat. Its surrounding belts and orbital traces are where many mineral and echo records begin.",0);}
- else {int planet=body-1;unsigned col,acc;int type;body_tint(sys,planet,&col,&acc,&type);draw_planet_disc(400,94,48,col,acc,body_art_seed(sys,planet),type);const char *flora[]={"GLOW VINE","GLASS FERN","SPORE TREE","NIGHT MOSS"};const char *fauna[]={"GLASS MOTH","DUST RUNNER","SKY RAY","BURROWER"};text(3,8,GOLD,"WORLD %d / %.18s",planet+1,game.systems[sys].name);text(3,11,WHITE,"%.12s world",type==OCEAN?"OCEAN":type==GAS?"GAS GIANT":"ROCKY");text(3,14,CYAN,"POTENTIAL FLORA");text(3,16,WHITE,"%s   %s",flora[(sys+planet)%4],flora[(sys+planet+1)%4]);text(3,19,CYAN,"POTENTIAL FAUNA");text(3,21,WHITE,"%s   %s",fauna[(sys+planet*2)%4],fauna[(sys+planet*2+1)%4]);text(3,24,DIM,sys==game.system?"Scan on foot to add discoveries.":"Revisit this world to scan its life.");}
+ else {int planet=body-1;unsigned col,acc;int type;body_tint(sys,planet,&col,&acc,&type);draw_planet_disc(400,94,48,col,acc,body_art_seed(sys,planet),type);const char *flora[]={"GLOW VINE","GLASS FERN","SPORE TREE","NIGHT MOSS"};const char *fauna[]={"GLASS MOTH","DUST RUNNER","SKY RAY","BURROWER"};text(3,8,GOLD,"%.27s",codex_body_name(sys,planet));text(3,11,WHITE,"%.12s planet",type==OCEAN?"OCEAN":type==GAS?"GAS GIANT":"ROCKY");text(3,14,CYAN,"POTENTIAL FLORA");text(3,16,WHITE,"%s   %s",flora[(sys+planet)%4],flora[(sys+planet+1)%4]);text(3,19,CYAN,"POTENTIAL FAUNA");text(3,21,WHITE,"%s   %s",fauna[(sys+planet*2)%4],fauna[(sys+planet*2+1)%4]);text(3,24,DIM,sys==game.system?"Scan on foot to add discoveries.":"Revisit this planet to scan its life.");}
  footer("O BACK");
 }
 static void codex_life_label(int tab,int i,char *name,int nn,char *where,int wn){
@@ -197,8 +202,8 @@ static void codex_life_label(int tab,int i,char *name,int nn,char *where,int wn)
  const char *echo[]={"MERIDIAN ECHO","STELLAR RIFT","GHOST PING","QUASAR HUM"};
  const char **src=tab==2?flora:tab==3?fauna:tab==4?ore:echo;int names=tab==5?4:6;
  snprintf(name,nn,"%s",src[i%names]);
- int sys=vis_sys(i%vis_count());const char *rom[]={"I","II","IV"};
- snprintf(where,wn,"%s %s",game.systems[sys].name,rom[i%3]);
+ int sys=vis_sys(i%vis_count()),body=1+(i%4);
+ snprintf(where,wn,"%.23s",codex_body_name(sys,body));
 }
 static void codex_screen(void){
  if(codex_scope==1){codex_system_screen();return;}
@@ -218,15 +223,14 @@ static void codex_screen(void){
   text(32,20,CYAN,"X opens system archive");
  }else if(codex_tab==1){
   for(int j=0;j<7&&first+j<count;j++){
-   int i=first+j,y=7+j*2,sys,body;planet_log_at(i,&sys,&body);const char *rom[]={"","I","II","III","IV"};
+   int i=first+j,y=7+j*2,sys,body;planet_log_at(i,&sys,&body);
    if(i==row)rect(10,y*8-2,220,13,RGB(25,65,77));
-   text(3,y,i==row?WHITE:DIM,"%.10s %s",game.systems[sys].name,rom[body]);
+   text(3,y,i==row?WHITE:DIM,"%.22s",codex_body_name(sys,body));
   }
   int sys,body;planet_log_at(row,&sys,&body);unsigned col,acc;int type;body_tint(sys,body,&col,&acc,&type);
   draw_planet_disc(318,86,34,col,acc,body_art_seed(sys,body),type);
-  const char *rom[]={"","I","II","III","IV"};
-  text(32,16,CYAN,"%.12s %s",game.systems[sys].name,rom[body]);
-  {const char *kindname[]={"STAR","OCEAN","ROCKY","GAS"};text(32,18,WHITE,"%s world",kindname[type>=0&&type<=GAS?type:ROCKY]);}
+  text(32,16,CYAN,"%.27s",codex_body_name(sys,body));
+  {const char *kindname[]={"STAR","OCEAN","ROCKY","GAS"};text(32,18,WHITE,"%s planet",kindname[type>=0&&type<=GAS?type:ROCKY]);}
   text(32,20,DIM,sys==game.system?"In this system":"Discovered on visit");
  }else if(codex_tab==6){
   for(int j=0;j<7&&first+j<count;j++){int i=first+j,y=7+j*2;if(i==row)rect(10,y*8-2,220,13,RGB(25,65,77));text(3,y,i==row?WHITE:DIM,"%.22s",milky_way_topics[i]);}

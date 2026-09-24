@@ -260,6 +260,20 @@ static unsigned button_ink(char b,unsigned fallback){
  if(b=='A'||b=='E')return RGB(85,212,212);/* Start / Select */
  return fallback;
 }
+static void mini_letter(int x,int y,char ch,unsigned ink){
+ static const unsigned char blank[5]={0,0,0,0,0};
+ static const unsigned char S[5]={7,4,7,1,7},T[5]={7,2,2,2,2},E[5]={7,4,6,4,7},L[5]={4,4,4,4,7},R[5]={6,5,6,5,5};
+ const unsigned char *rows=blank;
+ if(ch=='S')rows=S;else if(ch=='T')rows=T;else if(ch=='E')rows=E;else if(ch=='L')rows=L;else if(ch=='R')rows=R;
+ for(int yy=0;yy<5;yy++)for(int xx=0;xx<3;xx++)if(rows[yy]&(1<<(2-xx)))rect(x+xx,y+yy,1,1,ink);
+}
+static void mini_label_button(int x,int y,const char *label){
+ unsigned black=RGB(4,7,10),white=RGB(242,242,236);
+ /* A tiny rounded-rectangle silhouette, like the real PSP Start/Select keys. */
+ rect(x+2,y+1,6,8,black);rect(x+1,y+2,8,6,black);
+ int len=(int)strlen(label),start=x+5-(len*2);
+ for(int i=0;i<len;i++)mini_letter(start+i*4,y+3,label[i],white);
+}
 static void button_icon(int x,int y,char b,unsigned fallback){
  unsigned c=button_ink(b,fallback);
  if(b=='O'){circle(x+5,y+5,3,c);}
@@ -274,12 +288,9 @@ static void button_icon(int x,int y,char b,unsigned fallback){
   if(b=='R'){line(cx-3,cy,cx+3,cy,c);line(cx+3,cy,cx+1,cy-2,c);line(cx+3,cy,cx+1,cy+2,c);}
  }
  else if(b=='P'){rect(x+4,y+1,2,8,c);rect(x+1,y+4,8,2,c);}
- else if(b=='l'||b=='r'){
-  rect(x+1,y+2,8,6,c);rect(x+3,y+3,4,4,RGB(13,20,28));
-  text(x/8+1,y/8+1,c,"%c",b=='l'?'L':'R');
- }
+ else if(b=='l'||b=='r')mini_label_button(x,y,b=='l'?"L":"R");
  else if(b=='N'){circle(x+5,y+5,4,c);circle(x+5,y+5,2,RGB(13,20,28));rect(x+4,y+4,2,2,c);}
- else if(b=='A'||b=='E'){rect(x+2,y+3,6,4,c);line(x+3,y+3,x+7,y+3,c);}
+ else if(b=='A'||b=='E')mini_label_button(x,y,b=='A'?"ST":"SE");
 }
 #include "hud-pixels.h"
 static int footer_token(const char *s,int n,char *icon){
