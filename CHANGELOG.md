@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.80 — menu wording refresh
+
+- Updated launch, station exploration, shipyard, outfitting, controls, radio, and loadout subtitles.
+- Undocked Ship menu continues to show `Cargo` instead of `Cargo & market`.
+
 ## 2.5.79 — law warnings and no-funds custody
 
 - Wanted commanders now receive a local law warning before an arrest is initiated.

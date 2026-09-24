@@ -1,5 +1,9 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.80 — menu wording refresh
+
+Updated the requested main menu labels and subtitles, including `Explore station`, the new launch/upgrade/ship/loadout/control/radio copy, and the undocked `Cargo` label.
+
 ## Released 2.5.79 — law warnings and no-funds custody
 
 Wanted commanders now receive a warning before arrest. If station custody is accepted with zero units, the game plays a jail transfer and law seizure sequence, clears credits/cargo/equipment/current ship, and releases the commander in a basic ship at the local station.
