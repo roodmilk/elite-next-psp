@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.76 — longer engine boost endurance
+
+- Boost generates less heat overall, and ENG pips further reduce boost heat while increasing active cooling.
+- The overheat warning now reads `ENGINES OVERHEATING... COOL OFF!!` while critical-overheat protection remains intact.
+
 ## 2.5.75 — staged hyperdrive jump
 
 - Galaxy-map jumps now return to the cockpit and build through charging, escalating streaks/shake, a vivid hyperspace corridor, and a braking phase before arrival.

@@ -572,10 +572,12 @@ static void game_step(Game *g,float dt,float turn,float pitch,int throttle,int f
   float sun_d=length(sub(g->pos,g->bodies[0].pos)),safe=g->bodies[0].radius+5200.f;
   int near_sun=sun_d<safe;float speed_ratio=g->speed/fmaxf(1.f,player_ships[g->ship].speed);
   if(speed_ratio>1.15f)g->heat=fminf(100,g->heat+dt*(speed_ratio-1.f)*10.f);
-  if(g->boost)g->heat=fminf(100,g->heat+dt*14.f);
+  /* Engine pips stretch boost endurance: more ENG means less heat per second
+   * and faster recovery while the boost is held. */
+  if(g->boost){float boost_heat=fmaxf(6.f,10.f-g->pip_eng*.75f);g->heat=fminf(100,g->heat+dt*boost_heat);}
   if(near_sun)g->heat=fminf(100,g->heat+dt*(6.f+(safe-sun_d)/safe*10.f));
   if(!g->boost&&!near_sun&&speed_ratio<=1.15f)g->heat=fmaxf(0,g->heat-dt*((g->upgrades&4)?38:22));
-  else if(g->boost&&!near_sun)g->heat=fmaxf(0,g->heat-dt*4.f);
+  else if(g->boost&&!near_sun)g->heat=fmaxf(0,g->heat-dt*(4.f+g->pip_eng*1.5f));
  if(g->heat>=100){
   g->heat=100;
   if(g->upgrades&16384){
@@ -585,7 +587,7 @@ static void game_step(Game *g,float dt,float turn,float pitch,int throttle,int f
    message(g,"Escape pod fired. Recovered to hub — pod spent.");speak(g,VOICE_COMP,"Escape pod recovered. Module consumed.");
   }else {g->energy=0;g->dead=1;g->jump=0;g->boost=0;g->explosion=0;g->cue=SFX_DEATH;message(g,"Hull overheat. Ship destroyed. START to recover.");}
  }
-  else if(g->heat>=90){g->boost=0;if(g->message_time<=0)message(g,"CRITICAL HEAT — boost locked. Break off and cool.");}
+  else if(g->heat>=90){g->boost=0;if(g->message_time<=0)message(g,"ENGINES OVERHEATING... COOL OFF!!");}
  }
  g->shot=fmaxf(0,g->shot-dt);g->energy=fminf(100,g->energy+dt*shield_regen_rate(g)*(0.50f+0.25f*g->pip_sys));
  if((g->upgrades&32768)&&g->attacked<=0)g->energy=fminf(100,g->energy+dt*2.f);
@@ -778,6 +780,7 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  for(int i=0;i<180;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.heat>10,"sun proximity cooks the hull");
  g.heat=99.5f;g.boost=1;game_tick(&g,.05f,0,0,0,0);CHECK(g.dead&&g.heat>=100&&!g.boost,"critical overheat destroys the ship and cuts boost");
  g.dead=0;g.energy=100;g.heat=92;g.boost=1;game_tick(&g,.016f,0,0,0,0);CHECK(!g.boost,"heat above ninety locks boost");
+ game_init(&g);launch(&g);g.pip_sys=4;g.pip_eng=0;g.pip_wep=4;g.boost=1;for(int i=0;i<240;i++)game_tick(&g,1.f/60,0,0,0,0);float low_eng_heat=g.heat;game_init(&g);launch(&g);g.pip_sys=2;g.pip_eng=4;g.pip_wep=2;g.boost=1;for(int i=0;i<240;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.heat<low_eng_heat,"extra ENG pips extend boost heat endurance");
  game_init(&g);launch(&g);for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;
  Vec3 before={80,0,3100};g.pos=(Vec3){80,0,3900};g.energy=100;g.speed=400;g.roll=1.2f;world_collision(&g,before);CHECK(g.pos.z<3340&&g.energy<100,"swept collision blocks station tunnelling");
  CHECK(g.dead&&g.energy==0,"station impact destroys the player ship");g.dead=0;g.energy=100;

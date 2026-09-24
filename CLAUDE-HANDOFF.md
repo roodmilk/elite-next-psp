@@ -593,3 +593,6 @@ Physical PSP testing remains unverified.
 ## Released 2.5.75 — staged hyperdrive jump
 
 Galaxy-map jumps now return directly to the cockpit and run an eight-second staged sequence: charging lines, stronger shake and blue energy, a vivid multi-colour hyperspace corridor, then braking before the existing system-arrival logic runs.
+## Released 2.5.76 — longer engine boost endurance
+
+Boost heat is now lower and scales with the ENG capacitor: higher ENG settings reduce heat generation and improve cooling while boosting. Critical lockout and destruction safeguards remain unchanged.
