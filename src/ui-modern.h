@@ -167,20 +167,24 @@ static const char *milky_way_notes[]={
 };
 static int vis_count(void){int n=1;for(int s=0;s<256;s++)if(s!=game.system&&(game.visited[s>>3]&(1<<(s&7))))n++;return n;}
 static int vis_sys(int idx){if(idx<=0)return game.system;int n=1;for(int s=0;s<256;s++)if(s!=game.system&&(game.visited[s>>3]&(1<<(s&7)))){if(n==idx)return s;n++;}return game.system;}
-/* Visiting a system discovers its four worlds (I–IV). Count is systems × 4. */
-static int planet_log_count(void){int n=systems_visited(&game);return n>0?n*4:4;}
+/* Planet records are created only by a completed landing. */
+static int planet_log_count(void){int n=0;for(int s=0;s<256;s++)for(int b=1;b<BODY_COUNT;b++)if(game.landed_planets[s]&(1u<<(b-1)))n++;return n;}
 static void planet_log_at(int idx,int *sys_out,int *body_out){
- int n=vis_count(),si=idx/4,bi=(idx%4)+1;if(si<0)si=0;if(si>=n)si=n-1;if(bi<1)bi=1;if(bi>4)bi=4;
- *sys_out=vis_sys(si);*body_out=bi;
+ int seen=0;for(int s=0;s<256;s++)for(int b=1;b<BODY_COUNT;b++)if(game.landed_planets[s]&(1u<<(b-1))){if(seen++==idx){*sys_out=s;*body_out=b;return;}}
+ *sys_out=game.system;*body_out=1;
 }
+static int codex_system_body_count(int sys){int n=2;for(int b=1;b<BODY_COUNT;b++)if(game.landed_planets[sys]&(1u<<(b-1)))n++;return n;}
+static int codex_system_body_at(int sys,int r){if(r==0)return 0;if(r==1)return 1;int seen=0;for(int b=1;b<BODY_COUNT;b++)if(game.landed_planets[sys]&(1u<<(b-1)))if(seen++==r-2)return b+1;return 1;}
+static int codex_system_row_for_body(int sys,int body){if(body<2)return body;int r=2;for(int b=1;b<BODY_COUNT;b++)if(game.landed_planets[sys]&(1u<<(b-1))){if(b+1==body)return r;r++;}return 1;}
+static int codex_system_row(void);
 static int codex_kind_count(int tab){if(tab==0)return vis_count();if(tab==1)return planet_log_count();if(tab==2)return game.scanned_flora;if(tab==3)return game.scanned_fauna;if(tab==4)return game.scanned_minerals;if(tab==5)return game.scanned_anomalies;return (int)(sizeof(milky_way_topics)/sizeof(*milky_way_topics));}
-static int codex_rows(void){if(codex_scope==1)return 6;if(codex_scope==2)return 1;int n=codex_kind_count(codex_tab);return n>0?n:1;}
+static int codex_rows(void){if(codex_scope==1)return codex_system_body_count(codex_system_row());if(codex_scope==2)return 1;int n=codex_kind_count(codex_tab);return n>0?n:1;}
 static int codex_system_minerals(int sys){return 3+(sys*5+game.systems[sys].economy)%8;}
 static int codex_system_echoes(int sys){return (sys*7+game.systems[sys].government)%5;}
 static int codex_system_row(void){return codex_system>=0?codex_system:game.system;}
 static void codex_system_screen(void){
  int sys=codex_system_row(),count=codex_rows();header("DISCOVERY CODEX / SYSTEM");panel(8,47,232,180);panel(248,47,224,180);
- for(int i=0;i<count;i++){int y=7+i*3;if(i==row)rect(10,y*8-2,220,18,RGB(25,65,77));if(i==0)text(3,y,i==row?WHITE:DIM,"SPACE STATION");else text(3,y,i==row?WHITE:DIM,"%.22s",codex_body_name(sys,i-1));}
+ for(int i=0;i<count;i++){int y=7+i*3,body=codex_system_body_at(sys,i);if(i==row)rect(10,y*8-2,220,18,RGB(25,65,77));if(i==0)text(3,y,i==row?WHITE:DIM,"SPACE STATION");else text(3,y,i==row?WHITE:DIM,"%.22s",codex_body_name(sys,body-1));}
  text(32,9,CYAN,"%.24s",game.systems[sys].name);text(32,11,WHITE,"SYSTEM ARCHIVE");
  text(32,14,GOLD,"SPACE STATION");text(32,16,WHITE,"%.25s Hub",game.systems[sys].name);
  text(32,18,CYAN,"MINERALS %d   ECHOES %d",codex_system_minerals(sys),codex_system_echoes(sys));
@@ -215,13 +219,15 @@ static void codex_screen(void){
  if(codex_tab==0){
   for(int j=0;j<7&&first+j<count;j++){int i=first+j,y=7+j*2,sys=vis_sys(i);if(i==row)rect(10,y*8-2,220,13,RGB(25,65,77));text(3,y,i==row?WHITE:DIM,"%s%-12s",sys==game.system?"* ":"  ",game.systems[sys].name);}
   int sys=vis_sys(row);unsigned col,acc;int type;
-  for(int b=0;b<BODY_COUNT;b++){body_tint(sys,b,&col,&acc,&type);draw_planet_disc(270+b*38,78,b==0?16:12,col,acc,body_art_seed(sys,b),type);}
+  int shown=0;for(int b=0;b<BODY_COUNT;b++){if(b>0&&!(game.landed_planets[sys]&(1u<<(b-1))))continue;body_tint(sys,b,&col,&acc,&type);draw_planet_disc(270+shown*38,78,b==0?16:12,col,acc,body_art_seed(sys,b),type);shown++;}
   text(32,14,CYAN,"%.22s",game.systems[sys].name);
-  text(32,16,WHITE,"Sun + 4 worlds");
+  text(32,16,WHITE,"Star + %d landed planets",shown-1);
   if(sys==game.system)text(32,18,GOLD,"Here: flora %d fauna %d",game.scanned_flora,game.scanned_fauna);
   else text(32,18,DIM,"Visited system");
   text(32,20,CYAN,"X opens system archive");
  }else if(codex_tab==1){
+  if(n<=0){text(3,10,DIM,"No planets logged yet.");text(32,10,WHITE,"Land on a planet to add it.");}
+  else {
   for(int j=0;j<7&&first+j<count;j++){
    int i=first+j,y=7+j*2,sys,body;planet_log_at(i,&sys,&body);
    if(i==row)rect(10,y*8-2,220,13,RGB(25,65,77));
@@ -232,6 +238,7 @@ static void codex_screen(void){
   text(32,16,CYAN,"%.27s",codex_body_name(sys,body));
   {const char *kindname[]={"STAR","OCEAN","ROCKY","GAS"};text(32,18,WHITE,"%s planet",kindname[type>=0&&type<=GAS?type:ROCKY]);}
   text(32,20,DIM,sys==game.system?"In this system":"Discovered on visit");
+  }
  }else if(codex_tab==6){
   for(int j=0;j<7&&first+j<count;j++){int i=first+j,y=7+j*2;if(i==row)rect(10,y*8-2,220,13,RGB(25,65,77));text(3,y,i==row?WHITE:DIM,"%.22s",milky_way_topics[i]);}
   text(32,9,GOLD,"GALACTIC LORE");

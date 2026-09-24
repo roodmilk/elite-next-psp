@@ -1,5 +1,9 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.97 — landing-gated planet Codex
+
+Discovery Codex planet and system archive entries now appear only after a completed landing. Per-system landing flags persist in saves, and the ship computer gives a one-time confirmation when each planet is added.
+
 ## Released 2.5.96 — first-arrival system briefings
 
 Warp completion now detects first-time system entry before marking the system visited. The computer gives a one-time system briefing with economy, government, technology, danger and Codex coverage; repeat arrivals remain concise.

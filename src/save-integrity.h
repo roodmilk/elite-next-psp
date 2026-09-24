@@ -2,6 +2,7 @@
  * V9 appends saga progress. V10 appends the manual route goal. V11 appends passenger + gift flags.
  * V12 appends twelve traveller packs (sys|dest<<8|flags<<16) for living-galaxy routes.
  * V13 appends six fitted-module slots (plus 2 pad bytes) for outfitting/loadout agreement.
+ * V14 appends 256 per-system planet landing flags for Discovery Codex progress.
  * The older V1-V7 core layout remains unchanged for migration, not portability.
  */
 static int save_u32(FILE *f,uint32_t v){unsigned char b[4]={(unsigned char)v,(unsigned char)(v>>8),(unsigned char)(v>>16),(unsigned char)(v>>24)};return fwrite(b,1,4,f)==4;}

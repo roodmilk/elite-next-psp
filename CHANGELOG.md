@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.97 — landing-gated planet Codex
+
+- Discovery Codex planet and system archive entries now appear only after the commander lands on that planet.
+- Landing flags persist in saves, and the ship computer confirms the first time each planet is added to the Codex.
+
 ## 2.5.96 — first-arrival system briefings
 
 - On the first warp into a system, the ship computer now announces the arrival and reports its economy, government, technology and local danger level.

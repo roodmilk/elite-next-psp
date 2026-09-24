@@ -86,7 +86,7 @@ typedef struct {
  int saga_trust[4];
  int passenger_dest,passenger_kind,passenger_pay,gift_flags;
  int npc_kills,shots,discoveries,scanned_flora,scanned_fauna,scanned_minerals,scanned_anomalies,ai_phase;
- uint8_t visited[32]; char message[96],voice[160],collide[40]; float voice_time;
+ uint8_t visited[32],landed_planets[256]; char message[96],voice[160],collide[40]; float voice_time;
  /* Living-galaxy named travellers (save V12). See travellers.h */
  struct { uint8_t sys,dest; int8_t slot; uint8_t flags; } travellers[12];
 } Game;
