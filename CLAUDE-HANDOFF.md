@@ -1,5 +1,9 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.87 — visible hyperspace arrival
+
+The destination system now fades in with a blue braking/arrival wash after hyperspace, revealing the new solar-system ship view smoothly while keeping the cockpit HUD sharp.
+
 ## Released 2.5.86 — ambient space encounters
 
 Added a reusable low-cost encounter deck covering traffic, law, pirates, distress calls, cargo/wreckage, smugglers, bounty leads, and unknown contacts. Encounter transmissions use the existing full-screen comms panel: hold Triangle in flight, then choose Respond or Ignore. Responses hook into current trader, police, hostile, cargo, passenger, and credit systems.

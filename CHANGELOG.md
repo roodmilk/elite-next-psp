@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.87 — visible hyperspace arrival
+
+- The destination solar-system cockpit view now fades in through a cool blue arrival wash during the first 1.35 seconds after hyperspace braking completes, while the cockpit HUD remains readable.
+
 ## 2.5.86 — ambient space encounters
 
 - Added a lightweight encounter deck for trader traffic, police, pirates, distress calls, cargo, wreckage, smugglers, bounty leads, and mysterious contacts.

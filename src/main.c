@@ -43,6 +43,7 @@ static Game game;
 static int page=0,row=0,paused=0,smoke=0,visual_hold=0,hud_hidden=0,hud_mode=0,high_contrast=0;
 /* 0 = Kei/Ryn campaign, 1 = Guild assignments, 2+ = accepted job slot. */
 static int tracked_mission=0;
+static float warp_arrival_fade=0;
 /* Short, session-local onboarding mission that showcases the authored station bar. */
 enum { STATION_TOUR_OFF=0, STATION_TOUR_ROUTE, STATION_TOUR_DOCK, STATION_TOUR_WALK, STATION_TOUR_BAR, STATION_TOUR_TALK, STATION_TOUR_DONE };
 #define STATION_TOUR_DEST 39
@@ -98,6 +99,11 @@ static int callback_thread(SceSize a,void *b){(void)a;(void)b;int id=sceKernelCr
 static void rect(int x,int y,int w,int h,unsigned color){
  int x0=x<0?0:x,y0=y<0?0:y,x1=x+w>W?W:x+w,y1=y+h>H?H:y+h;
  for(int j=y0;j<y1;j++)for(int i=x0;i<x1;i++)fb[j*STRIDE+i]=color;
+}
+static void warp_arrival_overlay(void){
+ if(warp_arrival_fade<=0)return;
+ int top=view_top(),bot=view_bot();float reveal=1.f-warp_arrival_fade;int keep=35+(int)(65.f*reveal);
+ for(int y=top;y<=bot;y++)for(int x=0;x<W;x++){unsigned c=fb[y*STRIDE+x];int r=c&255,g=(c>>8)&255,b=(c>>16)&255;fb[y*STRIDE+x]=RGB((r*keep+8*(100-keep))/100,(g*keep+16*(100-keep))/100,(b*keep+42*(100-keep))/100);}
 }
 static void pixel(int x,int y,unsigned c){if(clipy0>=0&&(x<clipx0||x>=clipx1||y<clipy0||y>=clipy1))return;if(x>=0&&x<W&&y>=0&&y<H)fb[y*STRIDE+x]=c;}
 static void line(int x,int y,int xx,int yy,unsigned c){
@@ -393,6 +399,7 @@ static void space(void){
  sfx_hit_sparks_draw(1.f/60);sfx_maybe_death_embers();sfx_explosion_embers_draw(1.f/60);
  /* Bloom the world once — never after cockpit glyphs (Commander: no text glow). */
  hud_postfx();
+ warp_arrival_overlay();
  if(hud_mode==0)target_overlay();else if(hud_mode==1)minimal_overlay();
  warp_effect();planet_prompt();police_dialog();death_effect();
  if(hud_mode==0||game.dock_stage||game.dead||game.police_stop||game.approach>=0)cockpit();
@@ -955,7 +962,7 @@ int main(void){
   unsigned steer=flight_steer_buttons(pad.Buttons);
   float ax,ay;steering_axes_centered(valid,steer,pad.Lx,pad.Ly,analog_enabled&&ready,analog_center_x,analog_center_y,&ax,&ay);
   if(!paused)preview_time+=dt;
-  input(pressed,pad.Buttons,dt,ax,ay);
+  float jump_before=game.jump;input(pressed,pad.Buttons,dt,ax,ay);if(jump_before>0&&game.jump<=0)warp_arrival_fade=1.f;else if(warp_arrival_fade>0)warp_arrival_fade=fmaxf(0,warp_arrival_fade-dt/1.35f);
   if(game.voice_time>0){game.voice_time-=dt;if(game.voice_time<0)game.voice_time=0;}
   if(page!=FLIGHT&&!paused){game.message_time-=dt;if(game.message_time<0)game.message_time=0;}
   if(game.cue){if(!quiet_comms||(game.cue!=SFX_COMM&&game.cue!=SFX_TALK))audio_play(game.cue);game.cue=0;}
