@@ -286,7 +286,7 @@ static void planet_tick(Game *g,float dt,float turn,float pitch,int throttle,flo
   g->speed=0;g->boost=0;g->pos.y=terrain_height(g,g->pos.x,g->pos.z)+18;return;
  }
  float localturn=turn*cosf(g->roll)-pitch*sinf(g->roll),localpitch=turn*sinf(g->roll)+pitch*cosf(g->roll);
- g->yaw+=localturn*dt*1.4f;g->pitch+=localpitch*dt*1.4f;if(g->pitch>1.2f)g->pitch=1.2f;if(g->pitch<-1.2f)g->pitch=-1.2f;
+ g->yaw+=localturn*dt*1.4f;g->pitch=wrap_range(g->pitch+localpitch*dt*1.4f,3.14159265f);
  g->speed+=throttle*dt*(g->boost?700:110);if(g->speed<0)g->speed=0;float maxspeed=160*(g->boost?2.2f:1.f);if(g->speed>maxspeed)g->speed=maxspeed;
  g->pos=add(g->pos,mul(forward(g),g->speed*dt));
  if(!g->boost)g->pos.y-=32*dt;
@@ -535,7 +535,7 @@ static void game_step(Game *g,float dt,float turn,float pitch,int throttle,int f
  if(g->dock_stage){docking_tick(g,dt);return;}
  if(g->dead||g->docked||g->approach>=0)return;
  if(g->planet>=0){planet_tick(g,dt,turn,pitch,throttle,strafe);return;}
- float localturn=turn*cosf(g->roll)-pitch*sinf(g->roll),localpitch=turn*sinf(g->roll)+pitch*cosf(g->roll);g->yaw+=localturn*dt*1.5f;g->pitch+=localpitch*dt*1.5f;if(g->pitch>1.5f)g->pitch=1.5f;if(g->pitch<-1.5f)g->pitch=-1.5f;
+ float localturn=turn*cosf(g->roll)-pitch*sinf(g->roll),localpitch=turn*sinf(g->roll)+pitch*cosf(g->roll);g->yaw+=localturn*dt*1.5f;g->pitch=wrap_range(g->pitch+localpitch*dt*1.5f,3.14159265f);
  g->speed+=throttle*dt*(g->boost?4500:180);if(g->speed<0)g->speed=0;float maxspeed=player_ships[g->ship].speed*(g->boost?20.f:1.f)*(0.70f+0.15f*g->pip_eng);if(g->speed>maxspeed)g->speed=maxspeed;
  if(g->boost&&g->planet<0&&g->jump<=0){g->fuel=fmaxf(0,g->fuel-dt*.35f);if(g->fuel<=0){g->fuel=0;g->boost=0;if(g->message_time<=0)message(g,"Fuel empty. Boost cut.");}}
  Vec3 previous_pos=g->pos;g->pos=add(g->pos,mul(forward(g),g->speed*dt));world_collision(g,previous_pos);if(g->dead||g->dock_stage||g->approach>=0)return;campaign_flight(g,previous_pos);
@@ -739,6 +739,9 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  launch(&g);for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;g.pos=(Vec3){0,0,-20000};g.speed=0;g.boost=1;
  for(int i=0;i<60;i++){game_tick(&g,1.f/60,0,0,1,0);}CHECK(g.speed>3000,"boost accelerates beyond normal speed");
  g.boost=0;game_tick(&g,.016f,0,0,0,0);CHECK(g.speed<=player_ships[g.ship].speed,"boost release brakes to normal speed");
+ game_init(&g);launch(&g);g.speed=0;g.pitch=0;
+ for(int i=0;i<262;i++)game_tick(&g,.016f,0,1,0,0);
+ CHECK(fabsf(g.pitch)<.08f&&forward(&g).z>.99f,"flight pitch wraps through a full loop");
  game_init(&g);launch(&g);g.boost=0;g.heat=0;g.pip_eng=4;g.pip_sys=2;g.pip_wep=2;
  g.pos=add(g.bodies[0].pos,(Vec3){0,0,-(g.bodies[0].radius+20000.f)});
  g.speed=player_ships[g.ship].speed*(0.70f+0.15f*g.pip_eng);
@@ -872,4 +875,3 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
 #include "freight-tests.h"
  fprintf(f,"RESULT %d failures\n",fails);fclose(f);return fails;
 }
-

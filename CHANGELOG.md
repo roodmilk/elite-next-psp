@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.5.70 — unrestricted flight pitch
+
+- Removed the artificial up/down pitch limits during space and atmospheric flight.
+- Up and Down now allow continuous looping turns through a full 360 degrees in either direction.
+- Added a regression check covering a complete pitch loop; landed surface movement limits remain unchanged.
+
 ## 2.5.69 — animated cockpit activity display
 
 - Replaced the top-center heading/danger glyph cluster with a lightweight native-pixel sci-fi display.

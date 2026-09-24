@@ -1,5 +1,13 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.70 — unrestricted flight pitch
+
+Space and atmospheric flight pitch now wraps continuously at ±π instead of
+stopping at the old ±1.5/±1.2 radian limits. Holding Up or Down can complete
+a full loop in either direction. Landed surface movement retains its normal
+look limit. Build and all five smoke suites passed; physical PSP testing is
+still unverified.
+
 ## Released 2.5.69 — animated cockpit activity display
 
 The main flight cockpit now uses a small native-pixel activity display in the
