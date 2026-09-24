@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.5.90 — expanded Galactic Lore archive
+
+- Added `GALACTIC LORE` as its own Discover menu entry beside Discovery Codex and GalacticNet.
+- Expanded the lore archive to twelve readable entries covering the galaxy, Sol, colonies, hyperspace, pilots, law, history, science, trade and the future.
+- The lore screen now uses the full panel layout for longer descriptions and clear entry numbering.
+- Renamed the station menu action to `DISEMBARK`.
+
 ## 2.5.89 — PSP XMB identity artwork
 
 - Added an Elite: NEXT game icon for the PSP XMB using the existing Elite logo.

@@ -1,5 +1,9 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.90 — expanded Galactic Lore archive
+
+Galactic Lore is now a first-class Discover menu entry beside Discovery Codex and GalacticNet. Its archive has twelve longer entries and a full readable detail panel. The station action is labelled `DISEMBARK`.
+
 ## Released 2.5.89 — PSP XMB identity artwork
 
 Added `assets/xmb/ICON0.PNG` and `assets/xmb/PIC1.PNG`, and wired them into `pack-pbp` so the PSP XMB shows the Elite: NEXT icon and a space starfield background. Standard PIC1 artwork is static; the in-game starfield remains animated. A PMF/ICON1 animated XMB asset would need a PSP video encoder not included in the current toolchain.

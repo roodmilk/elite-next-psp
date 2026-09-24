@@ -2,7 +2,7 @@ static void home(void){
  int group=deck_group(row);deck_clamp_row();group=deck_group(row);
  header(game.docked?"STATION / COMMAND DECK":"COCKPIT / PAUSED");
  for(int i=0;i<5;i++){int x=8+i*94;rect(x,30,90,20,i==group?RGB(41,54,70):RGB(21,28,39));if(i==group)rect(x,48,90,2,RGB(240,180,91));text((x+8)/8,4,i==group?RGB(229,210,163):RGB(155,154,165),"%s",deck_groups[i]);}
- const char *labels[]={game.docked?"Launch":"Resume flight",game.docked?"Cargo & market":"Cargo","Galaxy map","Shipyard","Outfitting","Save / status","Controls","Factions","Targeting computer","Debug tools","Comms / docking","System details","Mission board","Mission log","GalacticNet","Discovery Codex","Radio & audio","Tracked mission","Explorers Guild","Display & chatter","Disembark / walk station","Ship loadout"};
+ const char *labels[]={game.docked?"Launch":"Resume flight",game.docked?"Cargo & market":"Cargo","Galaxy map","Shipyard","Outfitting","Save / status","Controls","Factions","Targeting computer","Debug tools","Comms / docking","System details","Mission board","Mission log","GalacticNet","Discovery Codex","Radio & audio","Tracked mission","Explorers Guild","Display & chatter","Disembark","Ship loadout","Galactic Lore"};
  static const char *hints[][2]={
  {"FLY INTO SPACE!","Fly at your own pace."},{"Your hold and local goods.","Station prices while docked."},{"Choose your next system.","Check range before jumping."},
  {"BUY NEW SHIPS!","Requires station services."},{"GET SHIP UPGRADES!","No locked tech teases."},{"Save, load, records.","Save at a station."},
@@ -10,7 +10,7 @@ static void home(void){
  {"Change cash or world state.","Debug changes affect saves."},{"Hail station or get help.","Request guided docking."},{"Economy, risk and planets.","Know where you are flying."},
  {"Find work at this station.","Dock to accept a contract."},{"Review jobs and route.","Reading pauses job clocks."},{"News and local SpaceBook.","Take a break from flying."},
  {"Review your discoveries.","Keep a record of your travels."},{"cruise to sweet tunes!","Set music and effects levels."},{"Guide for tracked mission.","Choose tracking in Mission Log."},
- {"Optional Guild assignments.","Also listed in Mission Log."},{"Choose HUD and chatter.","Keep the view comfortable."},{"SEE WHATS AROUND!","LOOK SPEAK GO TAKE on hotspots."},{"SEE WHATS ON YOUR SHIP","See what your ship carries."}};
+ {"Optional Guild assignments.","Also listed in Mission Log."},{"Choose HUD and chatter.","Keep the view comfortable."},{"SEE WHATS AROUND!","LOOK SPEAK GO TAKE on hotspots."},{"SEE WHATS ON YOUR SHIP","See what your ship carries."},{"A readable history of the galaxy.","Explore the major eras, peoples and powers."}};
  panel(8,58,222,132);panel(238,58,234,132);
  int vis[6],vn=deck_fill(group,vis);
  for(int i=0;i<vn;i++){int id=vis[i],y=8+i*2;int locked=!game.docked&&id==20;

@@ -144,16 +144,20 @@ static void chart(void){
 }
 static int codex_tab=0;
 static const char *codex_tabs[]={"SYSTEMS","PLANETS","FLORA","FAUNA","MINERALS","ECHOES","GALACTIC LORE"};
-static const char *milky_way_topics[]={"THE MILKY WAY","SOL AND EARTH","THE COLONIES","HYPERSPACE","PILOTS AND SHIPS","THE FRONTIER","ALIEN CIVILISATIONS","TRADE AND POWER"};
+static const char *milky_way_topics[]={"THE MILKY WAY","SOL AND EARTH","THE COLONIES","HYPERSPACE","PILOTS AND SHIPS","THE FRONTIER","ALIEN CIVILISATIONS","TRADE AND POWER","LAW AND GOVERNMENT","THE OLD EARTH ERA","EXPLORATION AND SCIENCE","THE FUTURE OF THE GALAXY"};
 static const char *milky_way_notes[]={
- "A barred spiral galaxy of billions of stars. Human space is only a small, busy island in it.",
- "Sol is humanity's old home. Earth became a symbol, a market and a political prize.",
- "Settlements spread along trade routes, turning distant worlds into homes, ports and rival powers.",
- "Jump drives cross the dark between stars, but fuel, range and navigation still shape every voyage.",
- "Small ships make the frontier legible: scouts, couriers, miners, escorts and traders carry its stories.",
- "Beyond the core, law arrives unevenly. Reputation, local government and a pilot's choices matter.",
- "Human records contain hints of older and stranger intelligences. Some encounters remain unexplained.",
- "Markets bind the galaxy together. Food, machines, metals and restricted cargo move with the pilots."
+ "The Milky Way is a barred spiral of countless suns. Human charts show only a fraction of its arms, with whole regions still represented by guesses, rumours and blank space.",
+ "Sol is humanity's old home and still its most powerful symbol. Earth is remembered as birthplace, archive, political prize and warning about what crowded worlds can become.",
+ "The colonies began as outposts, mines and research stations. Generations later they are cultures in their own right, linked by trade but proud of local customs and old grudges.",
+ "Hyperspace turns distance into a route, never into a free shortcut. Drive range, fuel, navigation data and safe arrival windows still decide which worlds a pilot can reach.",
+ "Pilots make the map feel close. Couriers, miners, scouts, escorts, traders and explorers carry news between systems and turn small personal decisions into galactic history.",
+ "Beyond the prosperous core, law arrives unevenly. A station's charter, a governor's reach and a commander's reputation can matter more than any distant statute.",
+ "Human records describe strange intelligences, ancient signals and encounters that resist sensible names. Some are science, some are folklore, and some remain deliberately unresolved.",
+ "Markets bind distant systems together. Food, machines, metals, medicine and restricted cargo move along the same lanes, making prosperity and danger travel side by side.",
+ "Governments range from careful democracies to inherited dynasties, corporate enclaves and emergency regimes. Their borders may be tidy on a chart and blurry in real space.",
+ "The Old Earth era left behind languages, religions, machines and arguments that still shape the colonies. Every new settlement carries a piece of that inheritance, willingly or not.",
+ "Exploration is both wonder and work: survey the worlds, catalogue life, read the weather of a star and bring the evidence home before someone else names it first.",
+ "The galaxy has no single ending written for it. Its future is made by ordinary crews choosing who to help, what to carry and which quiet signal deserves another look."
 };
 static int vis_count(void){int n=1;for(int s=0;s<256;s++)if(s!=game.system&&(game.visited[s>>3]&(1<<(s&7))))n++;return n;}
 static int vis_sys(int idx){if(idx<=0)return game.system;int n=1;for(int s=0;s<256;s++)if(s!=game.system&&(game.visited[s>>3]&(1<<(s&7)))){if(n==idx)return s;n++;}return game.system;}
@@ -202,11 +206,11 @@ static void codex_screen(void){
   text(32,20,DIM,sys==game.system?"In this system":"Discovered on visit");
  }else if(codex_tab==6){
   for(int j=0;j<7&&first+j<count;j++){int i=first+j,y=7+j*2;if(i==row)rect(10,y*8-2,220,13,RGB(25,65,77));text(3,y,i==row?WHITE:DIM,"%.22s",milky_way_topics[i]);}
-  text(32,14,GOLD,"GALACTIC LORE");
-  text(32,17,WHITE,"Select a topic for the brief.");
-  panel(8,188,464,50);
-  text(3,24,GOLD,"%.54s",milky_way_topics[row]);
-  text_wrap(3,25,54,3,WHITE,milky_way_notes[row],0);
+  text(32,9,GOLD,"GALACTIC LORE");
+  text(32,12,CYAN,"ENTRY %d / %d",row+1,count);
+  text(32,15,WHITE,"%.26s",milky_way_topics[row]);
+  text_wrap(32,18,26,9,WHITE,milky_way_notes[row],0);
+  text(32,29,DIM,"Archive entry. L/R changes section.");
  }else if(n<=0){text(3,10,DIM,"Nothing logged yet.");text(32,10,WHITE,"Scan on foot. Square.");}
  else {
   for(int j=0;j<7&&first+j<count;j++){int i=first+j,y=7+j*2;char name[24],where[24];codex_life_label(codex_tab,i,name,sizeof(name),where,sizeof(where));if(i==row)rect(10,y*8-2,220,13,RGB(25,65,77));text(3,y,i==row?WHITE:DIM,"%.22s",name);}
