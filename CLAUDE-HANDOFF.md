@@ -1,5 +1,9 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.89 — PSP XMB identity artwork
+
+Added `assets/xmb/ICON0.PNG` and `assets/xmb/PIC1.PNG`, and wired them into `pack-pbp` so the PSP XMB shows the Elite: NEXT icon and a space starfield background. Standard PIC1 artwork is static; the in-game starfield remains animated. A PMF/ICON1 animated XMB asset would need a PSP video encoder not included in the current toolchain.
+
 ## Released 2.5.88 — clearer radio tuning feedback
 
 The radio page now uses a green Triangle glyph for power, and its station title changes to `STATIC` for the exact short tuning-noise interval between stations.

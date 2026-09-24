@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.5.89 — PSP XMB identity artwork
+
+- Added an Elite: NEXT game icon for the PSP XMB using the existing Elite logo.
+- Added a deep-space starfield background for the PSP XMB game selection screen and packaged it into EBOOT.PBP as PIC1.PNG.
+
+Note: standard PSP XMB backgrounds are still images; the game itself retains the animated starfield once launched. A true animated XMB background would require a firmware-specific PMF/ICON1 video asset and encoder that is not present in the project toolchain.
+
 ## 2.5.88 — clearer radio tuning feedback
 
 - Replaced the radio menu's `TRI POWER` text with a green PlayStation Triangle button glyph.
