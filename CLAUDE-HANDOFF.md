@@ -1,5 +1,9 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.88 — clearer radio tuning feedback
+
+The radio page now uses a green Triangle glyph for power, and its station title changes to `STATIC` for the exact short tuning-noise interval between stations.
+
 ## Released 2.5.87 — visible hyperspace arrival
 
 The destination system now fades in with a blue braking/arrival wash after hyperspace, revealing the new solar-system ship view smoothly while keeping the cockpit HUD sharp.

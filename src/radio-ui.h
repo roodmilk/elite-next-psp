@@ -9,7 +9,7 @@ static void radio_screen(void){
  /* Physical power switch on the radio chassis. Triangle toggles it. */
  rect(32,154,80,32,RGB(25,21,17));rect(34,156,76,28,RGB(55,44,30));
  circle(47,170,8,radio_off?RGB(110,55,45):RGB(85,212,212));line(47,158,47,169,WHITE);
- text(8,20,radio_off?RED:GOLD,"TRI POWER");
+ button_icon(43,164,'T',RGB(80,220,110));
 
  /* Dial glass */
  rect(136,42,166,110,RGB(10,12,16));rect(138,44,162,106,RGB(6,8,12));
@@ -38,7 +38,7 @@ static void radio_screen(void){
   text(18,14,AMBER,"-- STATIC --");
  }else if(radio_off)text(18,14,DIM,"RADIO OFF");
  else text(18,14,CYAN,"LOCKED");
- text(18,16,WHITE,"%.18s",radio_off?"(silence)":radio_station_name(radio_station));
+ text(18,16,radio_static_ms>0?AMBER:WHITE,"%.18s",radio_static_ms>0?"STATIC":radio_off?"(silence)":radio_station_name(radio_station));
  text(18,18,CYAN,"%.18s",radio_off?"Right: station 1":radio_station_genre(radio_station));
 
  /* Volume panel */

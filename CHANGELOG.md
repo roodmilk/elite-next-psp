@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.88 — clearer radio tuning feedback
+
+- Replaced the radio menu's `TRI POWER` text with a green PlayStation Triangle button glyph.
+- During the brief station-change static interval, the station title now reads `STATIC` instead of showing the old or new station name.
+
 ## 2.5.87 — visible hyperspace arrival
 
 - The destination solar-system cockpit view now fades in through a cool blue arrival wash during the first 1.35 seconds after hyperspace braking completes, while the cockpit HUD remains readable.
