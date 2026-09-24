@@ -7,12 +7,10 @@
  input(PSP_CTRL_SELECT,0,.016f,0,0);
  INPUT_CHECK(page==MISSIONLOG&&!game.campaign_stage,"campaign UI: Select opens the mission log without advancing the conversation");
  change_page(CAMPAIGN);
- /* Ask-then-answer: each non-final beat needs Cross to speak, then Cross to hear Kei. */
+ /* Choosing a reply advances directly to Kei's response. */
  for(int i=0;i<PROLOGUE_BRIEF_BEATS-1;i++){
   input(PSP_CTRL_CROSS,0,.016f,0,0);
-  INPUT_CHECK(prologue_brief_echo==1&&prologue_brief_beat==i&&!game.campaign_stage,"campaign UI: Cross speaks the ask before Kei answers");
-  input(PSP_CTRL_CROSS,0,.016f,0,0);
-  INPUT_CHECK(prologue_brief_echo==0&&prologue_brief_beat==i+1&&!game.campaign_stage&&page==CAMPAIGN,"campaign UI: second Cross reveals Kei's answer on the next beat");
+  INPUT_CHECK(prologue_brief_echo==0&&prologue_brief_beat==i+1&&!game.campaign_stage&&page==CAMPAIGN,"campaign UI: Cross advances directly to Kei's answer");
  }
  INPUT_CHECK(game.campaign_choice==2&&prologue_brief_beat==PROLOGUE_BRIEF_BEATS-1,"campaign UI: linear beats record Ryn context before accept");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
@@ -31,9 +29,7 @@
  TEST_INIT();change_page(CAMPAIGN);input(PSP_CTRL_TRIANGLE,0,.016f,0,0);
  INPUT_CHECK(!game.campaign_stage&&page==CAMPAIGN,"story: unadvertised Triangle does not accept a mission");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
- INPUT_CHECK(prologue_brief_echo==1&&prologue_brief_beat==0&&!game.campaign_stage,"story: Cross speaks the first ask without advancing Kei's answer");
- input(PSP_CTRL_CROSS,0,.016f,0,0);
- INPUT_CHECK(prologue_brief_beat==1&&!prologue_brief_echo&&!game.campaign_stage,"story: second Cross advances to Kei's answer beat");
+ INPUT_CHECK(prologue_brief_beat==1&&!prologue_brief_echo&&!game.campaign_stage,"story: Cross advances directly to Kei's answer beat");
  game.campaign_stage=5;game.docked=1;row=0;cash=game.credits;
  INPUT_CHECK(narrative_action(CAMPAIGN)==NA_REWARD,"story: ready report offers a reward");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
@@ -96,13 +92,11 @@
  }
  INPUT_CHECK(consistent&&variants==255,"planet sprites: all world seeds match chart identity and cover eight art families");
  INPUT_CHECK(sun_fams==255,"sun sprites: every system sun family appears across the galaxy");
- /* Explicit ask-before-answer content check: catch question never shares the screen with its answer. */
+ /* Kei's response follows the selected question without a commander echo. */
  TEST_INIT();change_page(CAMPAIGN);
  INPUT_CHECK(!strstr(prologue_brief_line1(0),"catch")&&strstr(prologue_brief_reply(0),"catch"),"chat flow: beat 0 asks about the catch before Kei answers it");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
- INPUT_CHECK(prologue_brief_echo&&strstr(prologue_brief_reply(0),"catch"),"chat flow: first Cross shows the commander ask about the catch");
- input(PSP_CTRL_CROSS,0,.016f,0,0);
- INPUT_CHECK(!prologue_brief_echo&&prologue_brief_beat==1&&strstr(prologue_brief_line1(1),"catch"),"chat flow: Kei's catch answer arrives only after the ask");
+ INPUT_CHECK(!prologue_brief_echo&&prologue_brief_beat==1&&strstr(prologue_brief_line1(1),"catch"),"chat flow: Kei's catch answer follows the selected question");
  /* Prose quality: chapter asks are authored, and first beats are full sentences. */
  INPUT_CHECK(strstr(saga_beats[0].ask1,"holding")&&strlen(saga_beats[0].line)>60,"script: chapter 02 opens with a long Kei sentence and a holding ask");
  INPUT_CHECK(strstr(saga_beats[0].talk2,"you")&&strstr(saga_beats[0].ask1,"holding"),"script: chapter 02 beat 1 answers who holds the case");

@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.73 — Kei replies directly
+
+- Choosing a reply in Kei's opening briefing now advances straight to Kei's response without redrawing the commander's selected speech.
+
 ## 2.5.72 — attacking enemies alert
 
 - While holding Square, the `ENEMIES` tab now flashes red when the player is under attack or has an incoming missile.

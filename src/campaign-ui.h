@@ -84,20 +84,8 @@ static void campaign_screen(void){
  text(2,5,GOLD,"CHAPTER 1 / %s",game.campaign_stage==6?"COMPLETE":game.campaign_stage==5?"REPORT":"FIRST FLIGHT");
  if(prologue_brief_locked()){
   int beat=prologue_brief_beat;if(beat<0)beat=0;if(beat>=PROLOGUE_BRIEF_BEATS)beat=PROLOGUE_BRIEF_BEATS-1;
-  if(prologue_brief_echo){
-   /* Commander ask is on screen; Kei's answer waits for the next Cross. */
-   player_speech_bubble(54,prologue_brief_reply(beat));
-   rect(16,130,448,27,RGB(13,36,43));text(3,17,CYAN,"WAITING");
-   text_wrap(3,19,54,1,WHITE,"X — hear Kei's answer.",0);
-   text(3,20,AMBER,"%d / %d",beat+1,PROLOGUE_BRIEF_BEATS);
-   narrative_reply_choice(0,22,"Hear Kei's answer");
-  }else{
-   kei_speech_bubble(48,prologue_brief_line1(beat),prologue_brief_line2(beat),0);
-   rect(16,130,448,27,RGB(13,36,43));text(3,17,CYAN,beat<PROLOGUE_BRIEF_BEATS-1?"YOUR REPLY":"ACCEPT");
-   text_wrap(3,19,54,1,WHITE,beat<PROLOGUE_BRIEF_BEATS-1?"Ask Kei, then hear the answer.":"Accept first flight, then launch.",0);
-   text(3,20,AMBER,"%d / %d",beat+1,PROLOGUE_BRIEF_BEATS);
-   narrative_reply_choice(0,22,prologue_brief_reply(beat));
-  }
+  kei_speech_bubble(48,prologue_brief_line1(beat),prologue_brief_line2(beat),0);
+  narrative_reply_choice(0,22,prologue_brief_reply(beat));
   footer("X CONTINUE   O BACK   SELECT LOG");return;
  }
  const char *a="Return safely to Lave Hub.";

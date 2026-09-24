@@ -566,12 +566,9 @@ else if(page==CAMPAIGN&&(pressed&PSP_CTRL_CROSS)){
  }
  else if(tracked_mission==0&&prologue_brief_locked()){
   if(prologue_brief_beat<PROLOGUE_BRIEF_BEATS-1){
-   if(!prologue_brief_echo&&prologue_brief_needs_echo(prologue_brief_beat)){prologue_brief_echo=1;row=0;game.cue=SFX_SELECT;}
-   else {
-    prologue_brief_echo=0;prologue_brief_beat++;
-    if(prologue_brief_beat==1)game.campaign_choice=1;else if(prologue_brief_beat==2)game.campaign_choice=2;
-    row=0;game.cue=SFX_SELECT;
-   }
+   prologue_brief_echo=0;prologue_brief_beat++;
+   if(prologue_brief_beat==1)game.campaign_choice=1;else if(prologue_brief_beat==2)game.campaign_choice=2;
+   row=0;game.cue=SFX_SELECT;
   }else {narrative_do(CAMPAIGN);prologue_brief_beat=0;prologue_brief_echo=0;}
  }
  else if(tracked_mission==0&&game.campaign_stage==0)narrative_do(CAMPAIGN);

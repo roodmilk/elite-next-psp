@@ -1,5 +1,11 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.73 — Kei replies directly
+
+Kei's opening briefing no longer repeats the commander's selected speech in a
+separate echo panel. Selecting a reply advances directly to Kei's response;
+the existing reply choices and acceptance step remain intact.
+
 ## Released 2.5.72 — attacking enemies alert
 
 While holding Square, the ENEMIES scan tab flashes red during active player
