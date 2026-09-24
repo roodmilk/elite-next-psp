@@ -460,7 +460,7 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
   }
  }else {triangle_arm=0;triangle_hold=0;}
  if(page==FLIGHT&&(pressed&PSP_CTRL_SELECT)&&(held&PSP_CTRL_LTRIGGER)){hud_mode=(hud_mode+1)%3;hud_hidden=hud_mode==2;message(&game,hud_mode==0?"HUD: full.":hud_mode==1?"HUD: minimal.":"HUD: scenic / hidden.");return;}
- if(game.police_stop){game.boost=0;autoaim=0;if(pressed&PSP_CTRL_UP){police_choice=(police_choice+2)%3;game.cue=SFX_SELECT;}if(pressed&PSP_CTRL_DOWN){police_choice=(police_choice+1)%3;game.cue=SFX_SELECT;}if(pressed&PSP_CTRL_CROSS){
+ if(game.police_stop){game.boost=0;autoaim=0;if(game.police_phase>=2){game_tick(&game,dt,0,0,0,0);if(!game.police_stop)change_page(HOME);return;}if(pressed&PSP_CTRL_UP){police_choice=(police_choice+2)%3;game.cue=SFX_SELECT;}if(pressed&PSP_CTRL_DOWN){police_choice=(police_choice+1)%3;game.cue=SFX_SELECT;}if(pressed&PSP_CTRL_CROSS){
   if(game.police_phase==1){if(police_choice==0)police_scan_submit(&game);else if(police_choice==1)police_scan_refuse(&game);else police_escape(&game);}
   else {if(police_choice==0)police_resolve(&game,0);else if(police_choice==1){if(police_resolve(&game,1))change_page(HOME);}else police_escape(&game);}
   if(!game.police_stop)police_choice=0;}return;}

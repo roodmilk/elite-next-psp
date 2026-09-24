@@ -1,5 +1,9 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.79 — law warnings and no-funds custody
+
+Wanted commanders now receive a warning before arrest. If station custody is accepted with zero units, the game plays a jail transfer and law seizure sequence, clears credits/cargo/equipment/current ship, and releases the commander in a basic ship at the local station.
+
 ## Released 2.5.78 — readable Galactic Lore details
 
 The Galactic Lore codex now places the selected topic and wrapped brief in a full-width bottom panel so longer entries are readable.

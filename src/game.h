@@ -61,7 +61,7 @@ typedef struct {
  Anomaly anomaly[ANOMALY_COUNT]; Lifeform life[LIFE_COUNT];
  Body bodies[BODY_COUNT];
  int dock_stage,dock_phase,station_variant; float dock_timer,dock_duration; Vec3 dock_from,dock_to;
- int wanted[256],police_stop,police_phase,upgrades; float roll,explosion;
+ int wanted[256],police_stop,police_phase,police_warned,upgrades; float police_warning,police_timer,roll,explosion;
  uint8_t fit[6]; /* WPN DEF NAV HOLD FUEL UTIL — catalog index or 0xFF empty (save V13) */
  float heat_sink_cd;
  float freight_next,freight_gap;

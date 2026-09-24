@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.79 — law warnings and no-funds custody
+
+- Wanted commanders now receive a local law warning before an arrest is initiated.
+- Zero-unit custody now plays a jail transfer and law seizure sequence before releasing the commander with only the basic ship at the local station.
+
 ## 2.5.78 — readable Galactic Lore details
 
 - Galactic Lore entries now use a full-width bottom panel with wrapped text instead of the narrow right detail column.

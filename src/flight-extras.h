@@ -337,6 +337,18 @@ static void police_dialog(void){if(!game.police_stop)return;const int bx=76,by=3
    if(i==0)text(32,y,i==police_choice?RGB(85,212,212):RGB(155,154,165),cargo_contraband(&game)?"SEIZE + FINE":"CLEAN PASS");
    if(i==1)text(32,y,i==police_choice?RGB(240,180,91):RGB(155,154,165),"FORCE SCAN");
    if(i==2)text(32,y,i==police_choice?RED:RGB(155,154,165),"WARRANT + PURSUIT");}
+ }else if(game.police_phase==2){
+  text(11,8,RGB(229,210,163),"CUSTODY TRANSFER IN PROGRESS");
+  text(11,10,RGB(240,180,91),"Security doors closing. Hold position.");
+  rect(88,112,304,8,RGB(41,54,70));
+  rect(88,112,(int)(304*fmaxf(0,fminf(1,(2.8f-game.police_timer)/2.8f))),8,RGB(240,180,91));
+  text(12,16,RGB(155,154,165),"JAIL SHUTTLE // LOCAL LAW CUSTODY");
+ }else if(game.police_phase==3){
+  text(11,8,RGB(229,210,163),"CUSTODY REVIEW COMPLETE");
+  text(11,10,RGB(240,180,91),"No units available. Property seizure confirmed.");
+  text(11,13,RGB(229,210,163),"Your ship, cargo and equipment are confiscated.");
+  text(11,16,RGB(85,212,212),"Release condition: basic ship at the local station.");
+  text(11,20,RGB(155,154,165),"LAW RELEASE // DOCKING BERTH ASSIGNED");
  }else {
   text(11,8,RGB(229,210,163),"Commander, your vessel is under local arrest.");
   text(11,10,RGB(229,210,163),"Warrant %d/5 in %s. Choose now.",wanted_level(&game),game.systems[game.system].name);
