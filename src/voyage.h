@@ -211,6 +211,24 @@ static void flight_activity_display(void){
   line(cx-12,cy,cx-4,cy-3,ink);line(cx-4,cy-3,cx+10,cy,ink);line(cx+10,cy,cx-4,cy+3,ink);line(cx-4,cy+3,cx-12,cy,ink);line(cx-4,cy-3,cx-4,cy+3,dim);pixel(cx-15-(int)(fabsf(sinf(phase))*4),cy,game.boost?WHITE:dim);
  }
 }
+/* Session-long text radio: a cheap marquee beside the activity strip. The
+ * station voices are deliberately short, strange and varied so the cockpit
+ * feels inhabited without needing another audio stream or PSP UI panel. */
+static const char *radio_talk_lines[5][10]={
+ {"DEEP FIELD: Tonight, moons answer questions with gravity.","DEEP FIELD: The quiet between stars is not empty. It is listening.","DEEP FIELD: Our guest insists comets have excellent memories.","DEEP FIELD: Please do not name a wormhole after your ex.","DEEP FIELD: Scientists confirm the signal was definitely not a sneeze.","DEEP FIELD: Three stars, one cup, and a very long night ahead.","DEEP FIELD: We now take calls from anyone outside normal space.","DEEP FIELD: If the sky blinks, remain calm and write it down.","DEEP FIELD: Today's forecast is radiant with a chance of radiation.","DEEP FIELD: The universe is expanding. Please keep your elbows in."},
+ {"NEON TRANSIT: Welcome back, night pilots and daytime smugglers.","NEON TRANSIT: Our traffic report says the fast lane is mostly pirates.","NEON TRANSIT: Listener poll: best planet name? We accept bribes.","NEON TRANSIT: A station clerk has declared war on loose paperwork.","NEON TRANSIT: Today's advice: never race a courier with nothing to lose.","NEON TRANSIT: We play the hits, the misses, and one suspicious distress call.","NEON TRANSIT: Someone left a goldfish in dock seven. It wants a pilot.","NEON TRANSIT: Local law says this joke is still under investigation.","NEON TRANSIT: The next song is sponsored by three identical moon shops.","NEON TRANSIT: Keep your engines cool and your opinions warmer."},
+ {"PIXEL COMET: Tiny rocks, enormous consequences, excellent radio.","PIXEL COMET: Mining tip: the shiny one is rarely the friendly one.","PIXEL COMET: We asked an asteroid how it felt. It gave us a hard answer.","PIXEL COMET: Tonight's guest is a mineral with a very low voice.","PIXEL COMET: Space dust gets everywhere. Especially in the microphone.","PIXEL COMET: A rock and a hard place walk into a docking bay.","PIXEL COMET: Comet etiquette: wave first, scoop later.","PIXEL COMET: We are broadcasting from somewhere with no return address.","PIXEL COMET: If your scanner says nothing, ask the rock again.","PIXEL COMET: Today's forecast: crunchy with pockets of vacuum."},
+ {"VELVET ORBIT: Slow down, breathe out, and admire that gas giant.","VELVET ORBIT: Our guest says luxury is having a working cooling fan.","VELVET ORBIT: A gentle reminder: docking is a dance, not a collision.","VELVET ORBIT: Tonight we discuss poetry, propulsion, and bad insurance.","VELVET ORBIT: Someone has put a tiny hat on the station beacon.","VELVET ORBIT: The calmest pilot is usually the one with fuel left.","VELVET ORBIT: We accept dedications from ships still in one piece.","VELVET ORBIT: Beauty tip: polished hulls reflect fewer regrets.","VELVET ORBIT: Our horoscope says avoid suspicious cargo today.","VELVET ORBIT: Stay soft, stay curious, and mind the approach vector."},
+ {"FAR HORIZONS: Greetings, travellers. Your stars are behaving beautifully.","FAR HORIZONS: Tonight's alien panel asks whether humans dream in maps.","FAR HORIZONS: A distant voice says hello. It may be three systems away.","FAR HORIZONS: We discuss old Earth recipes and very new black holes.","FAR HORIZONS: The best route is not always the shortest. Sometimes it sings.","FAR HORIZONS: Listener question: can a nebula be homesick? We think yes.","FAR HORIZONS: Our guest has crossed a thousand suns and lost one shoe.","FAR HORIZONS: Please enjoy the quiet glow of the next horizon.","FAR HORIZONS: A pilot reports finding hope between two unremarkable stars.","FAR HORIZONS: Keep exploring. The dark has more stories than maps."}
+};
+static void radio_ticker_display(void){
+ int x=260,w=216;rect(x,1,w,21,RGB(21,28,39));rect(x,1,w,1,RGB(41,54,70));
+ if(radio_off){text(33,1,DIM,"RADIO OFF");return;}
+ int station=radio_station<0?0:radio_station>=RADIO_STATION_COUNT?RADIO_STATION_COUNT-1:radio_station;
+ int line_index=((int)(game.time/14.f)+station*3)%10;const char *line=radio_talk_lines[station][line_index];int len=(int)strlen(line),cycle=len+28,pos=(int)(game.time*7.f)%cycle;char shown[29];
+ for(int i=0;i<28;i++){int src=pos-28+i;shown[i]=(src>=0&&src<len)?line[src]:' ';}shown[28]=0;
+ text(33,1,station==4?RGB(85,212,212):RGB(229,210,163),"%s",shown);
+}
 /* Ship-relative plan radar: up is ahead, down is behind. Full 360 degrees;
  * logarithmic range keeps both nearby craft and remote worlds visible. */
 typedef struct {int x,y,lift;} RadarPoint;
@@ -250,6 +268,7 @@ static void cockpit(void){
  text(1,0,RGB(85,212,212),"System: %.11s",game.systems[game.system].name);
  {int wl=wanted_level(&game);text(1,1,wl?RED:RGB(155,154,165),wl?"Wanted %d/5":"Wanted 0/5",wl);}
  flight_activity_display();
+ radio_ticker_display();
  /* Mission cue top-right in the header band with a 2-col margin — not flush
   * to the screen edge. ART_AMBER objective ink (ART DIRECTOR palette); clear of danger badge. */
  {

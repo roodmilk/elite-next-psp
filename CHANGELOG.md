@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.5.82 — cockpit text radio
+
+- Far Horizons is now the default station on a fresh launch.
+- Added a lightweight scrolling radio-talk ticker beside the cockpit activity animation, with varied station-specific captions.
+- Radio controls now use PSP L/R for tuning, Up/Down for Music/SFX selection, and a visible Triangle power button.
+
 ## 2.5.81 — cleaner cockpit menu footer
 
 - Removed the `LEFT/RIGHT TAB / UP/DOWN` navigation hint from the main cockpit menu footer.

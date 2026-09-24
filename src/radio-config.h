@@ -1,5 +1,5 @@
 /* Small independent preferences file. Commander saves remain compatible. */
-static volatile int radio_station=0,radio_volume=5,sound_volume=8;
+static volatile int radio_station=4,radio_volume=5,sound_volume=8;
 static volatile int radio_off=0,radio_static_ms=0;
 static int radio_dirty=0;
 static int quiet_comms=0;

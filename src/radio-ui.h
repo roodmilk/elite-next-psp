@@ -6,6 +6,10 @@ static void radio_screen(void){
  for(int g=0;g<9;g++){int y=50+g*16;line(24,y,112,y,RGB(48,40,30));line(24,y+4,112,y+4,RGB(28,24,18));}
  rect(36,70,68,68,RGB(20,18,16));circle(70,104,26,RGB(70,60,48));circle(70,104,18,RGB(40,34,28));
  text(5,22,DIM,"SPKR");
+ /* Physical power switch on the radio chassis. Triangle toggles it. */
+ rect(32,154,80,32,RGB(25,21,17));rect(34,156,76,28,RGB(55,44,30));
+ circle(47,170,8,radio_off?RGB(110,55,45):RGB(85,212,212));line(47,158,47,169,WHITE);
+ text(8,20,radio_off?RED:GOLD,"TRI POWER");
 
  /* Dial glass */
  rect(136,42,166,110,RGB(10,12,16));rect(138,44,162,106,RGB(6,8,12));
@@ -46,9 +50,6 @@ static void radio_screen(void){
   text(41,y,WHITE,"%-7s %2d",i?"FX":"MUSIC",volume);
   rect(330,y*8+10,120,5,DIM);rect(330,y*8+10,volume*12,5,i?AMBER:CYAN);
  }
- text(41,17,DIM,"1-5 = station locks");
- text(41,19,DIM,"Left of 1 = OFF");
- text(41,21,DIM,"Triangle: power");
  text(41,23,DIM,radio_off?"":(radio_track_count[radio_station]?"FOLDER MP3":"GENERATED"));
- footer("UP/DOWN  L/R TUNE OR LEVEL  TRI OFF  O BACK");
+ footer("O BACK");
 }

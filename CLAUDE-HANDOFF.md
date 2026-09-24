@@ -1,5 +1,9 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.82 — cockpit text radio
+
+Far Horizons is the fresh-launch radio default. Flight view now shows a low-cost scrolling station-talk ticker beside the animated activity strip, with varied generated captions for all five stations. Radio tuning uses PSP L/R, the Music/SFX rows are the only Up/Down choices, and the radio screen has a visible Triangle power button.
+
 ## Released 2.5.81 — cleaner cockpit menu footer
 
 The main cockpit menu no longer displays the navigation hint along the bottom edge; other screens retain their own footer guidance.
