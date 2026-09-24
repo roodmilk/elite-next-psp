@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.5.83 — clearer mission and wanted HUD cues
+
+- Tracked mission instructions now show in green with `>> ... >>` route arrows.
+- Kei's opening mission remains the default tracked objective and is covered by the HUD tracking checks.
+- The idle `WANTED 0/5` counter is hidden; wanted commanders instead see an escalating orange/red flashing `LAW IS AFTER YOU!` warning.
+
 ## 2.5.82 — cockpit text radio
 
 - Far Horizons is now the default station on a fresh launch.

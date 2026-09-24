@@ -266,16 +266,16 @@ static void cockpit(void){
   * Charcoal + ochre instrument bands — McQuarrie chrome, not cyan debug boxes. */
  rect(0,0,W,24,RGB(21,28,39));rect(0,23,W,1,RGB(193,139,77));
  text(1,0,RGB(85,212,212),"System: %.11s",game.systems[game.system].name);
- {int wl=wanted_level(&game);text(1,1,wl?RED:RGB(155,154,165),wl?"Wanted %d/5":"Wanted 0/5",wl);}
+ {int wl=wanted_level(&game);if(wl){unsigned ink=wl>=4?(((int)(game.time*8.f)&1)?RED:RGB(255,120,50)):wl>=2?RED:RGB(240,180,91);text(1,1,ink,"LAW IS AFTER YOU!");}}
  flight_activity_display();
  radio_ticker_display();
  /* Mission cue top-right in the header band with a 2-col margin — not flush
   * to the screen edge. ART_AMBER objective ink (ART DIRECTOR palette); clear of danger badge. */
  {
-  const char *cue=tracked_hud_cue();
-  int cols=W/8,inset=2,left=34,clen=(int)strlen(cue),max=cols-inset-left;
+  const char *cue=tracked_hud_cue();char route[52];snprintf(route,sizeof(route),">> %s >>",cue);
+  int cols=W/8,inset=1,left=33,clen=(int)strlen(route),max=cols-inset-left;
   if(max<8)max=8;if(clen>max)clen=max;
-  text(cols-inset-clen,0,RGB(240,180,91),"%.*s",clen,cue);
+  text(cols-inset-clen,0,RGB(100,235,150),"%.*s",clen,route);
  }
  if(game.dock_stage==1){rect(8,24,464,16,RGB(21,28,39));rect(8,24,464,1,RGB(193,139,77));text(2,4,RGB(85,212,212),"DOCKING GUIDANCE ACTIVE");}
  else if(square_held){int under_attack=game.attacked>0||game.incoming_missile>0;rect(8,24,464,32,RGB(21,28,39));rect(8,24,464,1,RGB(193,139,77));for(int i=0;i<5;i++){unsigned tab=i==scan_cat?RGB(240,180,91):RGB(155,154,165);if(i==4&&under_attack)tab=((int)(game.time*8)&1)?RED:RGB(90,25,30);text(1+i*11,4,tab,"%s",scan_cat_names[i]);}text(2,6,RGB(85,212,212),"L TARGET IN FRONT");text(35,6,RGB(240,180,91),"R LOCK ON");}

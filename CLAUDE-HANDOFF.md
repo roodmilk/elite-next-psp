@@ -1,5 +1,9 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.83 — clearer mission and wanted HUD cues
+
+Tracked mission instructions now render as green `>> ... >>` route cues. The opening Kei mission remains tracked by default and the tracking path is regression-tested. The cockpit hides the clear-state wanted counter and shows an escalating orange/red/flashing warning only while Law is after the commander.
+
 ## Released 2.5.82 — cockpit text radio
 
 Far Horizons is the fresh-launch radio default. Flight view now shows a low-cost scrolling station-talk ticker beside the animated activity strip, with varied generated captions for all five stations. Radio tuning uses PSP L/R, the Music/SFX rows are the only Up/Down choices, and the radio screen has a visible Triangle power button.
