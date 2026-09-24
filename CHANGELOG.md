@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.77 — concise cargo menu label
+
+- The undocked SHIP menu now labels the cargo screen simply `Cargo`; docked stations retain `Cargo & market`.
+
 ## 2.5.76 — longer engine boost endurance
 
 - Boost generates less heat overall, and ENG pips further reduce boost heat while increasing active cooling.

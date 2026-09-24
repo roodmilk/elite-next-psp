@@ -596,3 +596,6 @@ Galaxy-map jumps now return directly to the cockpit and run an eight-second stag
 ## Released 2.5.76 — longer engine boost endurance
 
 Boost heat is now lower and scales with the ENG capacitor: higher ENG settings reduce heat generation and improve cooling while boosting. Critical lockout and destruction safeguards remain unchanged.
+## Released 2.5.77 — concise cargo menu label
+
+The SHIP tab now shows `Cargo` while flying and keeps `Cargo & market` while docked.

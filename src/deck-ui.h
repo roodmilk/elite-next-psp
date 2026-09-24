@@ -2,7 +2,7 @@ static void home(void){
  int group=deck_group(row);deck_clamp_row();group=deck_group(row);
  header(game.docked?"STATION / COMMAND DECK":"COCKPIT / PAUSED");
  for(int i=0;i<5;i++){int x=8+i*94;rect(x,30,90,20,i==group?RGB(41,54,70):RGB(21,28,39));if(i==group)rect(x,48,90,2,RGB(240,180,91));text((x+8)/8,4,i==group?RGB(229,210,163):RGB(155,154,165),"%s",deck_groups[i]);}
- const char *labels[]={game.docked?"Launch":"Resume flight","Cargo & market","Galaxy map","Shipyard","Outfitting","Save / status","Controls","Factions","Targeting computer","Debug tools","Comms / docking","System details","Mission board","Mission log","GalacticNet","Discovery Codex","Radio & audio","Tracked mission","Explorers Guild","Display & chatter","Disembark / walk station","Ship loadout"};
+ const char *labels[]={game.docked?"Launch":"Resume flight",game.docked?"Cargo & market":"Cargo","Galaxy map","Shipyard","Outfitting","Save / status","Controls","Factions","Targeting computer","Debug tools","Comms / docking","System details","Mission board","Mission log","GalacticNet","Discovery Codex","Radio & audio","Tracked mission","Explorers Guild","Display & chatter","Disembark / walk station","Ship loadout"};
  static const char *hints[][2]={
  {"Return to your cockpit.","Fly at your own pace."},{"Your hold and local goods.","Station prices while docked."},{"Choose your next system.","Check range before jumping."},
  {"Compare and exchange hulls.","Requires station services."},{"Only what this hub stocks.","No locked tech teases."},{"Save, load, records.","Save at a station."},
