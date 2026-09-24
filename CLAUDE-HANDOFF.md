@@ -1,5 +1,9 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.86 — ambient space encounters
+
+Added a reusable low-cost encounter deck covering traffic, law, pirates, distress calls, cargo/wreckage, smugglers, bounty leads, and unknown contacts. Encounter transmissions use the existing full-screen comms panel: hold Triangle in flight, then choose Respond or Ignore. Responses hook into current trader, police, hostile, cargo, passenger, and credit systems.
+
 ## Released 2.5.85 — reliable docking, flight attitude, and warp presentation
 
 Removed the unused cockpit background artifact, hardened Circle station docking and its third-person arrival path, cleared residual roll on boost release, and kept the ship view visible during the initial hyperdrive charge.

@@ -44,6 +44,7 @@ typedef struct { char name[12]; int x,y,economy,government,tech; } System;
 typedef struct { const char *name; int base,factor,quantity,mask; char unit; } Good;
 typedef struct { const char *name; int capacity,price,speed,range; } PlayerShip;
 enum { FREIGHT_ABSENT, FREIGHT_ARRIVING, FREIGHT_INBOUND, FREIGHT_SERVICE, FREIGHT_OUTBOUND, FREIGHT_CHARGING };
+enum { ENCOUNTER_NONE, ENCOUNTER_TRADER, ENCOUNTER_POLICE, ENCOUNTER_PIRATE, ENCOUNTER_DISTRESS, ENCOUNTER_CARGO, ENCOUNTER_WRECKAGE, ENCOUNTER_DERELICT, ENCOUNTER_ESCAPE_POD, ENCOUNTER_SMUGGLER, ENCOUNTER_MYSTERY, ENCOUNTER_MINER, ENCOUNTER_CONVOY, ENCOUNTER_BOUNTY, ENCOUNTER_UNKNOWN };
 typedef struct {
  Vec3 pos,dir; float health,shield,cooldown,flash,scale,radius,cruise;
  int role,mesh,target,alive,waypoint,freighter;
@@ -66,6 +67,7 @@ typedef struct {
  float heat_sink_cd;
  float freight_next,freight_gap;
  float attacked,collision,encounter,incoming_missile,police_grace; int boost,approach,planet,surface,incoming_source;
+ int encounter_kind,encounter_npc,encounter_payload;
  Vec3 orbit_pos,ship_pos; float orbit_yaw,orbit_pitch,orbit_roll,orbit_speed;
  Vec3 missile_pos; float missile_time; int missile_target;
  int tractor_target; float tractor_time;
@@ -161,7 +163,7 @@ int mission_offer_active(const Game *g,int offer);
 int abandon_mission(Game *g,int slot);
 int accept_mission(Game *g,int offer);
 void mission_timers(Game *g,float dt);
-void message(Game *g,const char *s); void speak(Game *g,int who,const char *s); void game_tick(Game *g,float dt,float turn,float pitch,int throttle,int fire);
+void message(Game *g,const char *s); void speak(Game *g,int who,const char *s); void encounter_respond(Game *g); void encounter_ignore(Game *g); void game_tick(Game *g,float dt,float turn,float pitch,int throttle,int fire);
 void launch(Game *g); int dock(Game *g); int trade(Game *g,int item,int buy);
 int buy_ship(Game *g,int i); int jump_start(Game *g); int contract_accept(Game *g); int fire_missile(Game *g,int target_id);
 int salvage(Game *g,int target_id);

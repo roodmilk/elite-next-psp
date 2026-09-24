@@ -49,6 +49,24 @@ static uint32_t random_u(Game *g){uint32_t x=g->rng;x^=x<<13;x^=x>>17;x^=x<<5;re
 static float random_f(Game *g){return (random_u(g)&65535)/65535.0f;}
 void message(Game *g,const char *s){snprintf(g->message,sizeof(g->message),"%s",s);g->message_time=5;}
 void speak(Game *g,int who,const char *s){g->voice_who=who<VOICE_KEI||who>VOICE_CONTACT?VOICE_COMP:who;snprintf(g->voice,sizeof(g->voice),"%s",s);g->voice_time=6.5f;g->message_time=0;if(!g->cue)g->cue=(g->attacked>0||g->incoming_missile>0||g->encounter>0)?SFX_TALK:SFX_COMM;}
+void encounter_ignore(Game *g){
+ int kind=g->encounter_kind;g->encounter_kind=ENCOUNTER_NONE;g->encounter_npc=-1;g->encounter_payload=-1;g->encounter=0;g->voice_time=0;g->voice[0]=0;
+ if(kind==ENCOUNTER_POLICE&&g->legal>0){police_begin(g,0);return;}
+ message(g,kind==ENCOUNTER_PIRATE?"Pirate channel ignored. Weapons hot.":"Channel ignored.");
+}
+void encounter_respond(Game *g){
+ int kind=g->encounter_kind,n=g->encounter_npc;g->encounter=4;
+ if(kind==ENCOUNTER_POLICE){if(g->legal>0){police_begin(g,0);return;}speak(g,VOICE_LAW,"Routine scan complete. Safe travels, Commander.");return;}
+ if(kind==ENCOUNTER_PIRATE){if(n>=0&&n<NPC_COUNT&&g->npc[n].alive)g->npc[n].target=-2;g->attacked=4;speak(g,VOICE_CONTACT,"You chose poorly. Dump cargo or defend yourself.");g->voice_role=PIRATES;return;}
+ if(kind==ENCOUNTER_DISTRESS||kind==ENCOUNTER_CONVOY){g->credits+=350;speak(g,VOICE_CONTACT,"You saved our convoy, Commander. The gratitude is real.");g->voice_role=TRADERS;message(g,"RESCUE REWARD: +350 CR");return;}
+ if(kind==ENCOUNTER_BOUNTY){if(n>=0&&n<NPC_COUNT&&g->npc[n].alive){g->npc[n].target=-2;g->attacked=4;message(g,"BOUNTY TARGET MARKED. Engage when ready.");}return;}
+ if(kind==ENCOUNTER_CARGO||kind==ENCOUNTER_WRECKAGE){message(g,"Scanner data uploaded. Approach the marked cargo and press Circle to collect it.");return;}
+ if(kind==ENCOUNTER_ESCAPE_POD){if(g->passenger_dest<0){g->passenger_dest=g->system;g->passenger_kind=1;g->passenger_pay=450;speak(g,VOICE_CONTACT,"Thank you, Commander. Get me to the nearest station.");message(g,"SURVIVOR RESCUED: deliver them to a station.");}return;}
+ if(kind==ENCOUNTER_SMUGGLER){if(n>=0&&n<NPC_COUNT&&g->npc[n].alive)trader_offer_hail(g,n);else speak(g,VOICE_CONTACT,"Private cargo is available if you know where to look.");return;}
+ if(kind==ENCOUNTER_DERELICT){message(g,"Derelict logs recovered. A navigation marker was added to your chart.");g->discoveries++;return;}
+ if(kind==ENCOUNTER_MYSTERY||kind==ENCOUNTER_UNKNOWN){speak(g,VOICE_COMP,"Signal archived. No source identified.");return;}
+ speak(g,VOICE_CONTACT,"Safe flight, Commander. Keep your scanner open.");
+}
 static void mark_visited(Game *g){g->visited[g->system>>3]|=(uint8_t)(1u<<(g->system&7));}
 int systems_visited(const Game *g){int n=0;for(int i=0;i<32;i++)for(int b=0;b<8;b++)n+=(g->visited[i]>>b)&1;return n;}
 static void twist(uint16_t s[3]){uint16_t t=(uint16_t)(s[0]+s[1]+s[2]);s[0]=s[1];s[1]=s[2];s[2]=t;}
@@ -430,7 +448,7 @@ void game_spawn(Game *g){
  travellers_promote(g);
  jobs_sync(g);
 }
-void game_init(Game *g){memset(g,0,sizeof(*g));g->rng=0x19841991;g->ai_phase=-1;galaxy(g->systems);g->system=7;g->destination=129;g->route_goal=-1;g->passenger_dest=-1;g->trader_offer_system=-1;g->trader_offer_npc=-1;g->tractor_target=-1;g->credits=1000;g->fuel=60;g->energy=100;g->docked=1;g->contract=-1;g->mission_target=-1;g->missile_target=-1;g->incoming_source=-1;g->approach=-1;g->planet=-1;g->missiles=1;g->pip_sys=2;g->pip_eng=2;g->pip_wep=4;fit_clear_all(g);travellers_seed(g);market(g);game_spawn(g);g->cargo[0]=2;message(g,"X opens the deck.");speak(g,VOICE_KEI,"Kei Aven. Ryn is missing — and this berth is yours until we find her.");}
+void game_init(Game *g){memset(g,0,sizeof(*g));g->rng=0x19841991;g->ai_phase=-1;galaxy(g->systems);g->system=7;g->destination=129;g->route_goal=-1;g->passenger_dest=-1;g->trader_offer_system=-1;g->trader_offer_npc=-1;g->encounter_npc=-1;g->encounter_payload=-1;g->tractor_target=-1;g->credits=1000;g->fuel=60;g->energy=100;g->docked=1;g->contract=-1;g->mission_target=-1;g->missile_target=-1;g->incoming_source=-1;g->approach=-1;g->planet=-1;g->missiles=1;g->pip_sys=2;g->pip_eng=2;g->pip_wep=4;fit_clear_all(g);travellers_seed(g);market(g);game_spawn(g);g->cargo[0]=2;message(g,"X opens the deck.");speak(g,VOICE_KEI,"Kei Aven. Ryn is missing — and this berth is yours until we find her.");}
 void launch(Game *g){if(!g->docked)return;guild_event(g,GUILD_LAUNCH);g->docked=0;g->pos=(Vec3){0,0,0};g->yaw=g->pitch=0;g->speed=100;game_spawn(g);int before=g->story;story_event(g,STORY_EV_LAUNCH);if(g->story==before)message(g,"Station ahead. Select opens the deck.");if(g->story==STORY_SIGHT||g->story==STORY_RETURN)speak(g,VOICE_VENN,"Tower. Cleared. Soft launch — come home in one piece.");if(!g->cue)g->cue=SFX_DOCK;campaign_event(g,CP_LAUNCH);}
 #include "docking.h"
 #include "journey.h"
@@ -687,6 +705,22 @@ static void game_step(Game *g,float dt,float turn,float pitch,int throttle,int f
   static const char *taunt[]={"Pirate band: Drop cargo or burn.","Hostile: Shields won't save you.","Open channel: Break off or we finish this.","Law band: Cease fire and identify."};
   int who=VOICE_CONTACT,role=PIRATES;for(int i=0;i<NPC_COUNT;i++)if(g->npc[i].alive&&g->npc[i].target==-2){role=g->npc[i].role;who=role==LAW?VOICE_LAW:VOICE_CONTACT;break;}
   g->encounter=5;g->cue=SFX_TALK;speak(g,who,taunt[((int)g->time+g->system)%4]);if(who==VOICE_CONTACT)g->voice_role=role;
+ }
+ /* Reusable ambient encounter deck: mostly harmless traffic and scanner
+  * colour, with a smaller tail for danger, rescue and mystery. */
+ if(g->encounter_kind==ENCOUNTER_NONE&&g->encounter<=0&&g->message_time<=0&&g->voice_time<=0&&g->time>12){
+  float station_d=length(sub(g->pos,hub_position(g,0))),planet_d=length(sub(g->pos,g->bodies[1].pos));
+  int interval=45-g->systems[g->system].government*3;if(station_d<9000)interval-=10;if(planet_d<9000)interval-=5;if(interval<15)interval=15;if(interval>50)interval=50;
+  int now=(int)g->time;
+  if(now%interval==0){
+   int trader=-1,pirate=-1,law=-1;for(int i=0;i<NPC_COUNT;i++)if(g->npc[i].alive){if(trader<0&&g->npc[i].role==TRADERS)trader=i;if(pirate<0&&g->npc[i].role==PIRATES)pirate=i;if(law<0&&g->npc[i].role==LAW)law=i;}
+   int roll=(int)(random_u(g)%100),kind=ENCOUNTER_TRADER,n=-1;
+   if(roll<34){kind=ENCOUNTER_TRADER;n=trader;}else if(roll<47){kind=ENCOUNTER_POLICE;n=law;}else if(roll<59)kind=ENCOUNTER_CARGO;else if(roll<69){kind=(trader>=0&&pirate>=0)?ENCOUNTER_DISTRESS:ENCOUNTER_WRECKAGE;n=trader;}else if(roll<78){kind=ENCOUNTER_PIRATE;n=pirate;}else if(roll<86)kind=ENCOUNTER_WRECKAGE;else if(roll<91){kind=ENCOUNTER_SMUGGLER;n=trader;}else if(roll<96)kind=ENCOUNTER_MYSTERY;else if(roll<99){kind=ENCOUNTER_BOUNTY;n=pirate;}else kind=ENCOUNTER_UNKNOWN;
+   g->encounter_kind=kind;g->encounter_npc=n;g->encounter_payload=-1;g->encounter=8;
+   if(kind==ENCOUNTER_CARGO||kind==ENCOUNTER_WRECKAGE){Vec3 p=add(g->pos,mul(forward(g),1400+(random_u(g)%1100)));int slots=kind==ENCOUNTER_WRECKAGE?1+(random_u(g)%4):1;for(int s=0;s<slots;s++){int id=spawn_debris(g,add(p,(Vec3){(float)(s*90),0,(float)(s*55)}),(Vec3){0,0,0},random_u(g)%13,1,0);if(s==0&&id>=0)g->encounter_payload=DEBRIS_ID_MIN+id;}}
+   if(kind==ENCOUNTER_TRADER)speak(g,VOICE_CONTACT,"Evening, Commander. Local traffic is busy tonight.");else if(kind==ENCOUNTER_POLICE)speak(g,VOICE_LAW,g->legal?"Routine patrol. We have your transponder flagged.":"Routine patrol. Safe travels, Commander.");else if(kind==ENCOUNTER_CARGO)speak(g,VOICE_COMP,"Unidentified object detected. Cargo signature drifting ahead.");else if(kind==ENCOUNTER_WRECKAGE)speak(g,VOICE_COMP,"Wreckage field detected. Multiple objects adrift.");else if(kind==ENCOUNTER_DISTRESS)speak(g,VOICE_CONTACT,"Mayday! Trader under fire. Any ship nearby, please respond.");else if(kind==ENCOUNTER_PIRATE)speak(g,VOICE_CONTACT,"Cut engines and dump two tonnes of cargo.");else if(kind==ENCOUNTER_SMUGGLER)speak(g,VOICE_CONTACT,"Interested in something the station does not advertise?");else if(kind==ENCOUNTER_BOUNTY)speak(g,VOICE_CONTACT,"Wanted pilot in your lane. Bounty confirmed on scanner.");else if(kind==ENCOUNTER_MYSTERY)speak(g,VOICE_COMP,"...anyone receiving... signal source lost.");else speak(g,VOICE_COMP,"Unknown contact detected. Speed: impossible.");
+   if(kind==ENCOUNTER_POLICE)g->voice_role=LAW;else g->voice_role=TRADERS;
+  }
  }
  for(int i=0;i<DEBRIS_COUNT;i++){Debris *d=&g->debris[i];if(!d->alive)continue;d->flash=fmaxf(0,d->flash-dt);d->life-=dt;if(d->life<=0){d->alive=0;continue;}d->pos=add(d->pos,mul(d->vel,dt));Vec3 stn={0,0,3500};if(length(sub(d->pos,stn))<200)d->pos=add(stn,mul(norm(sub(d->pos,stn)),210));}
  if(g->energy<=0){

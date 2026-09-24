@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.5.86 — ambient space encounters
+
+- Added a lightweight encounter deck for trader traffic, police, pirates, distress calls, cargo, wreckage, smugglers, bounty leads, and mysterious contacts.
+- Holding Triangle on an encounter transmission now opens Respond/Ignore in the existing comms panel; Respond follows the encounter hook and Ignore closes it cleanly.
+- Encounter timing and presentation reuse the existing speech and traffic systems so the new activity stays PSP/60 FPS friendly.
+
 ## 2.5.85 — reliable docking, flight attitude, and warp presentation
 
 - Removed the unused decorative shape that could appear at the top-left of the flight view.
