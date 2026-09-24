@@ -176,9 +176,40 @@ static void hud_postfx(void){
   }
  }
 }
-static void danger_badge(int x,int y,int level){
- int n=level<1?1:level>5?5:level;
- for(int i=0;i<5;i++){int cx=x+i*8;unsigned c=i<n?(level>=4?RED:AMBER):RGB(35,45,55);rect(cx+3,y,2,2,c);rect(cx+1,y+2,6,2,c);rect(cx,y+4,8,2,c);rect(cx+2,y+6,4,2,c);}
+/* Small decorative flight display. It replaces the old heading/danger glyph
+ * cluster without adding a second HUD panel. All marks are native pixels and
+ * the pattern state is derived from game.time, so there is no allocation or
+ * per-frame state to save. */
+static void flight_activity_display(void){
+ float vmax=fmaxf(1.f,(float)player_ships[game.ship].speed);
+ float ratio=game.speed/vmax;
+ float rate=0.35f+fminf(2.4f,ratio*1.15f)+(game.boost?3.2f:0.f);
+ float phase=game.time*rate;
+ int pattern=((int)(game.time/9.f))%5;
+ int x0=128,y0=3,w=128,h=16,cx=192,cy=11;
+ int danger=danger_rating(&game,game.system);
+ unsigned ink=game.boost?RGB(85,212,212):ratio>1.05f?RGB(240,180,91):RGB(139,184,198);
+ unsigned dim=dim_rgb(ink,2,5);
+ unsigned edge=danger>=4?RED:RGB(41,54,70);
+ rect(x0,y0,w,1,edge);rect(x0,y0+h,w,1,RGB(41,54,70));
+ for(int i=0;i<5;i++)pixel(x0+3+i*7,y0+4,(danger>=4&&i<danger)?RED:(i==pattern)?ink:dim);
+ if(game.boost){
+  for(int i=0;i<14;i++){int sx=x0+10+(int)fmodf(i*19+phase*28,108.f);int sy=y0+3+(i*7)%10;line(sx,sy,sx-5-(int)(ratio*2),sy,dim_rgb(ink,1+(i&1),3));}
+  return;
+ }
+ if(pattern==0){ /* Drifting star scan. */
+  for(int i=0;i<15;i++){int sx=x0+8+(int)fmodf(i*23+phase*(4+i%3),112.f);int sy=y0+3+(i*11)%10;pixel(sx,sy,i%5==0?WHITE:ink);if(i%6==0)pixel(sx-1,sy,dim);}
+ }else if(pattern==1){ /* Radar sweep and contact dots. */
+  circle(cx,cy,7,dim);line(cx,cy,cx+(int)(cosf(phase)*7),cy+(int)(sinf(phase)*7),ink);
+  for(int i=0;i<5;i++){float a=i*1.37f;int px=cx+(int)(cosf(a)*((i&1)?5:3)),py=cy+(int)(sinf(a)*((i&1)?5:3));pixel(px,py,i==((int)phase%5)?WHITE:ink);}
+ }else if(pattern==2){ /* Tiny telemetry waveform. */
+  int lastx=x0+8,lasty=cy+(int)(sinf(phase)*3);
+  for(int i=1;i<28;i++){int px=x0+8+i*4,py=cy+(int)(sinf(phase+i*.72f)*((i%7==0)?5:3));line(lastx,lasty,px,py,ink);lastx=px;lasty=py;}
+ }else if(pattern==3){ /* Rotating planet / galaxy schematic. */
+  circle(cx,cy,6,dim);int ex=cx+(int)(cosf(phase)*6),ey=cy+(int)(sinf(phase)*3);line(cx-8,cy,cx+8,cy,dim);line(cx,cy,ex,ey,ink);pixel(cx+(int)(cosf(phase*1.7f)*9),cy+(int)(sinf(phase*1.7f)*5),WHITE);
+ }else { /* Slow ship silhouette with engine pulse. */
+  line(cx-12,cy,cx-4,cy-3,ink);line(cx-4,cy-3,cx+10,cy,ink);line(cx+10,cy,cx-4,cy+3,ink);line(cx-4,cy+3,cx-12,cy,ink);line(cx-4,cy-3,cx-4,cy+3,dim);pixel(cx-15-(int)(fabsf(sinf(phase))*4),cy,game.boost?WHITE:dim);
+ }
 }
 /* Ship-relative plan radar: up is ahead, down is behind. Full 360 degrees;
  * logarithmic range keeps both nearby craft and remote worlds visible. */
@@ -218,8 +249,7 @@ static void cockpit(void){
  rect(0,0,W,24,RGB(21,28,39));rect(0,23,W,1,RGB(193,139,77));
  text(1,0,RGB(85,212,212),"System: %.11s",game.systems[game.system].name);
  {int wl=wanted_level(&game);text(1,1,wl?RED:RGB(155,154,165),wl?"Wanted %d/5":"Wanted 0/5",wl);}
- int heading=(int)(game.yaw*57.29578f)%360;if(heading<0)heading+=360;
- text(24,0,RGB(155,154,165),"%03d",heading);danger_badge(224,4,danger_rating(&game,game.system));
+ flight_activity_display();
  /* Mission cue top-right in the header band with a 2-col margin — not flush
   * to the screen edge. ART_AMBER objective ink (ART DIRECTOR palette); clear of danger badge. */
  {

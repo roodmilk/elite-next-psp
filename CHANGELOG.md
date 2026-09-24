@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.5.69 — animated cockpit activity display
+
+- Replaced the top-center heading/danger glyph cluster with a lightweight native-pixel sci-fi display.
+- Cycles through drifting stars, radar sweep, telemetry waveform, rotating planet/galaxy, and ship schematic patterns.
+- Motion speeds up with cruise velocity and switches to hyperspace-like streaks during boost; danger remains visible through the alert border/markers.
+- Preserved the rest of the cockpit HUD and gameplay state.
+
 ## 2.5.68 — loadout and mission log readability
 
 - Separated Mission Log main/side sections and objective area so all five contracts remain visible. Hide the Abandon prompt on main missions.

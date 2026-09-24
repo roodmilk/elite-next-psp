@@ -1,6 +1,15 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-## Released 2.5.68 — development paused
+## Released 2.5.69 — animated cockpit activity display
+
+The main flight cockpit now uses a small native-pixel activity display in the
+top-center band. It cycles through stars, radar, telemetry, planet/galaxy and
+ship schematic loops, with faster motion at cruise speed and boost streaks.
+The existing system, wanted, mission, lower-instrument and combat HUD behavior
+remains intact; high danger uses the display border/markers as a compact alert.
+Build and smoke evidence for this release should be recorded below.
+
+## Previously released 2.5.68 — development paused
 
 Loadout and Mission Log fixes below are now packaged and smoke-tested in 2.5.68.
 This supersedes their pending-release status. See docs/SMOKE-EVIDENCE-2.5.68.md.
@@ -548,3 +557,8 @@ Do not delete older-save handling, audio resume logic, campaign idempotency chec
 ## Rights and source boundary
 
 The project uses Elite-A/reference material and established Elite concepts. The new campaign, dialogue, UI and most new implementation are original. Do not copy dialogue, art, music or proprietary assets from Elite Dangerous, No Man's Sky, Starfield, novels or fan sites. Use lore facts as background and write original expression. Keep source/provenance notes and review redistribution rights before any public release.
+
+Validation for 2.5.69: build succeeded; all five smoke suites passed in
+C:\Users\skarm\Documents\Codex\2026-09-24\let\work\smoke-20260924-213124-036.
+EBOOT SHA256: 00C66FD9C82FBFCE337F07BA24CF0CFAB7DF081A2450B242E208E8D1C0AB1870.
+Physical PSP testing remains unverified.
