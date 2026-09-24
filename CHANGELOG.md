@@ -76,6 +76,14 @@
 
 All notable playable releases are recorded here. `VERSION` is the current canonical version.
 
+## 2.5.74 — Trader cargo offers
+
+- Traders now offer a small commodity-for-commodity exchange during a hail. Buy the requested cargo, find the same trader again, and hail them to complete the deal.
+- Scanned ship contacts keep their callsigns in the targeting computer for the current system, making it possible to relocate a trader after visiting the market.
+- Trader offers remain session-local so the existing V13 commander-save format stays compatible.
+- Cargo canisters now use a short tractor-beam pickup animation that stops the ship, holds position, and completes the collection after the beam finishes.
+- Discovery Codex gains a `GALACTIC LORE` tab with original compact reference entries about the Milky Way setting.
+
 ## 2.5.48 - 2026-09-23
 
 - Reworked planetary EVA with separate look and movement, shared rendered/collision terrain, bounded shores and fields, jet descent, reliable boarding, ship guidance, suit status and the full scan-to-sale regression journey.

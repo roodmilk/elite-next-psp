@@ -15,7 +15,7 @@ static int target_category(int id){
 static Vec3 target_position(int id){if(id==0)return hub_position(&game,game.docked?game.station_variant:nearest_hub(&game));if(id<=BODY_COUNT)return game.bodies[id-1].pos;if(IS_NPC_ID(id))return game.npc[id-BODY_COUNT-1].pos;if(IS_DEBRIS_ID(id))return game.debris[id-DEBRIS_ID_MIN].pos;return game.anomaly[id-ANOMALY_ID_MIN].pos;}
 static const char *target_name(int id){if(id==0)return station_name(&game);if(id<=BODY_COUNT)return game.bodies[id-1].name;static char label[32];if(IS_DEBRIS_ID(id)){Debris *d=&game.debris[id-DEBRIS_ID_MIN];if(d->rock)snprintf(label,sizeof(label),d->rock==2?"ICE ASTEROID":"MINERAL ASTEROID");else if(d->wreck)snprintf(label,sizeof(label),"WRECKAGE #%02d",id-DEBRIS_ID_MIN+1);else snprintf(label,sizeof(label),"%s POD",goods[d->good>=0&&d->good<GOODS?d->good:12].name);return label;}if(IS_ANOMALY_ID(id)){Anomaly *a=&game.anomaly[id-ANOMALY_ID_MIN];snprintf(label,sizeof(label),a->kind?"MERIDIAN ECHO":"STELLAR RIFT");return label;}NPC *n=&game.npc[id-BODY_COUNT-1];if(n->traveller>=0)return traveller_name(n->traveller);int serial=(id*17+game.system*7)&255;if(n->role==LAW)snprintf(label,sizeof(label),"ENCRYPTED // %02X",serial);else if(n->role==PIRATES)snprintf(label,sizeof(label),"RAIDER %c-%02d",'A'+(serial%26),serial%100);else if(n->role==EXPLORERS)snprintf(label,sizeof(label),"GUILD %c-%02d",'A'+(serial%26),serial%100);else if(n->freighter)snprintf(label,sizeof(label),"CAPITAL MERCHANT %02d",serial%100);else snprintf(label,sizeof(label),"MERCHANT %c-%02d",'A'+(serial%26),serial%100);return label;}
 static int valid_target(int id){if(id<0||id>ANOMALY_ID_MAX)return 0;if(id<=BODY_COUNT)return 1;if(IS_NPC_ID(id))return game.npc[id-BODY_COUNT-1].alive;if(IS_DEBRIS_ID(id))return game.debris[id-DEBRIS_ID_MIN].alive;return game.anomaly[id-ANOMALY_ID_MIN].alive;}
-static int scanner_known(int id){if(!IS_NPC_ID(id)||(game.upgrades&16))return 1;return length(sub(target_position(id),game.pos))<=2500;}
+static int scanner_known(int id){if(!IS_NPC_ID(id)||(game.upgrades&16))return 1;NPC *n=&game.npc[id-BODY_COUNT-1];return n->name_known||length(sub(target_position(id),game.pos))<=2500;}
 static int nearest_hostile_target(void){int best=-1;float range=1e9f;for(int i=0;i<NPC_COUNT;i++)if(game.npc[i].alive&&npc_is_hostile(&game.npc[i])){float d=length(sub(game.npc[i].pos,game.pos));if(d<range){range=d;best=BODY_COUNT+1+i;}}return best;}
 static void pick_look_target(void);
 static int occluded(Vec3 pos);
@@ -39,6 +39,7 @@ static void ensure_scan_cat_for_target(int id){
 }
 static void lock_local_target(int id,const char *kind){
  selected_target=id;
+ if(IS_NPC_ID(id))game.npc[id-BODY_COUNT-1].name_known=1;
  /* Stay on SHIPS when browsing all traffic — hostiles live there too. */
  if(!(IS_NPC_ID(id)&&(scan_cat==1||scan_cat==4)))scan_cat=target_category(id);
  else ensure_scan_cat_for_target(id);
@@ -79,6 +80,13 @@ static void cycle_front_target(void){
  if(!n){message(&game,"No contacts in front of the ship.");return;}
  int next=cur<0?0:(cur+1)%n;lock_local_target(ids[next],"In view");
 }
+static void tractor_beam_effect(void){
+ if(game.tractor_time<=0||!IS_DEBRIS_ID(game.tractor_target))return;
+ int i=game.tractor_target-DEBRIS_ID_MIN;if(i<0||i>=DEBRIS_COUNT||!game.debris[i].alive)return;
+ Vec3 v=camera(&game,game.debris[i].pos);if(v.z<20)return;Point p=project(v);int cx=240,cy=view_bot()-18;
+ float phase=game.time*18.f;for(int k=0;k<4;k++){int wob=(int)(sinf(phase+k*1.7f)*5);line(cx+k*2-3,cy,p.x+wob+k*2,p.y,CYAN);}
+ circle((int)p.x,(int)p.y,8+(int)(sinf(phase)*2),CYAN);circle((int)p.x,(int)p.y,3,GOLD);
+}
 static int flight_target_combo(unsigned pressed,unsigned held){
  if(game.planet>=0||game.approach>=0||game.jump>0)return 0;
  if(!((held|pressed)&PSP_CTRL_SQUARE))return 0;
@@ -109,7 +117,7 @@ static void hail_target(void){
   if(n->traveller>=0){contact_speak(n->role,traveller_hail(n->traveller));game.travellers[n->traveller].flags|=1;return;}
   if(n->role==PIRATES){speak(&game,VOICE_COMP,"No reply. They're painting us.");game.cue=SFX_TALK;}
   else if(n->role==LAW)contact_speak(LAW,game.legal?"Stop. Pay the fine or take custody.":"Clear. Keep the lane clean.");
-  else if(n->role==TRADERS){if(n->freighter){char cargo[80];snprintf(cargo,sizeof(cargo),"%s %s. %d%c %s. %s.",n->freight_state<=FREIGHT_INBOUND?"From":"To",game.systems[n->freight_peer].name,n->freight_qty,goods[n->freight_good].unit,goods[n->freight_good].name,freight_status(n));contact_speak(TRADERS,cargo);}else contact_speak(TRADERS,"Market's open at the hub. Don't scrape the paint.");}
+  else if(n->role==TRADERS){if(n->freighter){char cargo[80];snprintf(cargo,sizeof(cargo),"%s %s. %d%c %s. %s.",n->freight_state<=FREIGHT_INBOUND?"From":"To",game.systems[n->freight_peer].name,n->freight_qty,goods[n->freight_good].unit,goods[n->freight_good].name,freight_status(n));contact_speak(TRADERS,cargo);}else if(trader_offer_hail(&game,id-BODY_COUNT-1)){game.voice_role=TRADERS;game.voice_seed=game.system*NPC_COUNT+selected_target;}}
   else contact_speak(EXPLORERS,"Survey channel. We are mapping this sky.");
   return;
  }
@@ -362,6 +370,4 @@ static void mining_effects(void){
    world_spark((int)(p.x+cosf(a)*r),(int)(p.y+sinf(a)*r*.65f),1,k&1?GOLD:RGB(169,192,198));}
  }
 }
-
-
 

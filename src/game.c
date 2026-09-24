@@ -415,7 +415,7 @@ void game_spawn(Game *g){
  travellers_promote(g);
  jobs_sync(g);
 }
-void game_init(Game *g){memset(g,0,sizeof(*g));g->rng=0x19841991;g->ai_phase=-1;galaxy(g->systems);g->system=7;g->destination=129;g->route_goal=-1;g->passenger_dest=-1;g->credits=1000;g->fuel=60;g->energy=100;g->docked=1;g->contract=-1;g->mission_target=-1;g->missile_target=-1;g->incoming_source=-1;g->approach=-1;g->planet=-1;g->missiles=1;g->pip_sys=2;g->pip_eng=2;g->pip_wep=4;fit_clear_all(g);travellers_seed(g);market(g);game_spawn(g);g->cargo[0]=2;message(g,"X opens the deck.");speak(g,VOICE_KEI,"Kei Aven. Ryn is missing — and this berth is yours until we find her.");}
+void game_init(Game *g){memset(g,0,sizeof(*g));g->rng=0x19841991;g->ai_phase=-1;galaxy(g->systems);g->system=7;g->destination=129;g->route_goal=-1;g->passenger_dest=-1;g->trader_offer_system=-1;g->trader_offer_npc=-1;g->tractor_target=-1;g->credits=1000;g->fuel=60;g->energy=100;g->docked=1;g->contract=-1;g->mission_target=-1;g->missile_target=-1;g->incoming_source=-1;g->approach=-1;g->planet=-1;g->missiles=1;g->pip_sys=2;g->pip_eng=2;g->pip_wep=4;fit_clear_all(g);travellers_seed(g);market(g);game_spawn(g);g->cargo[0]=2;message(g,"X opens the deck.");speak(g,VOICE_KEI,"Kei Aven. Ryn is missing — and this berth is yours until we find her.");}
 void launch(Game *g){if(!g->docked)return;guild_event(g,GUILD_LAUNCH);g->docked=0;g->pos=(Vec3){0,0,0};g->yaw=g->pitch=0;g->speed=100;game_spawn(g);int before=g->story;story_event(g,STORY_EV_LAUNCH);if(g->story==before)message(g,"Station ahead. Select opens the deck.");if(g->story==STORY_SIGHT||g->story==STORY_RETURN)speak(g,VOICE_VENN,"Tower. Cleared. Soft launch — come home in one piece.");if(!g->cue)g->cue=SFX_DOCK;campaign_event(g,CP_LAUNCH);}
 #include "docking.h"
 #include "journey.h"
@@ -423,6 +423,24 @@ int trade(Game *g,int i,int buy){if(!g->docked||i<0||i>=GOODS)return 0;
  if(buy){if(g->credits<g->price[i]||g->stock[i]<1||(goods[i].unit=='t'&&cargo_used(g)>=cargo_capacity(g))){message(g,"Check units, stock and cargo space.");return 0;}g->credits-=g->price[i];g->stock[i]--;g->cargo[i]++;if(goods_restricted(i))message(g,"Restricted goods loaded. Law will scan your hold.");}
  else {if(g->cargo[i]<=mission_cargo_reserved(g,i)){message(g,g->cargo[i]?"Reserved for a mission. Abandon it to release cargo.":"Nothing to sell.");return 0;}g->cargo[i]--;g->stock[i]++;g->credits+=g->price[i];}g->cue=SFX_UI;
  if(!(buy&&goods_restricted(i))){char note[64];snprintf(note,sizeof(note),buy?"Bought %s.":"Sold %s.",goods[i].name);message(g,note);}
+ return 1;
+}
+int trader_offer_hail(Game *g,int npc_id){
+ if(!g||npc_id<0||npc_id>=NPC_COUNT||!g->npc[npc_id].alive||g->npc[npc_id].role!=TRADERS||g->npc[npc_id].freighter)return 0;
+ if(g->trader_offer_active&&g->trader_offer_system==g->system&&g->trader_offer_npc==npc_id){
+  int need=g->trader_offer_need,reward=g->trader_offer_reward,qty=g->trader_offer_qty;
+  if(need<0||need>=GOODS||reward<0||reward>=GOODS||qty<1||qty>3){g->trader_offer_active=0;return 0;}
+  if(g->cargo[need]<qty){char line[160];snprintf(line,sizeof(line),"Bring %d%c %s and hail me again.",qty,goods[need].unit,goods[need].name);speak(g,VOICE_CONTACT,line);return 1;}
+  if(goods[reward].unit=='t'&&cargo_used(g)-((goods[need].unit=='t')?qty:0)+qty>cargo_capacity(g)){speak(g,VOICE_CONTACT,"Your hold is too full for the exchange.");return 1;}
+  g->cargo[need]-=qty;g->cargo[reward]+=qty;g->trader_offer_active=0;g->cue=SFX_TALK;
+  {char line[160];snprintf(line,sizeof(line),"Deal done. %d%c %s for %d%c %s.",qty,goods[reward].unit,goods[reward].name,qty,goods[need].unit,goods[need].name);speak(g,VOICE_CONTACT,line);message(g,"Trader exchange complete.");}
+  return 1;
+ }
+ if(g->trader_offer_active){speak(g,VOICE_CONTACT,"I have already made an offer. Find that trader again when you have the cargo.");return 1;}
+ {static const int pool[]={0,1,2,4,5,7,8,9,10,11,12,16};int seed=(g->system*13+npc_id*7+g->systems[g->system].economy)&255;int need=pool[seed%(int)(sizeof(pool)/sizeof(pool[0]))];int reward=pool[(seed+3)%(int)(sizeof(pool)/sizeof(pool[0]))];
+  g->trader_offer_active=1;g->trader_offer_system=g->system;g->trader_offer_npc=npc_id;g->trader_offer_need=need;g->trader_offer_reward=reward;g->trader_offer_qty=1+(seed&1);
+  {char line[160];snprintf(line,sizeof(line),"I can swap %d%c %s for %d%c %s. Buy the %s, then find me again.",g->trader_offer_qty,goods[reward].unit,goods[reward].name,g->trader_offer_qty,goods[need].unit,goods[need].name,goods[need].name);speak(g,VOICE_CONTACT,line);message(g,"Trader offer recorded. Scan ships to find this trader again.");}
+ }
  return 1;
 }
 int buy_ship(Game *g,int i){if(!g->docked||i<0||i>=player_ship_count)return 0;if(i==g->ship){message(g,"Already on this ship.");return 0;}
@@ -453,7 +471,7 @@ static void hit(Game *g,int i,float damage,int player){NPC *n=&g->npc[i];if(!n->
  if(n->health<=0&&protect){n->health=1;if(player)message(g,"That's a rescue beacon. Don't fire.");return;}
  if(n->health<=0){n->alive=0;if(n->freighter){n->freight_state=FREIGHT_ABSENT;n->freight_timer=240;}wreck_from_npc(g,i);if(player){g->kills++;if(n->role!=PIRATES)add_crime(g,n->freighter?25:10);if(n->role==PIRATES){g->credits+=150;message(g,"Pirate destroyed. Bounty 15 units. Cargo released.");}else message(g,n->freighter?"Freighter destroyed. Heavy warrant filed. Cargo released.":"Contact destroyed. Cargo canisters released.");for(int s=0;s<g->job_n;){if(g->jobs[s].dest==g->system&&g->jobs[s].type==MISSION_BOUNTY&&g->jobs[s].target==i){g->job_sel=s;mission_finish_slot(g,s,"Pirate-hunt complete. Payment received.");}else s++;}}else g->npc_kills++;}
 }
-int salvage(Game *g,int id){
+static int salvage_collect(Game *g,int id){
  if(g->docked||g->dead||g->jump>0||g->planet>=0||!IS_DEBRIS_ID(id))return 0;
  int i=id-DEBRIS_ID_MIN;Debris *d=&g->debris[i];if(!d->alive)return 0;
  if(d->rock){message(g,"Blast the asteroid; then collect its ore.");return 0;}
@@ -466,6 +484,14 @@ int salvage(Game *g,int id){
   else {g->cargo[item]+=d->qty;if(goods_restricted(item))snprintf(note,sizeof(note),"SALVAGED RESTRICTED %s. HIDE IT FROM LAW SCANS.",goods[item].name);else snprintf(note,sizeof(note),"SALVAGED %d%c %s.",d->qty,goods[item].unit,goods[item].name);}
  }
  d->alive=0;message(g,note);g->cue=SFX_SCAN;return 1;
+}
+int salvage(Game *g,int id){
+ if(g->docked||g->dead||g->jump>0||g->planet>=0||!IS_DEBRIS_ID(id))return 0;
+ int i=id-DEBRIS_ID_MIN;Debris *d=&g->debris[i];if(!d->alive)return 0;
+ if(d->rock){message(g,"Blast the asteroid; then collect its ore.");return 0;}
+ if(length(sub(d->pos,g->pos))>500){message(g,"Close within 500 m to salvage.");return 0;}
+ if(g->tractor_time>0){message(g,"Tractor beam already engaged.");return 0;}
+ g->tractor_target=id;g->tractor_time=.75f;g->speed=0;g->boost=0;g->cue=SFX_SCAN;message(g,"TRACTOR BEAM ENGAGED. HOLDING POSITION.");return 1;
 }
 int analysis_scan(Game *g,int id){
  if(g->dead||g->docked||!IS_ANOMALY_ID(id))return 0;
@@ -533,6 +559,7 @@ static void game_step(Game *g,float dt,float turn,float pitch,int throttle,int f
   else {g->incoming_missile-=dt;if(g->incoming_missile<=0){g->energy-=25;g->attacked=3;g->incoming_source=-1;g->cue=SFX_HIT;message(g,"Missile impact. Shields damaged.");}}
  }
  if(g->dock_stage){docking_tick(g,dt);return;}
+ if(g->tractor_time>0){g->tractor_time-=dt;g->speed=0;g->boost=0;if(g->tractor_time<=0){int id=g->tractor_target;g->tractor_target=-1;g->tractor_time=0;salvage_collect(g,id);}return;}
  if(g->dead||g->docked||g->approach>=0)return;
  if(g->planet>=0){planet_tick(g,dt,turn,pitch,throttle,strafe);return;}
  float localturn=turn*cosf(g->roll)-pitch*sinf(g->roll),localpitch=turn*sinf(g->roll)+pitch*cosf(g->roll);g->yaw+=localturn*dt*1.5f;g->pitch=wrap_range(g->pitch+localpitch*dt*1.5f,3.14159265f);
@@ -797,6 +824,7 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  game_init(&g);g.system=0;game_spawn(&g);Vec3 traffic0=g.npc[0].alive?g.npc[0].pos:(Vec3){99999,0,0};g.system=15;game_spawn(&g);CHECK(g.npc[0].alive&&length(sub(traffic0,g.npc[0].pos))>400,"ship traffic occupies a different layout in another system");
  game_init(&g);launch(&g);{int dest=-1;for(int i=0;i<256;i++)if(i!=g.system&&distance_ly(&g,g.system,i)*10<=g.fuel){dest=i;break;}g.destination=dest;CHECK(jump_start(&g),"warp starts for arrival-distance check");for(int i=0;i<310;i++)game_tick(&g,1.f/60,0,0,0,0);float hub=length(sub(g.pos,(Vec3){0,0,STATION_Z}));CHECK(g.system==dest&&hub>8500.f,"hyperspace drops the ship well outside the local hub");}
  game_init(&g);int large=0,models[64]={0},unique=0;for(int i=0;i<36;i++){large+=g.npc[i].freighter;models[g.npc[i].mesh]=1;}for(int i=0;i<64;i++)unique+=models[i];CHECK(large>=3&&unique>=9,"system traffic includes capital freighters and varied ship models");CHECK(g.npc[8].cruise<g.npc[0].cruise&&freight_extent(&g.npc[8]).z>g.npc[0].radius*2&&fabsf(g.npc[8].radius-length(freight_extent(&g.npc[8])))<.1f,"freighters use large shared hull dimensions and lower cruise speeds");
+ game_init(&g);launch(&g);for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;g.npc[0].alive=1;g.npc[0].role=TRADERS;g.npc[0].freighter=0;CHECK(trader_offer_hail(&g,0)&&g.trader_offer_active&&g.trader_offer_system==g.system&&g.trader_offer_npc==0,"trader hail creates a system-local cargo offer");{int need=g.trader_offer_need,reward=g.trader_offer_reward,qty=g.trader_offer_qty;for(int i=0;i<GOODS;i++)g.cargo[i]=0;g.cargo[need]=qty;CHECK(trader_offer_hail(&g,0)&&!g.trader_offer_active&&g.cargo[need]==0&&g.cargo[reward]==qty,"trader offer exchanges the requested commodity on a later hail");}
  g.system=0;g.systems[0].economy=0;int rich=mission_count(&g);g.systems[0].economy=2;CHECK(rich>mission_count(&g),"prosperous systems offer more mission jobs");
  game_init(&g);int types=0;for(int i=0;i<5;i++)types|=1<<mission_type_for_offer(&g,i);CHECK(types==31,"mission board rotates through five job types");CHECK(accept_mission(&g,0)&&g.contract>=0&&g.mission_type==MISSION_EXPLORATION,"exploration mission acceptance records objective type");
  int filled=1;for(int i=1;i<5;i++)filled+=accept_mission(&g,i)!=0;CHECK(filled==5&&g.job_n==5&&!accept_mission(&g,0),"mission log holds five jobs and rejects a sixth");
@@ -812,9 +840,9 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  game_init(&g);g.docked=1;g.discoveries=6;g.scanned_flora=2;g.scanned_anomalies=1;g.visited[2]|=4;CHECK(save_game(&g,"test-codex.sav")&&load_game(&loaded,"test-codex.sav")&&loaded.discoveries==6&&loaded.scanned_flora==2&&(loaded.visited[2]&4),"codex and visited systems survive version-six save");remove("test-codex.sav");
  game_init(&g);launch(&g);g.pos=(Vec3){0,0,-3000};CHECK(!dock(&g),"standard docking communicator has limited range");g.upgrades|=1;CHECK(dock(&g),"docking computer extends guided docking range");
  game_init(&g);launch(&g);int floating=0;for(int i=0;i<DEBRIS_COUNT;i++)floating+=g.debris[i].alive;CHECK(floating>=8,"systems spawn cargo canisters and wreckage");
- int loot=-1;for(int i=0;i<DEBRIS_COUNT;i++)if(g.debris[i].alive&&!g.debris[i].wreck&&!g.debris[i].rock){loot=i;break;}CHECK(loot>=0,"cargo filter has at least one canister");g.pos=g.debris[loot].pos;int hold=g.cargo[g.debris[loot].good];CHECK(salvage(&g,DEBRIS_ID_MIN+loot)&&!g.debris[loot].alive&&g.cargo[g.debris[loot].good]==hold+1,"close salvage collects a cargo canister");
+ int loot=-1;for(int i=0;i<DEBRIS_COUNT;i++)if(g.debris[i].alive&&!g.debris[i].wreck&&!g.debris[i].rock){loot=i;break;}CHECK(loot>=0,"cargo filter has at least one canister");g.pos=g.debris[loot].pos;int hold=g.cargo[g.debris[loot].good];CHECK(salvage(&g,DEBRIS_ID_MIN+loot)&&g.tractor_time>0,"close salvage starts the tractor beam");for(int i=0;i<50;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(!g.debris[loot].alive&&g.cargo[g.debris[loot].good]==hold+1,"tractor beam collects a cargo canister");
  game_init(&g);g.system=0;launch(&g);for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;g.npc[0].alive=1;g.npc[0].role=TRADERS;g.npc[0].freighter=0;g.npc[0].pos=(Vec3){0,0,800};g.npc[0].dir=(Vec3){0,0,1};g.npc[0].health=10;g.npc[0].shield=0;int debris_before=0;for(int i=0;i<DEBRIS_COUNT;i++)debris_before+=g.debris[i].alive;hit(&g,0,200,1);int after=0,pods=0;for(int i=0;i<DEBRIS_COUNT;i++){after+=g.debris[i].alive;pods+=g.debris[i].alive&&!g.debris[i].wreck;}CHECK(!g.npc[0].alive&&after>debris_before&&pods>0,"destroyed ships release cargo and wreckage");
- g.cargo[0]=cargo_capacity(&g);int cash=g.credits,sold=-1;for(int i=0;i<DEBRIS_COUNT;i++)if(g.debris[i].alive&&!g.debris[i].wreck&&!g.debris[i].rock){sold=i;g.pos=g.debris[i].pos;break;}CHECK(sold>=0&&salvage(&g,DEBRIS_ID_MIN+sold)&&g.credits>cash,"full hold sells salvage for credits");
+ g.cargo[0]=cargo_capacity(&g);int cash=g.credits,sold=-1;for(int i=0;i<DEBRIS_COUNT;i++)if(g.debris[i].alive&&!g.debris[i].wreck&&!g.debris[i].rock){sold=i;g.pos=g.debris[i].pos;break;}CHECK(sold>=0&&salvage(&g,DEBRIS_ID_MIN+sold)&&g.tractor_time>0,"full hold salvage starts the tractor beam");for(int i=0;i<50;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.credits>cash,"full hold sells salvage for credits");
  CHECK(!fire_missile(&g,DEBRIS_ID_MIN),"missiles cannot lock cargo or wreckage");
  game_init(&g);launch(&g);g.pos=add(g.bodies[1].pos,(Vec3){0,0,-g.bodies[1].radius-500});g.yaw=g.pitch=0;Vec3 parked=g.pos;CHECK(approach_planet(&g,1)&&enter_planet(&g)&&g.planet==1&&g.approach<0,"approach X-path enters atmosphere flight");
  CHECK(g.planet==1&&g.pos.y>terrain_height(&g,g.pos.x,g.pos.z)+100,"atmosphere spawn sits above generated terrain");

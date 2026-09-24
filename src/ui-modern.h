@@ -143,7 +143,18 @@ static void chart(void){
  page_number_at(37,5,row/8+1,(near_count+7)/8);footer(game.docked?"UP/DOWN X JUMP   TRI GALAXY   O BACK":"UP/DOWN X JUMP   TRI GALAXY   O BACK");
 }
 static int codex_tab=0;
-static const char *codex_tabs[]={"SYSTEMS","PLANETS","FLORA","FAUNA","MINERALS","ECHOES"};
+static const char *codex_tabs[]={"SYSTEMS","PLANETS","FLORA","FAUNA","MINERALS","ECHOES","GALACTIC LORE"};
+static const char *milky_way_topics[]={"THE MILKY WAY","SOL AND EARTH","THE COLONIES","HYPERSPACE","PILOTS AND SHIPS","THE FRONTIER","ALIEN CIVILISATIONS","TRADE AND POWER"};
+static const char *milky_way_notes[]={
+ "A barred spiral galaxy of billions of stars. Human space is only a small, busy island in it.",
+ "Sol is humanity's old home. Earth became a symbol, a market and a political prize.",
+ "Settlements spread along trade routes, turning distant worlds into homes, ports and rival powers.",
+ "Jump drives cross the dark between stars, but fuel, range and navigation still shape every voyage.",
+ "Small ships make the frontier legible: scouts, couriers, miners, escorts and traders carry its stories.",
+ "Beyond the core, law arrives unevenly. Reputation, local government and a pilot's choices matter.",
+ "Human records contain hints of older and stranger intelligences. Some encounters remain unexplained.",
+ "Markets bind the galaxy together. Food, machines, metals and restricted cargo move with the pilots."
+};
 static int vis_count(void){int n=1;for(int s=0;s<256;s++)if(s!=game.system&&(game.visited[s>>3]&(1<<(s&7))))n++;return n;}
 static int vis_sys(int idx){if(idx<=0)return game.system;int n=1;for(int s=0;s<256;s++)if(s!=game.system&&(game.visited[s>>3]&(1<<(s&7)))){if(n==idx)return s;n++;}return game.system;}
 /* Visiting a system discovers its four worlds (I–IV). Count is systems × 4. */
@@ -152,7 +163,7 @@ static void planet_log_at(int idx,int *sys_out,int *body_out){
  int n=vis_count(),si=idx/4,bi=(idx%4)+1;if(si<0)si=0;if(si>=n)si=n-1;if(bi<1)bi=1;if(bi>4)bi=4;
  *sys_out=vis_sys(si);*body_out=bi;
 }
-static int codex_kind_count(int tab){if(tab==0)return vis_count();if(tab==1)return planet_log_count();if(tab==2)return game.scanned_flora;if(tab==3)return game.scanned_fauna;if(tab==4)return game.scanned_minerals;return game.scanned_anomalies;}
+static int codex_kind_count(int tab){if(tab==0)return vis_count();if(tab==1)return planet_log_count();if(tab==2)return game.scanned_flora;if(tab==3)return game.scanned_fauna;if(tab==4)return game.scanned_minerals;if(tab==5)return game.scanned_anomalies;return (int)(sizeof(milky_way_topics)/sizeof(*milky_way_topics));}
 static int codex_rows(void){int n=codex_kind_count(codex_tab);return n>0?n:1;}
 static void codex_life_label(int tab,int i,char *name,int nn,char *where,int wn){
  const char *flora[]={"GLOW VINE","GLASS FERN","SPORE TREE","NIGHT MOSS","KELP FAN","IRON MOSS"};
@@ -189,6 +200,12 @@ static void codex_screen(void){
   text(32,16,CYAN,"%.12s %s",game.systems[sys].name,rom[body]);
   {const char *kindname[]={"STAR","OCEAN","ROCKY","GAS"};text(32,18,WHITE,"%s world",kindname[type>=0&&type<=GAS?type:ROCKY]);}
   text(32,20,DIM,sys==game.system?"In this system":"Discovered on visit");
+ }else if(codex_tab==6){
+  for(int j=0;j<7&&first+j<count;j++){int i=first+j,y=7+j*2;if(i==row)rect(10,y*8-2,220,13,RGB(25,65,77));text(3,y,i==row?WHITE:DIM,"%.22s",milky_way_topics[i]);}
+  text(32,13,GOLD,"%.22s",milky_way_topics[row]);
+  text(32,16,WHITE,"MILKY WAY FILE");
+  text(32,18,DIM,"%.29s",milky_way_notes[row]);
+  text(32,20,DIM,"Shipboard reference / original brief");
  }else if(n<=0){text(3,10,DIM,"Nothing logged yet.");text(32,10,WHITE,"Scan on foot. Square.");}
  else {
   for(int j=0;j<7&&first+j<count;j++){int i=first+j,y=7+j*2;char name[24],where[24];codex_life_label(codex_tab,i,name,sizeof(name),where,sizeof(where));if(i==row)rect(10,y*8-2,220,13,RGB(25,65,77));text(3,y,i==row?WHITE:DIM,"%.22s",name);}

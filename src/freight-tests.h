@@ -18,7 +18,7 @@
  behind->alive=0;g.shot=0;g.heat=0;game_tick(&g,.016f,0,0,0,1);
  CHECK(rock->alive&&!rock->rock&&rock->qty==2&&rock->good==12&&cargo_used(&g)==before&&g.credits==money,"mining: fracture releases ore even when every debris slot is occupied");
  CHECK(!mine_rock(&g,DEBRIS_ID_MIN)&&!salvage(&g,DEBRIS_ID_MIN),"mining: loose ore is not mined twice or collected outside 500 m");
- g.pos=rock->pos;CHECK(salvage(&g,DEBRIS_ID_MIN)&&g.cargo[12]==2&&!rock->alive&&!salvage(&g,DEBRIS_ID_MIN),"mining: collection gives the exact yield once");
+ g.pos=rock->pos;CHECK(salvage(&g,DEBRIS_ID_MIN)&&g.tractor_time>0,"mining: collection starts the tractor beam");for(int i=0;i<50;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.cargo[12]==2&&!rock->alive&&!salvage(&g,DEBRIS_ID_MIN),"mining: collection gives the exact yield once");
 }
 {
  int routes=1,quiet=0,busy=0,layouts=0,counts[4]={0},ice=0;

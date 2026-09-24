@@ -48,6 +48,7 @@ typedef struct {
  Vec3 pos,dir; float health,shield,cooldown,flash,scale,radius,cruise;
  int role,mesh,target,alive,waypoint,freighter;
  int8_t traveller; /* >=0 indexes TravellerLive; -1 = anonymous traffic */
+ uint8_t name_known; /* scanner has identified this contact in the current system */
  Vec3 freight_gate,freight_berth;
  float freight_timer;
  int freight_state,freight_style,freight_hub,freight_peer,freight_good,freight_qty,freight_trip;
@@ -67,9 +68,11 @@ typedef struct {
  float attacked,collision,encounter,incoming_missile,police_grace; int boost,approach,planet,surface,incoming_source;
  Vec3 orbit_pos,ship_pos; float orbit_yaw,orbit_pitch,orbit_roll,orbit_speed;
  Vec3 missile_pos; float missile_time; int missile_target;
+ int tractor_target; float tractor_time;
  Vec3 pos; float yaw,pitch,speed,energy,heat,fuel,time,jump,shot,message_time,hazard,jetpack;
  int system,destination,route_goal,credits,kills,legal,ship,docked,dead,laser,missiles,cue;
  int cargo[GOODS],stock[GOODS],price[GOODS],contract,contract_reward;
+ int trader_offer_active,trader_offer_system,trader_offer_npc,trader_offer_need,trader_offer_reward,trader_offer_qty;
  float contract_time; int mission_type,mission_stage,mission_target,mission_item,mission_origin,mission_result,last_mission_type,last_mission_system;
  Job jobs[MISSION_SLOTS]; int job_n,job_sel;
  int story,story_flags,pip_sys,pip_eng,pip_wep,voice_who;
@@ -94,6 +97,7 @@ Vec3 forward(const Game *g); Vec3 camera(const Game *g,Vec3 p);
 int mesh_id(const char *name); int cargo_used(const Game *g); int cargo_capacity(const Game *g); int galactic_price(int item);
 void galaxy(System out[256]); float distance_ly(const Game *g,int a,int b);
 void game_init(Game *g); void game_spawn(Game *g); void market(Game *g);
+int trader_offer_hail(Game *g,int npc_id);
 void system_bodies(Game *g);
 int danger_rating(const Game *g,int system);
 void turn_back(Game *g);
