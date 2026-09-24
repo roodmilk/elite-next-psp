@@ -1,5 +1,10 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.72 — attacking enemies alert
+
+While holding Square, the ENEMIES scan tab flashes red during active player
+attack or incoming-missile states, then returns to its normal tab color.
+
 ## Released 2.5.71 — clearer held-Square target controls
 
 The held-Square scan banner now shows `L TARGET IN FRONT` and `R LOCK ON`;

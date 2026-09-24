@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.72 — attacking enemies alert
+
+- While holding Square, the `ENEMIES` tab now flashes red when the player is under attack or has an incoming missile.
+
 ## 2.5.71 — clearer held-Square target controls
 
 - Replaced the old `D-PAD BANDS` scan hint with `L TARGET IN FRONT` and `R LOCK ON`.
