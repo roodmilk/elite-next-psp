@@ -1,5 +1,9 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.84 — functional power distribution
+
+WEP/SYS/ENG pip allocation is now regression-tested across weapon output, shield recharge, and engine behavior.
+
 ## Released 2.5.83 — clearer mission and wanted HUD cues
 
 Tracked mission instructions now render as green `>> ... >>` route cues. The opening Kei mission remains tracked by default and the tracking path is regression-tested. The cockpit hides the clear-state wanted counter and shows an escalating orange/red/flashing warning only while Law is after the commander.

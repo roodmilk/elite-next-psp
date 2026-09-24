@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.84 — functional power distribution
+
+- WEP pips now use a shared weapon-output multiplier for ship lasers and mining.
+- Added regression coverage for WEP output and SYS/ENG power effects.
+
 ## 2.5.83 — clearer mission and wanted HUD cues
 
 - Tracked mission instructions now show in green with `>> ... >>` route arrows.

@@ -530,7 +530,7 @@ int mine_rock(Game *g,int id){
  if(g->planet>=0||g->docked||g->dead||g->jump>0||!IS_DEBRIS_ID(id))return 0;
  Debris *d=&g->debris[id-DEBRIS_ID_MIN];if(!d->alive||!d->rock)return 0;
  if(length(sub(d->pos,g->pos))-d->radius>2200)return 0;
- d->health-=mine_shot_damage(g)*(0.50f+0.25f*g->pip_wep);d->flash=.22f;g->cue=SFX_MINE;
+ d->health-=mine_shot_damage(g)*weapon_output_multiplier(g);d->flash=.22f;g->cue=SFX_MINE;
  if(d->health<=0){
   /* Reuse the fractured rock's slot: ore cannot be lost to a full debris pool. */
   d->rock=0;d->wreck=0;d->good=12;d->radius=24;d->life=240;d->flash=.65f;
@@ -627,7 +627,7 @@ static void game_step(Game *g,float dt,float turn,float pitch,int throttle,int f
    float near=fmaxf(0,p.z-sqrtf(r*r-lateral));if(near<closest){rock=i;closest=near;}
   }
   if(rock>=0)mine_rock(g,DEBRIS_ID_MIN+rock);
-  else if(target>=0)hit(g,target,(int)(laser_shot_damage(g)*(0.50f+0.25f*g->pip_wep)),1);
+  else if(target>=0)hit(g,target,(int)(laser_shot_damage(g)*weapon_output_multiplier(g)),1);
  }
  freight_update(g,dt);
  /* Capital hulls use the same oriented dimensions for rendering and collision.
@@ -826,6 +826,9 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  game_init(&g);g.docked=1;g.credits=5000;g.cargo[0]=0;{int before=g.legal;/* smuggle accept via cargo only */g.cargo[6]=1;CHECK(g.legal==before&&cargo_contraband(&g)==1,"contraband cargo alone does not create a warrant");}
  game_init(&g);g.docked=1;g.fit[FIT_DEF]=7;fit_rebuild(&g);CHECK((g.upgrades&128)&&shield_regen_rate(&g)==4.5f,"military shield raises recharge to 4.5 per second");
  g.fit[FIT_WPN]=1;fit_rebuild(&g);CHECK(laser_shot_damage(&g)==24.f,"pulse laser deals 24 damage");g.fit[FIT_WPN]=2;fit_rebuild(&g);CHECK(laser_shot_damage(&g)==36.f,"beam laser deals 36 damage");
+ game_init(&g);launch(&g);g.fit[FIT_WPN]=2;fit_rebuild(&g);g.pip_wep=0;float wep_low=weapon_output_multiplier(&g);g.pip_wep=4;float wep_high=weapon_output_multiplier(&g);CHECK(wep_low==.5f&&wep_high==1.5f&&wep_high>wep_low,"WEP pips scale weapon output");
+ g.pip_sys=0;float sys_low=shield_regen_rate(&g)*(.50f+.25f*g.pip_sys);g.pip_sys=4;float sys_high=shield_regen_rate(&g)*(.50f+.25f*g.pip_sys);CHECK(sys_high>sys_low,"SYS pips scale shield recharge");
+ g.pip_eng=0;float eng_low=.70f+.15f*g.pip_eng;g.pip_eng=4;float eng_high=.70f+.15f*g.pip_eng;CHECK(eng_high>eng_low,"ENG pips scale engine speed limit");
  g.fit[FIT_UTIL]=9;fit_rebuild(&g);launch(&g);g.heat=90;g.heat_sink_cd=0;game_tick(&g,.016f,0,0,0,1);CHECK(g.heat_sink_cd>0&&g.heat<80,"heat sink dumps when lasers fire while overheated");
  game_init(&g);g.fit[FIT_DEF]=16;fit_rebuild(&g);CHECK((g.upgrades&256)&&g.fit[FIT_DEF]==16,"ECM suite fits DEF and arms missile soft-kill");
  game_init(&g);g.docked=1;g.fit[FIT_HOLD]=11;g.fit[FIT_NAV]=4;fit_rebuild(&g);CHECK(save_game(&g,"test-fit.sav")&&load_game(&loaded,"test-fit.sav")&&loaded.fit[FIT_HOLD]==11&&loaded.fit[FIT_NAV]==4&&(loaded.upgrades&64)&&(loaded.upgrades&1),"save V13 persists fitted HOLD and NAV modules");remove("test-fit.sav");remove("test-fit.sav.bak");

@@ -98,6 +98,13 @@ static float laser_shot_damage(const Game *g){
  return 18.f;              /* stock guns */
 }
 
+static float weapon_output_multiplier(const Game *g){
+ int p=g->pip_wep;
+ if(p<0)p=0;
+ if(p>4)p=4;
+ return 0.50f+0.25f*p;
+}
+
 static float mine_shot_damage(const Game *g){
  float d=laser_shot_damage(g);
  if(g->upgrades&65536)d*=1.5f;
