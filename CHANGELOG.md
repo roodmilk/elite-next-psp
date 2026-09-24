@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.98 — cosmic Galactic Lore archive
+
+- Removed Galactic Lore from the Discovery Codex tab cycle; it is now opened only from the Discover menu entry.
+- Rebuilt the lore view as a readable cosmic archive with six sections, 18 expanded entries and lightweight 1950s pulp-sci-fi-inspired cover art.
+
 ## 2.5.97 — landing-gated planet Codex
 
 - Discovery Codex planet and system archive entries now appear only after the commander lands on that planet.

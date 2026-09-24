@@ -149,20 +149,34 @@ static void chart(void){
  page_number_at(37,5,row/8+1,(near_count+7)/8);footer(game.docked?"UP/DOWN X JUMP   TRI GALAXY   O BACK":"UP/DOWN X JUMP   TRI GALAXY   O BACK");
 }
 static int codex_tab=0,codex_scope=0,codex_system=-1,codex_body=0;
-static const char *codex_tabs[]={"SYSTEMS","PLANETS","FLORA","FAUNA","MINERALS","ECHOES","GALACTIC LORE"};
-static const char *milky_way_topics[]={"THE MILKY WAY","SOL AND EARTH","THE COLONIES","HYPERSPACE","PILOTS AND SHIPS","THE FRONTIER","ALIEN CIVILISATIONS","TRADE AND POWER","LAW AND GOVERNMENT","THE OLD EARTH ERA","EXPLORATION AND SCIENCE","THE FUTURE OF THE GALAXY"};
+static const char *codex_tabs[]={"SYSTEMS","PLANETS","FLORA","FAUNA","MINERALS","ECHOES"};
+static const char *lore_categories[]={"ORIGINS","FRONTIER","TECHNOLOGY","PEOPLES","POWER","MYSTERIES"};
+static const char *milky_way_topics[]={
+ "THE MILKY WAY","SOL AND EARTH","THE FIRST LAUNCHES",
+ "THE FRONTIER","COLONIAL WORLDS","PILOTS OF THE VOID",
+ "HYPERSPACE","SHIPCRAFT","NAVIGATION AND FUEL",
+ "ALIEN CIVILISATIONS","LANGUAGES OF THE STARS","LIFE ON STRANGE WORLDS",
+ "TRADE AND POWER","LAW AT THE EDGE","THE GREAT HOUSES",
+ "ANCIENT SIGNALS","THE UNKNOWN","THE FUTURE GALAXY"
+};
 static const char *milky_way_notes[]={
- "The Milky Way is a barred spiral of countless suns. Human charts show only a fraction of its arms, with whole regions still represented by guesses, rumours and blank space.",
- "Sol is humanity's old home and still its most powerful symbol. Earth is remembered as birthplace, archive, political prize and warning about what crowded worlds can become.",
- "The colonies began as outposts, mines and research stations. Generations later they are cultures in their own right, linked by trade but proud of local customs and old grudges.",
- "Hyperspace turns distance into a route, never into a free shortcut. Drive range, fuel, navigation data and safe arrival windows still decide which worlds a pilot can reach.",
- "Pilots make the map feel close. Couriers, miners, scouts, escorts, traders and explorers carry news between systems and turn small personal decisions into galactic history.",
- "Beyond the prosperous core, law arrives unevenly. A station's charter, a governor's reach and a commander's reputation can matter more than any distant statute.",
- "Human records describe strange intelligences, ancient signals and encounters that resist sensible names. Some are science, some are folklore, and some remain deliberately unresolved.",
+ "The Milky Way is a barred spiral of countless suns. Human charts show only a fraction of its arms; whole regions remain guesses, rumours and beautiful blank space.",
+ "Sol is humanity's old home: birthplace, archive, political prize and warning about what crowded worlds can become. Its light still sits at the centre of every old story.",
+ "The first jump routes were short, dangerous and celebrated like moon landings. Each new beacon turned a frightening distance into a place where someone might build a home.",
+ "Beyond the prosperous core, maps become suggestions. Frontier pilots fly through thin law, old wreckage and sudden opportunity, where a good repair can matter more than a good speech.",
+ "Colonies began as mines, outposts and research stations. Generations later they are cultures in their own right, carrying local customs, grudges and recipes between the stars.",
+ "Couriers, miners, scouts, escorts, traders and explorers make the map feel close. Their small decisions carry news between systems and quietly turn into galactic history.",
+ "Hyperspace turns distance into a route, never a free shortcut. Drive range, fuel, navigation data and safe arrival windows decide which worlds a pilot can reach alive.",
+ "A ship is part machine, part promise. Reactors, shields, engines and weapons are tuned by crews who know that every bright warning light has a story behind it.",
+ "Navigation is a discipline of margins. A commander watches the tank, the star, the route and the clock, then commits to a blue tunnel that has no room for doubt.",
+ "Human records describe intelligences that do not fit familiar shapes. Some civilisations trade, some hide, and some leave only a pattern in a signal bank.",
+ "Every world invents words for weather, distance and danger. Translators can carry a message across light-years, but they cannot always carry its meaning.",
+ "Life adapts to salt seas, crystal caves, gas giant skies and airless rock. Surveyors catalogue it with care because the first name in a field guide tends to last.",
  "Markets bind distant systems together. Food, machines, metals, medicine and restricted cargo move along the same lanes, making prosperity and danger travel side by side.",
- "Governments range from careful democracies to inherited dynasties, corporate enclaves and emergency regimes. Their borders may be tidy on a chart and blurry in real space.",
- "The Old Earth era left behind languages, religions, machines and arguments that still shape the colonies. Every new settlement carries a piece of that inheritance, willingly or not.",
- "Exploration is both wonder and work: survey the worlds, catalogue life, read the weather of a star and bring the evidence home before someone else names it first.",
+ "A station's charter, a governor's reach and a commander's reputation can matter more than any distant statute. Law travels unevenly, like radio through a storm.",
+ "Dynasties, corporations, democracies and emergency regimes all claim to know what the galaxy needs. Their borders look tidy on a chart and blurry in real space.",
+ "Ancient beacons, impossible echoes and ruins with no builders keep the old questions alive. The safest answer is often the one that leaves room for another expedition.",
+ "The unknown is not empty. It is a signal not yet decoded, a world not yet landed on, a light that moves the wrong way, and a story waiting for a witness.",
  "The galaxy has no single ending written for it. Its future is made by ordinary crews choosing who to help, what to carry and which quiet signal deserves another look."
 };
 static int vis_count(void){int n=1;for(int s=0;s<256;s++)if(s!=game.system&&(game.visited[s>>3]&(1<<(s&7))))n++;return n;}
@@ -177,8 +191,8 @@ static int codex_system_body_count(int sys){int n=2;for(int b=1;b<BODY_COUNT;b++
 static int codex_system_body_at(int sys,int r){if(r==0)return 0;if(r==1)return 1;int seen=0;for(int b=1;b<BODY_COUNT;b++)if(game.landed_planets[sys]&(1u<<(b-1)))if(seen++==r-2)return b+1;return 1;}
 static int codex_system_row_for_body(int sys,int body){if(body<2)return body;int r=2;for(int b=1;b<BODY_COUNT;b++)if(game.landed_planets[sys]&(1u<<(b-1))){if(b+1==body)return r;r++;}return 1;}
 static int codex_system_row(void);
-static int codex_kind_count(int tab){if(tab==0)return vis_count();if(tab==1)return planet_log_count();if(tab==2)return game.scanned_flora;if(tab==3)return game.scanned_fauna;if(tab==4)return game.scanned_minerals;if(tab==5)return game.scanned_anomalies;return (int)(sizeof(milky_way_topics)/sizeof(*milky_way_topics));}
-static int codex_rows(void){if(codex_scope==1)return codex_system_body_count(codex_system_row());if(codex_scope==2)return 1;int n=codex_kind_count(codex_tab);return n>0?n:1;}
+static int codex_kind_count(int tab){if(tab==0)return vis_count();if(tab==1)return planet_log_count();if(tab==2)return game.scanned_flora;if(tab==3)return game.scanned_fauna;if(tab==4)return game.scanned_minerals;return game.scanned_anomalies;}
+static int codex_rows(void){if(codex_scope==1)return codex_system_body_count(codex_system_row());if(codex_scope==2)return 1;if(codex_scope==3)return (int)(sizeof(milky_way_topics)/sizeof(*milky_way_topics));int n=codex_kind_count(codex_tab);return n>0?n:1;}
 static int codex_system_minerals(int sys){return 3+(sys*5+game.systems[sys].economy)%8;}
 static int codex_system_echoes(int sys){return (sys*7+game.systems[sys].government)%5;}
 static int codex_system_row(void){return codex_system>=0?codex_system:game.system;}
@@ -199,6 +213,33 @@ static void codex_body_screen(void){
  else {int planet=body-1;unsigned col,acc;int type;body_tint(sys,planet,&col,&acc,&type);draw_planet_disc(400,94,48,col,acc,body_art_seed(sys,planet),type);const char *flora[]={"GLOW VINE","GLASS FERN","SPORE TREE","NIGHT MOSS"};const char *fauna[]={"GLASS MOTH","DUST RUNNER","SKY RAY","BURROWER"};text(3,8,GOLD,"%.27s",codex_body_name(sys,planet));text(3,11,WHITE,"%.12s planet",type==OCEAN?"OCEAN":type==GAS?"GAS GIANT":"ROCKY");text(3,14,CYAN,"POTENTIAL FLORA");text(3,16,WHITE,"%s   %s",flora[(sys+planet)%4],flora[(sys+planet+1)%4]);text(3,19,CYAN,"POTENTIAL FAUNA");text(3,21,WHITE,"%s   %s",fauna[(sys+planet*2)%4],fauna[(sys+planet*2+1)%4]);text(3,24,DIM,sys==game.system?"Scan on foot to add discoveries.":"Revisit this planet to scan its life.");}
  footer("O BACK");
 }
+static void lore_cover(int x,int y,int w,int h,int seed,int active){
+ unsigned paper=active?RGB(235,208,147):RGB(182,161,116),ink=RGB(34,27,52),violet=RGB(72,34,112),blue=RGB(28,78,137),pink=RGB(190,55,116),orange=RGB(238,128,44);
+ rect(x,y,w,h,ink);rect(x+3,y+3,w-6,h-6,paper);rect(x+7,y+7,w-14,h-14,RGB(12,18,48));
+ for(int i=0;i<18;i++){int sx=x+10+(seed*13+i*19)%(w-20),sy=y+12+(seed*7+i*17)%(h-30);pixel(sx,sy,i&1?RGB(221,222,193):RGB(95,184,215));}
+ fill_disc(x+w/2,y+48,27,blue);fill_disc(x+w/2+12,y+42,17,violet);circle(x+w/2,y+48,27,active?orange:pink);circle(x+w/2,y+48,22,RGB(23,45,91));
+ if(seed%3==0){line(x+18,y+82,x+w-17,y+34,pink);line(x+14,y+91,x+w-10,y+43,orange);rect(x+17,y+79,8,5,orange);}
+ else if(seed%3==1){line(x+16,y+76,x+w-14,y+76,orange);line(x+w/2,y+28,x+w/2,y+99,pink);circle(x+w/2,y+76,18,active?orange:pink);}
+ else {rect(x+20,y+66,w-40,24,RGB(20,32,70));line(x+20,y+78,x+w-20,y+78,orange);line(x+20,y+66,x+w/2,y+45,pink);line(x+w/2,y+45,x+w-20,y+66,pink);}
+ rect(x+9,y+h-29,w-18,1,active?orange:RGB(137,108,78));text((x/8)+1,(y+h-25)/8,active?RGB(250,226,161):RGB(215,195,148),"STAR ARCHIVE");
+}
+static void galactic_lore_screen(void){
+ int topic=row,category=topic/3;unsigned bg=RGB(5,9,27),neb=RGB(20,18,58),ink=RGB(225,233,228),muted=RGB(133,158,181),accent=RGB(95,222,218),hot=RGB(246,156,65);
+ rect(0,22,W,226,bg);rect(0,30,W,2,RGB(35,49,102));rect(0,226,W,2,RGB(86,48,106));
+ for(int i=0;i<48;i++){int x=(i*83+topic*17)%W,y=34+(i*47+topic*9)%188;pixel(x,y,i%7==0?hot:(i%3==0?accent:RGB(74,102,154)));}
+ rect(0,68,W,66,neb);rect(0,135,W,44,RGB(16,12,47));
+ header("GALACTIC LORE / COSMIC ARCHIVE");panel(8,32,120,190);panel(136,32,336,190);
+ text(2,5,hot,"ARCHIVE SECTIONS");
+ for(int i=0;i<6;i++){int y=8+i*3;if(i==category){rect(10,y*8-2,116,17,RGB(40,42,92));rect(10,y*8-2,3,17,hot);}text(3,y,i==category?RGB(250,226,161):muted,"%s",lore_categories[i]);text(3,y+1,i==category?accent:RGB(72,96,130),"%s",i==category?"ACTIVE":"SECTOR");}
+ text(3,28,muted,"L/R CATEGORY");
+ lore_cover(148,48,92,138,topic+category*11,1);
+ text(31,5,hot,"%s",lore_categories[category]);text(31,7,ink,"%.27s",milky_way_topics[topic]);
+ rect(248,68,207,1,RGB(99,69,121));
+ text_wrap(31,10,25,8,ink,milky_way_notes[topic],0);
+ text(31,21,accent,"FILE %02d / %02d",topic+1,(int)(sizeof(milky_way_topics)/sizeof(*milky_way_topics)));
+ text(31,23,muted,"A field guide to the inhabited galaxy.");
+ footer("UP/DOWN TOPIC   L/R CATEGORY   O BACK");
+}
 static void codex_life_label(int tab,int i,char *name,int nn,char *where,int wn){
  const char *flora[]={"GLOW VINE","GLASS FERN","SPORE TREE","NIGHT MOSS","KELP FAN","IRON MOSS"};
  const char *fauna[]={"GLASS MOTH","DUST RUNNER","SKY RAY","BURROWER","SAND HOPPER","DRIFT EEL"};
@@ -210,6 +251,7 @@ static void codex_life_label(int tab,int i,char *name,int nn,char *where,int wn)
  snprintf(where,wn,"%.23s",codex_body_name(sys,body));
 }
 static void codex_screen(void){
+ if(codex_scope==3){galactic_lore_screen();return;}
  if(codex_scope==1){codex_system_screen();return;}
  if(codex_scope==2){codex_body_screen();return;}
  int count=codex_rows(),first=row/7*7;header("DISCOVERY CODEX");page_number_at(48,4,row/7+1,(count+6)/7);
@@ -239,13 +281,6 @@ static void codex_screen(void){
   {const char *kindname[]={"STAR","OCEAN","ROCKY","GAS"};text(32,18,WHITE,"%s planet",kindname[type>=0&&type<=GAS?type:ROCKY]);}
   text(32,20,DIM,sys==game.system?"In this system":"Discovered on visit");
   }
- }else if(codex_tab==6){
-  for(int j=0;j<7&&first+j<count;j++){int i=first+j,y=7+j*2;if(i==row)rect(10,y*8-2,220,13,RGB(25,65,77));text(3,y,i==row?WHITE:DIM,"%.22s",milky_way_topics[i]);}
-  text(32,9,GOLD,"GALACTIC LORE");
-  text(32,12,CYAN,"ENTRY %d / %d",row+1,count);
-  text(32,15,WHITE,"%.26s",milky_way_topics[row]);
-  text_wrap(32,18,26,9,WHITE,milky_way_notes[row],0);
-  text(32,29,DIM,"Archive entry. L/R changes section.");
  }else if(n<=0){text(3,10,DIM,"Nothing logged yet.");text(32,10,WHITE,"Scan on foot. Square.");}
  else {
   for(int j=0;j<7&&first+j<count;j++){int i=first+j,y=7+j*2;char name[24],where[24];codex_life_label(codex_tab,i,name,sizeof(name),where,sizeof(where));if(i==row)rect(10,y*8-2,220,13,RGB(25,65,77));text(3,y,i==row?WHITE:DIM,"%.22s",name);}

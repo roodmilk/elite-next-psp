@@ -1,5 +1,9 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.98 — cosmic Galactic Lore archive
+
+Galactic Lore is no longer a Discovery Codex tab. The Discover menu entry opens a dedicated cosmic archive with six lore sections, 18 expanded entries, readable wrapped copy and PSP-friendly pulp-sci-fi cover illustrations.
+
 ## Released 2.5.97 — landing-gated planet Codex
 
 Discovery Codex planet and system archive entries now appear only after a completed landing. Per-system landing flags persist in saves, and the ship computer gives a one-time confirmation when each planet is added.
