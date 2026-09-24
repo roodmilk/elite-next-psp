@@ -766,6 +766,7 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  g.credits=0;CHECK(!trade(&g,0,1),"cannot buy without credits");
  g.credits=100000;g.cargo[0]=8;CHECK(!trade(&g,0,1),"cargo capacity enforced");g.cargo[0]=0;
  CHECK(!jump_start(&g),"cannot jump while docked");launch(&g);CHECK(!dock(&g),"cannot dock remotely");g.pos=(Vec3){0,0,2800};g.speed=300;CHECK(dock(&g)&&!g.docked,"nearby request starts guided approach without teleporting");for(int i=0;i<1200;i++){game_tick(&g,1.f/60,0,0,0,0);}CHECK(g.docked,"guided docking completes before services open");
+ game_init(&g);launch(&g);g.pos=(Vec3){0,0,4300};g.speed=0;CHECK(dock(&g)&&g.dock_stage==1,"station docking request starts guidance from behind");for(int i=0;i<1400&&!g.docked;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.docked,"station guidance reaches the third-person arrival sequence");
  CHECK(save_game(&g,"test-commander.sav"),"save commander");Game loaded;CHECK(load_game(&loaded,"test-commander.sav")&&loaded.credits==g.credits,"load commander round trip");remove("test-commander.sav");
  game_init(&g);launch(&g);
  {int p=-1,c=-1;for(int i=0;i<36;i++)if(g.npc[i].alive&&g.npc[i].role==PIRATES&&p<0)p=i;for(int i=0;i<36;i++)if(g.npc[i].alive&&g.npc[i].role==LAW&&c<0)c=i;

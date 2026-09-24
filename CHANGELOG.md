@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.5.85 — reliable docking, flight attitude, and warp presentation
+
+- Removed the unused decorative shape that could appear at the top-left of the flight view.
+- Circle now prioritizes a centered station in docking range, and guided docking recovers safely into the third-person arrival sequence.
+- Boost release clears residual roll so flight steering cannot remain rotated after boosting; full pitch loops remain intact.
+- Hyperdrive charge now keeps the ship view visible and progressively dimmed before the hyperspace corridor begins.
+
 ## 2.5.84 — functional power distribution
 
 - WEP pips now use a shared weapon-output multiplier for ship lasers and mining.

@@ -1,5 +1,9 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.85 — reliable docking, flight attitude, and warp presentation
+
+Removed the unused cockpit background artifact, hardened Circle station docking and its third-person arrival path, cleared residual roll on boost release, and kept the ship view visible during the initial hyperdrive charge.
+
 ## Released 2.5.84 — functional power distribution
 
 WEP/SYS/ENG pip allocation is now regression-tested across weapon output, shield recharge, and engine behavior.

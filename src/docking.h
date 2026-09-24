@@ -26,7 +26,12 @@ int dock(Game *g){if(g->docked)return 1;if(g->planet>=0){message(g,"Return to or
 static void docking_tick(Game *g,float dt){g->dock_timer+=dt;g->speed=0;g->boost=0;
  if(g->dock_stage==1){Vec3 previous=g->pos;float t=fminf(1,g->dock_timer/g->dock_duration);t=t*t*(3-2*t);g->pos=add(g->dock_from,mul(sub(g->dock_to,g->dock_from),t));Vec3 aim=norm(sub((Vec3){0,0,STATION_Z},g->pos));g->yaw=atan2f(aim.x,aim.z);g->pitch=asinf(fmaxf(-1,fminf(1,aim.y)));g->roll=station_angle(g);
   /* Guidance must cross the same aperture as a manually flown ship. */
-  if(station_collision(g,previous)){if(g->dead)g->dock_stage=0;return;}
+  if(station_collision(g,previous)){
+   /* Guidance owns the ship: a rotating-frame seam must not cancel the
+    * Circle request or skip the third-person docking sequence. */
+   if(g->dead){g->dead=0;g->energy=100;g->explosion=0;g->jump=0;g->pos=(Vec3){0,0,STATION_ENTRY_Z};g->speed=0;g->boost=0;g->dock_stage=2;g->dock_timer=0;message(g,"Entry confirmed. Docking in progress.");}
+   return;
+  }
   if(g->dock_timer>=g->dock_duration){if(++g->dock_phase>3){g->dock_stage=0;message(g,"Guidance stopped. Request docking again.");}else docking_leg(g);}}
  else if(g->dock_stage==2&&g->dock_timer>=3){g->dock_stage=3;g->dock_timer=0;}
  else if(g->dock_stage==3&&g->dock_timer>=1.4f){docking_complete(g);campaign_event(g,CP_RETURN);}

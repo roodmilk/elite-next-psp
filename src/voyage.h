@@ -17,15 +17,6 @@ static void sector_background(void){
  int horizon=top+(bot-top)*3/5;
  for(int y=top;y<horizon;y+=4)rect(0,y,W,4,mix_rgb(upper,base,(y-top)/(float)fmaxf(1,horizon-top)));
  for(int y=horizon;y<=bot;y+=4)rect(0,y,W,4,mix_rgb(base,lower,(y-horizon)/(float)fmaxf(1,bot-horizon)));
- /* Seeded side composition: a quiet ochre/indigo wedge and one maintained
-    relay silhouette. These are presentation marks, never targetable actors. */
- int side=(seed&1)?1:0;
- int ax=side?W-112:24, ay=top+30+(int)((seed>>4)&15), aw=88+(int)((seed>>9)&31), ah=34+(int)((seed>>14)&24);
- unsigned mass=mix_rgb(base,side?RGB(90,46,62):RGB(30,74,82),.55f);
- for(int row=0;row<ah;row+=4){int inset=(row<ah/3)?row/2:(row>ah*2/3?(ah-row)/3:ah/6);rect(ax+inset,ay+row,aw-inset*2,4,mix_rgb(mass,base,row/(float)fmaxf(1,ah)));}
- int rx=side?ax+14:ax+aw-18,ry=ay+ah-8;
- line(rx,ry,rx,ry-30,RGB(90,104,112));line(rx-8,ry-14,rx+8,ry-14,RGB(90,104,112));
- if(!high_contrast)pixel(rx,ry-30,((int)(game.time*2)&1)?RGB(240,180,91):RGB(85,212,212));
 }
 static Vec3 station_vertex(Vec3 v){return add(rotate(v,0,station_angle(&game)),(Vec3){0,0,3500});}
 static void station_model(void){

@@ -127,6 +127,11 @@ static void hail_target(void){
  speak(&game,VOICE_COMP,"Salvage doesn't talk. Circle to collect.");
 }
 static int occluded(Vec3 pos){Vec3 delta=sub(pos,game.pos);float distance=length(delta);Vec3 ray=norm(delta);for(int i=0;i<BODY_COUNT;i++){Vec3 d=sub(game.bodies[i].pos,game.pos);float along=dot(d,ray);if(along>0&&along<distance&&length(sub(d,mul(ray,along)))<game.bodies[i].radius)return 1;}return 0;}
+static int station_circle_ready(void){
+ if(game.docked||game.dead||game.dock_stage||game.jump>0||game.planet>=0)return 0;
+ Vec3 p=camera(&game,target_position(0));float range=(game.upgrades&1)?8000.f:2500.f;
+ return p.z>1&&sqrtf(p.x*p.x+p.y*p.y)<=fmaxf(160.f,p.z*.10f)&&length(sub(target_position(0),game.pos))<=range;
+}
 static void pick_look_target(void){look_target=-1;float best=1e9f;for(int id=0;id<=ANOMALY_ID_MAX;id++){if(!valid_target(id))continue;Vec3 world=target_position(id),p=camera(&game,world);if(p.z<1)continue;float radius=id>0&&id<=BODY_COUNT?game.bodies[id-1].radius:IS_NPC_ID(id)?game.npc[id-BODY_COUNT-1].radius:IS_DEBRIS_ID(id)?game.debris[id-DEBRIS_ID_MIN].radius:IS_ANOMALY_ID(id)?40:160;float lateral=sqrtf(p.x*p.x+p.y*p.y);if(lateral>fmaxf(radius,p.z*.08f))continue;float distance=length(p)-radius;if(distance<best&&(id>0&&id<=BODY_COUNT?1:!occluded(world))){best=distance;look_target=id;}}}
 static void align_target(float dt,float ax,float ay){
  if(!autoaim)return;
@@ -197,7 +202,12 @@ static void warp_effect(void){
  progress=phase==0?elapsed/3.f:phase==1?(elapsed-3)/2.f:(elapsed-5)/3.f;
  int shake=(int)(sinf(game.time*62)*((phase==0?1:phase==1?4:2)*(progress+.2f)));
  unsigned bg=phase==1?RGB(5+(int)(progress*8),12+(int)(progress*18),42+(int)(progress*44)):RGB(3,7,24+(int)(progress*18));
- rect(0,top,W,bot-top+1,bg);
+ if(phase==0){
+  /* Keep the pre-jump cockpit view visible during the charge-up, then dim it
+   * progressively before the corridor takes over. */
+  int shade=68-(int)(progress*24);if(shade<38)shade=38;
+  for(int y=top;y<=bot;y++)for(int x=0;x<W;x++){unsigned c=fb[y*STRIDE+x];fb[y*STRIDE+x]=RGB(((c&255)*shade)/100,(((c>>8)&255)*shade)/100,(((c>>16)&255)*shade)/100);}
+ }else rect(0,top,W,bot-top+1,bg);
  int lines=phase==0?18+(int)(progress*72):phase==1?150:110-(int)(progress*55);if(lines<18)lines=18;
  for(int i=0;i<lines;i++){
   float angle=i*2.39996f+elapsed*.7f;
