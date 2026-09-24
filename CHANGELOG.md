@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.81 — cleaner cockpit menu footer
+
+- Removed the `LEFT/RIGHT TAB / UP/DOWN` navigation hint from the main cockpit menu footer.
+
 ## 2.5.80 — menu wording refresh
 
 - Updated launch, station exploration, shipyard, outfitting, controls, radio, and loadout subtitles.

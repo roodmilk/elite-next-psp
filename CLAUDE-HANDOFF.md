@@ -1,5 +1,9 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.81 — cleaner cockpit menu footer
+
+The main cockpit menu no longer displays the navigation hint along the bottom edge; other screens retain their own footer guidance.
+
 ## Released 2.5.80 — menu wording refresh
 
 Updated the requested main menu labels and subtitles, including `Explore station`, the new launch/upgrade/ship/loadout/control/radio copy, and the undocked `Cargo` label.

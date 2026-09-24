@@ -19,6 +19,6 @@ foreach ($source in @('game','ships','main')) {
 Run-Tool 'psp-gcc' (@('-G0',"-L$portSdk/lib","-specs=$portSdk/lib/prxspecs","-Wl,-q,-T$portSdk/lib/linkfile.prx",'-Wl,-zmax-page-size=128') + $portObjects + @("$portSdk/lib/prxexports.o",'-lpspdebug','-lpspdisplay','-lpspge','-lpspctrl','-lpsppower','-lpsprtc','-lpspaudio','-lpspmp3','-lpsputility','-lm','-o',"$portBuild/elite-a.elf"))
 Run-Tool 'psp-fixup-imports' @("$portBuild/elite-a.elf")
 Run-Tool 'psp-prxgen' @("$portBuild/elite-a.elf","$portBuild/elite-a.prx")
-Run-Tool 'mksfoex' @('-d','MEMSIZE=0','ELITE: NEXT 2.5.80',"$portBuild/PARAM.SFO")
+Run-Tool 'mksfoex' @('-d','MEMSIZE=0','ELITE: NEXT 2.5.81',"$portBuild/PARAM.SFO")
 Run-Tool 'pack-pbp' @("$PSScriptRoot/EBOOT.PBP","$portBuild/PARAM.SFO",'NULL','NULL','NULL','NULL','NULL',"$portBuild/elite-a.prx",'NULL')
 Write-Output "Built $PSScriptRoot/EBOOT.PBP"

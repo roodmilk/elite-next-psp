@@ -29,7 +29,7 @@ static void home(void){
  text(2,25,RGB(85,212,212),"System: %.12s",game.systems[game.system].name);
  {int wl=wanted_level(&game);text(2,26,wl?RED:RGB(155,154,165),wl?"Wanted [%s]":"Clear warrant",stars(wl));}
  text(31,25,RGB(229,210,163),"%.1f units   %s",game.credits*.1f,game.docked?"DOCKED":"PAUSED");
- footer("LEFT/RIGHT TAB   UP/DOWN   X OPEN   O BACK");
+ footer("");
 }
 static void help(void){
  static const char *titles[]={"FLIGHT","TARGETS / TRAVEL","STATIONS / SURFACES","MENUS / COMFORT","PLANET EVA"};
