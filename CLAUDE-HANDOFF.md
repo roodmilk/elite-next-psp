@@ -1,5 +1,9 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.93 — unified PSP control icons
+
+Added one shared 10x10 pixel renderer for all PSP face buttons, D-pad directions, D-pad cluster, L/R shoulders, Start, Select and the analog nub. Footer prompts now resolve these tokens to aligned, consistently coloured symbols.
+
 ## Released 2.5.92 — richer cockpit radio chatter
 
 Expanded the five cockpit radio stations to 24 snippets each, with more adverts and alien talk-show comedy. Added a lightweight varied pause before each ticker line begins.

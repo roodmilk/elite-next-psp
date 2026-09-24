@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.93 — unified PSP control icons
+
+- Added a shared tiny icon set for Cross, Circle, Triangle, Square, D-pad directions, the full D-pad, L/R shoulders, Start, Select and the analog nub.
+- Updated footer prompts to use consistent aligned symbols and PSP button colours instead of mixed text-only labels.
+
 ## 2.5.92 — richer cockpit radio chatter
 
 - Expanded each radio station’s cockpit ticker from 10 to 24 snippets, including adverts, alien call-ins, arguments and strange talk-show moments.

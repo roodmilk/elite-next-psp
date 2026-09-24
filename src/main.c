@@ -249,15 +249,45 @@ static int depth_sort(const void *a,const void *b){float d=((const DrawTri*)b)->
 static void flush_meshes(void){qsort(drawlist,drawcount,sizeof(*drawlist),depth_sort);for(int i=0;i<drawcount;i++)triangle(&drawlist[i]);drawcount=0;}
 /* Art kit chrome — charcoal + ochre/cream rules; cyan stays a nav signal only. */
 static void header(const char *title){rect(0,0,W,22,RGB(21,28,39));rect(0,0,W,1,RGB(193,139,77));rect(0,21,W,1,RGB(85,212,212));rect(0,0,3,22,RGB(240,180,91));draw_next_art(next_logo_small,100,18,5,2,100,18);text(14,1,RGB(155,154,165),"/");text(16,1,RGB(229,210,163),"%.42s",title);}
-static void button_icon(int x,int y,char b,unsigned c){
- if(b=='O'){circle(x+4,y+4,3,c);}
- else if(b=='X'){line(x+1,y+1,x+7,y+7,c);line(x+7,y+1,x+1,y+7,c);}
+/* One tiny, shared PSP button alphabet. Keep these 10x10 so every prompt
+ * aligns on the same baseline, whether it is a face button or a direction. */
+static unsigned button_ink(char b,unsigned fallback){
+ if(b=='X')return RGB(80,220,110);       /* Cross */
+ if(b=='O')return RGB(240,72,82);        /* Circle */
+ if(b=='T')return RGB(92,164,244);       /* Triangle */
+ if(b=='S')return RGB(236,112,188);      /* Square */
+ if(b=='U'||b=='D'||b=='L'||b=='R'||b=='P'||b=='l'||b=='r'||b=='N')return RGB(229,210,163);
+ if(b=='A'||b=='E')return RGB(85,212,212);/* Start / Select */
+ return fallback;
+}
+static void button_icon(int x,int y,char b,unsigned fallback){
+ unsigned c=button_ink(b,fallback);
+ if(b=='O'){circle(x+5,y+5,3,c);}
+ else if(b=='X'){line(x+2,y+2,x+8,y+8,c);line(x+8,y+2,x+2,y+8,c);}
  else if(b=='T'){line(x+1,y+7,x+7,y+7,c);line(x+1,y+7,x+4,y+1,c);line(x+7,y+7,x+4,y+1,c);}
- else {rect(x+1,y+1,7,7,c);rect(x+3,y+3,3,3,DASH);}
+ else if(b=='S'){rect(x+2,y+2,6,6,c);rect(x+4,y+4,2,2,RGB(13,20,28));}
+ else if(b=='U'||b=='D'||b=='L'||b=='R'){
+  int cx=x+5,cy=y+5;
+  if(b=='U'){line(cx,cy-3,cx,cy+3,c);line(cx,cy-3,cx-2,cy-1,c);line(cx,cy-3,cx+2,cy-1,c);}
+  if(b=='D'){line(cx,cy-3,cx,cy+3,c);line(cx,cy+3,cx-2,cy+1,c);line(cx,cy+3,cx+2,cy+1,c);}
+  if(b=='L'){line(cx-3,cy,cx+3,cy,c);line(cx-3,cy,cx-1,cy-2,c);line(cx-3,cy,cx-1,cy+2,c);}
+  if(b=='R'){line(cx-3,cy,cx+3,cy,c);line(cx+3,cy,cx+1,cy-2,c);line(cx+3,cy,cx+1,cy+2,c);}
+ }
+ else if(b=='P'){rect(x+4,y+1,2,8,c);rect(x+1,y+4,8,2,c);}
+ else if(b=='l'||b=='r'){
+  rect(x+1,y+2,8,6,c);rect(x+3,y+3,4,4,RGB(13,20,28));
+  text(x/8+1,y/8+1,c,"%c",b=='l'?'L':'R');
+ }
+ else if(b=='N'){circle(x+5,y+5,4,c);circle(x+5,y+5,2,RGB(13,20,28));rect(x+4,y+4,2,2,c);}
+ else if(b=='A'||b=='E'){rect(x+2,y+3,6,4,c);line(x+3,y+3,x+7,y+3,c);}
 }
 #include "hud-pixels.h"
 static int footer_token(const char *s,int n,char *icon){
- struct {const char *word;char icon;} keys[]={{"X",'X'},{"O",'O'},{"TRI",'T'},{"TRIANGLE",'T'},{"SQ",'S'},{"SQUARE",'S'}};
+ struct {const char *word;char icon;} keys[]={
+  {"X",'X'},{"CROSS",'X'},{"O",'O'},{"CIRCLE",'O'},{"TRI",'T'},{"TRIANGLE",'T'},
+  {"SQ",'S'},{"SQUARE",'S'},{"UP",'U'},{"DOWN",'D'},{"LEFT",'L'},{"RIGHT",'R'},
+  {"L",'l'},{"R",'r'},{"D-PAD",'P'},{"NUB",'N'},{"ANALOG",'N'},{"START",'A'},{"SELECT",'E'}
+ };
  for(unsigned i=0;i<sizeof(keys)/sizeof(keys[0]);i++)if((int)strlen(keys[i].word)==n&&!strncmp(s,keys[i].word,n)){*icon=keys[i].icon;return 1;}
  return 0;
 }
@@ -270,7 +300,7 @@ static void footer(const char *s){
   int start=i;while(label[i]&&label[i]!=' '&&label[i]!='/'&&label[i]!='+'&&label[i]!='|')i++;
   char icon;if(footer_token(label+start,i-start,&icon)){
    for(int j=start;j<i;j++)label[j]=' ';
-   button_icon(8+start*8,255,icon,icon=='O'?RED:CYAN);
+   button_icon(8+start*8,255,icon,WHITE);
   }
  }
  text(1,32,DIM,"%s",label);
