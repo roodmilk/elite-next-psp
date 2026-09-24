@@ -149,7 +149,7 @@ static void chart(void){
  page_number_at(37,5,row/8+1,(near_count+7)/8);footer(game.docked?"UP/DOWN X JUMP   TRI GALAXY   O BACK":"UP/DOWN X JUMP   TRI GALAXY   O BACK");
 }
 static int codex_tab=0,codex_scope=0,codex_system=-1,codex_body=0;
-static const char *codex_tabs[]={"SYSTEMS","PLANETS","FLORA","FAUNA","MINERALS","ECHOES"};
+static const char *codex_tabs[]={"SYSTEMS","PLANETS","MINERALS","ECHOES"};
 static const char *lore_categories[]={"ORIGINS","FRONTIER","TECHNOLOGY","PEOPLES","POWER","MYSTERIES"};
 static const char *milky_way_topics[]={
  "THE MILKY WAY","SOL AND EARTH","THE FIRST LAUNCHES",
@@ -191,7 +191,7 @@ static int codex_system_body_count(int sys){int n=2;for(int b=1;b<BODY_COUNT;b++
 static int codex_system_body_at(int sys,int r){if(r==0)return 0;if(r==1)return 1;int seen=0;for(int b=1;b<BODY_COUNT;b++)if(game.landed_planets[sys]&(1u<<(b-1)))if(seen++==r-2)return b+1;return 1;}
 static int codex_system_row_for_body(int sys,int body){if(body<2)return body;int r=2;for(int b=1;b<BODY_COUNT;b++)if(game.landed_planets[sys]&(1u<<(b-1))){if(b+1==body)return r;r++;}return 1;}
 static int codex_system_row(void);
-static int codex_kind_count(int tab){if(tab==0)return vis_count();if(tab==1)return planet_log_count();if(tab==2)return game.scanned_flora;if(tab==3)return game.scanned_fauna;if(tab==4)return game.scanned_minerals;return game.scanned_anomalies;}
+static int codex_kind_count(int tab){if(tab==0)return vis_count();if(tab==1)return planet_log_count();if(tab==2)return game.scanned_minerals;return game.scanned_anomalies;}
 static int codex_rows(void){if(codex_scope==1)return codex_system_body_count(codex_system_row());if(codex_scope==2)return 1;if(codex_scope==3)return (int)(sizeof(milky_way_topics)/sizeof(*milky_way_topics));int n=codex_kind_count(codex_tab);return n>0?n:1;}
 static int codex_system_minerals(int sys){return 3+(sys*5+game.systems[sys].economy)%8;}
 static int codex_system_echoes(int sys){return (sys*7+game.systems[sys].government)%5;}
@@ -240,12 +240,25 @@ static void galactic_lore_screen(void){
  text(31,23,muted,"A field guide to the inhabited galaxy.");
  footer("UP/DOWN TOPIC   L/R CATEGORY   O BACK");
 }
+static void codex_planet_expanded(void){
+ int sys=codex_system_row(),planet=codex_body-1;unsigned col,acc;int type;body_tint(sys,planet,&col,&acc,&type);
+ const char *flora[]={"GLOW VINE","GLASS FERN","SPORE TREE","NIGHT MOSS"};
+ const char *fauna[]={"GLASS MOTH","DUST RUNNER","SKY RAY","BURROWER"};
+ header("DISCOVERY CODEX / PLANET");panel(8,47,464,180);draw_planet_disc(405,91,42,col,acc,body_art_seed(sys,planet),type);
+ text(3,8,GOLD,"%.27s",codex_body_name(sys,planet));text(3,10,CYAN,"PLANETARY SURVEY RECORD");
+ text(3,12,WHITE,"%.12s world",type==OCEAN?"OCEAN":type==GAS?"GAS GIANT":"ROCKY");
+ text(3,15,CYAN,"FLORA DISCOVERIES");text(3,17,WHITE,"%s",flora[(sys+planet)%4]);text(3,19,WHITE,"%s",flora[(sys+planet+1)%4]);
+ text(3,22,CYAN,"FAUNA DISCOVERIES");text(3,24,WHITE,"%s",fauna[(sys+planet*2)%4]);text(3,26,WHITE,"%s",fauna[(sys+planet*2+1)%4]);
+ text(34,15,AMBER,"MINERAL RECORDS");text(34,17,WHITE,"%d logged",sys==game.system?game.scanned_minerals:0);
+ text(34,20,AMBER,"ARCHIVE TOTALS");text(34,22,WHITE,"Flora %d   Fauna %d",game.scanned_flora,game.scanned_fauna);
+ text_wrap(34,24,23,3,DIM,sys==game.system?"Survey on foot to add more records.":"Land here to continue the survey.",0);footer("O BACK");
+}
 static void codex_life_label(int tab,int i,char *name,int nn,char *where,int wn){
  const char *flora[]={"GLOW VINE","GLASS FERN","SPORE TREE","NIGHT MOSS","KELP FAN","IRON MOSS"};
  const char *fauna[]={"GLASS MOTH","DUST RUNNER","SKY RAY","BURROWER","SAND HOPPER","DRIFT EEL"};
  const char *ore[]={"RED ORE","ICE CRYSTAL","BASALT VEIN","SILICA","NICKEL SEAM","CARBON LACE"};
  const char *echo[]={"MERIDIAN ECHO","STELLAR RIFT","GHOST PING","QUASAR HUM"};
- const char **src=tab==2?flora:tab==3?fauna:tab==4?ore:echo;int names=tab==5?4:6;
+ const char **src=tab==2?ore:echo;int names=tab==3?4:6;
  snprintf(name,nn,"%s",src[i%names]);
  int sys=vis_sys(i%vis_count()),body=1+(i%4);
  snprintf(where,wn,"%.23s",codex_body_name(sys,body));
@@ -253,7 +266,7 @@ static void codex_life_label(int tab,int i,char *name,int nn,char *where,int wn)
 static void codex_screen(void){
  if(codex_scope==3){galactic_lore_screen();return;}
  if(codex_scope==1){codex_system_screen();return;}
- if(codex_scope==2){codex_body_screen();return;}
+ if(codex_scope==2){if(codex_body>1)codex_planet_expanded();else codex_body_screen();return;}
  int count=codex_rows(),first=row/7*7;header("DISCOVERY CODEX");page_number_at(48,4,row/7+1,(count+6)/7);
  text(2,4,CYAN,"< L  %s  R >",codex_tabs[codex_tab]);
  panel(8,47,232,140);panel(248,47,224,140);
@@ -285,10 +298,10 @@ static void codex_screen(void){
  else {
   for(int j=0;j<7&&first+j<count;j++){int i=first+j,y=7+j*2;char name[24],where[24];codex_life_label(codex_tab,i,name,sizeof(name),where,sizeof(where));if(i==row)rect(10,y*8-2,220,13,RGB(25,65,77));text(3,y,i==row?WHITE:DIM,"%.22s",name);}
   char name[24],where[24];codex_life_label(codex_tab,row,name,sizeof(name),where,sizeof(where));
-  if(codex_tab==2)draw_flora_icon(270,60,row+1);else if(codex_tab==3)draw_fauna_icon(270,60,row+1);else if(codex_tab==4)draw_mineral_icon(270,60,row+1);else draw_anomaly_icon(268,58,row&1);
+  if(codex_tab==2)draw_mineral_icon(270,60,row+1);else draw_anomaly_icon(268,58,row&1);
   text(32,14,GOLD,"%.22s",name);
   text(32,16,WHITE,"%.22s",where);
-  text(32,18,DIM,codex_tab==5?"O on an echo in space.":"Square on foot to log.");
+  text(32,18,DIM,codex_tab==3?"O on an echo in space.":"Square on foot to log.");
  }
  text(32,21,CYAN,"Logged %d",game.discoveries);
  footer("L/R TYPE   UP/DOWN   O BACK");

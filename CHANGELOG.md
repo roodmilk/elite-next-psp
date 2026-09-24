@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.99 — planet survey records
+
+- Removed Flora and Fauna from the Discovery Codex section cycle.
+- Selected landed planets now open expanded survey pages with flora, fauna and mineral records.
+
 ## 2.5.98 — cosmic Galactic Lore archive
 
 - Removed Galactic Lore from the Discovery Codex tab cycle; it is now opened only from the Discover menu entry.

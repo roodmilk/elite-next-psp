@@ -1,5 +1,9 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.99 — planet survey records
+
+Flora and Fauna are no longer top-level Discovery Codex sections. They are shown from each selected landed planet’s expanded survey record, alongside minerals and archive totals.
+
 ## Released 2.5.98 — cosmic Galactic Lore archive
 
 Galactic Lore is no longer a Discovery Codex tab. The Discover menu entry opens a dedicated cosmic archive with six lore sections, 18 expanded entries, readable wrapped copy and PSP-friendly pulp-sci-fi cover illustrations.
