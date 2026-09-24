@@ -192,21 +192,25 @@ static void missile_effects(void){int top=view_top(),bot=view_bot();if(game.miss
 static void warp_effect(void){
  if(game.jump<=0)return;
  int top=view_top(),bot=view_bot();
- rect(0,top,W,bot-top+1,RGB(4,8,24));
- float progress=(5-game.jump)/5;
- /* Dense hyperspace tunnel — multi-colour soft streaks (still soft-FB lines). */
- for(int i=0;i<110;i++){
-  float angle=i*2.39996f+progress*.7f;
-  float radius=12+fmodf(i*17+progress*520,250);
-  float end=radius+18+progress*110;
+ float elapsed=8-game.jump,progress;
+ int phase=elapsed<3?0:elapsed<5?1:2;
+ progress=phase==0?elapsed/3.f:phase==1?(elapsed-3)/2.f:(elapsed-5)/3.f;
+ int shake=(int)(sinf(game.time*62)*((phase==0?1:phase==1?4:2)*(progress+.2f)));
+ unsigned bg=phase==1?RGB(5+(int)(progress*8),12+(int)(progress*18),42+(int)(progress*44)):RGB(3,7,24+(int)(progress*18));
+ rect(0,top,W,bot-top+1,bg);
+ int lines=phase==0?18+(int)(progress*72):phase==1?150:110-(int)(progress*55);if(lines<18)lines=18;
+ for(int i=0;i<lines;i++){
+  float angle=i*2.39996f+elapsed*.7f;
+  float radius=phase==1?8+fmodf(i*17+progress*700,255):12+fmodf(i*17+progress*420,210);
+  float end=radius+(phase==0?15+progress*45:phase==1?80+progress*170:170-progress*115);
   int y0=(int)fmaxf(top,fminf(bot,110+sinf(angle)*radius*.5f));
   int y1=(int)fmaxf(top,fminf(bot,110+sinf(angle)*end*.5f));
-  unsigned ink=i%5==0?RGB(229,210,163):i%5==1?RGB(85,212,212):i%5==2?RGB(193,139,77):i%5==3?RGB(155,154,165):RGB(41,54,70);
-  line(240+(int)(cosf(angle)*radius),y0,240+(int)(cosf(angle)*end),y1,ink);
+  unsigned ink=phase==1?(i%5==0?RGB(255,96,220):i%5==1?RGB(75,238,255):i%5==2?RGB(255,194,73):i%5==3?RGB(130,108,255):RGB(210,245,255)):i%4==0?RGB(229,210,163):i%4==1?RGB(85,212,212):i%4==2?RGB(193,139,77):RGB(85,105,160);
+  line(240+shake+(int)(cosf(angle)*radius),y0+shake,240+shake+(int)(cosf(angle)*end),y1+shake,ink);
   if((i&3)==0)sfx_add(240+(int)(cosf(angle)*end),y1,ink,top,bot);
  }
- rect(80,88,320,28,RGB(21,28,39));rect(80,88,320,2,RGB(193,139,77));
- text(15,12,RGB(240,180,91),"WARP TO %.12s  %.1f",game.systems[game.destination].name,game.jump);
+ rect(80,88,320,28,phase==1?RGB(16,22,56):RGB(21,28,39));rect(80,88,320,2,phase==1?RGB(75,238,255):RGB(193,139,77));
+ text(15,12,phase==1?RGB(75,238,255):RGB(240,180,91),phase==0?"HYPERDRIVE CHARGING / %.0f%%":phase==1?"HYPERSPACE CORRIDOR / %.0f%%":"HYPERSPACE BRAKING / %.0f%%",progress*100);
 }
 static void planet_prompt(void){
  if(game.approach<0||game.approach>=BODY_COUNT)return;
@@ -370,4 +374,3 @@ static void mining_effects(void){
    world_spark((int)(p.x+cosf(a)*r),(int)(p.y+sinf(a)*r*.65f),1,k&1?GOLD:RGB(169,192,198));}
  }
 }
-

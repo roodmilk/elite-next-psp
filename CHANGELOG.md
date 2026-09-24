@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.5.75 — staged hyperdrive jump
+
+- Galaxy-map jumps now return to the cockpit and build through charging, escalating streaks/shake, a vivid hyperspace corridor, and a braking phase before arrival.
+
 ## 2.5.73 — Kei replies directly
 
 - Choosing a reply in Kei's opening briefing now advances straight to Kei's response without redrawing the commander's selected speech.

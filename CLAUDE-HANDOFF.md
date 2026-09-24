@@ -590,3 +590,6 @@ Validation for 2.5.69: build succeeded; all five smoke suites passed in
 C:\Users\skarm\Documents\Codex\2026-09-24\let\work\smoke-20260924-213124-036.
 EBOOT SHA256: 00C66FD9C82FBFCE337F07BA24CF0CFAB7DF081A2450B242E208E8D1C0AB1870.
 Physical PSP testing remains unverified.
+## Released 2.5.75 — staged hyperdrive jump
+
+Galaxy-map jumps now return directly to the cockpit and run an eight-second staged sequence: charging lines, stronger shake and blue energy, a vivid multi-colour hyperspace corridor, then braking before the existing system-arrival logic runs.
