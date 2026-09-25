@@ -19,7 +19,7 @@
  INPUT_CHECK(comms_rescue_confirm&&!game.docked,"journey: rescue requires explicit in-game confirmation");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(page==HOME&&game.docked&&game.fuel>0,"journey: confirmed rescue returns safely to services");
- TEST_INIT();launch(&game);change_page(HOME);row=0;game.shots=0;
+ TEST_INIT();launch(&game);game.fit[FIT_WPN]=1;fit_rebuild(&game);change_page(HOME);row=0;game.shots=0;
  input(PSP_CTRL_CROSS,PSP_CTRL_CROSS,.016f,0,0);input(0,PSP_CTRL_CROSS,.016f,0,0);
  INPUT_CHECK(game.shots==0,"journey: holding menu confirm does not fire after resuming");
  input(0,0,.016f,0,0);input(PSP_CTRL_CROSS,PSP_CTRL_CROSS,.016f,0,0);

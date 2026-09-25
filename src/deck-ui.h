@@ -2,7 +2,7 @@ static void home(void){
  int group=deck_group(row);deck_clamp_row();group=deck_group(row);
  header(game.docked?"STATION / COMMAND DECK":"COCKPIT / PAUSED");
  for(int i=0;i<5;i++){int x=8+i*94;rect(x,30,90,20,i==group?RGB(41,54,70):RGB(21,28,39));if(i==group)rect(x,48,90,2,RGB(240,180,91));text((x+8)/8,4,i==group?RGB(229,210,163):RGB(155,154,165),"%s",deck_groups[i]);}
- const char *labels[]={game.docked?"Launch":"Resume flight",game.docked?"Cargo & market":"Cargo","Galaxy map","Shipyard","Outfitting","Save / status","Controls","Factions","Targeting computer","Debug tools","Comms / docking","System details","Mission board","Mission log","GalacticNet","Discovery Codex","Radio & audio","Tracked mission","Explorers Guild","Display & chatter","Disembark","Ship loadout","Galactic Lore"};
+ const char *labels[]={game.docked?"Launch":"Resume flight",game.docked?"Cargo & market":"Cargo","Galaxy map","Shipyard","Outfitting","Save / status","Controls","Factions","Targeting computer","Debug tools","Comms panel","System details","Mission board","Mission log","GalacticNet","Discovery Codex","Radio & audio","Tracked mission","Explorers Guild","Display & chatter","Disembark","Ship loadout","Galactic Lore","Ship decorator","Engineers"};
  static const char *hints[][2]={
  {"FLY INTO SPACE!","Fly at your own pace."},{"Your hold and local goods.","Station prices while docked."},{"Choose your next system.","Check range before jumping."},
  {"BUY NEW SHIPS!","Requires station services."},{"GET SHIP UPGRADES!","No locked tech teases."},{"Save, load, records.","Save at a station."},
@@ -10,7 +10,7 @@ static void home(void){
  {"Change cash or world state.","Debug changes affect saves."},{"Hail station or get help.","Request guided docking."},{"Economy, risk and planets.","Know where you are flying."},
  {"Find work at this station.","Dock to accept a contract."},{"Review jobs and route.","Reading pauses job clocks."},{"News and local SpaceBook.","Take a break from flying."},
  {"Review your discoveries.","Keep a record of your travels."},{"cruise to sweet tunes!","Set music and effects levels."},{"Guide for tracked mission.","Choose tracking in Mission Log."},
- {"Optional Guild assignments.","Also listed in Mission Log."},{"Choose HUD and chatter.","Keep the view comfortable."},{"SEE WHATS AROUND!","LOOK SPEAK GO TAKE on hotspots."},{"SEE WHATS ON YOUR SHIP","See what your ship carries."},{"A readable history of the galaxy.","Explore the major eras, peoples and powers."}};
+ {"Optional Guild assignments.","Also listed in Mission Log."},{"Choose HUD and chatter.","Keep the view comfortable."},{"SEE WHATS AROUND!","LOOK SPEAK GO TAKE on hotspots."},{"SEE WHATS ON YOUR SHIP","See what your ship carries."},{"A readable history of the galaxy.","Explore the major eras, peoples and powers."},{"REPAINT YOUR HULL","Choose a finish or pattern."},{"RESTORE SHIP CONDITION","Station engineers repair damage for a fee."}};
  panel(8,58,222,132);panel(238,58,234,132);
  int vis[6],vn=deck_fill(group,vis);
  for(int i=0;i<vn;i++){int id=vis[i],y=8+i*2;int locked=!game.docked&&id==20;
@@ -28,7 +28,7 @@ static void home(void){
  if(is_story){rect(246,178,218,2,RGB(193,139,77));text(31,23,RGB(240,180,91),"Open to see your next step.");}
  text(2,25,RGB(85,212,212),"System: %.12s",game.systems[game.system].name);
  {int wl=wanted_level(&game);text(2,26,wl?RED:RGB(155,154,165),wl?"Wanted [%s]":"Clear warrant",stars(wl));}
- text(31,25,RGB(229,210,163),"%.1f units   %s",game.credits*.1f,game.docked?"DOCKED":"PAUSED");
+ text(31,25,RGB(229,210,163),"%s",game.docked?"DOCKED":"PAUSED");credits_badge();
  footer("");
 }
 static void help(void){
@@ -51,13 +51,40 @@ static void help(void){
 }
 static void comfort_screen(void){
  header("COMMANDER / DISPLAY & CHATTER");panel(8,32,464,156);
- const char *labels[]={"HUD layout","Text chatter","High contrast focus","Radio and audio","Controls"};
- for(int i=0;i<5;i++){int y=6+i*3;if(row==i)selected(y);text(3,y,RGB(229,210,163),"%s",labels[i]);}
+ const char *labels[]={"HUD layout","Text chatter","High contrast focus","Radio and audio","Controls","Third-person view"};
+ for(int i=0;i<6;i++){int y=6+i*3;if(row==i)selected(y);text(3,y,RGB(229,210,163),"%s",labels[i]);}
  text(34,6,RGB(85,212,212),"%s",hud_mode==0?"FULL":hud_mode==1?"MINIMAL":"SCENIC");
  text(34,9,RGB(85,212,212),"%s",quiet_comms?"QUIET":"ON");
  text(34,12,RGB(85,212,212),"%s",high_contrast?"ON":"OFF");
+ text(34,21,RGB(85,212,212),"%s",third_person?"ON":"OFF");
  text(3,23,RGB(155,154,165),"Safety prompts stay visible. HUD lasts this session.");
  footer("UP/DOWN   X CHANGE / OPEN   O BACK");
+}
+static void decorator_screen(void){
+ static const char *names[]={"ORIGINAL GOLD","COCKPIT CYAN","SUNSET RED","DEEP VIOLET","EXPLORER GREEN","SOLAR AMBER","NEON GRID","STARFALL THEME"};
+ static const int fees[]={120,180,240,320,400,520,700,900};
+ int finish=row<0?0:row>7?7:row;
+ decorator_monitor_draw();
+ /* The artwork contains its own screen frame, browser bar, icons and ad.
+  * Dynamic UI is kept within the two intentionally empty screen windows. */
+ text(13,3,RGB(210,235,229),"PIMP-MY-SHIP.NET");
+ text(14,11,RGB(106,215,218),"PAINT FINISHES");
+ for(int i=0;i<8;i++){
+  int y=(13+i)*8;
+  if(i==finish){rect(111,y-1,130,10,RGB(42,76,88));rect(111,y-1,2,10,RGB(246,186,92));}
+  rect(116,y+1,8,6,decorator_finishes[i]);
+  text(16,13+i,i==finish?WHITE:RGB(171,194,198),"%s",names[i]);
+ }
+ preview_clip(329,116,252,82,408,155);
+ {int pm=mesh_id(player_ships[game.ship].name);Vec3 pc;float ps;float yaw=preview_time*.5f+.55f,roll=preview_time*.22f;ship_preview_layout(pm,&pc,&ps);ps*=1.8f;Vec3 pp=sub((Vec3){0,0,320},mul(rotate(pc,yaw,roll),ps));shipmesh(pm,pp,yaw,roll,ps,decorator_finishes[finish],1);flush_meshes();shipmesh_preview_edges(pm,pp,yaw,roll,ps,RGB(174,196,193));preview_reset();}
+ for(int i=0;i<8;i++){int x=249+i*20;rect(x,171,17,10,decorator_finishes[i]);if(i==finish){rect(x,168,17,2,WHITE);rect(x,182,17,2,WHITE);}}
+ rect(247,194,166,27,RGB(18,31,44));rect(247,194,166,1,RGB(106,215,218));
+ text(32,25,WHITE,"%.19s",player_ships[game.ship].name);
+ text(32,26,ship_paint[game.ship]==decorator_finishes[finish]?CYAN:GOLD,
+      ship_paint[game.ship]==decorator_finishes[finish]?"EQUIPPED":"%d U TO PAINT",fees[finish]);
+ if(decorator_feedback&&game.message_time>0&&game.message[0]){rect(108,200,132,21,RGB(18,31,44));text_wrap(14,25,16,2,RGB(246,186,92),game.message,0);}
+ rect(84,240,226,17,RGB(39,50,59));text(12,30,WHITE,game.docked?"UP/DOWN X PAINT O BACK":"DOCK TO PAINT O BACK");
+ rect(318,240,116,17,RGB(39,50,59));text(40,30,GOLD,"%.1f U",game.credits*.1f);
 }
 /* Action feedback gets its own reserved band, not a talking-character card. */
 static void menu_notice(void){

@@ -47,16 +47,19 @@ static void ambient_space(void){
  if(system_whales(game.system)){Body *b=&game.bodies[3];for(int i=0;i<3;i++){float a=game.time*.028f+i*.62f;Vec3 pos=add(b->pos,(Vec3){cosf(a)*(b->radius+5600),700+sinf(a+i)*.5f*480,sinf(a)*(b->radius+5600)});if(length(sub(pos,game.pos))<14000)shipmesh(mesh_id("WORM"),pos,a+1.57f,sinf(game.time*.35f+i)*.16f,7.2f+i*1.3f,RGB(96,186,198),0);}}
  if(system_comet(game.system)){float a=game.time*.018f;Vec3 pos={cosf(a)*17000,1800,sinf(a)*17000};if(length(sub(pos,game.pos))<12000){shipmesh(mesh_id("BOULDER"),pos,a,a*.3f,1.4f,RGB(210,230,240),0);Vec3 tail=add(pos,(Vec3){sinf(a)*900,-200,-cosf(a)*900});Vec3 u=camera(&game,pos),v=camera(&game,tail);if(u.z>30&&v.z>30){Point p=project(u),q=project(v);if(p.y>view_top()&&p.y<view_bot()&&q.y>view_top()&&q.y<view_bot()){line((int)p.x,(int)p.y,(int)q.x,(int)q.y,RGB(85,160,200));if(!high_contrast){int top=view_top(),bot=view_bot();for(int k=0;k<5;k++){float t=k/4.f;int x=(int)(p.x+(q.x-p.x)*t),y=(int)(p.y+(q.y-p.y)*t);sfx_add(x,y,RGB(50,90,120),top,bot);}}}}}}
 }
-/* Boost-only soft dashes — no always-on cruise streaks (Commander: quiet oceans). */
+/* Speed lines scale with actual velocity: a quiet hint at cruise, a dense
+ * tunnel of streaks during boost. */
 static void speed_lines(void){
- if(!game.boost||game.dock_stage||game.jump>0)return;
- float normal=game.speed/fmaxf(1,player_ships[game.ship].speed),power=fminf(1,normal/20);
+ if(game.speed<player_ships[game.ship].speed*.18f||game.dock_stage||game.jump>0||game.dead)return;
+ float normal=game.speed/fmaxf(1,player_ships[game.ship].speed),power=fminf(1,normal/(game.boost?20.f:1.15f));
  int top=view_top(),bottom=view_bot();
- for(int i=0;i<28;i++){
-  float a=i*2.39996f;float r=110+fmodf(i*37+game.time*520,160);float trail=12+power*40;
+ int count=12+(int)(power*36.f);
+ unsigned edge=game.boost?RGB(50,130,170):RGB(48,86,112);
+ for(int i=0;i<count;i++){
+  float a=i*2.39996f;float r=110+fmodf(i*37+game.time*(game.boost?520.f:180.f),160);float trail=6+power*46;
   int x=240+(int)(cosf(a)*r),y=110+(int)(sinf(a)*r*.5f);
   int xx=240+(int)(cosf(a)*(r+trail)),yy=110+(int)(sinf(a)*(r+trail)*.5f);
-  if(y>top&&y<bottom&&yy>top&&yy<bottom){sfx_add(x,y,RGB(40,90,120),top,bottom);sfx_add(xx,yy,RGB(50,110,140),top,bottom);}
+  if(y>top&&y<bottom&&yy>top&&yy<bottom){sfx_add(x,y,edge,top,bottom);sfx_add(xx,yy,game.boost?RGB(85,180,205):RGB(60,110,135),top,bottom);}
  }
 }
 static void engine_flare(void){
@@ -127,18 +130,83 @@ static void speech_box(int x,int y,int w){
  if(portrait){if(who==VOICE_KEI)draw_kei(x+4,y,32,0);else draw_portrait(x+4,y,32,32,who==VOICE_CONTACT?game.voice_seed:who*37,role);}
  speaker_name_tag(col,y/8,who==VOICE_CONTACT?faction_names[role]:names[who],ink);
  button_icon(x+w-16,y,'T',ink);
+ if(game.encounter_kind!=ENCOUNTER_NONE&&game.encounter>0)text((x+w-56)/8,y/8,RGB(240,180,91),"REPLY");
+ else text((x+w-56)/8,y/8,RGB(120,245,220),"CLOSE");
  text_wrap(col,y/8+1,cap,3,RGB(229,210,163),s,0);
 }
 static void quick_comms_box(void){
  if(!comms_quick||game.encounter_kind==ENCOUNTER_NONE)return;
  int x=96,y=58,w=288,h=54;rect(x,y,w,h,RGB(10,18,35));rect(x,y,w,2,RGB(240,180,91));rect(x,y+ h-2,w,2,RGB(41,54,70));
- text(14,8,RGB(85,212,212),"QUICK CHANNEL");text(14,10,RGB(229,210,163),"RESPOND OR IGNORE");
- text(31,8,comms_quick_choice==0?RGB(240,180,91):RGB(155,154,165),"X RESPOND");text(31,10,comms_quick_choice==1?RGB(240,180,91):RGB(155,154,165),"X IGNORE");text(14,12,DIM,"UP/DOWN CHOOSE   O CLOSE");
+ text(14,8,RGB(85,212,212),"INCOMING CHANNEL");text(14,10,RGB(229,210,163),"LEFT IGNORE");text(35,10,RGB(229,210,163),"RIGHT RESPOND");
+ rect(112,y+30,104,14,comms_quick_choice==0?RGB(66,45,38):RGB(25,35,45));
+ rect(264,y+30,104,14,comms_quick_choice==1?RGB(25,65,77):RGB(25,35,45));
+ text(16,11,comms_quick_choice==0?RGB(240,180,91):RGB(155,154,165),"[ IGNORE ]");
+ text(35,11,comms_quick_choice==1?RGB(240,180,91):RGB(155,154,165),"[ RESPOND ]");
+ text(14,13,DIM,"LEFT / RIGHT   RELEASE TRIANGLE");
 }
 static void pip_bar(int x,int y,int w,int h,int fill,unsigned c){
  if(fill<0)fill=0;
  if(fill>100)fill=100;
  rect(x,y,w,h,RGB(32,14,6));int fw=w*fill/100;if(fw>0)rect(x,y,fw,h,c);rect(x,y,w,1,AMBDIM);
+}
+static void target_segments(int x,int y,int segments,int filled,unsigned ink){
+ if(filled<0)filled=0;if(filled>segments)filled=segments;
+ for(int i=0;i<segments;i++){
+  unsigned c=i<filled?ink:RGB(41,54,70);
+  rect(x+i*7,y,5,4,c);
+  if(i<segments-1)pixel(x+i*7+5,y+1,RGB(21,28,39));
+ }
+}
+static void target_condition(int x,int y,int id){
+ if(!IS_NPC_ID(id)||!scanner_known(id))return;
+ NPC *n=&game.npc[id-BODY_COUNT-1];
+ float max_h=n->freighter?900.f:n->role==LAW?110.f:80.f;
+ float max_s=n->freighter?100.f:n->role==LAW?60.f:40.f;
+ int hull=(int)fmaxf(0,fminf(100,100.f*n->health/max_h));
+ int shield=(int)fmaxf(0,fminf(100,100.f*n->shield/fmaxf(1.f,max_s)));
+ text(x/8,y/8,RGB(155,154,165),"H");target_segments(x+10,y,5,(hull+19)/20,hull<30?RED:RGB(85,212,212));
+ text((x+54)/8,y/8,RGB(155,154,165),"S");target_segments(x+64,y,5,(shield+19)/20,RGB(85,212,212));
+}
+static unsigned target_overlay_color(int id){
+ if(is_mission_target(&game,id))return WHITE;
+ if(IS_NPC_ID(id))return faction_colors[game.npc[id-BODY_COUNT-1].role];
+ if(IS_ANOMALY_ID(id))return GOLD;
+ if(IS_DEBRIS_ID(id))return DIM;
+ return id==0?CYAN:GOLD;
+}
+static void targeting_overlay(int x,int y,int w,int h,int detailed){
+ int ids[1+BODY_COUNT+NPC_COUNT+DEBRIS_COUNT+ANOMALY_COUNT],n=collect_scan_ids(ids,scan_cat);
+ int shown=n>5?5:n;
+ rect(x,y,w,h,RGB(10,18,29));rect(x,y,w,1,RGB(193,139,77));rect(x,y+h-1,w,1,RGB(41,54,70));
+ text(x/8+1,y/8+1,RGB(229,210,163),detailed?"TARGET COMPUTER":"TARGETS");
+ text(x/8+1,y/8+3,RGB(240,180,91),"< BAND: %.10s >",scan_cat_names[scan_cat<0?0:scan_cat>4?4:scan_cat]);
+ if(!n){text(x/8+1,y/8+6,DIM,"NO CONTACTS");return;}
+ int first=0;
+ for(int i=0;i<n;i++)if(ids[i]==selected_target){first=i-2;break;}
+ if(first<0)first=0;if(first>n-shown)first=n-shown;
+ if(n>shown){
+  int track_y=y+42,track_h=80;
+  int thumb_h=(track_h*shown)/n;if(thumb_h<8)thumb_h=8;
+  int thumb_y=track_y+(n==shown?0:(track_h-thumb_h)*first/(n-shown));
+  /* Keep the scroll rail on the bezel side; the right edge is reserved for
+   * each contact's distance readout. */
+  rect(x+4,track_y,3,track_h,RGB(41,54,70));
+  rect(x+4,thumb_y,3,thumb_h,RGB(240,180,91));
+ }
+ for(int i=0;i<shown;i++){
+  int id=ids[first+i],yy=y+42+i*16,row_y=(yy/8)*8;
+  /* Text is snapped to 8px font rows. Use that exact snapped origin for
+   * the selection rule; otherwise 14px list spacing makes it drift. */
+  if(id==selected_target)rect(x+8,row_y-2,w-11,12,RGB(25,65,77));
+  unsigned ink=id==selected_target?RGB(240,180,91):target_overlay_color(id);
+  text(x/8+2,row_y/8,ink,"%c %.13s",id==selected_target?'>':' ',scanner_known(id)?target_name(id):"UNKNOWN");
+  text((x+w-43)/8,row_y/8,RGB(229,210,163),"%4dm",(int)length(sub(target_position(id),game.pos)));
+ }
+ if(detailed&&valid_target(selected_target)){
+  int cy=y+h-37;
+  text(x/8+1,cy/8,RGB(240,180,91),"%.21s",target_name(selected_target));
+  target_condition(x+8,cy+10,selected_target);
+ }
 }
 static unsigned dim_rgb(unsigned c,int num,int den){
  int r=((c&255)*num)/den,g=(((c>>8)&255)*num)/den,b=(((c>>16)&255)*num)/den;
@@ -222,9 +290,24 @@ static void radio_ticker_display(void){
  int x=260,w=216;rect(x,1,w,21,RGB(21,28,39));rect(x,1,w,1,RGB(41,54,70));
  if(radio_off){text(33,1,DIM,"RADIO OFF");return;}
  int station=radio_station<0?0:radio_station>=RADIO_STATION_COUNT?RADIO_STATION_COUNT-1:radio_station;
- int segment=(int)(game.time/16.5f),line_index=(segment*5+station*3)%24;const char *line=radio_talk_lines[station][line_index];int len=(int)strlen(line),cycle=len+28;float in=fmodf(game.time,16.5f),pause=.45f+((segment*11+station*7)%5)*.22f;int pos=in<pause?-28:(int)((in-pause)*7.f)%cycle;char shown[29];
- for(int i=0;i<28;i++){int src=pos-28+i;shown[i]=(src>=0&&src<len)?line[src]:' ';}shown[28]=0;
- text(33,1,station==4?RGB(85,212,212):RGB(229,210,163),"%s",shown);
+ int segment=(int)(game.time/16.5f),line_index=(segment*5+station*3)%24;const char *broadcast=radio_talk_lines[station][line_index];int len=(int)strlen(broadcast),cycle=len+28;float in=fmodf(game.time,16.5f),pause=.45f+((segment*11+station*7)%5)*.22f;int pos=in<pause?-28:(int)((in-pause)*7.f)%cycle;char shown[29];
+ for(int i=0;i<28;i++){int src=pos-28+i;shown[i]=(src>=0&&src<len)?broadcast[src]:' ';}shown[28]=0;
+ /* Keep the scrolling ticker on its own line. The visualizer lives below it
+  * so the moving copy is never crossed by a waveform. */
+ unsigned ink=station==4?RGB(85,212,212):RGB(229,210,163);
+ /* Tiny but readable talking-host icon sits directly left of the ticker.
+  * Four little expressions sell the illusion of a live presenter. */
+ int face=(int)(game.time*2.2f)%4;
+ rect(280,2,12,9,RGB(14,18,28));rect(281,3,10,7,ink);
+ if(face==3){line(283,5,285,5,RGB(14,18,28));line(287,5,289,5,RGB(14,18,28));}
+ else {rect(283,5,2,2,RGB(14,18,28));rect(287,5,2,2,RGB(14,18,28));}
+ if(face==0){rect(284,8,4,1,RGB(14,18,28));}
+ else if(face==1){rect(284,7,4,2,RGB(14,18,28));}
+ else if(face==2){rect(285,7,2,2,RGB(14,18,28));}
+ else {line(284,8,288,8,RGB(14,18,28));}
+ /* Long equalizer is now a separate, lower ticker rail. */
+ for(int i=0;i<11;i++){int y=21+(int)(sinf(game.time*10+i*1.7f+station)*2.f);line(284+i*3,y,286+i*3,22,station==4?RGB(85,212,212):RGB(90,165,255));}
+ text(37,1,ink,"%.23s",shown);
 }
 /* Ship-relative plan radar: up is ahead, down is behind. Full 360 degrees;
  * logarithmic range keeps both nearby craft and remote worlds visible. */
@@ -275,7 +358,13 @@ static void cockpit(void){
   text(cols-inset-clen,0,RGB(100,235,150),"%.*s",clen,route);
  }
  if(game.dock_stage==1){rect(8,24,464,16,RGB(21,28,39));rect(8,24,464,1,RGB(193,139,77));text(2,4,RGB(85,212,212),"DOCKING GUIDANCE ACTIVE");}
- else if(square_held){int under_attack=game.attacked>0||game.incoming_missile>0;rect(8,24,464,32,RGB(21,28,39));rect(8,24,464,1,RGB(193,139,77));for(int i=0;i<5;i++){unsigned tab=i==scan_cat?RGB(240,180,91):RGB(155,154,165);if(i==4&&under_attack)tab=((int)(game.time*8)&1)?RED:RGB(90,25,30);text(1+i*11,4,tab,"%s",scan_cat_names[i]);}text(2,6,RGB(85,212,212),"L TARGET IN FRONT");text(35,6,RGB(240,180,91),"R LOCK ON");}
+ else if(square_held){
+  /* Hold-Square is the expanded tactical browser. Keep it pinned to the
+   * left edge so the central flight view remains readable and playable. */
+  targeting_overlay(8,28,192,156,0);
+  rect(8,204,132,16,RGB(24,63,73));rect(8,204,132,1,RGB(85,212,212));
+  text(2,25,RGB(120,245,220),"(R = LOCK)");
+ }
  else if(game.approach<0&&!game.police_stop&&!game.dead&&!game.dock_stage&&game.jump<=0){speech_box(8,24,464);quick_comms_box();}
  combat_alert_banner();
  rect(0,192,W,80,RGB(21,28,39));rect(0,192,W,1,RGB(193,139,77));
@@ -319,16 +408,26 @@ static void cockpit(void){
   int x=336+i*46;int n=i==0?game.pip_sys:i==1?game.pip_eng:game.pip_wep;
   unsigned ink=paused&&i==pip_sel?RGB(240,180,91):RGB(155,154,165);
   text(x/8,25,ink,"%s",i==0?"SYS":i==1?"ENG":"WEP");
-  if(paused&&i==pip_sel){line(x,218,x+22,218,RGB(240,180,91));line(x,219,x+22,219,RGB(85,212,212));}
+  /* The orange label and selected pips already identify the active bank;
+   * avoid an extra underline crossing the instrument labels below. */
   for(int k=0;k<4;k++)rect(x+k*5,210,3,2,k<n?(i==0?RGB(85,212,212):i==1?RGB(240,180,91):RED):RGB(41,54,70));
  }
- const char *labels[]={"SHLD","SPD","HEAT","FUEL"};
+ const char *labels[]={"SHLD","HULL","HEAT","FUEL"};
  int vmax=player_ships[game.ship].speed;if(vmax<1)vmax=1;
- int values[]={(int)game.energy,(int)(100*game.speed/vmax),(int)game.heat,(int)(100*game.fuel/fmaxf(1,player_ships[game.ship].range))};
- unsigned cols[]={game.energy<30?RED:RGB(85,212,212),RGB(240,180,91),game.heat>70?RED:RGB(139,106,72),RGB(240,180,91)};
+ int values[]={(int)game.energy,(int)game.hull,(int)game.heat,(int)(100*game.fuel/fmaxf(1,player_ships[game.ship].range))};
+ unsigned cols[]={game.energy<30?RED:RGB(85,212,212),game.hull<35?RED:RGB(85,212,212),game.heat>70?RED:RGB(139,106,72),RGB(240,180,91)};
+ /* Compact speed readout sits above the power pips, clear of radar and bars. */
+ /* Keep the speed fill pegged to the normal cruise scale. Boost is shown as
+  * a state effect (colour/pulse), rather than making the bar appear to empty. */
+ int speed_pct=(int)fminf(100.f,100.f*game.speed/fmaxf(1.f,(float)vmax));
  for(int i=0;i<4;i++){text(42,27+i,RGB(155,154,165),"%s",labels[i]);pip_bar(378,216+i*8,90,5,values[i],cols[i]);}
+ text(42,31,game.boost?RGB(240,120,96):RGB(155,154,165),"SPD %3d",(int)game.speed);
+ {int sx=game.boost?400+(int)(sinf(game.time*18.f)*2.f):400;
+  pip_bar(sx,248,68,5,speed_pct,game.boost?RGB(240,120,96):RGB(139,184,198));
+  if(game.boost){rect(sx-2,246,72,1,RGB(240,180,91));rect(sx-2,254,72,1,RGB(240,180,91));}
+ }
  rect(0,262,W,10,RGB(21,28,39));rect(0,262,W,1,RGB(193,139,77));
- button_icon(8,263,'T',RGB(85,212,212));text(3,33,RGB(155,154,165),"HOLD: COMMS");
+ button_icon(8,263,'T',RGB(85,212,212));text(3,33,game.damaged?RED:RGB(155,154,165),game.damaged?"HULL DAMAGE / ENGINEERS REQUIRED":"HOLD: COMMS");
  if(game.dead)text(20,33,RED,"START: RECOVER");
  else if(paused)text(20,33,RGB(240,180,91),"HOLD START  L/R BANK  U/D POWER");
  else if(game.police_stop)text(16,33,RGB(240,180,91),game.police_phase?"X CONFIRM SCAN MENU":"X CONFIRM SETTLE MENU");

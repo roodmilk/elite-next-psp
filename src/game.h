@@ -71,7 +71,8 @@ typedef struct {
  Vec3 orbit_pos,ship_pos; float orbit_yaw,orbit_pitch,orbit_roll,orbit_speed;
  Vec3 missile_pos; float missile_time; int missile_target;
  int tractor_target; float tractor_time;
- Vec3 pos; float yaw,pitch,speed,energy,heat,fuel,time,jump,shot,message_time,hazard,jetpack;
+ Vec3 pos; float yaw,pitch,speed,energy,hull,heat,fuel,time,jump,shot,message_time,hazard,jetpack,damage_fx;
+ int damaged;
  int system,destination,route_goal,credits,kills,legal,ship,docked,dead,laser,missiles,cue;
  int cargo[GOODS],stock[GOODS],price[GOODS],contract,contract_reward;
  int trader_offer_active,trader_offer_system,trader_offer_npc,trader_offer_need,trader_offer_reward,trader_offer_qty;
@@ -168,5 +169,9 @@ void launch(Game *g); int dock(Game *g); int refuel_full(Game *g); int trade(Gam
 int buy_ship(Game *g,int i); int jump_start(Game *g); int contract_accept(Game *g); int fire_missile(Game *g,int target_id);
 int salvage(Game *g,int target_id);
 int save_game(Game *g,const char *path); int load_game(Game *g,const char *path);
+int ship_repair_cost(const Game *g); int repair_ship(Game *g);
 int game_tests(const char *path);
+#include "world-state.h"
+int mission_offer_valid(const Game *g,int offer,int *destination_out);
+int mission_landable_body(const Game *g,int system,int body);
 #endif

@@ -40,7 +40,10 @@ static volatile int running=1;
 static volatile int resume_requested=0,suspend_requested=0;
 static unsigned *fb;
 static Game game;
-static int page=0,row=0,paused=0,smoke=0,visual_hold=0,hud_hidden=0,hud_mode=0,high_contrast=0;
+static int page=0,row=0,paused=0,smoke=0,visual_hold=0,hud_hidden=0,hud_mode=0,high_contrast=0,third_person=0;
+static unsigned ship_paint[16]={GOLD,CYAN,RGB(240,120,96),RGB(160,120,240),RGB(120,220,150),RGB(240,210,120),RGB(180,190,205),RGB(230,150,210),GOLD,GOLD};
+static const unsigned decorator_finishes[8]={GOLD,CYAN,RGB(240,120,96),RGB(160,120,240),RGB(120,220,150),RGB(240,210,120),RGB(180,190,205),RGB(230,150,210)};
+static int decorator_feedback=0;
 /* 0 = Kei/Ryn campaign, 1 = Guild assignments, 2+ = accepted job slot. */
 static int tracked_mission=0;
 static float warp_arrival_fade=0;
@@ -80,7 +83,7 @@ static void runtime_recover_from_sleep(void){
  message(&game,"PSP resumed. Display, controls and radio restored.");
 }
 static int view_bot(void){return game.planet>=0&&game.surface==2?239:hud_hidden?H-1:(hud_mode==0?191:247);}
-enum { HOME,FLIGHT,MARKET,CHART,YARD,EQUIP,STATUS,HELP,FACTIONS,LOCAL,DEBUG,COMMS,DETAILS,MISSIONS,MISSIONLOG,TARGETING,GALNET,CODEX,STORY,GUILD,RADIO,COMMS_PANEL,INTRO,CAMPAIGN,COMFORT,WALK,INVENTORY };
+enum { HOME,FLIGHT,MARKET,CHART,YARD,EQUIP,STATUS,HELP,FACTIONS,LOCAL,DEBUG,COMMS,DETAILS,MISSIONS,MISSIONLOG,TARGETING,GALNET,CODEX,STORY,GUILD,RADIO,COMMS_PANEL,INTRO,CAMPAIGN,COMFORT,WALK,INVENTORY,REPAIR,DECORATOR };
 #include "deck-nav.h"
 static int pip_sel=1,comms_rescue_confirm=0,abandon_confirm=0,faction_lore_card=0;
 static int comms_quick=0,comms_quick_choice=0;
@@ -101,6 +104,7 @@ static void rect(int x,int y,int w,int h,unsigned color){
  int x0=x<0?0:x,y0=y<0?0:y,x1=x+w>W?W:x+w,y1=y+h>H?H:y+h;
  for(int j=y0;j<y1;j++)for(int i=x0;i<x1;i++)fb[j*STRIDE+i]=color;
 }
+#include "decorator-monitor-art.h"
 static void warp_arrival_overlay(void){
  if(warp_arrival_fade<=0)return;
  int top=view_top(),bot=view_bot();float reveal=1.f-warp_arrival_fade;int keep=35+(int)(65.f*reveal);
@@ -197,6 +201,18 @@ static void shipmesh_stretched(int id,Vec3 pos,float yaw,float roll,float scale,
  queue_triangle(vertices[t->a],vertices[t->b],vertices[t->c],color);}
 }
 static void shipmesh(int id,Vec3 pos,float yaw,float roll,float scale,unsigned base,int preview){shipmesh_stretched(id,pos,yaw,roll,scale,1,base,preview);}
+static void shipmesh_preview_edges(int id,Vec3 pos,float yaw,float roll,float scale,unsigned ink){
+ const Mesh *m=&meshes[id];
+ for(int i=0;i<m->triangles;i++){
+  const MeshTri *t=&m->t[i];int corners[3]={t->a,t->b,t->c};
+  for(int e=0;e<3;e++){
+   Vec3 a=add(pos,mul(rotate(m->v[corners[e]],yaw,roll),scale));
+   Vec3 b=add(pos,mul(rotate(m->v[corners[(e+1)%3]],yaw,roll),scale));
+   if(a.z<15||b.z<15)continue;
+   Point pa=project(a),pb=project(b);line((int)pa.x,(int)pa.y,(int)pb.x,(int)pb.y,ink);
+  }
+ }
+}
 static void shipwire_stretched(int id,Vec3 pos,float yaw,float scale,float stretch,unsigned color){
  const Mesh *m=&meshes[id];Vec3 vertices[128];if(m->vertices>128)return;for(int i=0;i<m->vertices;i++){Vec3 v=m->v[i];v.z*=stretch;vertices[i]=camera(&game,add(pos,mul(rotate(v,yaw,0),scale)));}
  for(int i=0;i<m->triangles;i++){const MeshTri *t=&m->t[i];int ids[3]={t->a,t->b,t->c};for(int e=0;e<3;e++){Vec3 a=vertices[ids[e]],b=vertices[ids[(e+1)%3]];if(a.z<20||b.z<20)continue;Point p=project(a),q=project(b);line((int)p.x,(int)p.y,(int)q.x,(int)q.y,color);}}
@@ -317,6 +333,10 @@ static void footer(const char *s){
  }
  text(1,32,DIM,"%s",label);
 }
+static void credits_badge(void){
+ rect(382,228,90,16,RGB(21,28,39));rect(382,228,90,1,RGB(193,139,77));
+ text(48,29,GOLD,"%.1f U",game.credits*.1f);
+}
 static void selected_span(int y,int w){if(w<48)w=48;rect(8,y*8-2,w,12,high_contrast?RGB(58,72,88):RGB(41,54,70));rect(8,y*8-2,3,12,RGB(240,180,91));}
 static void selected(int y){selected_span(y,464);}
 static const char *stars(int n){static char result[8];for(int i=0;i<5;i++)result[i]=i<n?'*':'.';result[5]=0;return result;}
@@ -422,6 +442,14 @@ static void space(void){
   }
  }
  station_entrance();speed_lines();engine_flare();sfx_engine_plume_player();
+ if(game.damaged&&!sfx_fx_muted()){
+  int top=view_top(),bot=view_bot();int damage=(int)fmaxf(0.f,fminf(100.f,100.f-game.hull));int count=3+damage/12;
+  if(count>11)count=11;
+  /* Smoke is a dim blended grey rather than an opaque blob. More hull loss
+   * emits more particles, drifting out from the ship's forward view. */
+  for(int i=0;i<count;i++){float t=game.time*(1.8f+(i%3)*.35f)+i*1.7f;int x=240+(int)(sinf(t)*((i+2)*7))-(int)(game.speed*.002f*i);int y=112+(int)(cosf(t*.83f)*((i+1)*6));if(x<8||x>471||y<top+4||y>bot-4)continue;int r=2+(i%3)+(damage>65?1:0);circle(x,y,r,RGB(48,54,62));if((i&1)==0)pixel(x+r+1,y,RGB(74,68,58));}
+  if(((int)(game.time*12)&1)==0){line(430,82,438,106,RED);line(438,106,433,130,AMBER);}
+ }
  if(game.boost&&!sfx_fx_muted())sfx_engine_plume_mask(240,view_bot()-8,1);
  missile_effects();
  for(int i=0;i<ANOMALY_COUNT;i++)if(game.anomaly[i].alive&&length(sub(game.anomaly[i].pos,game.pos))<=180){unsigned c=game.anomaly[i].kind?CYAN:GOLD;circle(240,110,18+(int)(sinf(game.time*4)*4),c);circle(240,110,7,c);}
@@ -444,6 +472,7 @@ static void space(void){
  warp_arrival_overlay();
  if(hud_mode==0)target_overlay();else if(hud_mode==1)minimal_overlay();
  warp_effect();planet_prompt();police_dialog();death_effect();
+ if(third_person&&!game.dock_stage&&!game.dead&&!game.police_stop&&!game.approach){int pm=mesh_id(player_ships[game.ship].name);shipmesh(pm,add(game.pos,mul(forward(&game),260)),game.yaw+3.14159265f,game.roll,1.2f,ship_paint[game.ship],0);flush_meshes();}
  if(hud_mode==0||game.dock_stage||game.dead||game.police_stop||game.approach>=0)cockpit();
  else if(hud_mode==2)combat_alert_banner(); /* scenic: still show bottom RED ALERT */
 }
@@ -507,7 +536,7 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
   if((pressed&PSP_CTRL_TRIANGLE)&&(held&PSP_CTRL_TRIANGLE)){triangle_arm=1;triangle_hold=0;}
   if(triangle_arm){
    pressed&=~PSP_CTRL_TRIANGLE;
-   if(held&PSP_CTRL_TRIANGLE){triangle_hold+=dt;if(triangle_hold>=.55f){triangle_arm=0;comms_return=FLIGHT;autoaim=0;if(game.encounter_kind!=ENCOUNTER_NONE&&game.encounter>0){comms_quick=1;comms_quick_choice=0;return;}change_page(COMMS_PANEL);return;}}
+   if(held&PSP_CTRL_TRIANGLE){triangle_hold+=dt;if(triangle_hold>=.55f){triangle_arm=0;comms_return=FLIGHT;autoaim=0;if(game.encounter_kind!=ENCOUNTER_NONE&&game.encounter>0){comms_quick=1;comms_quick_choice=1;return;}change_page(COMMS_PANEL);return;}}
    else {triangle_arm=0;pressed|=PSP_CTRL_TRIANGLE;}
   }
  }else {triangle_arm=0;triangle_hold=0;}
@@ -535,11 +564,20 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
   if(held&PSP_CTRL_LTRIGGER){ax=strafe;ay=(float)walk;walk=0;strafe=0;}
   game_eva_tick(&game,dt,ax,ay,walk,strafe,(held&PSP_CTRL_RTRIGGER)!=0);return;
  }
- if(page==FLIGHT&&(pressed&PSP_CTRL_RTRIGGER)&&!(held&PSP_CTRL_SQUARE)){if(r_tap<.32f&&game.heat<85){game.boost=1;game.cue=SFX_BOOST;}else if(r_tap<.32f&&game.heat>=85)message(&game,"Too hot to boost. Cool down first.");r_tap=0;}if(!(held&PSP_CTRL_RTRIGGER)||page!=FLIGHT||(game.planet>=0&&game.surface==1)||(held&PSP_CTRL_SQUARE)||game.heat>=90)game.boost=0;
+ if(page==FLIGHT&&(pressed&PSP_CTRL_RTRIGGER)&&!(held&PSP_CTRL_SQUARE)){if(r_tap<.32f&&game.heat<85){game.boost=1;game.cue=SFX_BOOST;}else if(r_tap<.32f&&game.heat>=85){game.boost=1;game.cue=SFX_BOOST;message(&game,"Boost held at critical heat. Shields are taking the load.");}r_tap=0;}if(!(held&PSP_CTRL_RTRIGGER)||page!=FLIGHT||(game.planet>=0&&game.surface==1)||(held&PSP_CTRL_SQUARE))game.boost=0;
  if(page==FLIGHT&&(pressed&PSP_CTRL_LTRIGGER)&&!(held&(PSP_CTRL_LEFT|PSP_CTRL_RIGHT|PSP_CTRL_SQUARE))){if(l_tap<.32f&&game.speed>player_ships[game.ship].speed*.35f){hard_brake=.55f;game.boost=0;game.cue=SFX_UI;message(&game,"Hard brake.");}l_tap=0;}
  if(page==FLIGHT&&game.approach>=0){game.boost=0;if(pressed&PSP_CTRL_CIRCLE){turn_back(&game);autoaim=0;}else if(pressed&PSP_CTRL_CROSS){if(enter_planet(&game))autoaim=0;}return;}
  if(page==FLIGHT&&game.planet>=0&&(pressed&PSP_CTRL_CIRCLE)){if(game.surface)eva_toggle(&game);else land_planet(&game);autoaim=0;return;}
- if(page==FLIGHT&&comms_quick){if(pressed&PSP_CTRL_UP){comms_quick_choice=0;game.cue=SFX_SELECT;}if(pressed&PSP_CTRL_DOWN){comms_quick_choice=1;game.cue=SFX_SELECT;}if(pressed&PSP_CTRL_CIRCLE){comms_quick=0;return;}if(pressed&PSP_CTRL_CROSS){if(comms_quick_choice==0){comms_quick=0;comms_encounter_conversation=1;encounter_respond(&game);change_page(COMMS_PANEL);}else{comms_quick=0;encounter_ignore(&game);}return;}return;}
+ if(page==FLIGHT&&comms_quick){
+  if(pressed&PSP_CTRL_LEFT){comms_quick_choice=0;game.cue=SFX_SELECT;}
+  if(pressed&PSP_CTRL_RIGHT){comms_quick_choice=1;game.cue=SFX_SELECT;}
+  if(released&PSP_CTRL_TRIANGLE){
+   if(comms_quick_choice==1){comms_quick=0;comms_encounter_conversation=1;encounter_respond(&game);change_page(COMMS_PANEL);}
+   else {comms_quick=0;encounter_ignore(&game);}
+   return;
+  }
+  return;
+ }
  if(page==FLIGHT&&game.planet>=0&&(pressed&PSP_CTRL_TRIANGLE)){if(speech_active())speech_ok();else if(game.surface==1)takeoff_planet(&game);else if(game.surface==2)message(&game,"Board the ship before takeoff.");else leave_planet(&game);autoaim=0;return;}
  if(page==FLIGHT&&game.planet>=0&&(pressed&PSP_CTRL_SQUARE)){
   if(game.surface==2)survey_scan(&game);
@@ -551,22 +589,34 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
  else if(page==FLIGHT&&game.jump<=0&&!game.dead&&!game.dock_stage&&(pressed&PSP_CTRL_RTRIGGER)&&(held&PSP_CTRL_SQUARE)){sq_arm=0;if(valid_target(selected_target)){autoaim=1;story_event(&game,STORY_EV_TARGET);if(selected_target==0)campaign_event(&game,CP_LOCK);message(&game,"Target locked. Auto-turn active; steer to cancel.");game.cue=SFX_UI;}else message(&game,"Choose a target with Square and the D-pad first.");}
  else if(page==FLIGHT&&game.jump<=0&&!game.dead&&!game.dock_stage&&(pressed&PSP_CTRL_SQUARE)&&(held&PSP_CTRL_RTRIGGER)){int hostile=nearest_hostile_target();sq_arm=0;if(hostile>=0){selected_target=hostile;scan_cat=4;autoaim=1;story_event(&game,STORY_EV_TARGET);if(selected_target==0)campaign_event(&game,CP_LOCK);message(&game,"Nearest hostile locked.");game.cue=SFX_UI;}else message(&game,"No hostile contacts.");}
  else if(page==FLIGHT&&game.jump<=0&&!game.dead&&!game.dock_stage&&(pressed&PSP_CTRL_SQUARE))sq_arm=1;
- if(page==FLIGHT&&game.jump<=0&&!game.dead&&!game.dock_stage&&(released&PSP_CTRL_SQUARE)&&sq_arm){sq_arm=0;if(valid_target(selected_target))ensure_scan_cat_for_target(selected_target);change_page(TARGETING);target_count=collect_scan_ids(target_ids,scan_cat);if(row>=target_count)row=0;story_event(&game,STORY_EV_TARGET);if(selected_target==0)campaign_event(&game,CP_LOCK);}
+ if(page==FLIGHT&&game.jump<=0&&!game.dead&&!game.dock_stage&&(released&PSP_CTRL_SQUARE)&&sq_arm){
+  /* Tap is the quick targeter; hold Square is the full browser. Keeping tap
+   * in flight removes a redundant menu and preserves the centre view. */
+  sq_arm=0;cycle_front_target();
+ }
  else if(page==FLIGHT&&(released&PSP_CTRL_SQUARE))sq_arm=0;
  if(page==FLIGHT&&(pressed&PSP_CTRL_CROSS)&&(held&PSP_CTRL_LTRIGGER))fire_missile(&game,selected_target);
  else if(page==FLIGHT&&game.planet>=0&&(pressed&PSP_CTRL_CROSS))message(&game,"Lasers are offline in atmosphere.");
  if(page==HELP&&(pressed&PSP_CTRL_LTRIGGER)){analog_enabled=!analog_enabled;analog_ready=0;message(&game,analog_enabled?"Centre the nub to enable analog steering.":"D-pad steering. Analog input ignored.");ax=ay=0;}
-  if(page==FLIGHT){if(pressed&PSP_CTRL_SELECT)change_page(HOME);else if(pressed&PSP_CTRL_TRIANGLE){if(speech_active()&&game.encounter_kind!=ENCOUNTER_NONE){encounter_ignore(&game);}else if(speech_active())speech_ok();else hail_target();}else if(pressed&PSP_CTRL_CIRCLE){pick_look_target();int target=selected_target;if(station_circle_ready())target=0;else if(look_target>=0)target=look_target;if(IS_NPC_ID(target)){selected_target=target;game.npc[target-BODY_COUNT-1].name_known=1;scan_cat=target_category(target);autoaim=0;message(&game,npc_is_hostile(&game.npc[target-BODY_COUNT-1])?"Hostile locked. Triangle to hail.":"Ship locked. Triangle to talk.");}else if(IS_ANOMALY_ID(target))analysis_scan(&game,target);else if(IS_DEBRIS_ID(target)){selected_target=target;scan_cat=3;autoaim=0;salvage(&game,target);}else if(target>=2&&target<=BODY_COUNT){if(approach_planet(&game,target-1)){selected_target=target;scan_cat=0;autoaim=0;}}else if(target==0){if(dock(&game)){autoaim=0;change_page(FLIGHT);}}else if(target==1)message(&game,"The sun has no landing approach.");else message(&game,"Look at a station, planet, echo, cargo, or mission target.");}}
+  if(page==FLIGHT){if(pressed&PSP_CTRL_SELECT)change_page(HOME);else if(pressed&PSP_CTRL_TRIANGLE){if(speech_active()&&game.encounter_kind!=ENCOUNTER_NONE){comms_quick=1;comms_quick_choice=1;}else if(speech_active())speech_ok();else hail_target();}else if(pressed&PSP_CTRL_CIRCLE){pick_look_target();int target=selected_target;if(station_circle_ready())target=0;else if(look_target>=0)target=look_target;if(IS_NPC_ID(target)){selected_target=target;game.npc[target-BODY_COUNT-1].name_known=1;scan_cat=target_category(target);autoaim=0;message(&game,npc_is_hostile(&game.npc[target-BODY_COUNT-1])?"Hostile locked. Triangle to hail.":"Ship locked. Triangle to talk.");}else if(IS_ANOMALY_ID(target))analysis_scan(&game,target);else if(IS_DEBRIS_ID(target)){selected_target=target;scan_cat=3;autoaim=0;salvage(&game,target);}else if(target>=2&&target<=BODY_COUNT){if(approach_planet(&game,target-1)){selected_target=target;scan_cat=0;autoaim=0;}}else if(target==0){if(dock(&game)){autoaim=0;change_page(FLIGHT);}}else if(target==1)message(&game,"The sun has no landing approach.");else message(&game,"Look at a station, planet, echo, cargo, or mission target.");}}
  else {
   if(page==LOCAL)contacts_refresh();
    if(page==TARGETING){int ids[1+BODY_COUNT+NPC_COUNT+DEBRIS_COUNT+ANOMALY_COUNT];target_count=collect_scan_ids(ids,scan_cat);if(target_count>0){for(int i=0;i<target_count;i++)target_ids[i]=ids[i];}if(row>=target_count)row=0;}
   int saga_choices=game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT&&game.saga_step&&saga_beats[game.saga_chapter].kind==SAGA_CHOICE;
-  int count=page==COMFORT?5:page==CAMPAIGN?(tracked_mission==0&&game.campaign_stage==0?1:tracked_mission==0&&saga_coda_pending>=0?1:tracked_mission==0&&game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT&&!game.saga_step?1:saga_choices?3:tracked_mission>=2?2:1):page==GUILD?2:page==STORY?(game.story<STORY_FREE?2:1):page==COMMS_PANEL?(comms_encounter_conversation?3:(game.encounter_kind!=ENCOUNTER_NONE&&game.encounter>0?2:11)):page==RADIO?2:page==HOME?DECK_ITEMS:page==MISSIONS?mission_count(&game):page==MISSIONLOG?2+game.job_n:page==DEBUG?8:page==LOCAL?contact_count:page==TARGETING?target_count:page==GALNET?galnet_rows():page==MARKET?cargo_rows():page==CHART?near_count:page==YARD?player_ship_count:page==EQUIP?equip_row_count():page==INVENTORY?6:page==FACTIONS?FACTION_COUNT:page==DETAILS?(1+BODY_COUNT):page==CODEX?codex_rows():1;
+  int count=page==COMFORT?6:page==DECORATOR?8:page==CAMPAIGN?(tracked_mission==0&&game.campaign_stage==0?1:tracked_mission==0&&saga_coda_pending>=0?1:tracked_mission==0&&game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT&&!game.saga_step?1:saga_choices?3:tracked_mission>=2?2:1):page==GUILD?2:page==STORY?(game.story<STORY_FREE?2:1):page==COMMS_PANEL?(comms_encounter_conversation?3:(game.encounter_kind!=ENCOUNTER_NONE&&game.encounter>0?2:17)):page==RADIO?2:page==HOME?DECK_ITEMS:page==MISSIONS?mission_count(&game):page==MISSIONLOG?2+game.job_n:page==DEBUG?11:page==LOCAL?contact_count:page==TARGETING?target_count:page==GALNET?galnet_rows():page==MARKET?cargo_rows():page==CHART?near_count:page==YARD?player_ship_count:page==EQUIP?equip_row_count():page==INVENTORY?6:page==FACTIONS?FACTION_COUNT:page==DETAILS?(1+BODY_COUNT):page==CODEX?codex_rows():1;
   if(page==MARKET&&!game.docked&&(pressed&(PSP_CTRL_LEFT|PSP_CTRL_RIGHT))){message(&game,"Dock to buy or sell. Market controls are locked.");game.cue=SFX_UI;return;}
+  if(page==REPAIR)count=1;
   if(count<1)count=1;
   if(pressed&(PSP_CTRL_UP|PSP_CTRL_DOWN))game.cue=SFX_SELECT;
-  if(pressed&PSP_CTRL_UP){if(page==HOME)deck_step(-1);else if(page==CHART&&chart_mode)chart_move_cursor(0,-1);else {row=(row+count-1)%count;if(page==FACTIONS)faction_lore_card=0;}}
-  if(pressed&PSP_CTRL_DOWN){if(page==HOME)deck_step(1);else if(page==CHART&&chart_mode)chart_move_cursor(0,1);else {row=(row+1)%count;if(page==FACTIONS)faction_lore_card=0;}}
+  if(page==INVENTORY&&(pressed&(PSP_CTRL_LEFT|PSP_CTRL_RIGHT|PSP_CTRL_UP|PSP_CTRL_DOWN))){
+   int col=row%3, rslot=row/3;
+   if(pressed&PSP_CTRL_LEFT)col=(col+2)%3; if(pressed&PSP_CTRL_RIGHT)col=(col+1)%3;
+   if(pressed&PSP_CTRL_UP)rslot=(rslot+1)%2; if(pressed&PSP_CTRL_DOWN)rslot=(rslot+1)%2;
+   row=rslot*3+col; game.cue=SFX_SELECT;
+  } else {
+   if(pressed&PSP_CTRL_UP){if(page==HOME)deck_step(-1);else if(page==CHART&&chart_mode)chart_move_cursor(0,-1);else {row=(row+count-1)%count;if(page==FACTIONS)faction_lore_card=0;}}
+   if(pressed&PSP_CTRL_DOWN){if(page==HOME)deck_step(1);else if(page==CHART&&chart_mode)chart_move_cursor(0,1);else {row=(row+1)%count;if(page==FACTIONS)faction_lore_card=0;}}
+  }
  if(page==CHART&&chart_mode&&(pressed&PSP_CTRL_LEFT))chart_move_cursor(-1,0);
  if(page==CHART&&chart_mode&&(pressed&PSP_CTRL_RIGHT))chart_move_cursor(1,0);
  if(page==HOME&&(pressed&(PSP_CTRL_LEFT|PSP_CTRL_RIGHT)))deck_tab(pressed&PSP_CTRL_RIGHT?1:-1);
@@ -583,6 +633,11 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
     else {int next=game.story<STORY_FREE?story_home_row(&game):0;change_page(HOME);row=next;deck_last=next;}
    }
    else if(page==GUILD&&(pressed&PSP_CTRL_CROSS)){if(row==0)narrative_do(GUILD);else change_page(STORY);}
+   else if(page==REPAIR&&(pressed&PSP_CTRL_CROSS)){repair_ship(&game);}
+   else if(page==DECORATOR&&(pressed&PSP_CTRL_CROSS)){decorator_feedback=1;if(!game.docked){message(&game,"Dock at a station to repaint your ship.");return;}static const int fees[]={120,180,240,320,400,520,700,900};int finish=row<0?0:row>7?7:row;int fee=fees[finish]*10;if(ship_paint[game.ship]==decorator_finishes[finish]){message(&game,"That finish is already on your ship.");return;}if(game.credits<fee){message(&game,"Not enough units for that paint finish.");return;}game.credits-=fee;ship_paint[game.ship]=decorator_finishes[finish];message(&game,"Paint finish applied. Exterior preview updated.");}
+   else if(page==DECORATOR&&(pressed&PSP_CTRL_TRIANGLE)){change_page(REPAIR);}
+   else if(page==HOME&&row==23&&(pressed&PSP_CTRL_CROSS)){decorator_feedback=0;change_page(DECORATOR);}
+   else if(page==HOME&&row==24&&(pressed&PSP_CTRL_CROSS)){change_page(REPAIR);}
    else if(page==HOME&&(pressed&PSP_CTRL_CROSS)){if(row==20){if(game.docked){walk_kind=0;walk_x=walk_z=walk_yaw=0;sc_built_for=-1;page=WALK;message(&game,"Station deck. U/D options, X do, TRI ship.");}else message(&game,"Dock first to walk the station deck.");return;}if(row==21){change_page(INVENTORY);return;}if(row==22){codex_scope=3;row=0;change_page(CODEX);return;}if(row==15){codex_tab=0;codex_scope=0;}int pages[]={FLIGHT,MARKET,CHART,YARD,EQUIP,STATUS,HELP,FACTIONS,TARGETING,DEBUG,COMMS,DETAILS,MISSIONS,MISSIONLOG,GALNET,CODEX,RADIO,CAMPAIGN,GUILD,COMFORT};if(row<0||row>=20)return;int opened=row,next=pages[row];if(!story_menu_ok(&game,opened)){message(&game,story_task(&game));game.cue=SFX_UI;return;}if(!game.docked&&(next==YARD||next==EQUIP||next==MISSIONS)){message(&game,"Dock at a station to open this service.");game.cue=SFX_UI;return;}if(next==FLIGHT){int leaving=game.docked;int keep=(selected_target>=0&&selected_target<=BODY_COUNT)?selected_target:0;analog_ready=0;ax=ay=0;launch(&game);if(leaving){selected_target=keep;autoaim=0;if(valid_target(keep))scan_cat=target_category(keep);}}change_page(next);story_on_open(&game,opened);if(!game.cue)game.cue=SFX_UI;}
    else if(page==CODEX&&(pressed&PSP_CTRL_CROSS)){if(codex_tab==0&&codex_scope==0){codex_system=vis_sys(row);codex_scope=1;row=0;}else if(codex_scope==1){codex_body=codex_system_body_at(codex_system,row);codex_scope=2;row=0;}game.cue=SFX_SELECT;}
    else if(page==LOCAL&&contact_count>0&&row>=0&&row<contact_count&&(pressed&(PSP_CTRL_CROSS|PSP_CTRL_TRIANGLE))){selected_target=contact_ids[row];scan_cat=target_category(selected_target);nav_body=selected_target>0&&selected_target<=BODY_COUNT?selected_target-1:-1;autoaim=(pressed&PSP_CTRL_TRIANGLE)!=0;story_event(&game,STORY_EV_TARGET);if(selected_target==0)campaign_event(&game,CP_LOCK);message(&game,"Target set.");if(!game.docked)change_page(FLIGHT);}
@@ -609,11 +664,13 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
    }
    else if(page==TARGETING&&(pressed&PSP_CTRL_CROSS)){if(target_count){selected_target=target_ids[row];scan_cat=target_category(selected_target);nav_body=selected_target>0&&selected_target<=BODY_COUNT?selected_target-1:-1;autoaim=!game.docked;story_event(&game,STORY_EV_TARGET);if(selected_target==0)campaign_event(&game,CP_LOCK);message(&game,game.docked?"Target selected for launch.":"Target locked. Auto-align active.");if(game.docked)menu_back();else change_page(FLIGHT);}}
    else if(page==TARGETING&&(pressed&PSP_CTRL_TRIANGLE)){target_details=!target_details;}
-   else if(page==COMFORT&&(pressed&PSP_CTRL_CROSS)){
+  else if(page==COMFORT&&(pressed&PSP_CTRL_CROSS)){
  if(row==0){hud_mode=(hud_mode+1)%3;hud_hidden=hud_mode==2;}
  else if(row==1){quiet_comms=!quiet_comms;radio_dirty=1;}
  else if(row==2){high_contrast=!high_contrast;message(&game,high_contrast?"High contrast focus on.":"High contrast focus off.");}
- else change_page(row==3?RADIO:HELP);
+ else if(row==3)change_page(RADIO);
+ else if(row==4)change_page(HELP);
+ else if(row==5){third_person=!third_person;message(&game,third_person?"Third-person flight view on.":"Cockpit flight view on.");}
 }
 else if(page==CAMPAIGN&&(pressed&PSP_CTRL_CROSS)){
  if(station_tour_active()){
@@ -655,6 +712,12 @@ else if(page==COMMS_PANEL&&(pressed&PSP_CTRL_CROSS)){
   else if(row==8){hud_mode=(hud_mode+1)%3;hud_hidden=hud_mode==2;message(&game,hud_mode==0?"HUD: full.":hud_mode==1?"HUD: minimal.":"HUD: scenic.");}
   else if(row==9){if(game.docked){walk_kind=0;walk_x=walk_z=walk_yaw=0;page=WALK;}else message(&game,"Dock first to walk the station deck.");}
   else if(row==10){if(IS_ANOMALY_ID(selected_target)&&length(sub(target_position(selected_target),game.pos))<1400){walk_kind=2;walk_x=walk_z=walk_yaw=0;walk_oxygen=100;walk_integrity=100;walk_salvaged=0;page=WALK;message(&game,"Tether attached. Salvage the derelict relay core.");}else message(&game,"Lock a nearby derelict echo before spacewalking.");}
+  else if(row==11){hud_mode=(hud_mode+1)%3;hud_hidden=hud_mode==2;message(&game,hud_mode==0?"HUD: full.":hud_mode==1?"HUD: minimal.":"HUD: scenic.");}
+  else if(row==12){quiet_comms=!quiet_comms;radio_dirty=1;speech_ok();message(&game,quiet_comms?"Text chatter muted. Safety alerts remain.":"Text chatter restored.");}
+  else if(row==13){high_contrast=!high_contrast;message(&game,high_contrast?"High contrast focus on.":"High contrast focus off.");}
+  else if(row==14){change_page(RADIO);}
+  else if(row==15){change_page(HELP);}
+  else if(row==16){third_person=!third_person;message(&game,third_person?"Third-person preview on.":"Third-person preview off.");}
  }
  else if(page==GALNET&&(galnet_tab==3||galnet_tab==4)){if(galnet_tab==3&&(pressed&PSP_CTRL_CROSS))spacebook_likes[game.system]^=1u<<row;if(pressed&PSP_CTRL_TRIANGLE)spacebook_comments=!spacebook_comments;}
  else if(page==RADIO){if(pressed&PSP_CTRL_TRIANGLE){radio_off=!radio_off;if(radio_off)radio_static_ms=0;radio_dirty=1;}else if(pressed&(PSP_CTRL_LTRIGGER|PSP_CTRL_RTRIGGER)){int dir=pressed&PSP_CTRL_RTRIGGER?1:-1;int next=radio_off?-1:radio_station;next+=dir;if(next<-1)next=-1;if(next>=RADIO_STATION_COUNT)next=RADIO_STATION_COUNT-1;if(next<0){radio_off=1;radio_static_ms=6;radio_dirty=1;}else{radio_off=0;radio_tune(next);radio_static_ms=8;}}else if(row<2&&(pressed&(PSP_CTRL_LEFT|PSP_CTRL_RIGHT))){radio_adjust(row==1,pressed&PSP_CTRL_RIGHT?1:-1);}}else if(page==DEBUG&&(pressed&PSP_CTRL_CROSS)){debug_action();}
@@ -670,7 +733,7 @@ else if(page==COMMS_PANEL&&(pressed&PSP_CTRL_CROSS)){
   else if(page==INVENTORY&&game.docked&&(pressed&PSP_CTRL_CROSS)){if(row>=0&&row<FIT_SLOTS)unequip_slot(row,1);}
   else if(page==STATUS&&game.docked){if(pressed&PSP_CTRL_CROSS)save_game(&game,"commander.sav");if(pressed&PSP_CTRL_TRIANGLE){if(load_game(&game,"commander.sav")){selected_target=0;autoaim=0;look_target=-1;}else message(&game,"Load failed, or no save found.");}if((pressed&PSP_CTRL_SQUARE)&&game.legal>0)police_pay_desk(&game);}
  }
- float turn=0,pitch=0;int throttle=0,fire=0;if(page==FLIGHT){turn=ax;pitch=ay;int rolling=(held&PSP_CTRL_LTRIGGER)&&(held&(PSP_CTRL_LEFT|PSP_CTRL_RIGHT));if(rolling){game.roll+=((held&PSP_CTRL_RIGHT)?1:-1)*dt*2;turn=pitch=0;game.boost=0;autoaim=0;}throttle=(held&PSP_CTRL_RTRIGGER?1:0)-(held&PSP_CTRL_LTRIGGER?1:0);if(rolling||(held&PSP_CTRL_SQUARE)||hard_brake>0)throttle=0;if(hard_brake>0){game.speed*=fmaxf(.15f,1.f-dt*5.5f);if(game.speed<40)game.speed=0;}fire=!fire_blocked&&oldpage==FLIGHT&&!game.dock_stage&&game.approach<0&&(held&PSP_CTRL_CROSS)!=0&&!(held&PSP_CTRL_LTRIGGER)&&game.jump<=0;align_target(dt,ax,ay);}
+ float turn=0,pitch=0;int throttle=0,fire=0;if(page==FLIGHT){turn=ax;pitch=ay;int rolling=(held&PSP_CTRL_LTRIGGER)&&(held&(PSP_CTRL_LEFT|PSP_CTRL_RIGHT))&&!(held&PSP_CTRL_SQUARE);if(rolling){game.roll+=((held&PSP_CTRL_RIGHT)?1:-1)*dt*2;turn=pitch=0;game.boost=0;autoaim=0;}throttle=(held&PSP_CTRL_RTRIGGER?1:0)-(held&PSP_CTRL_LTRIGGER?1:0);if(rolling||(held&PSP_CTRL_SQUARE)||hard_brake>0)throttle=0;if(hard_brake>0){game.speed*=fmaxf(.15f,1.f-dt*5.5f);if(game.speed<40)game.speed=0;}fire=!fire_blocked&&oldpage==FLIGHT&&!game.dock_stage&&game.approach<0&&game.laser&&(held&PSP_CTRL_CROSS)!=0&&!(held&PSP_CTRL_LTRIGGER)&&game.jump<=0;if(fire&&valid_target(selected_target)&&IS_NPC_ID(selected_target))autoaim=1;align_target(dt,ax,ay);}
  if(page==FLIGHT){if(oldpage!=FLIGHT){turn=pitch=0;throttle=fire=0;}game_tick(&game,dt,turn,pitch,throttle,fire);if(boost_was_active&&!game.boost)game.roll=0;boost_was_active=game.boost;if(game.docked)change_page(HOME);}else boost_was_active=0;
 }
 static void input_tests(void){
@@ -685,7 +748,7 @@ static void input_tests(void){
  input(PSP_CTRL_LTRIGGER,PSP_CTRL_LTRIGGER,.016f,0,0);INPUT_CHECK(hard_brake<=0,"single L press does not hard-brake");
  input(0,0,.1f,0,0);input(PSP_CTRL_LTRIGGER,PSP_CTRL_LTRIGGER,.016f,0,0);INPUT_CHECK(hard_brake>0,"double L while fast starts hard brake");
  float braked=game.speed;input(0,0,.05f,0,0);INPUT_CHECK(game.speed<braked,"hard brake dumps speed quickly");
- game.heat=90;r_tap=0;input(PSP_CTRL_RTRIGGER,PSP_CTRL_RTRIGGER,.016f,0,0);input(0,0,.1f,0,0);input(PSP_CTRL_RTRIGGER,PSP_CTRL_RTRIGGER,.016f,0,0);INPUT_CHECK(!game.boost,"critical heat refuses a boost double-tap");
+ game.heat=90;r_tap=0;input(PSP_CTRL_RTRIGGER,PSP_CTRL_RTRIGGER,.016f,0,0);input(0,0,.1f,0,0);input(PSP_CTRL_RTRIGGER,PSP_CTRL_RTRIGGER,.016f,0,0);INPUT_CHECK(game.boost,"critical heat still allows a boost double-tap");
  change_page(LOCAL);row=2;input(PSP_CTRL_TRIANGLE,0,.016f,0,0);INPUT_CHECK(page==FLIGHT&&selected_target==2&&autoaim,"local menu selects named planet and auto-aligns");
  input(0,0,.016f,1,0);INPUT_CHECK(!autoaim,"manual steering cancels auto-aim");
  game.approach=1;game.pos=add(game.bodies[1].pos,(Vec3){0,0,-game.bodies[1].radius-800});game.yaw=game.pitch=0;Vec3 facing=forward(&game);input(PSP_CTRL_CIRCLE,0,.016f,0,0);INPUT_CHECK(game.approach==-1&&dot(facing,forward(&game))<-.999f,"Circle exits approach and turns around");
@@ -713,10 +776,16 @@ static void input_tests(void){
  {int vis[6],n=deck_fill(2,vis),saw=0;for(int i=0;i<n;i++)if(vis[i]==12)saw=1;INPUT_CHECK(!saw,"undocked Work tab omits Mission board");}
  game.cargo[0]=2;game.cargo[7]=1;INPUT_CHECK(cargo_rows()==2&&cargo_item(1)==7,"flight inventory lists only owned cargo");contacts_refresh();INPUT_CHECK(contact_count>=BODY_COUNT+1&&contact_ids[BODY_COUNT]==BODY_COUNT,"contacts include station and every celestial body");
  page=FLIGHT;game.pos=(Vec3){0,0,-20000};float speed=game.speed;input(0,PSP_CTRL_LTRIGGER|PSP_CTRL_RIGHT,.016f,1,0);INPUT_CHECK(game.roll>0&&game.speed==speed,"L and right rolls without changing throttle");
+ game.roll=3.1415926f;float yaw_before=game.yaw;input(0,PSP_CTRL_RIGHT,.016f,1,0);INPUT_CHECK(game.yaw>yaw_before,"right steering stays right-way-up after a full roll");
+ TEST_INIT();game.ship=9;game.credits=10000;change_page(DECORATOR);row=2;
+ input(PSP_CTRL_CROSS,0,.016f,0,0);
+ INPUT_CHECK(ship_paint[9]==decorator_finishes[2]&&game.credits==7600,"decorator applies chosen paint to the tenth hull at its displayed 240-unit cost");
+ input(PSP_CTRL_CROSS,0,.016f,0,0);
+ INPUT_CHECK(game.credits==7600&&decorator_finishes[2]==RGB(240,120,96),"equipped paint is free to reselect and preset swatches stay unchanged");
  change_page(DEBUG);row=0;int cash=game.credits;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.credits==cash+10000,"debug adds 1000 displayed units");
   TEST_INIT();launch(&game);page=FLIGHT;hud_mode=hud_hidden=0;input(PSP_CTRL_SELECT,PSP_CTRL_SELECT|PSP_CTRL_LTRIGGER,.016f,0,0);INPUT_CHECK(hud_mode==1&&!hud_hidden&&page==FLIGHT,"L and Select selects minimal HUD");input(PSP_CTRL_SELECT,PSP_CTRL_SELECT|PSP_CTRL_LTRIGGER,.016f,0,0);INPUT_CHECK(hud_mode==2&&hud_hidden,"L and Select selects scenic HUD");input(PSP_CTRL_SELECT,PSP_CTRL_SELECT|PSP_CTRL_LTRIGGER,.016f,0,0);INPUT_CHECK(hud_mode==0&&!hud_hidden,"L and Select restores full HUD");
  TEST_INIT();game.credits=20000;game.systems[game.system].tech=12;page=EQUIP;{int list[EQUIP_COUNT],n=equipment_stock_list(list,EQUIP_COUNT),dock_row=-1,cargo_row=-1,mis_row=-1,mil_row=-1,pulse_row=-1;for(int i=0;i<n;i++){if(list[i]==4)dock_row=i;if(list[i]==10)cargo_row=i;if(list[i]==3)mis_row=i;if(list[i]==7)mil_row=i;if(list[i]==1)pulse_row=i;}INPUT_CHECK(dock_row>=0&&cargo_row>=0&&mis_row>=0,"outfitting lists dock, cargo and missile stock at high-tech hub");row=dock_row;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK((game.upgrades&1)&&game.fit[FIT_NAV]==4&&game.credits==17500,"outfitting fits docking computer into NAV and charges balance");row=cargo_row;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(cargo_capacity(&game)==player_ships[game.ship].capacity+8&&game.fit[FIT_HOLD]==10,"outfitting fits expanded cargo bay into HOLD");int missiles=game.missiles;row=mis_row;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.missiles==missiles+1&&game.credits==13000,"outfitting reloads one missile and charges balance");if(pulse_row>=0){row=pulse_row;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.fit[FIT_WPN]==1&&game.laser,"pulse laser fits WPN slot");}game.systems[game.system].economy=0;n=equipment_stock_list(list,EQUIP_COUNT);mil_row=-1;for(int i=0;i<n;i++)if(list[i]==7)mil_row=i;INPUT_CHECK(mil_row>=0,"industrial hub stocks military shield");{int before=game.credits;row=mil_row;page=EQUIP;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.fit[FIT_DEF]==7&&(game.upgrades&128)&&shield_regen_rate(&game)>3.0f,"military shield fits DEF and raises regen to 4.5");page=INVENTORY;row=FIT_DEF;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.fit[FIT_DEF]==FIT_EMPTY&&game.credits==before-equipment_costs[7]/2,"loadout X sells fitted DEF module for half price");}}
- TEST_INIT();launch(&game);page=FLIGHT;input(PSP_CTRL_SQUARE,PSP_CTRL_SQUARE,.016f,0,0);INPUT_CHECK(page==FLIGHT,"Square press waits for release before opening the computer");input(0,0,.016f,0,0);INPUT_CHECK(page==TARGETING&&target_count>0,"Square tap opens populated targeting computer");
+ TEST_INIT();launch(&game);page=FLIGHT;input(PSP_CTRL_SQUARE,PSP_CTRL_SQUARE,.016f,0,0);INPUT_CHECK(page==FLIGHT,"Square press keeps flight active");input(0,0,.016f,0,0);INPUT_CHECK(page==FLIGHT&&valid_target(selected_target),"Square tap quick-cycles a visible target in flight");
  for(int i=0;i<NPC_COUNT;i++)if(game.npc[i].alive&&game.npc[i].role==PIRATES){game.npc[i].target=-2;break;}
  target_filter=2;target_refresh();INPUT_CHECK(target_count>0,"hostile targeting filter finds ships engaging the player");target_filter=10;target_refresh();INPUT_CHECK(target_count>=1,"anomaly filter lists rare system echoes"); galnet_tab=3;INPUT_CHECK(galnet_rows()==7,"SpaceBook provides a scrollable generated feed");galnet_tab=4;INPUT_CHECK(galnet_rows()==5,"Messages sits beside Spacebook with its own feed");
  {char author[40],body[96];galnet_tab=0;galnet_post(2,author,sizeof(author),body,sizeof(body));INPUT_CHECK(strstr(body,"cleared")&&strstr(body,"bound"),"Traffic Control names a remote traveller route");galnet_tab=3;galnet_post(6,author,sizeof(author),body,sizeof(body));INPUT_CHECK(strstr(body,"Spotted")||strstr(body,"lingering"),"Spacebook Spotters name traveller traffic");}
@@ -882,8 +951,8 @@ static void input_tests(void){
     int saved_row=row,saved_contrast=high_contrast,labels_ok=1;
     for(int contrast=0;contrast<2;contrast++)for(int slot=0;slot<6;slot++){
      high_contrast=contrast;row=slot;memset(pixels,0,STRIDE*H*sizeof(unsigned));inventory_screen();
-     int glyphs=0,col=(slot&1)?23:2,baseline=9+(slot/2)*4;
-     for(int yy=baseline*8;yy<baseline*8+8;yy++)for(int xx=col*8;xx<col*8+32;xx++)if(pixels[yy*STRIDE+xx]==GOLD)glyphs++;
+     int glyphs=0,col=3+(slot%3)*10,baseline=7+(slot/3)*10;
+     for(int yy=baseline*8;yy<baseline*8+8;yy++)for(int xx=col*8;xx<col*8+40;xx++)if(pixels[yy*STRIDE+xx]==GOLD)glyphs++;
      if(!glyphs)labels_ok=0;
      char capture[64];snprintf(capture,sizeof(capture),"loadout-slot-%d-%s.bmp",slot,contrast?"contrast":"normal");dump_native_bmp(capture);
     }
@@ -984,6 +1053,7 @@ int main(void){
  else {game.voice_time=0;change_page(INTRO);}
  FILE *introflag=fopen("open-intro.flag","r");if(introflag){fclose(introflag);change_page(INTRO);intro_time=6;}FILE *socialflag=fopen("open-spacebook.flag","r");if(socialflag){fclose(socialflag);change_page(GALNET);galnet_tab=3;game.voice_time=0;}FILE *netflag=fopen("open-galnet.flag","r");if(netflag){int tab=0;fscanf(netflag,"%d",&tab);fclose(netflag);change_page(GALNET);galnet_tab=tab>=0&&tab<6?tab:0;row=0;game.voice_time=0;}FILE *helpflag=fopen("open-help.flag","r");if(helpflag){int tab=0;fscanf(helpflag,"%d",&tab);fclose(helpflag);change_page(HELP);help_tab=tab>=0&&tab<5?tab:0;}
  FILE *yardflag=fopen("open-yard.flag","r");if(yardflag){int ship=0;fscanf(yardflag,"%d",&ship);fclose(yardflag);change_page(YARD);row=ship>=0&&ship<player_ship_count?ship:0;game.voice_time=0;story_complete(&game);}
+ FILE *decoratorflag=fopen("open-decorator.flag","r");if(decoratorflag){fclose(decoratorflag);decorator_feedback=0;change_page(DECORATOR);row=2;game.voice_time=0;story_complete(&game);}
  FILE *sflag=fopen("open-story.flag","r");if(sflag){fclose(sflag);change_page(STORY);}
  FILE *factionflag=fopen("open-factions.flag","r");if(factionflag){fclose(factionflag);change_page(FACTIONS);row=1;}FILE *comfortflag=fopen("open-comfort.flag","r");if(comfortflag){fclose(comfortflag);change_page(COMFORT);}FILE *homeflag=fopen("open-home.flag","r");if(homeflag){int item=0;fscanf(homeflag,"%d",&item);fclose(homeflag);change_page(HOME);row=item>=0&&item<DECK_ITEMS?item:0;game.voice_time=0;}FILE *codexflag=fopen("open-codex.flag","r");if(codexflag){int tab=0;fscanf(codexflag,"%d",&tab);fclose(codexflag);change_page(CODEX);codex_tab=tab>=0&&tab<4?tab:0;row=0;game.voice_time=0;}FILE *cpflag=fopen("open-campaign.flag","r");if(cpflag){int stage=0,flying=0;fscanf(cpflag,"%d %d",&stage,&flying);fclose(cpflag);if(flying)launch(&game);game.campaign_stage=stage>=0&&stage<=6?stage:0;game.voice_time=0;tracked_mission=0;change_page(CAMPAIGN);}FILE *guildflag=fopen("open-guild.flag","r");if(guildflag){int chapter=0,ready=0;fscanf(guildflag,"%d %d",&chapter,&ready);fclose(guildflag);game.guild_chapter=chapter>=0&&chapter<=4?chapter:0;game.guild_flags=ready?31:0;game.voice_time=0;tracked_mission=1;change_page(CAMPAIGN);}
  FILE *flyflag=fopen("open-flight.flag","r");if(flyflag){fclose(flyflag);launch(&game);page=FLIGHT;hud_mode=hud_hidden=0;}
@@ -1058,8 +1128,8 @@ int main(void){
   if(smoke&&!visual_hold&&frames==410){change_page(CODEX);}
   if(smoke&&!visual_hold&&frames==420){change_page(RADIO);}if(smoke&&!visual_hold&&frames==415){game_init(&game);deck_reset();launch(&game);page=FLIGHT;game.pos=game.anomaly[0].pos;analysis_scan(&game,ANOMALY_ID_MIN);}
   fb=(unsigned *)(0x44000000u+(unsigned)buffer*STRIDE*H*4);pspDebugScreenSetOffset(buffer*STRIDE*H*4);if(page!=FLIGHT||hud_mode==1)rect(0,0,W,H,BG);drawcount=0;
-  switch(page){case FLIGHT:space();break;case MARKET:market_screen();break;case CHART:chart();break;case YARD:yard();break;case EQUIP:equipment();break;case INVENTORY:inventory_screen();break;case STATUS:status();break;case HELP:help();break;case FACTIONS:factions();break;case LOCAL:local_system();break;case DEBUG:debug_screen();break;case COMMS:communications();break;case DETAILS:system_details();break;case MISSIONS:mission_board();break;case MISSIONLOG:mission_log();break;case TARGETING:targeting_screen();break;case GALNET:galnet_screen();break;case CODEX:codex_screen();break;case STORY:story_screen();break;case GUILD:guild_screen();break;case RADIO:radio_screen();break;case COMMS_PANEL:comms_panel();break;case INTRO:intro_screen();break;case CAMPAIGN:campaign_screen();break;case COMFORT:comfort_screen();break;case WALK:walk_screen();break;default:home();}
-  if(page!=FLIGHT&&!paused&&page!=INTRO&&page!=GALNET)menu_notice();
+ switch(page){case FLIGHT:space();break;case MARKET:market_screen();break;case CHART:chart();break;case YARD:yard();break;case EQUIP:equipment();break;case INVENTORY:inventory_screen();break;case REPAIR:repair_screen();break;case DECORATOR:decorator_screen();break;case STATUS:status();break;case HELP:help();break;case FACTIONS:factions();break;case LOCAL:local_system();break;case DEBUG:debug_screen();break;case COMMS:communications();break;case DETAILS:system_details();break;case MISSIONS:mission_board();break;case MISSIONLOG:mission_log();break;case TARGETING:targeting_screen();break;case GALNET:galnet_screen();break;case CODEX:codex_screen();break;case STORY:story_screen();break;case GUILD:guild_screen();break;case RADIO:radio_screen();break;case COMMS_PANEL:comms_panel();break;case INTRO:intro_screen();break;case CAMPAIGN:campaign_screen();break;case COMFORT:comfort_screen();break;case WALK:walk_screen();break;default:home();}
+  if(page!=FLIGHT&&!paused&&page!=INTRO&&page!=GALNET&&page!=DECORATOR)menu_notice();
  if(dump_native&&frames==6)dump_native_bmp("native-480x272.bmp");
   if(dump_native&&smoke&&(frames==95||frames==125||frames==205||frames==215||frames==255||frames==275||frames==355||frames==365||frames==385||frames==425)){char capture[64];snprintf(capture,sizeof(capture),"scene-%03d.bmp",frames);dump_native_bmp(capture);}
   if(dump_native&&smoke&&audit_all&&frames>=160&&frames<=420&&frames%10==5){char capture[64];snprintf(capture,sizeof(capture),"audit-%03d.bmp",frames);dump_native_bmp(capture);}

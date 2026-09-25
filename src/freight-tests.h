@@ -1,6 +1,6 @@
 /* Included inside game_tests: exercise mining through actual fire input. */
 {
- game_init(&g);launch(&g);g.pos=(Vec3){0,0,-10000};g.speed=0;g.yaw=g.pitch=g.roll=0;g.freight_next=999;
+ game_init(&g);launch(&g);g.fit[FIT_WPN]=1;fit_rebuild(&g);g.pos=(Vec3){0,0,-10000};g.speed=0;g.yaw=g.pitch=g.roll=0;g.freight_next=999;
  for(int i=0;i<NPC_COUNT;i++){g.npc[i].alive=0;g.npc[i].cooldown=999;}
  for(int i=0;i<DEBRIS_COUNT;i++)g.debris[i].alive=0;
  Debris *rock=&g.debris[0];*rock=(Debris){.pos={0,0,-9400},.alive=1,.good=12,.qty=2,.rock=1,.life=1000,.health=72,.radius=70};

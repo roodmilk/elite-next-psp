@@ -19,9 +19,8 @@ static void market_screen(void){
    text(31,9,WHITE,"Here %.1f",local*.1f);
    text(31,10,DIM,"Gal  %.1f",avg*.1f);
    text(31,12,diff>0?RED:diff<0?CYAN:WHITE,diff>0?"^ ABOVE AVG":diff<0?"v BELOW AVG":"= GALACTIC AVG");
-   text(31,13,diff? (diff>0?RED:CYAN):DIM,diff>0?"Sellers win here.":diff<0?"Buy cheap, sell away.":"Fair local price.");
    text(31,15,DIM,"Stock %d",game.stock[item]);
-   if(item==3||item==6||item==10)text(31,17,RED,"Restricted — Law scans holds.");
+   if(item==3||item==6||item==10)text(31,17,RED,"RESTRICTED GOODS!");
   }else {int wx=252,wy=116;line(wx,wy+12,wx+7,wy,AMBER);line(wx+7,wy,wx+14,wy+12,AMBER);line(wx+14,wy+12,wx,wy+12,AMBER);text(32,15,AMBER,"! DOCK TO BUY OR SELL");}
  }
  int used=cargo_used(&game),cap=cargo_capacity(&game);if(cap<1)cap=1;if(used>cap)used=cap;rect(14,176,210,5,RGB(30,45,60));rect(14,176,210*used/cap,5,CYAN);text(31,22,WHITE,"%.1f U  %d/%d T",game.credits*.1f,cargo_used(&game),cargo_capacity(&game));footer(game.docked?"UP/DOWN   RIGHT BUY   LEFT SELL   O BACK":"UP/DOWN   O BACK");
@@ -63,22 +62,49 @@ static void targeting_scope_stamp(int x,int y,int id){
 }
 static void targeting_screen(void){
  target_count=collect_scan_ids(target_ids,scan_cat);if(row>=target_count)row=0;
- header("TARGETING COMPUTER");page_number_at(52,4,target_count?row/7+1:1,target_count?(target_count+6)/7:1);
- for(int i=0;i<5;i++){int col=1+i*11;if(i==scan_cat)rect(col*8-2,30,84,14,RGB(25,65,77));text(col,4,i==scan_cat?GOLD:DIM,"%s",scan_cat_names[i]);}
- panel(6,45,468,144);panel(10,49,460,136);
- targeting_crt_glass(10,49,460,136);
+ header("TARGET COMPUTER");
+ /* Native 480x272 monitor layout: a readable six-row scan list and a
+  * dedicated 184px readout.  Keep every label inside the 8px safe grid so
+  * the targeting page never collides with the bezel or footer. */
+ panel(8,32,272,156);panel(288,32,184,156);
+ text(3,5,CYAN,"CONTACTS");
+ for(int i=0;i<5;i++)text(11+i*5,5,i==scan_cat?GOLD:DIM,"%.4s",scan_cat_names[i]);
+ if(!target_count){text(3,9,DIM,"NO CONTACTS IN THIS BAND");text(3,12,WHITE,"L/R CHANGE SCAN BAND");}
+ else {
+  int first=(row/6)*6;
+  for(int i=0;i<6&&first+i<target_count;i++){
+   int idx=first+i,id=target_ids[idx],yy=7+i*2;
+   if(idx==row)rect(10,yy*8-2,264,13,RGB(25,65,77));
+   unsigned ink=idx==row?WHITE:contact_color(id);
+   const char *label=scanner_known(id)?target_name(id):"UNKNOWN CONTACT";
+   text(3,yy,ink,"%c %-18.18s",idx==row?'>':' ',label);
+   text(26,yy,DIM,"%4dm",(int)length(sub(target_position(id),game.pos)));
+  }
+  if(target_count>6){int pages=(target_count+5)/6;text(3,21,DIM,"PAGE %d/%d",row/6+1,pages);}
+  selected_target=target_ids[row];
+  int id=selected_target;
+  text(37,5,contact_color(id),"%.18s",scanner_known(id)?target_name(id):"UNKNOWN CONTACT");
+  text(37,7,DIM,"%s",target_status(id));
+  targeting_scope_stamp(414,42,id);
+  text(37,11,WHITE,"RANGE %dm",(int)length(sub(target_position(id),game.pos)));
+  if(IS_NPC_ID(id)&&scanner_known(id)){
+   NPC *n=&game.npc[id-BODY_COUNT-1];
+   text(37,13,DIM,"FACTION %s",n->role==LAW?"LAW":n->role==PIRATES?"PIRATES":n->role==TRADERS?"TRADERS":n->role==EXPLORERS?"EXPLORERS":"NEUTRAL");
+   target_condition(296,128,id);
+  } else text(37,13,DIM,"CLASS %s",id==0?"STATION":id<=BODY_COUNT?"CELESTIAL":IS_DEBRIS_ID(id)?"DEBRIS":"ANOMALY");
+  if(target_details){
+   text(37,17,GOLD,"DETAILS");
+   text(37,19,WHITE,IS_NPC_ID(id)?"TRI SCAN / IDENTIFY":"TRI INSPECT TARGET");
+  }
+ }
  targeting_bezel_stickers();
- rect(382,51,82,12,RGB(66,45,38));text(49,6,AMBER,"CRT-7 // LIVE");
- int first=row/7*7;for(int j=0;j<7&&first+j<target_count;j++){int i=first+j,id=target_ids[i],y=7+j*2;Vec3 p=camera(&game,target_position(id));if(i==row)selected(y);text(3,y,contact_color(id),"%s%-20.20s %6d M %-6s",is_mission_target(&game,id)?"[M] ":"    ",scanner_known(id)?target_name(id):"UNKNOWN CONTACT",(int)length(sub(target_position(id),game.pos)),p.z>=0?"AHEAD":"BEHIND");}if(!target_count)text(3,10,DIM,"Nothing in this band. L/R changes category.");
- targeting_scope_stamp(414,156,target_count?target_ids[row]:-1);
- if(target_count){int id=target_ids[row];text(3,21,GOLD,"%s",target_status(id));if(target_details){if(IS_NPC_ID(id)){NPC *n=&game.npc[id-BODY_COUNT-1];if(scanner_known(id))text(3,22,WHITE,"%s  hull %d  %d m",faction_names[n->role],(int)n->health,(int)length(sub(n->pos,game.pos)));else text(3,22,WHITE,"Close in, or fit a long-range scanner.");}else if(IS_ANOMALY_ID(id))text(3,22,WHITE,"%s",game.anomaly[id-ANOMALY_ID_MIN].scanned?"Logged in Codex":"Close in. Press O.");else if(IS_DEBRIS_ID(id))text(3,22,WHITE,"%s",game.debris[id-DEBRIS_ID_MIN].rock?"Fire to fracture; Circle collects loose ore.":"Circle: collect within 500 m");else text(3,22,WHITE,"%s",id==0?station_name(&game):game.bodies[id-1].name);}else text(3,22,DIM,"Triangle for details.");}
- footer("L/R CATEGORY   X LOCK   TRI DETAILS   O BACK");}
+ footer("UP/DOWN SELECT   L/R BAND   X LOCK   TRI DETAILS   O BACK");}
 static void local_system(void){
  contacts_refresh();if(row>=contact_count)row=0;header("SYSTEM / ALL CONTACTS");int first=row/8*8;panel(8,32,464,156);text(3,5,CYAN,"NAME                            DISTANCE");
   for(int j=0;j<8&&first+j<contact_count;j++){int id=contact_ids[first+j],y=7+j*2;if(first+j==row)selected(y);const char *kind=IS_NPC_ID(id)?"SHIP":IS_ANOMALY_ID(id)?"ECHO":IS_DEBRIS_ID(id)?"LOOT":"NAV ";text(3,y,contact_color(id),"%-24s %s %7d M",scanner_known(id)?target_name(id):"UNKNOWN CONTACT",kind,(int)length(sub(target_position(id),game.pos)));}
  page_number_at(52,5,row/8+1,(contact_count+7)/8);footer("UP/DOWN   X LOCK   TRI AUTO-AIM   O BACK");
 }
-static void debug_screen(void){header("DEBUG");const char *items[]={"Add 1,000 units","Refill fuel and shields","Clear local wanted","Add local wanted","Move to station approach","Move near targeted planet","Return to station","Enter planet atmosphere"};for(int i=0;i<8;i++){if(row==i)selected(5+i*2);text(3,5+i*2,row==i?WHITE:DIM,"%s",items[i]);}footer("UP/DOWN   X APPLY   O BACK");}
+static void debug_screen(void){header("DEBUG");const char *items[]={"Add 1,000 units","Refill fuel and shields","Clear local wanted","Add local wanted","Move to station approach","Move near targeted planet","Return to station","Enter planet atmosphere","Install pulse laser","Reveal local Codex","Cool ship and clear heat"};for(int i=0;i<11;i++){if(row==i)selected(5+i*2);text(3,5+i*2,row==i?WHITE:DIM,"%s",items[i]);}footer("UP/DOWN   X APPLY   O BACK");}
 static void debug_action(void){
  if(row==0){game.credits+=10000;if(game.credits>100000000)game.credits=100000000;game.cue=SFX_UI;message(&game,"Added 1,000 units.");}
  if(row==1){game.fuel=player_ships[game.ship].range;game.energy=100;message(&game,"Fuel and shields full.");}
@@ -88,6 +114,9 @@ static void debug_action(void){
  if(row==5){if(selected_target<2||selected_target>BODY_COUNT){message(&game,"Select a planet in Contacts first.");return;}Body *b=&game.bodies[selected_target-1];game.docked=0;game.pos=add(b->pos,(Vec3){0,0,-b->radius-800});game.speed=0;game.yaw=game.pitch=game.roll=0;autoaim=0;change_page(FLIGHT);}
  if(row==6){game.planet=-1;game.surface=0;game.docked=1;game.speed=0;game.pos=(Vec3){0,0,3200};change_page(HOME);message(&game,"Docked at the local station.");}
  if(row==7){if(selected_target<2||selected_target>BODY_COUNT){message(&game,"Select a planet in Contacts first.");return;}Body *b=&game.bodies[selected_target-1];if(b->type==GAS||b->type==SUN){message(&game,"Gas giants and suns have no atmosphere flight.");return;}game.docked=0;game.pos=add(b->pos,(Vec3){0,0,-b->radius-800});game.yaw=game.pitch=game.roll=0;game.approach=selected_target-1;if(enter_planet(&game)){autoaim=0;change_page(FLIGHT);}else message(&game,"Could not enter atmosphere.");}
+ if(row==8){game.laser=1;message(&game,"Pulse laser installed in WPN slot.");}
+ if(row==9){game.discoveries=256;message(&game,"Local Codex records revealed.");}
+ if(row==10){game.heat=0;game.energy=100;message(&game,"Heat dumped and shields restored.");}
 }
 static void body_tint(int sys,int i,unsigned *col,unsigned *acc,int *type){
  const int world_perm[6][4]={{OCEAN,ROCKY,GAS,ROCKY},{ROCKY,GAS,OCEAN,ROCKY},{GAS,OCEAN,ROCKY,ROCKY},{ROCKY,OCEAN,ROCKY,GAS},{OCEAN,GAS,ROCKY,ROCKY},{ROCKY,ROCKY,OCEAN,GAS}};
@@ -199,11 +228,11 @@ static int codex_system_row(void){return codex_system>=0?codex_system:game.syste
 static void codex_system_screen(void){
  int sys=codex_system_row(),count=codex_rows();header("DISCOVERY CODEX / SYSTEM");panel(8,47,232,180);panel(248,47,224,180);
  for(int i=0;i<count;i++){int y=7+i*3,body=codex_system_body_at(sys,i);if(i==row)rect(10,y*8-2,220,18,RGB(25,65,77));if(i==0)text(3,y,i==row?WHITE:DIM,"SPACE STATION");else text(3,y,i==row?WHITE:DIM,"%.22s",codex_body_name(sys,body-1));}
+ int body=codex_system_body_at(sys,row);unsigned col,acc;int type;
  text(32,9,CYAN,"%.24s",game.systems[sys].name);text(32,11,WHITE,"SYSTEM ARCHIVE");
- text(32,14,GOLD,"SPACE STATION");text(32,16,WHITE,"%.25s Hub",game.systems[sys].name);
- text(32,18,CYAN,"MINERALS %d   ECHOES %d",codex_system_minerals(sys),codex_system_echoes(sys));
- text(32,20,WHITE,"FLORA %d   FAUNA %d",sys==game.system?game.scanned_flora:0,sys==game.system?game.scanned_fauna:0);
- text_wrap(32,23,26,4,DIM,sys==game.system?"Current system. Scan worlds and echoes to add records.":"Visited system. Select a world to inspect its archive.",0);
+ if(body==0){draw_station_badge(270,62);text(32,14,GOLD,"SPACE STATION");text(32,16,WHITE,"%.25s Hub",game.systems[sys].name);text(32,18,CYAN,"MINERALS %d   ECHOES %d",codex_system_minerals(sys),codex_system_echoes(sys));text(32,20,WHITE,"TRAFFIC ARCHIVE");text_wrap(32,23,26,3,DIM,"Orbital hub, market and local traffic record. Press X for the full station archive.",0);}
+ else if(body==1){body_tint(sys,0,&col,&acc,&type);draw_planet_disc(400,78,34,col,acc,body_art_seed(sys,0),type);text(32,14,GOLD,"PRIMARY STAR");text(32,16,WHITE,"System light and heat anchor.");text(32,18,CYAN,"MINERAL SIGNATURES %d",codex_system_minerals(sys));text_wrap(32,21,26,3,DIM,"The star shapes routes, light and orbital traces. Press X for the full star record.",0);}
+ else {int planet=body-1;body_tint(sys,planet,&col,&acc,&type);draw_planet_disc(400,78,34,col,acc,body_art_seed(sys,planet),type);text(32,14,GOLD,"%.24s",codex_body_name(sys,planet));text(32,16,WHITE,"%.12s world",type==OCEAN?"OCEAN":type==GAS?"GAS GIANT":"ROCKY");text(32,18,CYAN,"FLORA %d  FAUNA %d",sys==game.system?game.scanned_flora:0,sys==game.system?game.scanned_fauna:0);text_wrap(32,21,26,3,DIM,"Planet survey, life and mineral record. Press X for the full world archive.",0);}
  footer("UP/DOWN   X OPEN   O BACK");
 }
 static void codex_body_screen(void){
@@ -237,6 +266,9 @@ static void galactic_lore_screen(void){
  rect(248,68,207,1,RGB(99,69,121));
  text_wrap(31,10,25,8,ink,milky_way_notes[topic],0);
  text(31,21,accent,"FILE %02d / %02d",topic+1,(int)(sizeof(milky_way_topics)/sizeof(*milky_way_topics)));
+ /* Each archive section contains three files; show progress within the
+  * current section so the reader can see the local three-page depth. */
+ {int local=topic%3,rail_y=72,rail_h=112,thumb_h=36;rect(462,rail_y,3,rail_h,RGB(48,62,86));rect(462,rail_y+local*(rail_h-thumb_h)/2,3,thumb_h,accent);}
  text(31,23,muted,"A field guide to the inhabited galaxy.");
  footer("UP/DOWN TOPIC   L/R CATEGORY   O BACK");
 }
@@ -309,7 +341,11 @@ static void codex_screen(void){
 static void yard(void){
  header("SHIPYARD / EXCHANGE");if(!game.docked){text(3,8,DIM,"Dock to view ships for sale.");footer("O BACK");return;}
  panel(8,32,218,156);panel(234,32,238,156);
- for(int i=0;i<player_ship_count;i++){int y=5+i*2;if(i==row)rect(10,y*8-2,214,14,RGB(25,65,77));text(3,y,i==row?WHITE:DIM,"%-12.12s%s",player_ships[i].name,i==game.ship?" [OWNED]":"");}
+ /* Keep the catalogue inside its panel.  The left rail is deliberately
+  * reserved for the scroll thumb so distance and price columns never clash. */
+ int visible=7,first=row-visible/2;if(first<0)first=0;if(first>player_ship_count-visible)first=player_ship_count-visible;if(first<0)first=0;
+ for(int j=0;j<visible&&first+j<player_ship_count;j++){int i=first+j,y=5+j*2;if(i==row)rect(18,y*8-2,196,14,RGB(25,65,77));text(3,y,i==row?WHITE:DIM,"%-12.12s%s",player_ships[i].name,i==game.ship?" [OWNED]":"");}
+ if(player_ship_count>visible){int rail_y=40,rail_h=112;rect(12,rail_y,3,rail_h,RGB(45,58,70));int thumb_h=fmaxf(12,(float)rail_h*visible/player_ship_count);int thumb_y=rail_y+(rail_h-thumb_h)*first/(player_ship_count-visible);rect(12,thumb_y,3,thumb_h,AMBER);}
  const PlayerShip *p=&player_ships[row];
  preview_clip(353,84,242,40,464,128);
  fitted_ship_preview(mesh_id(p->name),preview_time*.5f,preview_time*.22f);
@@ -318,6 +354,14 @@ static void yard(void){
  text(31,18,WHITE,"Hold %d t  Spd %d",p->capacity,p->speed);
  text(31,19,WHITE,"Range %.1f LY",p->range*.1f);
  text(31,21,GOLD,"%.1f units",(p->price-player_ships[game.ship].price*3/4)*.1f);
+ /* Short, readable ship blurb in the formerly empty lower-left bay. */
+ const char *desc="Reliable general-purpose hull for new commanders.";
+ if(strstr(p->name,"Cobra"))desc="Balanced trader with room for cargo and upgrades.";
+ else if(strstr(p->name,"Adder"))desc="Light explorer: nimble, economical and quick to turn.";
+ else if(strstr(p->name,"Python"))desc="Heavy hauler with deep hold; slower but very capable.";
+ else if(strstr(p->name,"Viper"))desc="Fast patrol craft built for pursuit and clean escapes.";
+ text(3,20,GOLD,"SHIP DESCRIPTION");text_wrap(3,21,27,3,DIM,desc,0);
+ credits_badge();
  footer("UP/DOWN   X EXCHANGE   O BACK");
 }
 /* Expanded outfitting: only list items this hub actually stocks. */
@@ -401,7 +445,7 @@ static int unequip_slot(int slot,int refund){
 static void buy_equipment(int i){
  if(!game.docked){message(&game,"Dock to buy equipment.");return;}
  if(i<0||i>=EQUIP_COUNT)return;
- if(i==0){int cost=(int)ceilf(player_ships[game.ship].range-game.fuel)*2;if(cost<=0){message(&game,"Tank is already full.");return;}if(!fuel_cargo_units(&game)&&cargo_used(&game)>=cargo_capacity(&game)){message(&game,"Cargo full. Free 1 space for fuel.");return;}if(game.credits<cost){message(&game,"Not enough units.");return;}game.credits-=cost;refuel_full(&game);game.cue=SFX_UI;message(&game,"Tank full. Fuel uses 1 cargo space.");return;}
+ if(i==0){int cost=(int)ceilf(player_ships[game.ship].range-game.fuel)*2;if(cost<=0){message(&game,"Tank is already full.");return;}if(game.credits<cost){message(&game,"Not enough units.");return;}game.credits-=cost;refuel_full(&game);game.cue=SFX_UI;message(&game,"Tank full. Fuel is tracked separately from cargo.");return;}
  if(i==3){if(game.missiles>=4){message(&game,"Missile rack full.");return;}if(!equipment_in_stock(i)&&equipment_econ[i]!=0){message(&game,"Not stocked at this hub.");return;}if(game.credits<equipment_costs[i]){message(&game,"Not enough units.");return;}game.credits-=equipment_costs[i];game.missiles++;game.cue=SFX_UI;message(&game,"Missile loaded.");return;}
  if(equipment_owned(i)){message(&game,"Already fitted.");return;}
  if(!equipment_in_stock(i)&&equipment_econ[i]!=0){message(&game,"Not stocked at this hub.");return;}
@@ -423,6 +467,34 @@ static void sell_equipment_row(int i){
  unequip_slot(slot,1);
 }
 static int equip_row_count(void){int list[EQUIP_COUNT];return equipment_stock_list(list,EQUIP_COUNT);}
+static const char *equipment_stat_change(int i){
+ static char out[48];out[0]=0;
+ int base=cargo_capacity(&game),after=base;
+ if(i==10)after=base+8; else if(i==11)after=base+16;
+ if(i==10||i==11){snprintf(out,sizeof(out),"%d > %d MAX STORAGE",base,after);return out;}
+ if(i==6){snprintf(out,sizeof(out),"%.1f > %.1f SHLD /s",shield_regen_rate(&game),shield_regen_rate(&game)*2.f);return out;}
+ if(i==7){snprintf(out,sizeof(out),"%.1f > %.1f SHLD /s",shield_regen_rate(&game),4.5f);return out;}
+ if(i==8){snprintf(out,sizeof(out),"22 > 38 HEAT /s");return out;}
+ if(i==20){snprintf(out,sizeof(out),"1.0 > 1.5 MINING");return out;}
+ if(i==22){snprintf(out,sizeof(out),"0 > 1 PASSENGER");return out;}
+ if(i==14){snprintf(out,sizeof(out),"0 > +0.5 FUEL /s");return out;}
+ if(i==15){snprintf(out,sizeof(out),"0 > +0.75 FUEL /s");return out;}
+ if(i==1){snprintf(out,sizeof(out),"18 > 24 LASER DMG");return out;}
+ if(i==2){snprintf(out,sizeof(out),"18 > 36 LASER DMG");return out;}
+ if(i==3){snprintf(out,sizeof(out),"+1 MISSILE AMMO");return out;}
+ if(i==4){snprintf(out,sizeof(out),"2500 > 8000 M DOCK");return out;}
+ if(i==5){snprintf(out,sizeof(out),"NEXT HOP MARKS ON");return out;}
+ if(i==9){snprintf(out,sizeof(out),"HEAT DUMP: ONCE");return out;}
+ if(i==12){snprintf(out,sizeof(out),"2500 > 5000 M SCAN");return out;}
+ if(i==13){snprintf(out,sizeof(out),"PLANET SCAN: ON");return out;}
+ if(i==16){snprintf(out,sizeof(out),"MISSILE LOCK: -50%%");return out;}
+ if(i==17){snprintf(out,sizeof(out),"MISSILE LOCK: BREAK");return out;}
+ if(i==18){snprintf(out,sizeof(out),"SHIP LOSS: TOW ONCE");return out;}
+ if(i==19){snprintf(out,sizeof(out),"HULL REPAIR +2 /s");return out;}
+ if(i==21){snprintf(out,sizeof(out),"ORE > ALLOYS");return out;}
+ if(i==23){snprintf(out,sizeof(out),"CLAMP: CARGO SAFE");return out;}
+ return "STAT CHANGE: INSTALLED";
+}
 static void equipment(void){
  header("OUTFITTING");
  if(!game.docked){text(3,8,DIM,"Dock to view equipment and fuel.");footer("O BACK");return;}
@@ -432,23 +504,30 @@ static void equipment(void){
  if(row<0)row=0; if(row>=n)row=n-1;
  int first=row/5*5;
  const char *slots[]={"WPN","DEF","NAV","HOLD","FUEL","UTIL"};
- text(2,5,CYAN,"LOADOUT");text(2,6,DIM,"CURRENT SHIP");text(2,7,WHITE,"%.17s",player_ships[game.ship].name);
+ text(2,5,CYAN,"LOADOUT");text(2,6,WHITE,"%.17s",player_ships[game.ship].name);
  for(int sl=0;sl<6;sl++){
   int mod=game.fit[sl];if(!fit_value_valid(sl,mod))mod=FIT_EMPTY;
   const char *name=mod==FIT_EMPTY?(sl==FIT_HOLD?"BASE HOLD":sl==FIT_FUEL?"TANK ONLY":"EMPTY"):equipment_list_names[mod];
   int y=10+sl*2;if(equip_slot_for(list[row])==sl)rect(12,y*8-3,129,14,RGB(25,65,77));
   text(2,y,equip_slot_for(list[row])==sl?GOLD:WHITE,"%s",slots[sl]);text(7,y,mod==FIT_EMPTY?DIM:CYAN,"%.11s",name);
  }
- text(2,23,DIM,"HOLD %d/%d T",cargo_used(&game),cargo_capacity(&game));text(2,24,DIM,"CREDITS %.1f",game.credits*.1f);
- text(20,5,CYAN,"AVAILABLE");page_number_at(34,5,row/5+1,(n+4)/5);
- for(int j=0;j<5&&first+j<n;j++){int disp=first+j,i=list[disp],y=8+j*3;if(disp==row)rect(163,y*8-3,137,16,RGB(25,65,77));text(21,y,disp==row?WHITE:DIM,"%-4s",equip_cat_name(i));text(26,y,equipment_owned(i)?CYAN:disp==row?WHITE:DIM,"%.10s",equipment_label(i));if(equipment_owned(i))text(41,y,CYAN,"FIT");}
+ text(2,21,CYAN,"MISSILES %d",game.missiles);
+ text(2,23,CYAN,"CARGO HOLD %d/%dT",cargo_used(&game),cargo_capacity(&game));
+ text(2,25,GOLD,"DESCRIPTION");text_wrap(2,26,36,3,DIM,equipment_details[row<0?0:list[row]],0);
+ text(43,27,game.fuel<player_ships[game.ship].range*.2f?RED:CYAN,"FUEL %3.1f/%3.1f",game.fuel*.1f,player_ships[game.ship].range*.1f);
+ credits_badge();
+ text(20,5,CYAN,"AVAILABLE TO BUY");
+ /* Left-edge list rail replaces the old page counter. */
+ rect(160,60,3,100,RGB(41,54,70));{int thumb=100*(n<1?1:5)/fmaxf(5,n);int ty=60+(100-thumb)*(first/fmaxf(1,n-1));rect(160,ty,3,thumb,RGB(240,180,91));}
+ for(int j=0;j<5&&first+j<n;j++){int disp=first+j,i=list[disp],y=8+j*3;if(disp==row)rect(166,y*8-3,134,16,RGB(25,65,77));text(21,y,disp==row?WHITE:DIM,"%-4s",equip_cat_name(i));text(26,y,equipment_owned(i)?CYAN:disp==row?WHITE:DIM,"%.14s",equipment_label(i));if(equipment_owned(i))text(43,y,CYAN,"FIT");}
  int i=list[row],slot=equip_slot_for(i),price=0,show=0;
  if(i==0)price=(int)ceilf(player_ships[game.ship].range-game.fuel)*2;else if(i>0&&i<EQUIP_COUNT)price=equipment_costs[i];show=price;
  if(!equipment_owned(i)&&slot>=0&&game.fit[slot]!=FIT_EMPTY&&i>0&&i!=3){show=price-equip_sell_price(game.fit[slot]);if(show<0)show=0;}
  text(39,5,GOLD,"MODULE");text(39,7,WHITE,"%.18s",equipment_names[i]);text(39,8,CYAN,"%s",i==0||i==3?"SERVICE":(slot>=0?slots[slot]:equip_cat_name(i)));
- text(39,10,DIM,"%.19s",equipment_details[i]);text(39,13,CYAN,"EFFECT");text(39,14,WHITE,"%.19s",equipment_effects[i]);
- if(equipment_owned(i))text(39,17,CYAN,i==3?"Missile rack full":i==0?"Fuel tank full":"Already fitted");else if(slot>=0&&game.fit[slot]!=FIT_EMPTY)text(39,17,AMBER,"REPLACES %.12s",equipment_list_names[game.fit[slot]]);else text(39,17,CYAN,"READY TO FIT");
- text(39,19,DIM,"TECH %d   COST",game.systems[game.system].tech+1);text(39,20,equipment_owned(i)?DIM:WHITE,equipment_owned(i)?"--":"%.1f units",show*.1f);text(39,22,DIM,"Square sell 50%%");
+ text(39,10,CYAN,"EFFECT");text_wrap(39,11,18,2,WHITE,equipment_effects[i],0);text(39,13,AMBER,"%.19s",equipment_stat_change(i));
+ if(equipment_owned(i))text(39,14,CYAN,i==3?"Missile rack full":i==0?"Fuel tank full":"Already fitted");else if(slot>=0&&game.fit[slot]!=FIT_EMPTY)text(39,14,AMBER,"REPLACES %.12s",equipment_list_names[game.fit[slot]]);
+ text(39,16,DIM,"COST");text(39,17,equipment_owned(i)?DIM:WHITE,equipment_owned(i)?"--":"%.1f units",show*.1f);
+ if(slot>=0&&game.fit[slot]!=FIT_EMPTY&&fit_value_valid(slot,game.fit[slot])){text(39,19,CYAN,"CURRENT");text(39,20,WHITE,"%.16s",equipment_list_names[game.fit[slot]]);}
  footer(equipment_owned(i)&&i>0&&i!=3?"UP/DOWN  X FIT  SQUARE SELL  O BACK":"UP/DOWN   X BUY / REFUEL   O BACK");
 }
 /* Ship loadout — real fitted slots from fit[]. */
@@ -467,34 +546,43 @@ static void ship_loadout_art(int mesh,int cx,int cy){
  line(cx-50,cy+13,cx-34,cy+13,shadow);line(cx+34,cy+13,cx+50,cy+13,shadow);
 }
 static void inventory_screen(void){
- header("SHIP LOADOUT");panel(8,32,230,180);panel(246,32,226,180);
+ header("SHIP TECH BOARD");
+ panel(8,32,252,180);panel(268,32,204,180);
  const char *slot[]={"WPN","DEF","NAV","HOLD","FUEL","UTIL"};
- int mesh=mesh_id(player_ships[game.ship].name);
- text(2,5,CYAN,"VISUAL LOADOUT");text(2,6,DIM,"%.26s",player_ships[game.ship].name);
- ship_loadout_art(mesh,123,122);
- for(int i=0;i<6;i++){
+ static const unsigned category_colors[]={RED,RGB(85,212,212),RGB(170,130,255),GOLD,RGB(120,230,150),WHITE};
+ int grid_x=16,grid_y=54,tile_w=76,tile_h=70;
+ text(2,5,CYAN,"%.22s",player_ships[game.ship].name);
+ text(23,5,DIM,"TECH %d/6",FIT_SLOTS);
+ text(2,7,DIM,"INSTALLED TECHNOLOGY");
+ for(int i=0;i<FIT_SLOTS;i++){
   int mod=game.fit[i];if(!fit_value_valid(i,mod))mod=FIT_EMPTY;
-  /* Labels use character columns; rectangles use pixels. Full module names
-   * live in the right panel so neither label bank covers the ship silhouette. */
-  int col=(i%2)?23:2,y=9+(i/2)*4;
-  if(i==row)rect(col*8-2,y*8-3,42,14,RGB(25,65,77));
-  text(col,y,i==row?GOLD:CYAN,"%s",slot[i]);
-  /* Slot markers sit on the hull, while the labels remain readable at 1x. */
-  static const int mx[]={123,123,93,153,104,142},my[]={98,139,117,117,144,144};
-  int marker_x=mx[i],marker_y=my[i];
-  rect(marker_x-3,marker_y-3,7,7,i==row?GOLD:CYAN);rect(marker_x-1,marker_y-1,3,3,RGB(21,28,39));
+  int gx=i%3,gy=i/3,x=grid_x+gx*80,y=grid_y+gy*76;
+  unsigned accent=i==row?GOLD:mod==FIT_EMPTY?RGB(52,72,84):CYAN;
+  rect(x,y,tile_w,tile_h,RGB(16,28,38));rect(x,y,tile_w,2,accent);rect(x,y,2,tile_h,accent);rect(x+tile_w-2,y,2,tile_h,RGB(41,54,70));rect(x,y+tile_h-2,tile_w,2,RGB(41,54,70));
+  if(i==row)rect(x+4,y+4,tile_w-8,tile_h-8,RGB(25,65,77));
+  text((x+8)/8,(y+7)/8,i==row?GOLD:CYAN,"%s",slot[i]);
+  if(mod==FIT_EMPTY){text((x+31)/8,(y+30)/8,i==row?WHITE:DIM,"+");text((x+27)/8,(y+53)/8,DIM,"EMPTY");}
+  else {int cat=mod==1||mod==2||mod==20?0:mod==6||mod==7||mod==16?1:mod==4||mod==5||mod==12||mod==13?2:mod==10||mod==11||mod==22||mod==23?3:mod==14||mod==15?4:5;unsigned icon=category_colors[cat];rect(x+27,y+22,22,18,icon);text((x+8)/8,(y+46)/8,WHITE,"%.8s",equipment_list_names[mod]);}
  }
- text(2,24,DIM,"MISSILES %d   HOLD %d/%d T",game.missiles,cargo_used(&game),cargo_capacity(&game));
- text(31,5,CYAN,"MODULES & CARGO");text(31,6,DIM,game.docked?"X removes selected module":"Dock to change modules");
- for(int i=0;i<6;i++){
-  int mod=game.fit[i];if(!fit_value_valid(i,mod))mod=FIT_EMPTY;int y=8+i*2;
-  text(31,y,i==row?GOLD:WHITE,"%-4s",slot[i]);
-  if(mod==FIT_EMPTY)text(36,y,DIM,"EMPTY");else text(36,y,CYAN,"%.13s",equipment_list_names[mod]);
- }
- text(31,21,CYAN,"CARGO");int line=22;
- for(int g=0;g<GOODS&&line<25;g++)if(game.cargo[g]>0){text(31,line,WHITE,"%.12s %d%c",goods[g].name,game.cargo[g],goods[g].unit);line++;}
- if(line==22)text(31,22,DIM,"Hold empty.");
+ int mod=game.fit[row];if(!fit_value_valid(row,mod))mod=FIT_EMPTY;
+ text(35,5,CYAN,"SLOT DETAILS");text(35,7,GOLD,"SELECTED: %s",slot[row]);
+ if(mod==FIT_EMPTY){text(35,10,WHITE,"EMPTY TECH SLOT");text(35,12,DIM,"Install compatible tech");text(35,14,DIM,"from Outfitting.");}
+ else {text(35,10,WHITE,"%.17s",equipment_names[mod]);text(35,12,CYAN,"%s SYSTEM",equip_cat_name(mod));text(35,14,DIM,"%.23s",equipment_details[mod]);text(35,18,CYAN,"EFFECT");text(35,19,WHITE,"%.23s",equipment_effects[mod]);}
+ text(35,23,CYAN,"SHIP CONDITION");text(35,25,game.damaged?RED:CYAN,"HULL %3d   SHLD %3d",(int)game.hull,(int)game.energy);
+ text(35,27,GOLD,"HEAT %3d   CARGO %d/%d",(int)game.heat,cargo_used(&game),cargo_capacity(&game));
+ credits_badge();
  footer(game.docked?"UP/DOWN  X REMOVE  O BACK":"UP/DOWN   O BACK");
+}
+
+static void repair_screen(void){
+ header("STATION / ENGINEERS");panel(8,32,464,156);
+ text(3,5,CYAN,"HULL SERVICE");text(3,7,WHITE,"%.25s",player_ships[game.ship].name);
+ text(3,10,DIM,"HULL");pip_bar(48,80,270,6,(int)game.hull,game.hull<35?RED:CYAN);
+ text(3,14,DIM,"SHLD");pip_bar(48,112,270,6,(int)game.energy,game.energy<35?RED:CYAN);
+ int cost=ship_repair_cost(&game);
+ if(cost>0){text(3,19,GOLD,"ENGINEER FEE");text(22,19,WHITE,"%.1f units",cost*.1f);text(3,21,DIM,"Restores hull, shields and heat sinks.");}
+ else {text(3,19,CYAN,"SHIP CONDITION: NOMINAL");text(3,21,DIM,"No engineering work is required.");}
+ footer(game.docked?"X AUTHORISE REPAIR   O BACK":"DOCK AT A STATION   O BACK");
 }
 
 static void status(void){header("COMMANDER");panel(8,32,464,156);draw_portrait(14,40,92,78,game.system,EXPLORERS);draw_world_card(118,40,92,78,&game.bodies[1],game.bodies[1].seed);text(29,5,CYAN,"%.18s",player_ships[game.ship].name);text(29,8,WHITE,"%.1f units  Kills %d  Ms %d",game.credits*.1f,game.kills,game.missiles);text(29,11,game.legal?RED:CYAN,"Wanted [%s] %.10s",stars(wanted_level(&game)),game.systems[game.system].name);{int dirty=cargo_contraband(&game);if(dirty)text(29,12,AMBER,"Hold flagged %d t restricted",dirty);}text(29,13,GOLD,"SYS %d  ENG %d  WEP %d",game.pip_sys,game.pip_eng,game.pip_wep);text(3,17,WHITE,"Codex %d    Charted %d",game.discoveries,systems_visited(&game));if(game.job_n>0)text(3,19,GOLD,"Jobs %d/5  %s -> %s",game.job_n,mission_name(game.jobs[game.job_sel].type),game.systems[game.jobs[game.job_sel].dest].name);else text(3,19,DIM,"No active missions.");if(game.docked&&game.legal>0)text(3,21,GOLD,"X save  Square pay fine %.1f U  Tri load",police_fine(&game)*.1f);else text(3,21,WHITE,game.docked?"X save     Triangle load":"Dock to save or load.");footer(game.docked&&game.legal>0?"X SAVE   SQUARE PAY FINE   TRI LOAD   O BACK":"O BACK");}

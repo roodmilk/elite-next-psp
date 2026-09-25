@@ -13,11 +13,11 @@
  quiet_comms=0;radio_dirty=0;remove("radio.cfg");remove("radio.cfg.bak");
  TEST_INIT();launch(&game);page=FLIGHT;game.encounter_kind=ENCOUNTER_TRADER;game.encounter=4;speak(&game,VOICE_CONTACT,"Incoming channel.");
  input(PSP_CTRL_TRIANGLE,PSP_CTRL_TRIANGLE,.05f,0,0);input(0,0,.05f,0,0);
- INPUT_CHECK(page==FLIGHT&&game.encounter_kind==ENCOUNTER_NONE,"comms: a Triangle tap immediately ignores an incoming chat");
+ INPUT_CHECK(page==FLIGHT&&comms_quick&&game.encounter_kind==ENCOUNTER_TRADER,"comms: a Triangle tap opens the Talk/Ignore choice");
  TEST_INIT();launch(&game);page=FLIGHT;game.encounter_kind=ENCOUNTER_TRADER;game.encounter=4;speak(&game,VOICE_CONTACT,"Quick channel.");
  input(PSP_CTRL_TRIANGLE,PSP_CTRL_TRIANGLE,.05f,0,0);for(int i=0;i<12;i++)input(0,PSP_CTRL_TRIANGLE,.05f,0,0);
- INPUT_CHECK(page==FLIGHT&&comms_quick,"comms: holding Triangle opens the quick respond/ignore overlay over flight");input(PSP_CTRL_CROSS,0,.016f,0,0);
- INPUT_CHECK(page==COMMS_PANEL&&comms_encounter_conversation,"comms: quick Respond opens the full discussion screen");row=2;input(PSP_CTRL_CROSS,0,.016f,0,0);
+ INPUT_CHECK(page==FLIGHT&&comms_quick,"comms: holding Triangle opens the quick respond/ignore overlay over flight");input(PSP_CTRL_RIGHT,PSP_CTRL_TRIANGLE|PSP_CTRL_RIGHT,.016f,0,0);input(0,0,.016f,0,0);
+ INPUT_CHECK(page==COMMS_PANEL&&comms_encounter_conversation,"comms: right + Triangle release responds immediately");row=2;input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(page==FLIGHT,"comms: ending the full discussion returns to flight");
  TEST_INIT();change_page(GALNET);galnet_tab=3;row=1;unsigned before=spacebook_likes[game.system];input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(spacebook_likes[game.system]==(before^2u),"spacebook: X reacts to the focused local post");

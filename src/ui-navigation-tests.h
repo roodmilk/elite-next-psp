@@ -1,7 +1,7 @@
 {
  TEST_INIT();deck_reset();change_page(HOME);int seen=0,unique=1;
  for(int g=0;g<5;g++)for(int i=0;i<deck_sizes[g];i++){int id=deck_rows[g][i];if(id<0||id>=DECK_ITEMS||(seen&(1<<id)))unique=0;else seen|=1<<id;}
- INPUT_CHECK(unique&&seen==((1<<DECK_ITEMS)-1-(1<<18)-(1<<10)),"deck: every visible service appears once; Guild work lives in Mission Log and docking lives in Comms");
+ INPUT_CHECK(unique&&seen==((1<<DECK_ITEMS)-1-(1<<18)-(1<<19)),"deck: every visible service appears once; Guild work and display settings live in Comms Panel");
  row=8;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(page==TARGETING&&target_count>0,"deck: Targeting computer opens the same target HUD used in flight");input(PSP_CTRL_CIRCLE,0,.016f,0,0);INPUT_CHECK(page==HOME&&row==8,"deck: leaving the targeting computer restores its Fly selection");row=0;
  input(PSP_CTRL_RIGHT,0,.016f,0,0);INPUT_CHECK(row==1&&deck_group(row)==1,"deck: Right moves from Fly to Ship");
  input(PSP_CTRL_DOWN,0,.016f,0,0);INPUT_CHECK(row==3,"deck: Down follows the visible Ship list");

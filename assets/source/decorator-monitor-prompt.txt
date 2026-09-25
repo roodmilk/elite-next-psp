@@ -1,0 +1,8 @@
+Generated with the built-in image generation tool for ELITE: NEXT 2.5.145.
+
+Prompt:
+"480x272 PSP pixel art: front-facing chunky 1980s CRT monitor bezel with 3 large pixel stickers, surrounding simple fictional ship-paint website. Clear blank dark rectangle in middle for paint list and clear blank dark rectangle top right for live ship preview. Original, 16-color palette, coarse crisp pixels, no tiny text."
+
+The image is downsampled and palette-quantized to 480x272 by
+tools/build-decorator-art.py. Functional text, swatches and the live ship
+preview are rendered by code in the reserved empty regions.

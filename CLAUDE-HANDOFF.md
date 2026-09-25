@@ -1,5 +1,97 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## In progress 2.5.145 — native Ship Decorator monitor
+
+The decorator now uses a generated, pixel-quantized 480×272 CRT plate with large bezel stickers and a fictional customization site. Code renders the selectable paint list and live ship inside exact blank windows. The art source is `assets/source/decorator-monitor-source.png`; regenerate the PSP plate/header with `tools/build-decorator-art.py`. Paint presets no longer mutate when a ship is repainted. Paint costs now match displayed units and all ten ship indices have a paint slot. Validate native captures before changing the plate layout.
+
+## In progress 2.5.123 — Ship Decorator personality pass
+
+Ship Decorator now feels like a playful custom spaceship workshop, with native-resolution signage, decals and clearer finish controls while retaining the live ship preview and purchase flow.
+
+## In progress 2.5.122 — Comms Panel conversation controls
+
+Flight chatter now labels one-way messages `△ CLOSE` and reply-capable messages `△ REPLY`; Triangle opens Talk/Ignore for replies, while holding Triangle opens the renamed Comms Panel. Display & Chatter settings are now inside that panel.
+
+## In progress 2.5.121 — live decorator preview
+
+Ship Decorator now renders the current hull in a dedicated top-right port using the highlighted finish, so every colour/pattern can be previewed before applying it.
+
+## In progress 2.5.120 — targeting lock prompt
+
+Held-Square targeting now labels the lock action as `(R = LOCK)` for an immediate, unambiguous control cue.
+
+## In progress 2.5.119 — flight speed and approach validation
+
+Speed lines now scale with cruise and boost velocity, and the speedometer shows the live numeric speed beside its bar. Relay docking tests now expect the visible approach sequence.
+
+## In progress 2.5.118 — wanted docking interception
+
+Dock requests now pause for a local-law intercept whenever the commander has a warrant, reusing the existing pay, custody and escape outcomes before the station approach may resume.
+
+## In progress 2.5.117 — docking approach and debug tools
+
+All station variants now use the visible docking approach/welcome sequence. Debug tools now include pulse-laser installation, local Codex reveal and heat/shield reset.
+
+## In progress 2.5.116 — combat target lock
+
+When the commander fires at a selected ship or freighter, the active target lock is enabled automatically so the HUD follows the contact being attacked.
+
+## In progress 2.5.115 — archive progress and service balance clarity
+
+Cosmic Archive categories now show a right-side three-file progress scrollbar, and ship loadout retains the fixed bottom-right balance badge.
+
+## In progress 2.5.114 — weapon validation and shipyard stat checks
+
+Mining regression fixtures now explicitly install a pulse laser, matching the empty-slot firing rule. Shipyard and flight continue to share the canonical per-hull capacity, speed, range and price values.
+
+## In progress 2.5.113 — clearer commodity warnings
+
+Commodity details now use a concise red restricted-goods warning, and the extra buy/sell advice line below price comparisons is gone.
+
+## In progress 2.5.112 — weapon gating and outfitting labels
+
+The flight loop now refuses laser fire when the WPN slot is empty and tells the commander to install a weapon. The outfitting list gives item names more room so Pulse Laser and Planet Scanner are not clipped.
+
+## In progress 2.5.111 — bounded shipyard catalogue
+
+The shipyard catalogue is now clipped to a seven-row left panel with a left-side scrollbar, and the lower-left bay explains the selected hull.
+
+## In progress 2.5.110 — control icon and radio HUD cleanup
+
+The cockpit radio ticker no longer draws a redundant `RADIO` word over the equalizer bars. Shared footer token rendering keeps D-pad directions as arrow glyphs and shoulder controls as L/R button icons, with Start/Select and face-button icons consistent across menus.
+
+## In progress 2.5.109 — held-Square targeting guidance
+
+The held-Square nav computer now shows only a distinct `R LOCK ON` instruction. The old D-pad/band/release clutter is gone, and the active scan category is written in full instead of clipped four-character tabs.
+
+## In progress 2.5.108 — HUD and station service layout polish
+
+Speed now sits below Fuel in the lower-right HUD. Third-person view is selectable under Display & Chatter. Ship Decorator and Engineers are separate docked entries in the Ship category, and the decorator supports scrolling finishes with a live painted preview.
+
+## In progress 2.5.107 — World State v1, Mission Validation v1 and Lave certification
+
+`src/world-state.h` now provides the canonical per-system snapshot. Mission offers are filtered through destination, station and landable-body validation before they appear or can be accepted. Lave certification checks cover peaceful danger, faction totals, reputation progression, planet identity and playable mission offers. See `docs/WORLD-STATE-V1-MISSION-VALIDATION.md`.
+
+## In progress 2.5.106 — richer Discovery Codex system previews
+
+The system archive now updates its right-hand panel as the selection moves. Station, star and discovered planet entries each show matching native artwork plus a concise summary; X still opens the full record.
+
+## In progress 2.5.105 — ship decorator and third-person display
+
+Stations now expose Ship Decorator in the Commander deck. Eight paid finishes update the rotating ship preview and the optional in-flight third-person exterior view. Commander → Display & Chatter includes a Third-person view toggle; the decorator's Triangle shortcut opens Engineers.
+
+## In progress 2.5.104 — boost cooling, speed HUD and damage smoke
+
+Boost heat now vents as soon as boost is released, even at high residual speed. The cockpit has a compact speed readout/bar above the power pips, and damage smoke is rendered as dim drifting particles with emission increasing as hull integrity falls.
+
+## In progress 2.5.103 — clear cockpit radio ticker
+
+The upper-right cockpit radio strip no longer prints `ALIEN`, which could collide with the scrolling ticker. Every station uses the compact `RADIO` identifier while retaining station colour and chatter.
+
+## In progress 2.5.102 — native targeting computer rewrite
+
+The full targeting page now uses the PSP-native 480×272 monitor layout: six visible scan rows on the left and a dedicated readout on the right for identity, status, range, faction/class and compact condition bars. Triangle reveals a short details line; X locks; L/R changes scan band. Flight yaw input now mirrors across the vertical pitch pole so left/right remains consistent after a full up/down loop. See `docs/TARGETING-COMPUTER-PSP-SPEC.md` for the canonical layout and checks.
+
 ## Released 2.5.101 — radio station/level navigation
 
 The radio now shows only one STATIC label while changing stations. Up/Down moves between Music and FX levels, Left/Right adjusts the selected level, and L/R changes station; the footer documents these controls.
@@ -695,3 +787,6 @@ Boost heat is now lower and scales with the ENG capacitor: higher ENG settings r
 ## Released 2.5.77 — concise cargo menu label
 
 The SHIP tab now shows `Cargo` while flying and keeps `Cargo & market` while docked.
+
+## 2.5.124 follow-up
+- Ship Decorator now includes native C64 sticker marks, finish/pattern navigation cue, live preview/equipped state, and fee/status card.

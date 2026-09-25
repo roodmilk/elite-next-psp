@@ -28,6 +28,8 @@ const PlayerShip player_ships[]={
  {"KRAIT",36,680000,470,84},
  {"OPHIDIAN",48,980000,410,92}};
 const int player_ship_count=sizeof(player_ships)/sizeof(*player_ships);
+int mission_landable_body(const Game *g,int system,int body){if(!world_planet_available(g,system,body))return 0;Game probe=*g;probe.system=system;system_bodies(&probe);return probe.bodies[body].type!=SUN&&probe.bodies[body].type!=GAS;}
+int mission_offer_valid(const Game *g,int offer,int *destination_out){if(!g||offer<0)return 0;int dest=mission_destination(g,offer);if(dest<0||dest==g->system||distance_ly(g,g->system,dest)>10.f)return 0;int type=mission_type_for_offer(g,offer);if(type==MISSION_EXPLORATION){int ok=0;for(int b=1;b<BODY_COUNT;b++)if(mission_landable_body(g,dest,b)){ok=1;break;}if(!ok)return 0;}if(destination_out)*destination_out=dest;return world_station_available(g,dest,0);}
 Vec3 add(Vec3 a,Vec3 b){return (Vec3){a.x+b.x,a.y+b.y,a.z+b.z};}
 Vec3 sub(Vec3 a,Vec3 b){return (Vec3){a.x-b.x,a.y-b.y,a.z-b.z};}
 Vec3 mul(Vec3 a,float s){return (Vec3){a.x*s,a.y*s,a.z*s};}
@@ -87,10 +89,12 @@ void galaxy(System out[256]){
  }
 }
 float distance_ly(const Game *g,int a,int b){float dx=g->systems[a].x-g->systems[b].x,dy=(g->systems[a].y-g->systems[b].y)*0.5f;return floorf(sqrtf(dx*dx+dy*dy))*0.4f;}
-int fuel_cargo_units(const Game *g){return g&&g->fuel>0.001f?1:0;}
+/* Fuel is a ship resource, never a tonne in the hold. Keeping it separate
+ * avoids confusing cargo capacity with the tank gauge. */
+int fuel_cargo_units(const Game *g){(void)g;return 0;}
 int cargo_used(const Game *g){int n=fuel_cargo_units(g);for(int i=0;i<GOODS;i++)if(goods[i].unit=='t')n+=g->cargo[i];if(g->passenger_dest>=0)n+=1;return n;}
 int cargo_capacity(const Game *g){int c=player_ships[g->ship].capacity;if(g->upgrades&64)c+=16;else if(g->upgrades&8)c+=8;return c;}
-int refuel_full(Game *g){if(!g)return 0;if(g->fuel>=player_ships[g->ship].range-.001f)return 1;if(g->fuel<=.001f&&cargo_used(g)>=cargo_capacity(g)){message(g,"No cargo space for a fuel tank.");return 0;}g->fuel=(float)player_ships[g->ship].range;return 1;}
+int refuel_full(Game *g){if(!g)return 0;if(g->fuel>=player_ships[g->ship].range-.001f)return 1;g->fuel=(float)player_ships[g->ship].range;return 1;}
 int galactic_price(int item){if(item<0||item>=GOODS)return 0;const Good *p=&goods[item];int avg=4*((p->base+(p->mask>>1)+3*p->factor)&255);return avg<4?4:avg;}
 void market(Game *g){int e=g->systems[g->system].economy,fluct=random_u(g)&255;
  for(int i=0;i<GOODS;i++){const Good *p=&goods[i];int f=fluct&p->mask;int q=(p->quantity+f-e*p->factor)&255;g->stock[i]=((q&128)?0:(q&63))+prosperity(g,g->system)*4;g->price[i]=4*((p->base+f+e*p->factor)&255);}g->stock[16]=0;
@@ -142,7 +146,7 @@ int police_fine(const Game *g){int wl=wanted_level(g);return (wl>0?wl:1)*500;}
 static void police_jail_release(Game *g){
  g->credits=0;for(int i=0;i<GOODS;i++)g->cargo[i]=0;
  g->ship=0;g->upgrades=0;g->laser=0;g->missiles=0;fit_clear_all(g);
- g->fuel=(float)player_ships[g->ship].range;g->energy=100;g->heat=0;g->speed=0;g->boost=0;g->attacked=0;
+ g->fuel=(float)player_ships[g->ship].range;g->energy=100;g->hull=100;g->damaged=0;g->damage_fx=0;g->heat=0;g->speed=0;g->boost=0;g->attacked=0;
  g->legal=0;g->wanted[g->system]=0;g->police_warning=0;g->police_timer=0;g->police_warned=0;g->police_stop=0;g->police_phase=0;g->docked=1;g->pos=(Vec3){0,0,3200};
  g->cue=SFX_DOCK;message(g,"Custody complete. Basic ship returned at the local station.");speak(g,VOICE_LAW,"All property seized. You are released with a basic ship.");
 }
@@ -289,6 +293,30 @@ int eva_toggle(Game *g){
  if(!eva_can_board(g)){float dx=g->pos.x-g->ship_pos.x,dz=g->pos.z-g->ship_pos.z;message(g,dx*dx+dz*dz<=3600?"Land beside ship to board.":"Return to the parked ship to board.");return 0;}
  g->pos=g->ship_pos;g->surface=1;g->speed=0;g->pitch=g->roll=g->jetpack=0;g->boost=0;message(g,"Boarded. Triangle takes off.");return 1;
 }
+static void player_damage(Game *g,float amount,const char *note){
+ if(amount<=0||g->dead||g->docked)return;
+ if(g->hull<=0&&!g->damaged)g->hull=100;
+ if(g->energy>0){float absorbed=fminf(g->energy,amount);g->energy-=absorbed;amount-=absorbed;}
+ if(g->energy<=0){g->energy=0;g->damaged=1;}
+ if(amount>0){g->damaged=1;g->hull-=fmaxf(.5f,amount*.45f);}
+ g->damage_fx=fmaxf(g->damage_fx,1.2f);g->attacked=fmaxf(g->attacked,1.5f);g->cue=SFX_HIT;
+ if(note&&g->message_time<=0)message(g,note);
+ if(g->hull<=0){g->hull=0;g->energy=0;g->dead=1;g->boost=0;g->jump=0;g->explosion=0;g->cue=SFX_DEATH;message(g,"Hull integrity lost. START to recover.");}
+}
+int ship_repair_cost(const Game *g){
+ float hull=g->hull<=0&&!g->damaged?100:g->hull;
+ if(!g->damaged&&hull>=99.9f&&g->energy>=99.9f&&g->heat<=.1f)return 0;
+ int cost=250+(int)((100.f-fmaxf(0,fminf(100,hull)))*35.f)+(int)((100.f-fmaxf(0,fminf(100,g->energy)))*8.f);
+ return cost<100?100:cost;
+}
+int repair_ship(Game *g){
+ if(!g->docked){message(g,"Dock at a station to call the engineers.");return 0;}
+ int cost=ship_repair_cost(g);
+ if(cost<=0){message(g,"Engineers report no hull damage.");return 0;}
+ if(g->credits<cost){char note[96];snprintf(note,sizeof(note),"Engineers need %.1f units for the repair.",cost*.1f);message(g,note);return 0;}
+ g->credits-=cost;g->energy=100;g->hull=100;g->damaged=0;g->damage_fx=0;g->heat=0;g->cue=SFX_DOCK;
+ message(g,"Engineers repaired the hull, shields and heat sinks.");speak(g,VOICE_DOCK,"The ship is sound again, Commander.");return 1;
+}
 static void planet_tick(Game *g,float dt,float turn,float pitch,int throttle,float strafe){
  g->heat=fmaxf(0,g->heat-dt*22);g->shot=fmaxf(0,g->shot-dt);g->energy=fminf(100,g->energy+dt*1.5f);
  if(g->surface==2){
@@ -314,10 +342,10 @@ static void planet_tick(Game *g,float dt,float turn,float pitch,int throttle,flo
   if(g->pos.y>floor+120){g->pos.y=floor+120;g->jetpack=0;}
   if(g->pos.y<floor){g->pos.y=floor;if(g->jetpack<0)g->jetpack=0;}
   float px,pz;site_xz(g,1,&px,&pz);float pd=(g->pos.x-px)*(g->pos.x-px)+(g->pos.z-pz)*(g->pos.z-pz);
-  if(pd>140*140){g->hazard=fminf(100,g->hazard+dt*(g->bodies[g->planet].type==OCEAN?9:14));if(g->hazard>=100)g->energy-=dt*10;}
+  if(pd>140*140){g->hazard=fminf(100,g->hazard+dt*(g->bodies[g->planet].type==OCEAN?9:14));if(g->hazard>=100)player_damage(g,dt*10,"Surface hazard is burning through the shields.");}
   else g->hazard=fmaxf(0,g->hazard-dt*22);
   g->speed=sqrtf((g->pos.x-before.x)*(g->pos.x-before.x)+(g->pos.z-before.z)*(g->pos.z-before.z))/dt;
-  if(g->energy<=0){g->energy=0;g->dead=1;g->jump=0;g->explosion=0;g->cue=SFX_DEATH;message(g,"Ship destroyed. START for a new commander.");}
+  if(g->hull<=0){g->dead=1;g->jump=0;g->explosion=0;g->cue=SFX_DEATH;message(g,"Hull integrity lost. START to recover.");}
   return;
  }
  if(g->surface==1){
@@ -334,11 +362,11 @@ static void planet_tick(Game *g,float dt,float turn,float pitch,int throttle,flo
  float ground=terrain_height(g,g->pos.x,g->pos.z)+16;
  if(g->pos.y<ground){
   int water=terrain_is_water(g,g->pos.x,g->pos.z);g->pos.y=ground;
-  if(g->speed>48||water){g->energy-=water?18:12;g->collision=2;snprintf(g->collide,sizeof(g->collide),water?"OCEAN SURFACE":"PLANET TERRAIN");message(g,water?"Collision: ocean surface. Shields damaged.":"Collision: terrain. Shields damaged.");}
+  if(g->speed>48||water){player_damage(g,water?18:12,water?"Collision: ocean surface. Shields damaged.":"Collision: terrain. Shields damaged.");g->collision=2;snprintf(g->collide,sizeof(g->collide),water?"OCEAN SURFACE":"PLANET TERRAIN");}
   g->speed*=.32f;if(g->pitch<0)g->pitch=0;g->boost=0;
  }
  if(g->pos.y>780){leave_planet(g);if(g->planet<0)message(g,"Climbed out of the atmosphere. Orbit restored.");return;}
- if(g->energy<=0){g->dead=1;g->jump=0;g->energy=0;g->explosion=0;g->cue=SFX_DEATH;message(g,"Ship destroyed. START for a new commander.");}
+ if(g->hull<=0){g->dead=1;g->jump=0;g->energy=0;g->explosion=0;g->cue=SFX_DEATH;message(g,"Hull integrity lost. START to recover.");}
 }
 static int spawn_debris(Game *g,Vec3 pos,Vec3 vel,int good,int qty,int wreck){
  for(int i=0;i<DEBRIS_COUNT;i++)if(!g->debris[i].alive){Debris *d=&g->debris[i];memset(d,0,sizeof(*d));d->radius=24;d->alive=1;d->pos=pos;d->vel=vel;d->good=good;d->qty=qty>0?qty:1;d->wreck=wreck;d->life=wreck?90:240;return i;}
@@ -392,6 +420,7 @@ static void travellers_promote(Game *g){
  }
 }
 void game_spawn(Game *g){
+ if(g->hull<=0&&!g->damaged)g->hull=100;
  jobs_from_legacy(g);
  system_bodies(g);g->dock_stage=0;g->station_variant=0;g->approach=-1;g->planet=-1;g->surface=0;g->boost=0;g->attacked=0;g->encounter=0;g->police_stop=0;g->police_phase=0;g->police_warning=0;g->police_warned=0;g->police_timer=0;g->missile_time=0;g->missile_target=-1;g->incoming_missile=0;g->incoming_source=-1;
  for(int i=0;i<DEBRIS_COUNT;i++)g->debris[i].alive=0;
@@ -579,11 +608,12 @@ static void world_collision(Game *g,Vec3 previous){
    g->pos=add(b->pos,mul(away,b->radius+900));g->speed=0;g->boost=0;g->approach=i;
    message(g,b->type==GAS?"Gas giant: no solid surface. Circle to turn back.":"Planet ahead. X for surface flight; Circle to turn back.");
    g->cue=SFX_UI;return;
-  }else {g->pos=add(b->pos,mul(norm(sub(previous,b->pos)),radius+10));g->speed=0;g->boost=0;g->collision=2;g->energy-=10;note_collision(g,b->name);}
+  }else {g->pos=add(b->pos,mul(norm(sub(previous,b->pos)),radius+10));g->speed=0;g->boost=0;g->collision=2;player_damage(g,10,"Planet collision. Shields damaged.");note_collision(g,b->name);}
  }
 }
 static void game_step(Game *g,float dt,float turn,float pitch,int throttle,int fire,float strafe){
  if(dt<=0||dt>.1f)dt=1.0f/60;
+ if(g->hull<=0&&!g->damaged)g->hull=100;
  /* An approach choice pauses threats and timers, like the input modal. */
  if(g->approach>=0&&!g->dead)return;
  mission_timers(g,dt);
@@ -593,18 +623,28 @@ static void game_step(Game *g,float dt,float turn,float pitch,int throttle,int f
  police_jail_tick(g,dt);
  if(g->police_stop)return;
  g->wanted[g->system]=g->legal;if(g->dead)g->explosion+=dt;
- g->time+=dt;g->message_time-=dt;if(g->message_time<0)g->message_time=0;g->attacked=fmaxf(0,g->attacked-dt);g->collision=fmaxf(0,g->collision-dt);g->heat_sink_cd=fmaxf(0,g->heat_sink_cd-dt);
+ g->time+=dt;g->message_time-=dt;if(g->message_time<0)g->message_time=0;g->attacked=fmaxf(0,g->attacked-dt);g->collision=fmaxf(0,g->collision-dt);g->heat_sink_cd=fmaxf(0,g->heat_sink_cd-dt);g->damage_fx=fmaxf(0,g->damage_fx-dt);
  if(g->incoming_missile>0){
   if(g->boost&&g->speed>player_ships[g->ship].speed*4){g->incoming_missile=0;g->incoming_source=-1;message(g,"Incoming missile evaded.");}
   else if((g->upgrades&256)&&g->incoming_missile>1.7f&&g->incoming_missile-dt<=1.7f&&random_f(g)<.5f){g->incoming_missile=0;g->incoming_source=-1;message(g,(g->fit[FIT_UTIL]==17)?"Chaff broke the lock.":"ECM broke missile lock.");}
-  else {g->incoming_missile-=dt;if(g->incoming_missile<=0){g->energy-=25;g->attacked=3;g->incoming_source=-1;g->cue=SFX_HIT;message(g,"Missile impact. Shields damaged.");}}
+  else {g->incoming_missile-=dt;if(g->incoming_missile<=0){player_damage(g,25,"Missile impact. Shields damaged.");g->attacked=3;g->incoming_source=-1;}}
  }
  if(g->dock_stage){docking_tick(g,dt);return;}
  if(g->tractor_time>0){g->tractor_time-=dt;g->speed=0;g->boost=0;if(g->tractor_time<=0){int id=g->tractor_target;g->tractor_target=-1;g->tractor_time=0;salvage_collect(g,id);}return;}
  if(g->dead||g->docked||g->approach>=0)return;
  if(g->planet>=0){planet_tick(g,dt,turn,pitch,throttle,strafe);return;}
- float localturn=turn*cosf(g->roll)-pitch*sinf(g->roll),localpitch=turn*sinf(g->roll)+pitch*cosf(g->roll);g->yaw+=localturn*dt*1.5f;g->pitch=wrap_range(g->pitch+localpitch*dt*1.5f,3.14159265f);
- g->speed+=throttle*dt*(g->boost?4500:180);if(g->speed<0)g->speed=0;float maxspeed=player_ships[g->ship].speed*(g->boost?20.f:1.f)*(0.70f+0.15f*g->pip_eng);if(g->speed>maxspeed)g->speed=maxspeed;
+ /* Roll is a visual banking axis. Keep yaw/pitch controls in cockpit space so
+  * a rolled ship never makes left/right appear to invert after a target-menu
+  * interaction. */
+ /* Keep yaw controls screen-consistent when the ship loops over the pole.
+  * Euler pitch is intentionally allowed to wrap for full vertical loops, but
+  * beyond +/-90 degrees the camera's horizontal basis is reversed. Mirroring
+  * yaw input by cos(pitch) prevents left/right from suddenly feeling inverted
+  * after a complete up/down turn. */
+ float localturn=turn,localpitch=pitch;float horizon_sign=cosf(g->pitch)>=0.f?1.f:-1.f;
+ g->yaw+=localturn*horizon_sign*dt*1.5f;g->pitch=wrap_range(g->pitch+localpitch*dt*1.5f,3.14159265f);
+ float damage_factor=g->damaged?fmaxf(.45f,g->hull/100.f):1.f;
+ g->speed+=throttle*dt*(g->boost?4500:180)*damage_factor;if(g->speed<0)g->speed=0;float maxspeed=player_ships[g->ship].speed*(g->boost?20.f:1.f)*(0.70f+0.15f*g->pip_eng)*damage_factor;if(g->speed>maxspeed)g->speed=maxspeed;
  if(g->boost&&g->planet<0&&g->jump<=0){g->fuel=fmaxf(0,g->fuel-dt*.35f);if(g->fuel<=0){g->fuel=0;g->boost=0;if(g->message_time<=0)message(g,"Fuel empty. Boost cut.");}}
  Vec3 previous_pos=g->pos;g->pos=add(g->pos,mul(forward(g),g->speed*dt));world_collision(g,previous_pos);if(g->dead||g->dock_stage||g->approach>=0)return;campaign_flight(g,previous_pos);
  if(g->missile_time>0){g->missile_time-=dt;int i=g->missile_target;if(i<0||i>=NPC_COUNT||!g->npc[i].alive)g->missile_time=0;else {Vec3 d=norm(sub(g->npc[i].pos,g->missile_pos));g->missile_pos=add(g->missile_pos,mul(d,dt*2600));if(length(sub(g->npc[i].pos,g->missile_pos))<g->npc[i].radius+80){int mission_hit=0;for(int s=0;s<g->job_n;s++)if(g->jobs[s].dest==g->system&&g->jobs[s].type==MISSION_BOUNTY&&g->jobs[s].target==i)mission_hit=1;hit(g,i,140,1);g->missile_time=0;if(!mission_hit)message(g,"Missile hit confirmed.");}}}
@@ -617,8 +657,14 @@ static void game_step(Game *g,float dt,float turn,float pitch,int throttle,int f
    * and faster recovery while the boost is held. */
   if(g->boost){float boost_heat=fmaxf(6.f,10.f-g->pip_eng*.75f);g->heat=fminf(100,g->heat+dt*boost_heat);}
   if(near_sun)g->heat=fminf(100,g->heat+dt*(6.f+(safe-sun_d)/safe*10.f));
-  if(!g->boost&&!near_sun&&speed_ratio<=1.15f)g->heat=fmaxf(0,g->heat-dt*((g->upgrades&4)?38:22));
+  /* Once boost is released the heat sinks must work even while the ship is
+   * still travelling fast. High speed cools a little more slowly, but it
+   * must never leave a full heat bar permanently latched at 100. */
+  if(!g->boost&&!near_sun&&(speed_ratio<=1.15f||g->heat>=90.f)){float cool=(g->upgrades&4)?38.f:22.f;if(speed_ratio>1.15f)cool*=.55f;g->heat=fmaxf(0,g->heat-dt*cool);}
   else if(g->boost&&!near_sun)g->heat=fmaxf(0,g->heat-dt*(4.f+g->pip_eng*1.5f));
+  /* Critical boost is still available, but the overheated drive now draws
+   * directly on shields before the hard runaway threshold is reached. */
+  if(g->boost&&g->heat>=90)player_damage(g,dt*(3.f+(g->heat-90.f)*.5f),"Boost heat is draining the shields.");
  if(g->heat>=100){
   g->heat=100;
   if(g->upgrades&16384){
@@ -626,14 +672,16 @@ static void game_step(Game *g,float dt,float turn,float pitch,int throttle,int f
    fit_rebuild(g);g->heat=0;g->energy=40;g->dead=0;g->jump=0;g->boost=0;g->explosion=0;
    docking_complete(g);refuel_full(g);
    message(g,"Escape pod fired. Recovered to hub — pod spent.");speak(g,VOICE_COMP,"Escape pod recovered. Module consumed.");
-  }else {g->energy=0;g->dead=1;g->jump=0;g->boost=0;g->explosion=0;g->cue=SFX_DEATH;message(g,"Hull overheat. Ship destroyed. START to recover.");}
+  }else {player_damage(g,dt*8,"Thermal runaway. Shields are failing.");}
  }
-  else if(g->heat>=90){g->boost=0;if(g->message_time<=0)message(g,"ENGINES OVERHEATING... COOL OFF!!");}
+  else if(g->heat>=90){if(g->message_time<=0)message(g,"ENGINES OVERHEATING... SHIELDS AT RISK!!");}
  }
  g->shot=fmaxf(0,g->shot-dt);g->energy=fminf(100,g->energy+dt*shield_regen_rate(g)*(0.50f+0.25f*g->pip_sys));
+ if(g->damaged&&g->energy>25)g->energy=25;
  if((g->upgrades&32768)&&g->attacked<=0)g->energy=fminf(100,g->energy+dt*2.f);
  if(g->passenger_dest>=0&&!g->docked&&g->message_time<=0&&((int)(g->time*2)&63)==0){static const char *chatter[]={"Passenger: Ever notice how Lave still smells like GalCop paint?","Passenger: Meridian sold us a 'clear lane' once. Cost a tender.","Passenger: If the animals stop singing, burn a different chart.","Passenger: Guild folks tip. Corporate folks invoice."};speak(g,VOICE_CONTACT,chatter[((int)g->time+(unsigned)g->passenger_dest)%4]);message(g,chatter[((int)g->time+(unsigned)g->passenger_dest)%4]);}
- {float scoop=fuel_scoop_rate(g);if(scoop>0&&length(sub(g->pos,g->bodies[0].pos))<g->bodies[0].radius+4000){if(fuel_cargo_units(g)||cargo_used(g)<cargo_capacity(g)){g->fuel=fminf((float)player_ships[g->ship].range,g->fuel+dt*scoop);if(g->message_time<=0)message(g,g->heat>80?"Fuel scoop overheating. Break off.":"Fuel scoop filling the tank.");}else if(g->message_time<=0)message(g,"Cargo full. No room for fuel.");}}
+ {float scoop=fuel_scoop_rate(g);if(scoop>0&&length(sub(g->pos,g->bodies[0].pos))<g->bodies[0].radius+4000){g->fuel=fminf((float)player_ships[g->ship].range,g->fuel+dt*scoop);if(g->message_time<=0)message(g,g->heat>80?"Fuel scoop overheating. Break off.":"Fuel scoop filling the tank.");}}
+ if(fire&&!g->laser){if(g->message_time<=0)message(g,"No weapon fitted. Visit Outfitting to install one.");fire=0;}
  if(fire&&g->heat>=80&&(g->upgrades&2048)&&g->heat_sink_cd<=0){g->heat=fmaxf(0,g->heat-40);g->heat_sink_cd=30;message(g,"Heat sink dumped.");g->cue=SFX_UI;}
  if(fire&&g->heat>=80&&g->shot<=.001f&&g->message_time<=0)message(g,"Lasers overheated. Wait for the HEAT bar.");
  if(fire&&g->shot<=.001f&&g->heat<80){g->shot=.18f;g->heat+=12;g->shots++;g->cue=SFX_LASER;float closest=2200;int target=-1;
@@ -661,7 +709,7 @@ static void game_step(Game *g,float dt,float turn,float pitch,int throttle,int f
   if(t>=0){Vec3 movement=sub(g->pos,previous_pos);
    if(t>0)g->pos=add(previous_pos,mul(movement,fmaxf(0,t-.01f)));
    else {Vec3 p=freight_local(n,g->pos),e=freight_extent(n);p.x=(p.x<0?-1:1)*(e.x+30);g->pos=freight_world(n,p);}
-   g->speed=0;g->boost=0;if(g->collision<=0){g->energy-=5;n->health-=10;g->collision=2;note_collision(g,"FREIGHTER HULL");if(n->health<=0)ram_contact(g,i);}
+   g->speed=0;g->boost=0;if(g->collision<=0){player_damage(g,5,"Freighter collision. Shields damaged.");n->health-=10;g->collision=2;note_collision(g,"FREIGHTER HULL");if(n->health<=0)ram_contact(g,i);}
   }
  }
  int ai_phase=g->ai_phase++;float frame_dt=dt;
@@ -691,9 +739,9 @@ static void game_step(Game *g,float dt,float turn,float pitch,int throttle,int f
   n->pos=add(n->pos,mul(n->dir,dt*speed));
   if(length(sub(n->pos,stn))<190)n->pos=add(stn,mul(norm(sub(n->pos,stn)),200));
   if(target!=-1&&best<(n->freighter?2400:1300)&&dot(n->dir,desired)>.8f&&n->cooldown<=0){n->cooldown=1.5f-danger_rating(g,g->system)*.18f+random_f(g)*.5f;n->flash=.1f;
-    if(target==-2){g->energy-=4;g->attacked=3.5f;g->cue=SFX_HIT;if(n->role==PIRATES&&best>1200&&g->incoming_missile<=0&&random_f(g)<.18f){g->incoming_missile=3.5f;g->incoming_source=i;g->cue=SFX_ALERT;}}else hit(g,target,n->freighter?20:8,0);
+    if(target==-2){player_damage(g,4,"Weapons fire is striking your shields.");g->attacked=3.5f;if(n->role==PIRATES&&best>1200&&g->incoming_missile<=0&&random_f(g)<.18f){g->incoming_missile=3.5f;g->incoming_source=i;g->cue=SFX_ALERT;}}else hit(g,target,n->freighter?20:8,0);
   }
-  if(segment_distance(previous_pos,g->pos,n->pos)<n->radius+15){g->pos=add(n->pos,mul(norm(sub(previous_pos,n->pos)),n->radius+20));g->speed=0;g->boost=0;g->energy-=5;n->health-=10;g->collision=2;note_collision(g,meshes[n->mesh].name);if(n->health<=0)ram_contact(g,i);}
+  if(segment_distance(previous_pos,g->pos,n->pos)<n->radius+15){g->pos=add(n->pos,mul(norm(sub(previous_pos,n->pos)),n->radius+20));g->speed=0;g->boost=0;player_damage(g,5,"Ship collision. Shields damaged.");n->health-=10;g->collision=2;note_collision(g,meshes[n->mesh].name);if(n->health<=0)ram_contact(g,i);}
   for(int b=0;b<BODY_COUNT;b++)if(length(sub(n->pos,g->bodies[b].pos))<g->bodies[b].radius+n->radius+100)n->pos=add(g->bodies[b].pos,mul(norm(sub(n->pos,g->bodies[b].pos)),g->bodies[b].radius+n->radius+120));
  }
  /* The scanner occasionally calls out battles away from the player. This
@@ -729,7 +777,7 @@ static void game_step(Game *g,float dt,float turn,float pitch,int throttle,int f
   }
  }
  for(int i=0;i<DEBRIS_COUNT;i++){Debris *d=&g->debris[i];if(!d->alive)continue;d->flash=fmaxf(0,d->flash-dt);d->life-=dt;if(d->life<=0){d->alive=0;continue;}d->pos=add(d->pos,mul(d->vel,dt));Vec3 stn={0,0,3500};if(length(sub(d->pos,stn))<200)d->pos=add(stn,mul(norm(sub(d->pos,stn)),210));}
- if(g->energy<=0){
+ if(g->hull<=0){
   if(g->upgrades&16384){
    for(int s=0;s<FIT_SLOTS;s++)if(g->fit[s]==18)g->fit[s]=(uint8_t)FIT_EMPTY;
    fit_rebuild(g);g->energy=40;g->dead=0;g->jump=0;g->boost=0;g->explosion=0;
@@ -827,9 +875,13 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  launch(&g);for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;g.pos=(Vec3){0,0,-20000};g.speed=0;g.boost=1;
  for(int i=0;i<60;i++){game_tick(&g,1.f/60,0,0,1,0);}CHECK(g.speed>3000,"boost accelerates beyond normal speed");
  g.boost=0;game_tick(&g,.016f,0,0,0,0);CHECK(g.speed<=player_ships[g.ship].speed,"boost release brakes to normal speed");
+ g.heat=100;g.boost=0;g.speed=player_ships[g.ship].speed*8.f;float heat_before=g.heat;for(int i=0;i<30;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.heat<heat_before,"heat cools after boost release at high speed");
  game_init(&g);launch(&g);g.speed=0;g.pitch=0;
  for(int i=0;i<262;i++)game_tick(&g,.016f,0,1,0,0);
  CHECK(fabsf(g.pitch)<.08f&&forward(&g).z>.99f,"flight pitch wraps through a full loop");
+ game_init(&g);launch(&g);g.speed=0;g.pitch=1.8f;g.yaw=0;
+ game_tick(&g,.1f,1,0,0,0);
+ CHECK(g.yaw<-.1f,"horizontal steering stays consistent past the vertical pole");
  game_init(&g);launch(&g);g.boost=0;g.heat=0;g.pip_eng=4;g.pip_sys=2;g.pip_wep=2;
  g.pos=add(g.bodies[0].pos,(Vec3){0,0,-(g.bodies[0].radius+20000.f)});
  g.speed=player_ships[g.ship].speed*(0.70f+0.15f*g.pip_eng);
@@ -837,8 +889,8 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  float hot=g.heat;g.speed=0;g.boost=0;for(int i=0;i<120;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.heat<hot,"idle clear of the star vents heat");
  g.heat=0;g.pos=add(g.bodies[0].pos,(Vec3){0,0,g.bodies[0].radius+800});g.speed=0;
  for(int i=0;i<180;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.heat>10,"sun proximity cooks the hull");
- g.heat=99.5f;g.boost=1;game_tick(&g,.05f,0,0,0,0);CHECK(g.dead&&g.heat>=100&&!g.boost,"critical overheat destroys the ship and cuts boost");
- g.dead=0;g.energy=100;g.heat=92;g.boost=1;game_tick(&g,.016f,0,0,0,0);CHECK(!g.boost,"heat above ninety locks boost");
+ g.heat=99.5f;g.boost=1;game_tick(&g,.05f,0,0,0,0);CHECK(!g.dead&&g.heat>=100&&g.boost&&g.energy<100,"critical heat drains shields but does not cut boost");
+ g.dead=0;g.energy=100;g.heat=92;g.boost=1;game_tick(&g,.016f,0,0,0,0);CHECK(g.boost&&g.energy<100,"hot boost drains shields without cutting boost");
  game_init(&g);launch(&g);g.pip_sys=4;g.pip_eng=0;g.pip_wep=4;g.boost=1;for(int i=0;i<240;i++)game_tick(&g,1.f/60,0,0,0,0);float low_eng_heat=g.heat;game_init(&g);launch(&g);g.pip_sys=2;g.pip_eng=4;g.pip_wep=2;g.boost=1;for(int i=0;i<240;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.heat<low_eng_heat,"extra ENG pips extend boost heat endurance");
  game_init(&g);launch(&g);for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;
  Vec3 before={80,0,3100};g.pos=(Vec3){80,0,3900};g.energy=100;g.speed=400;g.roll=1.2f;world_collision(&g,before);CHECK(g.pos.z<3340&&g.energy<100,"swept collision blocks station tunnelling");
@@ -850,7 +902,7 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  game_init(&g);launch(&g);for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;int dest=-1;for(int i=0;i<256;i++)if(i!=g.system&&distance_ly(&g,g.system,i)*10<=g.fuel){dest=i;break;}g.destination=dest;float fuel=g.fuel,cost=distance_ly(&g,g.system,dest)*10;CHECK(jump_start(&g),"reachable warp starts");for(int i=0;i<500;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.system==dest&&fabsf(g.fuel-(fuel-cost))<.01f,"warp arrives in selected system and consumes fuel once");
  game_init(&g);add_crime(&g,15);CHECK(wanted_level(&g)==3&&g.wanted[g.system]==15,"crime raises the current system wanted level");g.credits=2000;g.police_stop=1;g.police_phase=0;int fine=police_fine(&g);CHECK(police_resolve(&g,0)&&g.credits==2000-fine&&g.legal==0,"paying police deducts exact fine and clears local warrant");
  add_crime(&g,10);g.credits=20;g.police_stop=1;g.police_phase=0;CHECK(!police_resolve(&g,0)&&g.police_stop,"unaffordable fine keeps police choice open");CHECK(police_resolve(&g,1)&&g.docked&&g.credits==0&&g.legal==0,"custody returns to station and takes affordable release bribe");
- game_init(&g);g.ship=5;g.credits=0;g.cargo[0]=3;g.upgrades=128;g.laser=1;fit_synthesize(&g);g.police_stop=1;g.police_phase=0;add_crime(&g,10);CHECK(police_resolve(&g,1)&&g.police_phase==2,"zero-unit custody starts the jail transfer");for(int i=0;i<400&&g.police_stop;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(!g.police_stop&&g.docked&&g.ship==0&&g.credits==0&&cargo_used(&g)==1&&g.upgrades==0&&g.legal==0,"jail release confiscates property and returns the basic ship");
+ game_init(&g);g.ship=5;g.credits=0;g.cargo[0]=3;g.upgrades=128;g.laser=1;fit_synthesize(&g);g.police_stop=1;g.police_phase=0;add_crime(&g,10);CHECK(police_resolve(&g,1)&&g.police_phase==2,"zero-unit custody starts the jail transfer");for(int i=0;i<400&&g.police_stop;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(!g.police_stop&&g.docked&&g.ship==0&&g.credits==0&&cargo_used(&g)==0&&g.upgrades==0&&g.legal==0,"jail release confiscates property and returns the basic ship");
  game_init(&g);launch(&g);add_crime(&g,10);g.police_stop=1;g.police_phase=0;int before_run=g.legal;CHECK(police_escape(&g)&&!g.police_stop&&g.legal>before_run&&g.police_grace>0&&g.attacked>0,"running from law resumes flight, escalates warrant and starts pursuit");
  game_init(&g);launch(&g);g.pos=(Vec3){0,0,-20000};g.speed=0;for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;add_crime(&g,10);game_tick(&g,.016f,0,0,0,0);int cops=0;for(int i=36;i<NPC_COUNT;i++)cops+=g.npc[i].alive;CHECK(cops==4,"wanted level two dispatches four extra police");
  g.npc[36].pos=add(g.pos,(Vec3){0,0,300});game_tick(&g,.016f,0,0,0,0);CHECK(!g.police_stop&&g.police_warning>0,"approaching police issues a warning before arrest");for(int i=0;i<240&&!g.police_stop;i++)game_tick(&g,.016f,0,0,0,0);CHECK(g.police_stop&&g.police_phase==0,"warning escalates to warrant interception");Vec3 stopped=g.npc[36].pos;float frozen=g.time;game_tick(&g,.016f,1,1,1,1);CHECK(g.time==frozen&&length(sub(stopped,g.npc[36].pos))==0,"police encounter freezes world simulation");
@@ -875,7 +927,7 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  game_init(&g);g.fit[FIT_DEF]=16;fit_rebuild(&g);CHECK((g.upgrades&256)&&g.fit[FIT_DEF]==16,"ECM suite fits DEF and arms missile soft-kill");
  game_init(&g);g.docked=1;g.fit[FIT_HOLD]=11;g.fit[FIT_NAV]=4;fit_rebuild(&g);CHECK(save_game(&g,"test-fit.sav")&&load_game(&loaded,"test-fit.sav")&&loaded.fit[FIT_HOLD]==11&&loaded.fit[FIT_NAV]==4&&(loaded.upgrades&64)&&(loaded.upgrades&1),"save V13 persists fitted HOLD and NAV modules");remove("test-fit.sav");remove("test-fit.sav.bak");
  game_init(&g);g.upgrades=8|64;fit_synthesize(&g);CHECK(g.fit[FIT_HOLD]==11&&cargo_capacity(&g)==player_ships[g.ship].capacity+16,"V12 upgrades synthesize into fitted freight rack");
- game_init(&g);CHECK(fuel_cargo_units(&g)==1&&cargo_used(&g)==g.cargo[0]+1,"full fuel tank occupies one cargo unit");memset(g.cargo,0,sizeof(g.cargo));g.fuel=0;CHECK(refuel_full(&g)&&g.fuel==player_ships[g.ship].range&&cargo_used(&g)==1,"empty tank can be refuelled into one cargo unit");g.fuel=0;g.cargo[0]=cargo_capacity(&g);CHECK(!refuel_full(&g)&&g.fuel==0,"full cargo hold blocks adding a fuel tank");
+ game_init(&g);CHECK(fuel_cargo_units(&g)==0&&cargo_used(&g)==g.cargo[0],"fuel is tracked separately from cargo");memset(g.cargo,0,sizeof(g.cargo));g.fuel=0;CHECK(refuel_full(&g)&&g.fuel==player_ships[g.ship].range&&cargo_used(&g)==0,"empty tank refuels without consuming cargo");g.fuel=0;g.cargo[0]=cargo_capacity(&g);CHECK(refuel_full(&g)&&g.fuel==player_ships[g.ship].range,"full cargo hold does not block refuelling");
  CHECK(fit_value_valid(FIT_HOLD,23)&&fit_value_valid(FIT_UTIL,FIT_EMPTY),"V13 accepts valid catalog and empty slot values");CHECK(!fit_value_valid(FIT_WPN,23)&&!fit_value_valid(FIT_DEF,1),"V13 rejects invalid slot values");
  game_init(&g);g.roll=1.5707963f;Vec3 rolled=camera(&g,(Vec3){100,0,100});CHECK(fabsf(rolled.x)<.01f&&rolled.y< -99,"roll rotates camera and compass coordinates");
  Save legacy;memset(&legacy,0,sizeof(legacy));legacy.magic=0x41455053;legacy.version=1;legacy.system=7;legacy.destination=129;legacy.credits=1000;legacy.fuel=10;legacy.contract=-1;legacy.legal=5;FILE *legacyfile=fopen("test-legacy.sav","wb");if(legacyfile){fwrite(&legacy,1,sizeof(legacy),legacyfile);fclose(legacyfile);}CHECK(load_game(&loaded,"test-legacy.sav")&&loaded.credits==1000&&loaded.wanted[7]==5,"previous build saves import with a local warrant");remove("test-legacy.sav");
@@ -883,9 +935,12 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  game_init(&g);launch(&g);g.pos=(Vec3){0,0,3400};g.roll=1.5707963f;g.speed=100;world_collision(&g,(Vec3){0,0,3300});CHECK(g.dead,"incorrect roll collides with rotating entrance rim");
  game_init(&g);launch(&g);g.time=62.831853f;g.roll=station_angle(&g);g.pos=(Vec3){0,40,3400};g.speed=100;world_collision(&g,(Vec3){0,40,3300});CHECK(g.dock_stage==2&&!g.dead,"rotated opening matches rotated collision coordinates");
  game_init(&g);launch(&g);g.pos=(Vec3){0,0,4300};CHECK(dock(&g),"communicator accepts request from behind station");int routeSafe=1;for(int i=0;i<1400&&!g.docked;i++){Vec3 prior=g.pos,hit;int stage=g.dock_stage;game_tick(&g,1.f/60,0,0,0,0);if(stage==1&&g.dock_stage==1&&station_intersection(&g,prior,g.pos,&hit))routeSafe=0;}CHECK(routeSafe&&g.docked,"guided route flies around hull before entering");
- game_init(&g);launch(&g);g.pos=hub_position(&g,1);CHECK(dock(&g)&&g.docked&&g.station_variant==1,"secondary relay accepts easy communicator docking");
+ game_init(&g);launch(&g);g.pos=hub_position(&g,1);CHECK(dock(&g)&&!g.docked&&g.dock_stage==2&&g.station_variant==1,"secondary relay starts the visible approach sequence");for(int i=0;i<400&&!g.docked;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.docked,"secondary relay approach reaches services");
  game_init(&g);launch(&g);g.pos=add(g.bodies[1].pos,(Vec3){0,0,-g.bodies[1].radius-800});g.yaw=g.pitch=0;CHECK(approach_planet(&g,1),"nearby facing planet can be approached");Vec3 nearPlanet=g.pos;turn_back(&g);CHECK(length(sub(g.pos,nearPlanet))==0&&dot(forward(&g),norm(sub(g.bodies[1].pos,g.pos)))<-.99f,"planet turn-back keeps position and faces away");CHECK(!approach_planet(&g,1),"planet cannot immediately re-prompt while facing away");
  game_init(&g);launch(&g);g.speed=0;for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;g.npc[2].alive=1;g.npc[2].pos=(Vec3){0,0,300};g.npc[2].dir=(Vec3){0,0,-1};g.npc[2].cooldown=0;game_tick(&g,.016f,0,0,0,0);CHECK(danger_rating(&g,7)==1&&g.npc[2].target!=-2&&g.attacked==0,"Lave is peaceful and pirates never target player");
+ WorldState lw;world_state_build(&g,7,&lw);CHECK(lw.danger==1&&lw.station_count==HUB_COUNT&&lw.planet_count==4,"Lave certification: canonical peaceful world state");CHECK(lw.faction[TRADERS]+lw.faction[LAW]+lw.faction[PIRATES]+lw.faction[EXPLORERS]==lw.npc_count,"Lave certification: faction counts reconcile with traffic");
+ g.docked=1;g.credits=20000;int valid_offers=0;for(int oi=0;oi<mission_count(&g);oi++)valid_offers+=mission_offer_valid(&g,oi,0);CHECK(valid_offers==mission_count(&g),"Lave certification: every displayed mission validates");CHECK(mission_landable_body(&g,7,1),"Lave certification: planet identity is landable and playable");
+ int rep=world_reputation(&g,EXPLORERS);g.guild_chapter=2;CHECK(world_reputation(&g,EXPLORERS)>rep,"Lave certification: faction reputation changes with guild progress");
  game_init(&g);Body original=g.bodies[1];system_bodies(&g);CHECK(original.seed==g.bodies[1].seed&&length(sub(original.pos,g.bodies[1].pos))==0,"system generation repeats deterministically");g.system=0;system_bodies(&g);CHECK(original.seed!=g.bodies[1].seed&&original.radius!=g.bodies[1].radius,"other systems have distinct planets");
  {Body a=g.bodies[1];g.system=19;system_bodies(&g);Body b=g.bodies[1];CHECK(a.type!=b.type||a.color!=b.color||length(sub(a.pos,b.pos))>800,"distant systems diverge in planet type, colour or orbit");}
  game_init(&g);g.system=0;game_spawn(&g);Vec3 traffic0=g.npc[0].alive?g.npc[0].pos:(Vec3){99999,0,0};g.system=15;game_spawn(&g);CHECK(g.npc[0].alive&&length(sub(traffic0,g.npc[0].pos))>400,"ship traffic occupies a different layout in another system");
