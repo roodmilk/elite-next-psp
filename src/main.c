@@ -577,7 +577,7 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
  if(page==FLIGHT&&comms_quick){
   if(pressed&PSP_CTRL_LEFT){comms_quick_choice=0;game.cue=SFX_SELECT;}
   if(pressed&PSP_CTRL_RIGHT){comms_quick_choice=1;game.cue=SFX_SELECT;}
-  if(released&PSP_CTRL_TRIANGLE){
+  if(pressed&PSP_CTRL_CROSS){
    if(comms_quick_choice==1){comms_quick=0;comms_encounter_conversation=1;encounter_respond(&game);change_page(COMMS_PANEL);}
    else {comms_quick=0;encounter_ignore(&game);}
    return;
@@ -592,8 +592,8 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
   return;}
  if(page==FLIGHT&&game.jump<=0&&!game.dead&&!game.dock_stage&&(pressed&PSP_CTRL_LTRIGGER)&&(held&PSP_CTRL_SQUARE)){sq_arm=0;cycle_front_target();}
  else if(page==FLIGHT&&flight_target_combo(pressed,held))sq_arm=0;
- else if(page==FLIGHT&&game.jump<=0&&!game.dead&&!game.dock_stage&&(pressed&PSP_CTRL_RTRIGGER)&&(held&PSP_CTRL_SQUARE)){sq_arm=0;if(valid_target(selected_target)){autoaim=1;story_event(&game,STORY_EV_TARGET);if(selected_target==0)campaign_event(&game,CP_LOCK);message(&game,"Target locked. Auto-turn active; steer to cancel.");game.cue=SFX_UI;}else message(&game,"Choose a target with Square and the D-pad first.");}
- else if(page==FLIGHT&&game.jump<=0&&!game.dead&&!game.dock_stage&&(pressed&PSP_CTRL_SQUARE)&&(held&PSP_CTRL_RTRIGGER)){int hostile=nearest_hostile_target();sq_arm=0;if(hostile>=0){selected_target=hostile;scan_cat=4;autoaim=1;story_event(&game,STORY_EV_TARGET);if(selected_target==0)campaign_event(&game,CP_LOCK);message(&game,"Nearest hostile locked.");game.cue=SFX_UI;}else message(&game,"No hostile contacts.");}
+ else if(page==FLIGHT&&game.jump<=0&&!game.dead&&!game.dock_stage&&(pressed&PSP_CTRL_RTRIGGER)&&(held&PSP_CTRL_SQUARE)){sq_arm=0;if(valid_target(selected_target)){autoaim=1;story_event(&game,STORY_EV_TARGET);if(selected_target==0)campaign_event(&game,CP_LOCK);}else message(&game,"Choose a target with Square and the D-pad first.");}
+ else if(page==FLIGHT&&game.jump<=0&&!game.dead&&!game.dock_stage&&(pressed&PSP_CTRL_SQUARE)&&(held&PSP_CTRL_RTRIGGER)){int hostile=nearest_hostile_target();sq_arm=0;if(hostile>=0){selected_target=hostile;scan_cat=4;autoaim=1;story_event(&game,STORY_EV_TARGET);if(selected_target==0)campaign_event(&game,CP_LOCK);}else message(&game,"No hostile contacts.");}
  else if(page==FLIGHT&&game.jump<=0&&!game.dead&&!game.dock_stage&&(pressed&PSP_CTRL_SQUARE))sq_arm=1;
  if(page==FLIGHT&&game.jump<=0&&!game.dead&&!game.dock_stage&&(released&PSP_CTRL_SQUARE)&&sq_arm){
   /* Tap is the quick targeter; hold Square is the full browser. Keeping tap
@@ -801,7 +801,7 @@ static void input_tests(void){
  game.npc[0].alive=1;game.npc[0].role=TRADERS;game.npc[0].target=-1;game.npc[0].pos=(Vec3){200,0,800};
  game.npc[1].alive=1;game.npc[1].role=PIRATES;game.npc[1].target=-2;game.npc[1].pos=(Vec3){-200,0,900};
  scan_cat=2;selected_target=0;
- input(PSP_CTRL_LEFT,PSP_CTRL_SQUARE|PSP_CTRL_LEFT,.016f,0,0);INPUT_CHECK(page==FLIGHT&&IS_NPC_ID(selected_target)&&scan_cat==1,"Square+Left tabs to ships (all contacts) without opening the computer");
+ game.message_time=0;input(PSP_CTRL_LEFT,PSP_CTRL_SQUARE|PSP_CTRL_LEFT,.016f,0,0);INPUT_CHECK(page==FLIGHT&&IS_NPC_ID(selected_target)&&scan_cat==1,"Square+Left tabs to ships (all contacts) without opening the computer");INPUT_CHECK(game.message_time<=0,"Square targeting changes selection without opening computer chatter");
  /* SHIPS must include the engaging pirate — locking them must not flip to ENEMIES. */
  scan_cat=1;selected_target=BODY_COUNT+1; /* trader */
  input(PSP_CTRL_UP,PSP_CTRL_SQUARE|PSP_CTRL_UP,.016f,0,0);
@@ -819,7 +819,7 @@ static void input_tests(void){
  input(PSP_CTRL_RIGHT,PSP_CTRL_SQUARE|PSP_CTRL_RIGHT,.016f,0,0);INPUT_CHECK(page==FLIGHT&&scan_cat==4,"Square+Right still opens empty ENEMIES band");
  game.attacked=2.f;INPUT_CHECK(combat_alert_active(),"combat alert arms under fire");
  input(PSP_CTRL_RIGHT,PSP_CTRL_SQUARE|PSP_CTRL_RIGHT,.016f,0,0);INPUT_CHECK(page==FLIGHT&&selected_target>=2&&selected_target<=BODY_COUNT,"Square+Right tabs to planets");int planet_lock=selected_target;input(PSP_CTRL_UP,PSP_CTRL_SQUARE|PSP_CTRL_UP,.016f,0,0);INPUT_CHECK(page==FLIGHT&&selected_target>=2&&selected_target<=BODY_COUNT&&selected_target!=planet_lock,"Square+Up cycles the highlighted planet band");
- INPUT_CHECK(!autoaim,"Square+D-pad highlights without turning the ship");input(PSP_CTRL_RTRIGGER,PSP_CTRL_SQUARE|PSP_CTRL_RTRIGGER,.016f,0,0);INPUT_CHECK(page==FLIGHT&&autoaim&&!game.boost,"R while holding Square locks the selected target without boosting");input(0,0,.016f,0,0);INPUT_CHECK(page==FLIGHT&&autoaim,"releasing Square keeps the explicit target lock active");
+ INPUT_CHECK(!autoaim,"Square+D-pad highlights without turning the ship");game.message_time=0;input(PSP_CTRL_RTRIGGER,PSP_CTRL_SQUARE|PSP_CTRL_RTRIGGER,.016f,0,0);INPUT_CHECK(page==FLIGHT&&autoaim&&!game.boost,"R while holding Square locks the selected target without boosting");INPUT_CHECK(game.message_time<=0,"Square+R locks silently while the navigation computer supplies the control reference");input(0,0,.016f,0,0);INPUT_CHECK(page==FLIGHT&&autoaim,"releasing Square keeps the explicit target lock active");
  TEST_INIT();launch(&game);page=FLIGHT;for(int i=0;i<NPC_COUNT;i++)game.npc[i].alive=0;game.pos=(Vec3){0,0,0};game.yaw=game.pitch=0;for(int i=0;i<3;i++){game.npc[i].alive=1;game.npc[i].pos=(Vec3){i?100:-100,0,i==2?-900:900};}selected_target=-1;input(PSP_CTRL_LTRIGGER,PSP_CTRL_SQUARE|PSP_CTRL_LTRIGGER,.016f,0,0);int view_first=selected_target;INPUT_CHECK(valid_target(view_first)&&camera(&game,target_position(view_first)).z>20&&view_first!=NPC_ID_MIN+2&&!autoaim,"Square+L highlights a visible forward contact without auto-turning");input(0,PSP_CTRL_SQUARE,.016f,0,0);input(PSP_CTRL_LTRIGGER,PSP_CTRL_SQUARE|PSP_CTRL_LTRIGGER,.016f,0,0);INPUT_CHECK(valid_target(selected_target)&&selected_target!=view_first&&camera(&game,target_position(selected_target)).z>20&&selected_target!=NPC_ID_MIN+2,"repeated Square+L cycles only contacts in front");
  TEST_INIT();launch(&game);page=FLIGHT;input(PSP_CTRL_SQUARE|PSP_CTRL_LEFT,PSP_CTRL_SQUARE|PSP_CTRL_LEFT,.016f,0,0);INPUT_CHECK(page==FLIGHT,"Square+Left chord never opens the computer");input(0,0,.016f,0,0);INPUT_CHECK(page==FLIGHT,"releasing a Square chord still leaves flight");
  TEST_INIT();game.system=0;launch(&game);page=FLIGHT;for(int i=0;i<NPC_COUNT;i++)if(game.npc[i].alive&&game.npc[i].role==PIRATES){game.npc[i].target=-2;game.npc[i].pos=(Vec3){0,0,600};break;}

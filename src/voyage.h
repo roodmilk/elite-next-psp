@@ -136,13 +136,11 @@ static void speech_box(int x,int y,int w){
 }
 static void quick_comms_box(void){
  if(!comms_quick||game.encounter_kind==ENCOUNTER_NONE)return;
- int x=96,y=58,w=288,h=54;rect(x,y,w,h,RGB(10,18,35));rect(x,y,w,2,RGB(240,180,91));rect(x,y+ h-2,w,2,RGB(41,54,70));
- text(14,8,RGB(85,212,212),"INCOMING CHANNEL");text(14,10,RGB(229,210,163),"LEFT IGNORE");text(35,10,RGB(229,210,163),"RIGHT RESPOND");
- rect(112,y+30,104,14,comms_quick_choice==0?RGB(66,45,38):RGB(25,35,45));
- rect(264,y+30,104,14,comms_quick_choice==1?RGB(25,65,77):RGB(25,35,45));
+ int x=96,y=78,w=288,h=30;rect(x,y,w,h,RGB(10,18,35));rect(x,y,w,2,RGB(240,180,91));rect(x,y+h-2,w,2,RGB(41,54,70));
+ rect(112,y+8,104,14,comms_quick_choice==0?RGB(66,45,38):RGB(25,35,45));
+ rect(264,y+8,104,14,comms_quick_choice==1?RGB(25,65,77):RGB(25,35,45));
  text(16,11,comms_quick_choice==0?RGB(240,180,91):RGB(155,154,165),"[ IGNORE ]");
  text(35,11,comms_quick_choice==1?RGB(240,180,91):RGB(155,154,165),"[ RESPOND ]");
- text(14,13,DIM,"LEFT / RIGHT   RELEASE TRIANGLE");
 }
 static void pip_bar(int x,int y,int w,int h,int fill,unsigned c){
  if(fill<0)fill=0;

@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.5.147 — Cleaner replies and silent targeting
+
+- Reduced the quick reply chooser to the two actionable boxes: `IGNORE` and `RESPOND`.
+- Made X confirm the highlighted reply after Triangle opens the chooser; Triangle release is no longer an action.
+- Removed navigation-computer chatter when selecting or locking targets with Square, while retaining the on-screen `(R = LOCK)` reference.
+
 ## 2.5.146 — Ship Decorator alignment polish
 
 - Nudged the fictional site address and bottom control prompt into their pixel-art monitor recesses using pixel-precise placement.

@@ -1,6 +1,10 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-## In progress 2.5.146 — Ship Decorator alignment polish
+## In progress 2.5.147 — Cleaner replies and silent targeting
+
+The in-flight reply chooser now shows only Ignore and Respond. Left/Right changes focus and X confirms it after Triangle has been released. Held-Square target browsing and Square+R locking no longer create computer chatter; the navigation overlay itself retains `(R = LOCK)` as the control reference.
+
+## Completed 2.5.146 — Ship Decorator alignment polish
 
 The decorator URL and bottom control prompt now use pixel-positioned text so they sit cleanly inside the monitor artwork. The active hull finish is permanently identified in the paint list with a gold swatch outline and small indicator, including while a different finish is being previewed.
 

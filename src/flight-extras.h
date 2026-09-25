@@ -44,7 +44,7 @@ static void lock_local_target(int id,const char *kind){
  if(!(IS_NPC_ID(id)&&(scan_cat==1||scan_cat==4)))scan_cat=target_category(id);
  else ensure_scan_cat_for_target(id);
  nav_body=id>0&&id<=BODY_COUNT?id-1:-1;autoaim=0;
- snprintf(game.message,sizeof(game.message),"%s: %s / HOLD SQUARE + R TO LOCK",kind,target_name(id));game.message_time=2.4f;game.cue=SFX_UI;
+ (void)kind;
  story_event(&game,STORY_EV_TARGET);
 }
 static void step_scan_cat(int dir){
