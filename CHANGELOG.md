@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.146 — Ship Decorator alignment polish
+
+- Nudged the fictional site address and bottom control prompt into their pixel-art monitor recesses using pixel-precise placement.
+- Marked the ship's currently equipped finish directly in the colour list, so it remains visible while previewing other paint choices.
+
 ## 2.5.145 — Native pixel monitor for Ship Decorator
 
 - Replaced the generic decorator panels with an original 480×272 pixel-art CRT and custom-site plate, inspired by the user's monitor references.

@@ -67,12 +67,13 @@ static void decorator_screen(void){
  decorator_monitor_draw();
  /* The artwork contains its own screen frame, browser bar, icons and ad.
   * Dynamic UI is kept within the two intentionally empty screen windows. */
- text(13,3,RGB(210,235,229),"PIMP-MY-SHIP.NET");
+ text_px(108,26,RGB(210,235,229),"PIMP-MY-SHIP.NET");
  text(14,11,RGB(106,215,218),"PAINT FINISHES");
  for(int i=0;i<8;i++){
   int y=(13+i)*8;
   if(i==finish){rect(111,y-1,130,10,RGB(42,76,88));rect(111,y-1,2,10,RGB(246,186,92));}
-  rect(116,y+1,8,6,decorator_finishes[i]);
+  if(ship_paint[game.ship]==decorator_finishes[i]){rect(114,y-1,12,10,RGB(246,186,92));rect(116,y+1,8,6,decorator_finishes[i]);pixel(109,y+2,RGB(246,186,92));pixel(108,y+3,RGB(246,186,92));pixel(109,y+4,RGB(246,186,92));}
+  else rect(116,y+1,8,6,decorator_finishes[i]);
   text(16,13+i,i==finish?WHITE:RGB(171,194,198),"%s",names[i]);
  }
  preview_clip(329,116,252,82,408,155);
@@ -83,7 +84,7 @@ static void decorator_screen(void){
  text(32,26,ship_paint[game.ship]==decorator_finishes[finish]?CYAN:GOLD,
       ship_paint[game.ship]==decorator_finishes[finish]?"EQUIPPED":"%d U TO PAINT",fees[finish]);
  if(decorator_feedback&&game.message_time>0&&game.message[0]){rect(108,200,132,21,RGB(18,31,44));text_wrap(14,25,16,2,RGB(246,186,92),game.message,0);}
- rect(84,240,226,17,RGB(39,50,59));text(12,30,WHITE,game.docked?"UP/DOWN X PAINT O BACK":"DOCK TO PAINT O BACK");
+ rect(84,240,226,17,RGB(39,50,59));text_px(100,244,WHITE,game.docked?"UP/DOWN X PAINT O BACK":"DOCK TO PAINT O BACK");
  rect(318,240,116,17,RGB(39,50,59));text(40,30,GOLD,"%.1f U",game.credits*.1f);
 }
 /* Action feedback gets its own reserved band, not a talking-character card. */

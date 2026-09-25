@@ -1,6 +1,10 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-## In progress 2.5.145 — native Ship Decorator monitor
+## In progress 2.5.146 — Ship Decorator alignment polish
+
+The decorator URL and bottom control prompt now use pixel-positioned text so they sit cleanly inside the monitor artwork. The active hull finish is permanently identified in the paint list with a gold swatch outline and small indicator, including while a different finish is being previewed.
+
+## Completed 2.5.145 — native Ship Decorator monitor
 
 The decorator now uses a generated, pixel-quantized 480×272 CRT plate with large bezel stickers and a fictional customization site. Code renders the selectable paint list and live ship inside exact blank windows. The art source is `assets/source/decorator-monitor-source.png`; regenerate the PSP plate/header with `tools/build-decorator-art.py`. Paint presets no longer mutate when a ship is repainted. Paint costs now match displayed units and all ten ship indices have a paint slot. Validate native captures before changing the plate layout.
 

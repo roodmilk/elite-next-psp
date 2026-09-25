@@ -121,9 +121,7 @@ static void line(int x,int y,int xx,int yy,unsigned c){
 #include "art-runtime.h"
 #include "native-art-scenes.h"
 #include "space-animation-kit.h"
-static void text(int x,int y,unsigned c,const char *fmt,...){
- char buf[128];va_list args;va_start(args,fmt);vsnprintf(buf,sizeof(buf),fmt,args);va_end(args);
- int px=x*8,py=y*8;
+static void draw_text_pixels(int px,int py,unsigned c,const char *buf){
  for(int i=0;buf[i]&&px<W;i++,px+=8){
   unsigned char ch=(unsigned char)buf[i];if(ch<32||ch>126)ch='?';
   const unsigned char *g=font8[ch-32];
@@ -133,6 +131,14 @@ static void text(int x,int y,unsigned c,const char *fmt,...){
    for(int col=0;col<8;col++)if((bits>>(7-col))&1){int xx=px+col;if(xx>=0&&xx<W)fb[yy*STRIDE+xx]=c;}
   }
  }
+}
+static void text(int x,int y,unsigned c,const char *fmt,...){
+ char buf[128];va_list args;va_start(args,fmt);vsnprintf(buf,sizeof(buf),fmt,args);va_end(args);
+ draw_text_pixels(x*8,y*8,c,buf);
+}
+static void text_px(int x,int y,unsigned c,const char *fmt,...){
+ char buf[128];va_list args;va_start(args,fmt);vsnprintf(buf,sizeof(buf),fmt,args);va_end(args);
+ draw_text_pixels(x,y,c,buf);
 }
 /* Word-wrap into a fixed column width. Returns rows used; leftover returns via *left. */
 static int text_wrap(int col,int rowy,int cols,int max_rows,unsigned ink,const char *s,const char **left){
