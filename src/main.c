@@ -517,11 +517,13 @@ static unsigned flight_steer_buttons(unsigned buttons){
  return buttons;
 }
 static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
- static unsigned in_held=0;static int sq_arm=0,boost_was_active=0;
+ static unsigned in_held=0;static int sq_arm=0,boost_was_active=0;static float square_hold=0;
  station_tour_tick();
  unsigned released=in_held&~held;in_held=held;if(page!=FLIGHT||paused||game.police_stop||game.approach>=0||game.dock_stage)sq_arm=0;
  if(!(held&PSP_CTRL_CROSS))fire_blocked=0;
- square_held=page==FLIGHT&&game.planet<0&&game.jump<=0&&!game.dock_stage&&!game.dead&&(held&PSP_CTRL_SQUARE);
+ int square_ready=page==FLIGHT&&game.planet<0&&game.jump<=0&&!game.dock_stage&&!game.dead;
+ if(square_ready&&(held&PSP_CTRL_SQUARE)){if(pressed&PSP_CTRL_SQUARE)square_hold=0;square_hold+=dt;if(square_hold>=.20f&&sq_arm)sq_arm=0;square_held=square_hold>=.20f;}
+ else {square_hold=0;square_held=0;}
  int oldpage=page;r_tap+=dt;l_tap+=dt;if(hard_brake>0){hard_brake-=dt;if(hard_brake<0)hard_brake=0;}if(page==INTRO){intro_time+=dt;if(pressed&PSP_CTRL_CROSS){game.voice_time=0;change_page(CAMPAIGN);}else if(pressed&PSP_CTRL_START){game.voice_time=0;change_page(HOME);}else if(pressed&PSP_CTRL_TRIANGLE){if(load_game(&game,"commander.sav")){selected_target=0;autoaim=0;change_page(HOME);}else message(&game,"No saved commander. X begins your journey.");}return;}
  if(page==WALK){
   if(walk_kind==0){
@@ -598,7 +600,7 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
  if(page==FLIGHT&&game.jump<=0&&!game.dead&&!game.dock_stage&&(released&PSP_CTRL_SQUARE)&&sq_arm){
   /* Tap is the quick targeter; hold Square is the full browser. Keeping tap
    * in flight removes a redundant menu and preserves the centre view. */
-  sq_arm=0;cycle_front_target();
+  sq_arm=0;target_nearest_reticle();
  }
  else if(page==FLIGHT&&(released&PSP_CTRL_SQUARE))sq_arm=0;
  if(page==FLIGHT&&(pressed&PSP_CTRL_CROSS)&&(held&PSP_CTRL_LTRIGGER))fire_missile(&game,selected_target);
@@ -791,15 +793,18 @@ static void input_tests(void){
  change_page(DEBUG);row=0;int cash=game.credits;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.credits==cash+10000,"debug adds 1000 displayed units");
   TEST_INIT();launch(&game);page=FLIGHT;hud_mode=hud_hidden=0;input(PSP_CTRL_SELECT,PSP_CTRL_SELECT|PSP_CTRL_LTRIGGER,.016f,0,0);INPUT_CHECK(hud_mode==1&&!hud_hidden&&page==FLIGHT,"L and Select selects minimal HUD");input(PSP_CTRL_SELECT,PSP_CTRL_SELECT|PSP_CTRL_LTRIGGER,.016f,0,0);INPUT_CHECK(hud_mode==2&&hud_hidden,"L and Select selects scenic HUD");input(PSP_CTRL_SELECT,PSP_CTRL_SELECT|PSP_CTRL_LTRIGGER,.016f,0,0);INPUT_CHECK(hud_mode==0&&!hud_hidden,"L and Select restores full HUD");
  TEST_INIT();game.credits=20000;game.systems[game.system].tech=12;page=EQUIP;{int list[EQUIP_COUNT],n=equipment_stock_list(list,EQUIP_COUNT),dock_row=-1,cargo_row=-1,mis_row=-1,mil_row=-1,pulse_row=-1;for(int i=0;i<n;i++){if(list[i]==4)dock_row=i;if(list[i]==10)cargo_row=i;if(list[i]==3)mis_row=i;if(list[i]==7)mil_row=i;if(list[i]==1)pulse_row=i;}INPUT_CHECK(dock_row>=0&&cargo_row>=0&&mis_row>=0,"outfitting lists dock, cargo and missile stock at high-tech hub");row=dock_row;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK((game.upgrades&1)&&game.fit[FIT_NAV]==4&&game.credits==17500,"outfitting fits docking computer into NAV and charges balance");row=cargo_row;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(cargo_capacity(&game)==player_ships[game.ship].capacity+8&&game.fit[FIT_HOLD]==10,"outfitting fits expanded cargo bay into HOLD");int missiles=game.missiles;row=mis_row;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.missiles==missiles+1&&game.credits==13000,"outfitting reloads one missile and charges balance");if(pulse_row>=0){row=pulse_row;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.fit[FIT_WPN]==1&&game.laser,"pulse laser fits WPN slot");}game.systems[game.system].economy=0;n=equipment_stock_list(list,EQUIP_COUNT);mil_row=-1;for(int i=0;i<n;i++)if(list[i]==7)mil_row=i;INPUT_CHECK(mil_row>=0,"industrial hub stocks military shield");{int before=game.credits;row=mil_row;page=EQUIP;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.fit[FIT_DEF]==7&&(game.upgrades&128)&&shield_regen_rate(&game)>3.0f,"military shield fits DEF and raises regen to 4.5");page=INVENTORY;row=FIT_DEF;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.fit[FIT_DEF]==FIT_EMPTY&&game.credits==before-equipment_costs[7]/2,"loadout X sells fitted DEF module for half price");}}
- TEST_INIT();launch(&game);page=FLIGHT;input(PSP_CTRL_SQUARE,PSP_CTRL_SQUARE,.016f,0,0);INPUT_CHECK(page==FLIGHT,"Square press keeps flight active");input(0,0,.016f,0,0);INPUT_CHECK(page==FLIGHT&&valid_target(selected_target),"Square tap quick-cycles a visible target in flight");
+ TEST_INIT();launch(&game);page=FLIGHT;input(PSP_CTRL_SQUARE,PSP_CTRL_SQUARE,.016f,0,0);INPUT_CHECK(page==FLIGHT&&!square_held,"Square tap keeps flight active without flashing the target computer");input(0,0,.016f,0,0);INPUT_CHECK(page==FLIGHT&&valid_target(selected_target),"Square tap selects a visible target near the centre reticle");
  for(int i=0;i<NPC_COUNT;i++)if(game.npc[i].alive&&game.npc[i].role==PIRATES){game.npc[i].target=-2;break;}
  target_filter=2;target_refresh();INPUT_CHECK(target_count>0,"hostile targeting filter finds ships engaging the player");target_filter=10;target_refresh();INPUT_CHECK(target_count>=1,"anomaly filter lists rare system echoes"); galnet_tab=3;INPUT_CHECK(galnet_rows()==7,"SpaceBook provides a scrollable generated feed");galnet_tab=4;INPUT_CHECK(galnet_rows()==5,"Messages sits beside Spacebook with its own feed");
  {char author[40],body[96];galnet_tab=0;galnet_post(2,author,sizeof(author),body,sizeof(body));INPUT_CHECK(strstr(body,"cleared")&&strstr(body,"bound"),"Traffic Control names a remote traveller route");galnet_tab=3;galnet_post(6,author,sizeof(author),body,sizeof(body));INPUT_CHECK(strstr(body,"Spotted")||strstr(body,"lingering"),"Spacebook Spotters name traveller traffic");}
  change_page(HOME);row=15;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(page==CODEX,"command deck opens the Discovery Codex");codex_tab=0;INPUT_CHECK(codex_kind_count(0)>=1,"Codex Systems lists visited systems");codex_tab=1;INPUT_CHECK(codex_kind_count(1)==0,"Codex Planets starts empty before landing");game.landed_planets[game.system]=1;INPUT_CHECK(codex_kind_count(1)==1,"Codex Planets adds a world only after landing");
- TEST_INIT();game.system=0;launch(&game);page=FLIGHT;game.pos=(Vec3){0,0,0};
+ TEST_INIT();game.system=0;launch(&game);page=FLIGHT;game.pos=(Vec3){123456,65432,-222222};game.yaw=game.pitch=game.roll=0;
  for(int i=0;i<NPC_COUNT;i++)game.npc[i].alive=0;
- game.npc[0].alive=1;game.npc[0].role=TRADERS;game.npc[0].target=-1;game.npc[0].pos=(Vec3){200,0,800};
- game.npc[1].alive=1;game.npc[1].role=PIRATES;game.npc[1].target=-2;game.npc[1].pos=(Vec3){-200,0,900};
+ game.npc[0].alive=1;game.npc[0].role=TRADERS;game.npc[0].target=-1;game.npc[0].pos=add(game.pos,(Vec3){0,0,800});
+ game.npc[1].alive=1;game.npc[1].role=PIRATES;game.npc[1].target=-2;game.npc[1].pos=add(game.pos,(Vec3){200,0,900});
+ selected_target=-1;game.message_time=0;input(PSP_CTRL_SQUARE,PSP_CTRL_SQUARE,.016f,0,0);input(0,0,.016f,0,0);INPUT_CHECK(selected_target==BODY_COUNT+1&&!autoaim&&game.message_time<=0,"Square tap silently selects the contact nearest the centre reticle");
+ selected_target=BODY_COUNT+2;input(PSP_CTRL_SQUARE,PSP_CTRL_SQUARE,.016f,0,0);for(int i=0;i<14;i++)input(0,PSP_CTRL_SQUARE,.016f,0,0);INPUT_CHECK(square_held,"holding Square past the tap threshold opens the target computer");input(0,0,.016f,0,0);INPUT_CHECK(selected_target==BODY_COUNT+2&&!square_held,"releasing a held target computer preserves its highlighted target");
+ game.pos=(Vec3){0,0,0};game.npc[0].pos=(Vec3){200,0,800};game.npc[1].pos=(Vec3){-200,0,900};
  scan_cat=2;selected_target=0;
  game.message_time=0;input(PSP_CTRL_LEFT,PSP_CTRL_SQUARE|PSP_CTRL_LEFT,.016f,0,0);INPUT_CHECK(page==FLIGHT&&IS_NPC_ID(selected_target)&&scan_cat==1,"Square+Left tabs to ships (all contacts) without opening the computer");INPUT_CHECK(game.message_time<=0,"Square targeting changes selection without opening computer chatter");
  /* SHIPS must include the engaging pirate — locking them must not flip to ENEMIES. */

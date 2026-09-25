@@ -1,6 +1,10 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-## In progress 2.5.147 — Cleaner replies and silent targeting
+## In progress 2.5.148 — Reticle-aware Square targeting
+
+A quick Square tap silently selects the valid on-screen object whose projected centre is closest to the reticle. The left-side targeting computer appears only after a 0.20-second hold, and releasing a long hold preserves the selected target. Square+D-pad, Square+L and Square+R chords retain their existing behavior.
+
+## Completed 2.5.147 — Cleaner replies and silent targeting
 
 The in-flight reply chooser now shows only Ignore and Respond. Left/Right changes focus and X confirms it after Triangle has been released. Held-Square target browsing and Square+R locking no longer create computer chatter; the navigation overlay itself retains `(R = LOCK)` as the control reference.
 
@@ -495,7 +499,8 @@ Important controls:
 
 - Select: command deck.
 - Hold Triangle: quick communications.
-- Square tap: targeting computer.
+- Square tap: silently select the object nearest the centre reticle.
+- Hold Square: open the targeting computer after a short delay.
 - Hold Square + D-pad: browse target groups without turning.
 - Hold Square + L: cycle contacts currently in front.
 - Hold Square + R: lock highlighted target and engage auto-turn.

@@ -512,7 +512,7 @@ Validation: PSP cross-compile, game/input/steering regression suites and the PPS
 
 ## Fixes in 1.1.1
 
-- Square tap opens the targeting computer only on release. Square+D-pad chords no longer open the list. Hold Square and tap a direction to cycle planets, ships, systems or the station.
+- Square tap silently selects the visible object nearest the centre reticle. Hold Square briefly to open the targeting computer; Square+D-pad chords browse its target bands without turning the ship.
 - Removed the flashing amber bars in the top-left and top-right of the HUD. Menu titles, footers and Guild copy are clipped to the 480x272 screen.
 - A speech box with the speaker's face sits under the heading holos. Kei, Officer Venn, Dockhand_77, Law and the ship computer use it. The Guild brief is a full four-line chapter with radio.
 - Space is filled in every direction: more belt rocks, a 360-degree scatter field, and rocks around each world. Salvage and mining still work on the solid contacts.
@@ -612,7 +612,7 @@ A new commander starts on Handler Kei's Guild brief. X opens the command deck on
 - Heat rises from overspeed, boost and flying near the sun. Critical heat locks boost and lasers; max heat destroys the ship. Cool by dropping boost, leaving the star and resting the guns.
 - Hold L + D-pad left/right: roll the ship without changing throttle. Camera, steering and compass respond to roll.
 - X: fire laser.
-- Square: open the targeting computer. The list is grouped under Planets, Ships, Stations, Other and Enemies. L/R tabs those headers, Up/Down selects, Triangle shows details, X locks and auto-aligns, and Circle returns to flight. Hold Square and Left/Right in flight to tab the same five bands. Hold Square and Up/Down to cycle contacts inside the highlighted band. Hold R and press Square to lock the nearest hostile immediately.
+- Tap Square to select the visible object nearest the centre reticle; hold Square briefly to open the targeting computer. The list is grouped under Planets, Ships, Stations, Other and Enemies. Hold Square with Left/Right to tab those bands, Up/Down to cycle contacts, L to cycle contacts in front, and R to lock and auto-align. Hold R and press Square to lock the nearest hostile immediately.
 - Hold L and press X: launch a missile at a locked hostile within 12,000 metres. Ordinary X fire remains the laser. Boost above four times normal speed to evade an incoming missile before its countdown expires.
 - Circle while looking at or targeting a nearby solid planet: approach from within 1,000 metres of its surface. Proximity alone does not open the approach screen. X enters atmosphere flight; Circle turns back to space from that prompt. On the surface, Circle lands or walks; Triangle takes off or returns to orbit.
 - Circle near the station opens guided docking. For manual docking, match the cyan rotating entrance, keep speed at or below 200, and fly through the slot. Flying into the surrounding hull destroys your ship and triggers a 3D wireframe debris explosion. Press Start for a new commander after destruction.

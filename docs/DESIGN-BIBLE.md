@@ -202,7 +202,8 @@ Retain the latest working bindings rather than reverting to an earlier conversat
 | X | Laser/tool | Use selected tool | Confirm |
 | L + X | Missile with valid hostile lock | Unbound unless displayed | No purchase shortcut |
 | Circle | Context action: dock/approach/salvage | Interact/board | Back |
-| Square tap on release | Targeting computer | Survey mode | Page-specific labelled action |
+| Square tap on release | Select object nearest centre reticle | Survey mode | Page-specific labelled action |
+| Square hold | Targeting computer after a short delay | Survey mode | Page-specific labelled action |
 | Square + left/right | Contact category | Tool category if exposed | No inherited flight action |
 | Square + up/down | Next/previous contact in category | Survey contact | No inherited flight action |
 | Triangle | Acknowledge speech, then hail | Takeoff/return where valid | Details or labelled secondary action |

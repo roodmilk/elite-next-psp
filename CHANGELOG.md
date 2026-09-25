@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.5.148 — Reticle-aware Square targeting
+
+- Made a quick Square tap silently select the valid object closest to the centre reticle.
+- Delayed the left-side targeting computer until Square has been held for 0.20 seconds.
+- Prevented release after a long hold from replacing the target chosen inside the targeting computer.
+
 ## 2.5.147 — Cleaner replies and silent targeting
 
 - Reduced the quick reply chooser to the two actionable boxes: `IGNORE` and `RESPOND`.

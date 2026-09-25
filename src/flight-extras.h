@@ -80,6 +80,18 @@ static void cycle_front_target(void){
  if(!n){message(&game,"No contacts in front of the ship.");return;}
  int next=cur<0?0:(cur+1)%n;lock_local_target(ids[next],"In view");
 }
+static int target_nearest_reticle(void){
+ int best=-1,cy=(view_top()+view_bot())/2;float best_score=1e30f;
+ for(int id=0;id<=ANOMALY_ID_MAX;id++)if(valid_target(id)){
+  Vec3 world=target_position(id),v=camera(&game,world);if(v.z<20)continue;
+  Point p=project(v);if(p.x<8||p.x>W-8||p.y<view_top()+3||p.y>view_bot()-3)continue;
+  if(id>BODY_COUNT&&occluded(world))continue;
+  float dx=p.x-W*.5f,dy=p.y-cy,score=dx*dx+dy*dy+v.z*.0001f;
+  if(score<best_score){best_score=score;best=id;}
+ }
+ if(best<0)return 0;
+ lock_local_target(best,"Reticle");return 1;
+}
 static void tractor_beam_effect(void){
  if(game.tractor_time<=0||!IS_DEBRIS_ID(game.tractor_target))return;
  int i=game.tractor_target-DEBRIS_ID_MIN;if(i<0||i>=DEBRIS_COUNT||!game.debris[i].alive)return;
