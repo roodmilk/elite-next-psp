@@ -51,7 +51,7 @@
  for(int refinery=0;refinery<2;refinery++)for(int full=0;full<2;full++){
   game_init(&g);launch(&g);g.story_flags|=STORY_EV_LANDING_TECH;g.approach=1;enter_planet(&g);g.pos=surface_site(&g,1);g.speed=8;land_planet(&g);eva_toggle(&g);
   if(refinery){g.fit[FIT_UTIL]=21;fit_rebuild(&g);}
-  memset(g.cargo,0,sizeof(g.cargo));g.cargo[0]=cargo_capacity(&g)-(full?0:1);
+  memset(g.cargo,0,sizeof(g.cargo));g.cargo[0]=cargo_capacity(&g)-fuel_cargo_units(&g)-(full?0:1);
   for(int i=1;i<LIFE_COUNT;i++)g.life[i].alive=0;
   g.life[0].pos=g.pos;int cash=g.credits,disc=g.discoveries;
   resource_ok &= survey_scan(&g)&&g.credits==cash+(full?160:120)&&g.discoveries==disc+1&&cargo_used(&g)==cargo_capacity(&g);

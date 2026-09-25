@@ -87,8 +87,10 @@ void galaxy(System out[256]){
  }
 }
 float distance_ly(const Game *g,int a,int b){float dx=g->systems[a].x-g->systems[b].x,dy=(g->systems[a].y-g->systems[b].y)*0.5f;return floorf(sqrtf(dx*dx+dy*dy))*0.4f;}
-int cargo_used(const Game *g){int n=0;for(int i=0;i<GOODS;i++)if(goods[i].unit=='t')n+=g->cargo[i];if(g->passenger_dest>=0)n+=1;return n;}
+int fuel_cargo_units(const Game *g){return g&&g->fuel>0.001f?1:0;}
+int cargo_used(const Game *g){int n=fuel_cargo_units(g);for(int i=0;i<GOODS;i++)if(goods[i].unit=='t')n+=g->cargo[i];if(g->passenger_dest>=0)n+=1;return n;}
 int cargo_capacity(const Game *g){int c=player_ships[g->ship].capacity;if(g->upgrades&64)c+=16;else if(g->upgrades&8)c+=8;return c;}
+int refuel_full(Game *g){if(!g)return 0;if(g->fuel>=player_ships[g->ship].range-.001f)return 1;if(g->fuel<=.001f&&cargo_used(g)>=cargo_capacity(g)){message(g,"No cargo space for a fuel tank.");return 0;}g->fuel=(float)player_ships[g->ship].range;return 1;}
 int galactic_price(int item){if(item<0||item>=GOODS)return 0;const Good *p=&goods[item];int avg=4*((p->base+(p->mask>>1)+3*p->factor)&255);return avg<4?4:avg;}
 void market(Game *g){int e=g->systems[g->system].economy,fluct=random_u(g)&255;
  for(int i=0;i<GOODS;i++){const Good *p=&goods[i];int f=fluct&p->mask;int q=(p->quantity+f-e*p->factor)&255;g->stock[i]=((q&128)?0:(q&63))+prosperity(g,g->system)*4;g->price[i]=4*((p->base+f+e*p->factor)&255);}g->stock[16]=0;
@@ -622,7 +624,7 @@ static void game_step(Game *g,float dt,float turn,float pitch,int throttle,int f
   if(g->upgrades&16384){
    for(int s=0;s<FIT_SLOTS;s++)if(g->fit[s]==18)g->fit[s]=(uint8_t)FIT_EMPTY;
    fit_rebuild(g);g->heat=0;g->energy=40;g->dead=0;g->jump=0;g->boost=0;g->explosion=0;
-   docking_complete(g);g->fuel=(float)player_ships[g->ship].range;
+   docking_complete(g);refuel_full(g);
    message(g,"Escape pod fired. Recovered to hub — pod spent.");speak(g,VOICE_COMP,"Escape pod recovered. Module consumed.");
   }else {g->energy=0;g->dead=1;g->jump=0;g->boost=0;g->explosion=0;g->cue=SFX_DEATH;message(g,"Hull overheat. Ship destroyed. START to recover.");}
  }
@@ -631,7 +633,7 @@ static void game_step(Game *g,float dt,float turn,float pitch,int throttle,int f
  g->shot=fmaxf(0,g->shot-dt);g->energy=fminf(100,g->energy+dt*shield_regen_rate(g)*(0.50f+0.25f*g->pip_sys));
  if((g->upgrades&32768)&&g->attacked<=0)g->energy=fminf(100,g->energy+dt*2.f);
  if(g->passenger_dest>=0&&!g->docked&&g->message_time<=0&&((int)(g->time*2)&63)==0){static const char *chatter[]={"Passenger: Ever notice how Lave still smells like GalCop paint?","Passenger: Meridian sold us a 'clear lane' once. Cost a tender.","Passenger: If the animals stop singing, burn a different chart.","Passenger: Guild folks tip. Corporate folks invoice."};speak(g,VOICE_CONTACT,chatter[((int)g->time+(unsigned)g->passenger_dest)%4]);message(g,chatter[((int)g->time+(unsigned)g->passenger_dest)%4]);}
- {float scoop=fuel_scoop_rate(g);if(scoop>0&&length(sub(g->pos,g->bodies[0].pos))<g->bodies[0].radius+4000){g->fuel=fminf((float)player_ships[g->ship].range,g->fuel+dt*scoop);if(g->message_time<=0)message(g,g->heat>80?"Fuel scoop overheating. Break off.":"Fuel scoop filling the tank.");}}
+ {float scoop=fuel_scoop_rate(g);if(scoop>0&&length(sub(g->pos,g->bodies[0].pos))<g->bodies[0].radius+4000){if(fuel_cargo_units(g)||cargo_used(g)<cargo_capacity(g)){g->fuel=fminf((float)player_ships[g->ship].range,g->fuel+dt*scoop);if(g->message_time<=0)message(g,g->heat>80?"Fuel scoop overheating. Break off.":"Fuel scoop filling the tank.");}else if(g->message_time<=0)message(g,"Cargo full. No room for fuel.");}}
  if(fire&&g->heat>=80&&(g->upgrades&2048)&&g->heat_sink_cd<=0){g->heat=fmaxf(0,g->heat-40);g->heat_sink_cd=30;message(g,"Heat sink dumped.");g->cue=SFX_UI;}
  if(fire&&g->heat>=80&&g->shot<=.001f&&g->message_time<=0)message(g,"Lasers overheated. Wait for the HEAT bar.");
  if(fire&&g->shot<=.001f&&g->heat<80){g->shot=.18f;g->heat+=12;g->shots++;g->cue=SFX_LASER;float closest=2200;int target=-1;
@@ -731,7 +733,7 @@ static void game_step(Game *g,float dt,float turn,float pitch,int throttle,int f
   if(g->upgrades&16384){
    for(int s=0;s<FIT_SLOTS;s++)if(g->fit[s]==18)g->fit[s]=(uint8_t)FIT_EMPTY;
    fit_rebuild(g);g->energy=40;g->dead=0;g->jump=0;g->boost=0;g->explosion=0;
-   docking_complete(g);g->fuel=(float)player_ships[g->ship].range;
+   docking_complete(g);refuel_full(g);
    message(g,"Escape pod fired. Recovered to hub — pod spent.");speak(g,VOICE_COMP,"Escape pod recovered. Module consumed.");
   }else {g->dead=1;g->jump=0;g->cue=SFX_DEATH;message(g,"Ship destroyed. START for a new commander.");}
  }
@@ -848,7 +850,7 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  game_init(&g);launch(&g);for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;int dest=-1;for(int i=0;i<256;i++)if(i!=g.system&&distance_ly(&g,g.system,i)*10<=g.fuel){dest=i;break;}g.destination=dest;float fuel=g.fuel,cost=distance_ly(&g,g.system,dest)*10;CHECK(jump_start(&g),"reachable warp starts");for(int i=0;i<500;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(g.system==dest&&fabsf(g.fuel-(fuel-cost))<.01f,"warp arrives in selected system and consumes fuel once");
  game_init(&g);add_crime(&g,15);CHECK(wanted_level(&g)==3&&g.wanted[g.system]==15,"crime raises the current system wanted level");g.credits=2000;g.police_stop=1;g.police_phase=0;int fine=police_fine(&g);CHECK(police_resolve(&g,0)&&g.credits==2000-fine&&g.legal==0,"paying police deducts exact fine and clears local warrant");
  add_crime(&g,10);g.credits=20;g.police_stop=1;g.police_phase=0;CHECK(!police_resolve(&g,0)&&g.police_stop,"unaffordable fine keeps police choice open");CHECK(police_resolve(&g,1)&&g.docked&&g.credits==0&&g.legal==0,"custody returns to station and takes affordable release bribe");
- game_init(&g);g.ship=5;g.credits=0;g.cargo[0]=3;g.upgrades=128;g.laser=1;fit_synthesize(&g);g.police_stop=1;g.police_phase=0;add_crime(&g,10);CHECK(police_resolve(&g,1)&&g.police_phase==2,"zero-unit custody starts the jail transfer");for(int i=0;i<400&&g.police_stop;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(!g.police_stop&&g.docked&&g.ship==0&&g.credits==0&&cargo_used(&g)==0&&g.upgrades==0&&g.legal==0,"jail release confiscates property and returns the basic ship");
+ game_init(&g);g.ship=5;g.credits=0;g.cargo[0]=3;g.upgrades=128;g.laser=1;fit_synthesize(&g);g.police_stop=1;g.police_phase=0;add_crime(&g,10);CHECK(police_resolve(&g,1)&&g.police_phase==2,"zero-unit custody starts the jail transfer");for(int i=0;i<400&&g.police_stop;i++)game_tick(&g,1.f/60,0,0,0,0);CHECK(!g.police_stop&&g.docked&&g.ship==0&&g.credits==0&&cargo_used(&g)==1&&g.upgrades==0&&g.legal==0,"jail release confiscates property and returns the basic ship");
  game_init(&g);launch(&g);add_crime(&g,10);g.police_stop=1;g.police_phase=0;int before_run=g.legal;CHECK(police_escape(&g)&&!g.police_stop&&g.legal>before_run&&g.police_grace>0&&g.attacked>0,"running from law resumes flight, escalates warrant and starts pursuit");
  game_init(&g);launch(&g);g.pos=(Vec3){0,0,-20000};g.speed=0;for(int i=0;i<NPC_COUNT;i++)g.npc[i].alive=0;add_crime(&g,10);game_tick(&g,.016f,0,0,0,0);int cops=0;for(int i=36;i<NPC_COUNT;i++)cops+=g.npc[i].alive;CHECK(cops==4,"wanted level two dispatches four extra police");
  g.npc[36].pos=add(g.pos,(Vec3){0,0,300});game_tick(&g,.016f,0,0,0,0);CHECK(!g.police_stop&&g.police_warning>0,"approaching police issues a warning before arrest");for(int i=0;i<240&&!g.police_stop;i++)game_tick(&g,.016f,0,0,0,0);CHECK(g.police_stop&&g.police_phase==0,"warning escalates to warrant interception");Vec3 stopped=g.npc[36].pos;float frozen=g.time;game_tick(&g,.016f,1,1,1,1);CHECK(g.time==frozen&&length(sub(stopped,g.npc[36].pos))==0,"police encounter freezes world simulation");
@@ -873,6 +875,7 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
  game_init(&g);g.fit[FIT_DEF]=16;fit_rebuild(&g);CHECK((g.upgrades&256)&&g.fit[FIT_DEF]==16,"ECM suite fits DEF and arms missile soft-kill");
  game_init(&g);g.docked=1;g.fit[FIT_HOLD]=11;g.fit[FIT_NAV]=4;fit_rebuild(&g);CHECK(save_game(&g,"test-fit.sav")&&load_game(&loaded,"test-fit.sav")&&loaded.fit[FIT_HOLD]==11&&loaded.fit[FIT_NAV]==4&&(loaded.upgrades&64)&&(loaded.upgrades&1),"save V13 persists fitted HOLD and NAV modules");remove("test-fit.sav");remove("test-fit.sav.bak");
  game_init(&g);g.upgrades=8|64;fit_synthesize(&g);CHECK(g.fit[FIT_HOLD]==11&&cargo_capacity(&g)==player_ships[g.ship].capacity+16,"V12 upgrades synthesize into fitted freight rack");
+ game_init(&g);CHECK(fuel_cargo_units(&g)==1&&cargo_used(&g)==g.cargo[0]+1,"full fuel tank occupies one cargo unit");memset(g.cargo,0,sizeof(g.cargo));g.fuel=0;CHECK(refuel_full(&g)&&g.fuel==player_ships[g.ship].range&&cargo_used(&g)==1,"empty tank can be refuelled into one cargo unit");g.fuel=0;g.cargo[0]=cargo_capacity(&g);CHECK(!refuel_full(&g)&&g.fuel==0,"full cargo hold blocks adding a fuel tank");
  CHECK(fit_value_valid(FIT_HOLD,23)&&fit_value_valid(FIT_UTIL,FIT_EMPTY),"V13 accepts valid catalog and empty slot values");CHECK(!fit_value_valid(FIT_WPN,23)&&!fit_value_valid(FIT_DEF,1),"V13 rejects invalid slot values");
  game_init(&g);g.roll=1.5707963f;Vec3 rolled=camera(&g,(Vec3){100,0,100});CHECK(fabsf(rolled.x)<.01f&&rolled.y< -99,"roll rotates camera and compass coordinates");
  Save legacy;memset(&legacy,0,sizeof(legacy));legacy.magic=0x41455053;legacy.version=1;legacy.system=7;legacy.destination=129;legacy.credits=1000;legacy.fuel=10;legacy.contract=-1;legacy.legal=5;FILE *legacyfile=fopen("test-legacy.sav","wb");if(legacyfile){fwrite(&legacy,1,sizeof(legacy),legacyfile);fclose(legacyfile);}CHECK(load_game(&loaded,"test-legacy.sav")&&loaded.credits==1000&&loaded.wanted[7]==5,"previous build saves import with a local warrant");remove("test-legacy.sav");

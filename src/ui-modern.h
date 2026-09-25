@@ -401,7 +401,7 @@ static int unequip_slot(int slot,int refund){
 static void buy_equipment(int i){
  if(!game.docked){message(&game,"Dock to buy equipment.");return;}
  if(i<0||i>=EQUIP_COUNT)return;
- if(i==0){int cost=(int)ceilf(player_ships[game.ship].range-game.fuel)*2;if(cost<=0){message(&game,"Tank is already full.");return;}if(game.credits<cost){message(&game,"Not enough units.");return;}game.credits-=cost;game.fuel=player_ships[game.ship].range;game.cue=SFX_UI;message(&game,"Tank full.");return;}
+ if(i==0){int cost=(int)ceilf(player_ships[game.ship].range-game.fuel)*2;if(cost<=0){message(&game,"Tank is already full.");return;}if(!fuel_cargo_units(&game)&&cargo_used(&game)>=cargo_capacity(&game)){message(&game,"Cargo full. Free 1 space for fuel.");return;}if(game.credits<cost){message(&game,"Not enough units.");return;}game.credits-=cost;refuel_full(&game);game.cue=SFX_UI;message(&game,"Tank full. Fuel uses 1 cargo space.");return;}
  if(i==3){if(game.missiles>=4){message(&game,"Missile rack full.");return;}if(!equipment_in_stock(i)&&equipment_econ[i]!=0){message(&game,"Not stocked at this hub.");return;}if(game.credits<equipment_costs[i]){message(&game,"Not enough units.");return;}game.credits-=equipment_costs[i];game.missiles++;game.cue=SFX_UI;message(&game,"Missile loaded.");return;}
  if(equipment_owned(i)){message(&game,"Already fitted.");return;}
  if(!equipment_in_stock(i)&&equipment_econ[i]!=0){message(&game,"Not stocked at this hub.");return;}

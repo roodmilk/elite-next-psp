@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.101 — radio station/level navigation
+
+- Removed the duplicate STATIC label during station changes.
+- Radio Up/Down now switches only between Music and FX levels; Left/Right adjusts the selected level, while L/R changes station.
+
 ## 2.5.100 — quick-response comms
 
 - Triangle taps now ignore an incoming chat immediately.

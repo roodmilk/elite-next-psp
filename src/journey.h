@@ -57,7 +57,7 @@ int emergency_rescue(Game *g){
  if(g->dead||g->jump>0||g->dock_stage||g->police_stop||g->planet>=0){message(g,"Recovery unavailable during this operation.");return 0;}
  int fee=g->credits<500?g->credits:500;g->credits-=fee;
  g->boost=0;g->approach=-1;g->incoming_missile=0;g->missile_time=0;g->attacked=0;
- docking_complete(g);g->fuel=(float)player_ships[g->ship].range;
+ docking_complete(g);refuel_full(g);
  char note[96];snprintf(note,sizeof(note),"Recovered to hub. Fuel restored. Fee %.1f units.",fee*.1f);message(g,note);
  speak(g,VOICE_VENN,"You're safe. We'll charge only what you can afford.");return 1;
 }

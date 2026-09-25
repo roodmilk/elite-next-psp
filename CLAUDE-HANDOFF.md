@@ -1,5 +1,9 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
+## Released 2.5.101 — radio station/level navigation
+
+The radio now shows only one STATIC label while changing stations. Up/Down moves between Music and FX levels, Left/Right adjusts the selected level, and L/R changes station; the footer documents these controls.
+
 ## Released 2.5.100 — quick-response comms
 
 Incoming chats can now be ignored with a Triangle tap. Holding Triangle opens a compact in-flight Respond/Ignore overlay; Respond opens the full channel with Continue, Ask About This Encounter and End Channel options.

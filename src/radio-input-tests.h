@@ -8,6 +8,10 @@
  row=0;radio_volume=5;int effects=sound_volume;
  input(PSP_CTRL_LEFT,0,.016f,0,0);
  INPUT_CHECK(radio_volume==4&&sound_volume==effects,"radio: music volume leaves effects unchanged");
+ input(PSP_CTRL_DOWN,0,.016f,0,0);INPUT_CHECK(row==1,"radio: Down moves from music to FX");
+ input(PSP_CTRL_RIGHT,0,.016f,0,0);INPUT_CHECK(sound_volume==effects+1,"radio: Left/Right adjusts the selected FX level");
+ input(PSP_CTRL_UP,0,.016f,0,0);INPUT_CHECK(row==0,"radio: Up returns from FX to music");
+ effects=sound_volume;
  input(PSP_CTRL_TRIANGLE,0,.016f,0,0);
  INPUT_CHECK(radio_off&&sound_volume==effects,"radio: Triangle powers off without muting alerts");
  radio_off=0;radio_station=1;radio_static_ms=0;row=0;

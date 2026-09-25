@@ -13,8 +13,7 @@ static void radio_screen(void){
 
  /* Dial glass */
  rect(136,42,166,110,RGB(10,12,16));rect(138,44,162,106,RGB(6,8,12));
- if(row==0)rect(136,42,166,110,RGB(25,65,77));
- text(18,6,row==0?WHITE:DIM,"TUNER");
+ text(18,6,DIM,"TUNER / L-R STATION");
  /* Frequency dial: OFF then stations 1-5, obvious notches. */
  int dial_y=96,dial_x0=152,dial_x1=286,span=dial_x1-dial_x0;
  line(dial_x0,dial_y,dial_x1,dial_y,RGB(90,110,120));
@@ -35,10 +34,10 @@ static void radio_screen(void){
  /* Between-station static cue on the glass */
  if(radio_static_ms>0){
   for(int s=0;s<18;s++){int sx=148+(s*17+radio_static_ms*3)%150,sy=52+(s*11)%36;pixel(sx,sy,AMBER);pixel(sx+1,sy,RGB(180,140,40));}
-  text(18,14,AMBER,"-- STATIC --");
+  text(18,14,AMBER,"STATIC");
  }else if(radio_off)text(18,14,DIM,"RADIO OFF");
  else text(18,14,CYAN,"LOCKED");
- text(18,16,radio_static_ms>0?AMBER:WHITE,"%.18s",radio_static_ms>0?"STATIC":radio_off?"(silence)":radio_station_name(radio_station));
+ if(radio_static_ms<=0)text(18,16,radio_off?DIM:WHITE,"%.18s",radio_off?"(silence)":radio_station_name(radio_station));
  text(18,18,CYAN,"%.18s",radio_off?"Right: station 1":radio_station_genre(radio_station));
 
  /* Volume panel */
@@ -51,5 +50,5 @@ static void radio_screen(void){
   rect(330,y*8+10,120,5,DIM);rect(330,y*8+10,volume*12,5,i?AMBER:CYAN);
  }
  text(41,23,DIM,radio_off?"":(radio_track_count[radio_station]?"FOLDER MP3":"GENERATED"));
- footer("O BACK");
+ footer("L/R STATION  U/D LEVELS  LEFT/RIGHT LEVEL  O BACK");
 }
