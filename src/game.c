@@ -633,16 +633,10 @@ static void game_step(Game *g,float dt,float turn,float pitch,int throttle,int f
  if(g->tractor_time>0){g->tractor_time-=dt;g->speed=0;g->boost=0;if(g->tractor_time<=0){int id=g->tractor_target;g->tractor_target=-1;g->tractor_time=0;salvage_collect(g,id);}return;}
  if(g->dead||g->docked||g->approach>=0)return;
  if(g->planet>=0){planet_tick(g,dt,turn,pitch,throttle,strafe);return;}
- /* Roll is a visual banking axis. Keep yaw/pitch controls in cockpit space so
-  * a rolled ship never makes left/right appear to invert after a target-menu
-  * interaction. */
- /* Keep yaw controls screen-consistent when the ship loops over the pole.
-  * Euler pitch is intentionally allowed to wrap for full vertical loops, but
-  * beyond +/-90 degrees the camera's horizontal basis is reversed. Mirroring
-  * yaw input by cos(pitch) prevents left/right from suddenly feeling inverted
-  * after a complete up/down turn. */
- float localturn=turn,localpitch=pitch;float horizon_sign=cosf(g->pitch)>=0.f?1.f:-1.f;
- g->yaw+=localturn*horizon_sign*dt*1.5f;g->pitch=wrap_range(g->pitch+localpitch*dt*1.5f,3.14159265f);
+ /* Roll is visual banking only: steering stays screen-relative after rolls
+  * and full loops, so each D-pad direction keeps one consistent meaning. */
+ float localturn=turn,localpitch=pitch;
+ g->yaw+=localturn*dt*1.5f;g->pitch=wrap_range(g->pitch+localpitch*dt*1.5f,3.14159265f);
  float damage_factor=g->damaged?fmaxf(.45f,g->hull/100.f):1.f;
  g->speed+=throttle*dt*(g->boost?4500:180)*damage_factor;if(g->speed<0)g->speed=0;float maxspeed=player_ships[g->ship].speed*(g->boost?20.f:1.f)*(0.70f+0.15f*g->pip_eng)*damage_factor;if(g->speed>maxspeed)g->speed=maxspeed;
  if(g->boost&&g->planet<0&&g->jump<=0){g->fuel=fmaxf(0,g->fuel-dt*.35f);if(g->fuel<=0){g->fuel=0;g->boost=0;if(g->message_time<=0)message(g,"Fuel empty. Boost cut.");}}
@@ -1025,3 +1019,5 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
 #include "freight-tests.h"
  fprintf(f,"RESULT %d failures\n",fails);fclose(f);return fails;
 }
+
+

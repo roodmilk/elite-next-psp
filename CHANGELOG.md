@@ -1,3 +1,7 @@
+## 2.5.150 — Roll-independent flight controls
+
+Yaw and pitch steering now stay screen-relative after rolls and full vertical loops, so D-pad directions keep a consistent meaning. Steering and build checks pass.
+
 # Changelog
 
 ## 2.5.149 — Radio ticker alignment
@@ -898,3 +902,4 @@ The detailed development history, controls, implemented feature list, validation
 ## 2.5.63 - Grounded planetary ship presentation
 - Reduced the close surface ship wireframe scale so it reads as a parked ship instead of a debug overlay.
 - Added a restrained native contact shadow beneath the hull while preserving the existing mesh, landing, EVA, boarding, and takeoff contracts.
+

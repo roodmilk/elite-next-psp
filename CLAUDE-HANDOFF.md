@@ -1,3 +1,7 @@
+## In progress 2.5.150 — Roll-independent flight controls
+
+Flight yaw/pitch input is now independent of the visual roll axis and no longer mirrors yaw after pole crossings. This keeps UP/DOWN and LEFT/RIGHT uniform during rolls and loops. Build and smoke checks pass.
+
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
 ## In progress 2.5.149 — Radio ticker alignment
@@ -807,3 +811,4 @@ The SHIP tab now shows `Cargo` while flying and keeps `Cargo & market` while doc
 
 ## 2.5.124 follow-up
 - Ship Decorator now includes native C64 sticker marks, finish/pattern navigation cue, live preview/equipped state, and fee/status card.
+
