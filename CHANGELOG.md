@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.5.149 — Radio ticker alignment
+
+- Dropped the tiny radio host face five pixels so its expression sits on the ticker baseline.
+- Moved the equalizer to a centred rail below the ticker, expanded it to 28 bars, and added a slow station-colour fade.
+
 ## 2.5.148 — Reticle-aware Square targeting
 
 - Made a quick Square tap silently select the valid object closest to the centre reticle.

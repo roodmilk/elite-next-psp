@@ -1,6 +1,10 @@
 # ELITE: NEXT — DEVELOPMENT HANDOFF
 
-## In progress 2.5.148 — Reticle-aware Square targeting
+## In progress 2.5.149 — Radio ticker alignment
+
+The radio host face is five pixels lower and aligned to the ticker baseline. The equalizer is now a longer 28-bar rail centred below the ticker with slow station-colour crossfades.
+
+## Completed 2.5.148 — Reticle-aware Square targeting
 
 A quick Square tap silently selects the valid on-screen object whose projected centre is closest to the reticle. The left-side targeting computer appears only after a 0.20-second hold, and releasing a long hold preserves the selected target. Square+D-pad, Square+L and Square+R chords retain their existing behavior.
 

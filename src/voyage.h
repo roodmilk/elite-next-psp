@@ -296,15 +296,19 @@ static void radio_ticker_display(void){
  /* Tiny but readable talking-host icon sits directly left of the ticker.
   * Four little expressions sell the illusion of a live presenter. */
  int face=(int)(game.time*2.2f)%4;
- rect(280,2,12,9,RGB(14,18,28));rect(281,3,10,7,ink);
- if(face==3){line(283,5,285,5,RGB(14,18,28));line(287,5,289,5,RGB(14,18,28));}
- else {rect(283,5,2,2,RGB(14,18,28));rect(287,5,2,2,RGB(14,18,28));}
- if(face==0){rect(284,8,4,1,RGB(14,18,28));}
- else if(face==1){rect(284,7,4,2,RGB(14,18,28));}
- else if(face==2){rect(285,7,2,2,RGB(14,18,28));}
- else {line(284,8,288,8,RGB(14,18,28));}
- /* Long equalizer is now a separate, lower ticker rail. */
- for(int i=0;i<11;i++){int y=21+(int)(sinf(game.time*10+i*1.7f+station)*2.f);line(284+i*3,y,286+i*3,22,station==4?RGB(85,212,212):RGB(90,165,255));}
+ /* The host sits on the ticker baseline: five pixels lower keeps its mouth
+  * level with the moving copy instead of floating above it. */
+ rect(280,7,12,9,RGB(14,18,28));rect(281,8,10,7,ink);
+ if(face==3){line(283,10,285,10,RGB(14,18,28));line(287,10,289,10,RGB(14,18,28));}
+ else {rect(283,10,2,2,RGB(14,18,28));rect(287,10,2,2,RGB(14,18,28));}
+ if(face==0){rect(284,13,4,1,RGB(14,18,28));}
+ else if(face==1){rect(284,12,4,2,RGB(14,18,28));}
+ else if(face==2){rect(285,12,2,2,RGB(14,18,28));}
+ else {line(284,13,288,13,RGB(14,18,28));}
+ /* A longer, centred rail lives beneath the ticker. Bars breathe slowly and
+  * crossfade between station colours without touching the scrolling text. */
+ unsigned eq_a=station==4?RGB(85,212,212):RGB(90,165,255),eq_b=station==4?RGB(190,125,245):RGB(240,180,91);
+ for(int i=0;i<28;i++){int h=2+(int)((sinf(game.time*2.4f+i*1.35f+station)*.5f+.5f)*5.f);int y=23-h;float fade=sinf(game.time*.42f+i*.11f+station)*.5f+.5f;line(344+i*3,y,346+i*3,23,mix_rgb(eq_a,eq_b,fade));}
  text(37,1,ink,"%.23s",shown);
 }
 /* Ship-relative plan radar: up is ahead, down is behind. Full 360 degrees;
