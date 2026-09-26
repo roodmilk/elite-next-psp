@@ -664,6 +664,8 @@ static int galnet_tab=0;
 static int galnet_rows(void){return galnet_tab==3?7:5;}
 static int active_role(int role){int n=0;for(int i=0;i<NPC_COUNT;i++)if(game.npc[i].alive&&game.npc[i].role==role)n++;return n;}
 static void galnet_post(int i,char *author,int alen,char *body,int blen){
+ if(tutorial_active(&game)&&galnet_tab==3&&i==0){snprintf(author,alen,"Kei / pinned evidence");snprintf(body,blen,"Ryn's receipt: 'If I miss supper, ask who kept the light on.' Lave. Two tonnes of food.");return;}
+ if(tutorial_active(&game)&&galnet_tab==4&&i==0){snprintf(author,alen,"Venn / private");snprintf(body,blen,"Kei kept the berth. Loader kept the receipt. Check the station people, not just the screens.");return;}
  int risk=danger_rating(&game,game.system),wealth=prosperity(&game,game.system),item=(game.system*3+i*5)%GOODS;
  if(galnet_tab==0){
   if(gazette_wants_tabloid(game.system,i)){

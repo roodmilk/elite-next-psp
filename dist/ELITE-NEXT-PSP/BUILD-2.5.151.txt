@@ -1,0 +1,17 @@
+ELITE: NEXT 2.5.151 - FIRST LIGHT
+
+Choose START TUTORIAL on the title menu.
+61 scripted lessons with Kei and Venn introduce the game one service at a time.
+Only FLY / Launch is available initially.
+
+CONTINUE TUTORIAL resumes tutorial.sav at the last dockside checkpoint.
+NEW GAME starts Open Channel without tutorial locks.
+LOAD COMMANDER uses your separate commander.sav.
+
+During training, SELECT pauses flight at the command deck.
+TRIANGLE on that deck reopens the lesson and its recovery/exit options.
+START after death restores the tutorial checkpoint.
+Finishing training awards the harbour licence and opens all services.
+
+PSP emulator smoke checks cover every lesson completion path, save migration,
+input, steering, audio and frame rate. Physical PSP pacing still needs playtesting.

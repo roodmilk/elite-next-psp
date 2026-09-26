@@ -79,6 +79,8 @@ typedef struct {
  float contract_time; int mission_type,mission_stage,mission_target,mission_item,mission_origin,mission_result,last_mission_type,last_mission_system;
  Job jobs[MISSION_SLOTS]; int job_n,job_sel;
  int story,story_flags,pip_sys,pip_eng,pip_wep,voice_who;
+ /* Optional First Light tutorial. Zero is normal play; V15 persists progress. */
+ int tutorial_step,tutorial_seen;
  int guild_chapter,guild_flags,guild_choice;
  int voice_role,voice_seed;
  int campaign_stage,campaign_choice,campaign_flags;

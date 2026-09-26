@@ -1,4 +1,5 @@
 static float intro_time=0;
+static int intro_choice=0;
 static void intro_screen(void){
  rect(0,0,W,H,RGB(3,8,19));
  for(int i=0;i<75;i++){
@@ -9,10 +10,9 @@ static void intro_screen(void){
  draw_next_art(next_logo,320,72,80,45,320,72);
  int glint=80+(int)(intro_time*30)%320;rect(80,122,320,1,RGB(19,74,95));rect(glint,122,3,1,CYAN);
  text(12,17,GOLD,"A SIGNAL WORTH FOLLOWING");
- if(intro_time>.8f)text(5,20,WHITE,"Ryn followed a quiet signal beyond the trade lanes.");
- if(intro_time>2.0f)text(5,22,WHITE,"Then her ship went silent — and three calls went with it.");
- if(intro_time>3.2f)text(5,24,WHITE,"Kei kept the channel open. Now the berth, and the ship, are yours.");
- if(intro_time>4.4f)text(5,27,CYAN,"Trade. Explore. Bring someone home.");
- footer("X BEGIN   TRIANGLE LOAD COMMANDER   START SKIP");
+ if(intro_time>.8f)text(5,19,WHITE,"Ryn vanished. Kei kept the channel open.");
+ const char *choices[]={"START TUTORIAL - FIRST LIGHT","CONTINUE TUTORIAL","NEW GAME - OPEN CHANNEL","LOAD COMMANDER"};
+ for(int i=0;i<4;i++){int y=22+i*2;if(i==intro_choice)rect(32,y*8-2,416,14,RGB(25,65,77));text(5,y,i==intro_choice?GOLD:WHITE,"%s %s",i==intro_choice?">":" ",choices[i]);}
+ footer("UP/DOWN CHOOSE   X BEGIN");
  if(game.message_time>0)text(5,29,GOLD,"%.50s",game.message);
 }

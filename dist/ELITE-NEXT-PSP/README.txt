@@ -1,5 +1,9 @@
 ELITE: NEXT for PSP
 
+2.5.151: Choose START TUTORIAL for First Light, a 61-lesson guided story.
+Tutorial checkpoints use tutorial.sav; regular saves use commander.sav.
+See BUILD-2.5.151.txt for controls and continuation.
+
 Copy this entire ELITE-NEXT-PSP folder to PSP/GAME on the Memory Stick.
 
 Custom music:

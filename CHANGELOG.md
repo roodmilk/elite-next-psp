@@ -1,3 +1,11 @@
+## 2.5.151 — First Light story tutorial
+
+- Added Start tutorial, Continue tutorial, New game and Load commander to the title menu.
+- Added 61 authored Kei/Venn lessons with gradual service unlocks, flight exercises, all station rooms and GalacticNet tabs, real fitting/trading and a planetary survey.
+- Added separate tutorial checkpoints, save V15 migration, lesson replay/recovery and a harbour-licence handoff into Open Channel.
+- Exposed Guild and Display & chatter as direct command-deck entries.
+- Added complete input-path walkthrough, save/migration coverage and native PSP captures. Updated stale steering, sale-confirmation and title-menu test expectations.
+
 ## 2.5.150 — Roll-independent flight controls
 
 Yaw and pitch steering now stay screen-relative after rolls and full vertical loops, so D-pad directions keep a consistent meaning. Steering and build checks pass.

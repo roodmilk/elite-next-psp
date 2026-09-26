@@ -1,3 +1,11 @@
+## First Light tutorial — 2.5.151
+
+Choose **Start tutorial** on the opening menu for a 61-lesson story with Kei and Venn. Only FLY is visible at first. Learn piloting, targeting, power, docking, trade, outfitting, station life, Spacebook, travel and planetary surveying as services unlock.
+
+Choose **Continue tutorial** to resume a dockside checkpoint. Tutorial and normal commander saves are separate. During training, Triangle on the paused command deck reopens the lesson with recovery/exit options. Completing training awards the harbour licence and opens the full game.
+
+[Full tutorial script, controls and acceptance coverage](docs/FIRST-LIGHT-TUTORIAL.md).
+
 # ELITE: NEXT — development build 2.5.39
 
 ## Audio candidate — original event cues and bounded shuffle

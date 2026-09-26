@@ -12,6 +12,8 @@
 #include <stdarg.h>
 #include "game.h"
 #include "story.h"
+#include "tutorial.h"
+static const char *commander_save_path(const Game *g){return g->tutorial_step?"tutorial.sav":"commander.sav";}
 #include "guild.h"
 #include "campaign.h"
 #include "saga.h"
@@ -355,7 +357,14 @@ static void chart_move_cursor(int dx,int dy){
  for(int i=0;i<256;i++)if(i!=from){int sx=game.systems[i].x-a->x,sy=game.systems[i].y-a->y,forward=sx*dx+sy*dy;if(forward<=0)continue;int side=abs(sx*dy-sy*dx),score=forward+side*5;if(score<best_score){best_score=score;best=i;}}
  chart_cursor=best;game.cue=SFX_SELECT;
 }
+static int tutorial_page_allowed(int p){
+ if(!tutorial_active(&game)||p==HOME||p==FLIGHT||p==INTRO)return 1;
+ static const int ids[][2]={{MARKET,1},{CHART,2},{YARD,3},{EQUIP,4},{STATUS,5},{HELP,6},{FACTIONS,7},{TARGETING,8},{DEBUG,9},{COMMS,10},{COMMS_PANEL,10},{DETAILS,11},{MISSIONS,12},{MISSIONLOG,13},{GALNET,14},{CODEX,15},{RADIO,16},{CAMPAIGN,17},{GUILD,18},{COMFORT,19},{WALK,20},{INVENTORY,21},{REPAIR,24},{DECORATOR,23}};
+ for(unsigned i=0;i<sizeof(ids)/sizeof(ids[0]);i++)if(ids[i][0]==p)return tutorial_service(&game,ids[i][1]);
+ return 0;
+}
 static void change_page(int p){
+ if(!tutorial_page_allowed(p)){message(&game,tutorial_beat(&game)->task);return;}
  if(p==FLIGHT&&page!=FLIGHT)fire_blocked=1;
  if(page==HOME&&row>=0&&row<DECK_ITEMS){deck_last=row;deck_focus[deck_group(row)]=row;}
  if(p==HOME||p==FLIGHT||p==INTRO)nav_depth=0;
@@ -516,15 +525,15 @@ static unsigned flight_steer_buttons(unsigned buttons){
   buttons&=~(PSP_CTRL_UP|PSP_CTRL_DOWN|PSP_CTRL_LEFT|PSP_CTRL_RIGHT);
  return buttons;
 }
-static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
+static void game_input(unsigned pressed,unsigned held,float dt,float ax,float ay){
  static unsigned in_held=0;static int sq_arm=0,boost_was_active=0;static float square_hold=0;
- station_tour_tick();
+ if(!tutorial_active(&game))station_tour_tick();
  unsigned released=in_held&~held;in_held=held;if(page!=FLIGHT||paused||game.police_stop||game.approach>=0||game.dock_stage)sq_arm=0;
  if(!(held&PSP_CTRL_CROSS))fire_blocked=0;
  int square_ready=page==FLIGHT&&game.planet<0&&game.jump<=0&&!game.dock_stage&&!game.dead;
  if(square_ready&&(held&PSP_CTRL_SQUARE)){if(pressed&PSP_CTRL_SQUARE)square_hold=0;square_hold+=dt;if(square_hold>=.20f&&sq_arm)sq_arm=0;square_held=square_hold>=.20f;}
  else {square_hold=0;square_held=0;}
- int oldpage=page;r_tap+=dt;l_tap+=dt;if(hard_brake>0){hard_brake-=dt;if(hard_brake<0)hard_brake=0;}if(page==INTRO){intro_time+=dt;if(pressed&PSP_CTRL_CROSS){game.voice_time=0;change_page(CAMPAIGN);}else if(pressed&PSP_CTRL_START){game.voice_time=0;change_page(HOME);}else if(pressed&PSP_CTRL_TRIANGLE){if(load_game(&game,"commander.sav")){selected_target=0;autoaim=0;change_page(HOME);}else message(&game,"No saved commander. X begins your journey.");}return;}
+ int oldpage=page;r_tap+=dt;l_tap+=dt;if(hard_brake>0){hard_brake-=dt;if(hard_brake<0)hard_brake=0;}if(page==INTRO){intro_time+=dt;if(pressed&PSP_CTRL_CROSS){game.voice_time=0;change_page(CAMPAIGN);}else if(pressed&PSP_CTRL_START){game.voice_time=0;change_page(HOME);}else if(pressed&PSP_CTRL_TRIANGLE){if(load_game(&game,commander_save_path(&game))){selected_target=0;autoaim=0;change_page(HOME);}else message(&game,"No saved commander. X begins your journey.");}return;}
  if(page==WALK){
   if(walk_kind==0){
    /* MacVenture station: O / TRI board ship; options list handled in sc_input. */
@@ -740,11 +749,12 @@ else if(page==COMMS_PANEL&&(pressed&PSP_CTRL_CROSS)){
   else if(page==EQUIP&&(pressed&PSP_CTRL_SQUARE)){int list[EQUIP_COUNT],n=equipment_stock_list(list,EQUIP_COUNT);if(row>=0&&row<n)sell_equipment_row(list[row]);}
   else if(page==EQUIP&&(pressed&PSP_CTRL_CROSS)){int list[EQUIP_COUNT],n=equipment_stock_list(list,EQUIP_COUNT);if(row>=0&&row<n)buy_equipment(list[row]);}
   else if(page==INVENTORY&&game.docked&&(pressed&PSP_CTRL_CROSS)){if(row>=0&&row<FIT_SLOTS&&game.fit[row]!=FIT_EMPTY){if(sell_confirm_slot==row){sell_confirm_slot=-1;unequip_slot(row,1);}else{sell_confirm_slot=row;message(&game,"Sell this module for the shown refund? X confirm, O cancel.");}}}
-  else if(page==STATUS&&game.docked){if(pressed&PSP_CTRL_CROSS)save_game(&game,"commander.sav");if(pressed&PSP_CTRL_TRIANGLE){if(load_game(&game,"commander.sav")){selected_target=0;autoaim=0;look_target=-1;}else message(&game,"Load failed, or no save found.");}if((pressed&PSP_CTRL_SQUARE)&&game.legal>0)police_pay_desk(&game);}
+  else if(page==STATUS&&game.docked){if(pressed&PSP_CTRL_CROSS)save_game(&game,commander_save_path(&game));if(pressed&PSP_CTRL_TRIANGLE){if(load_game(&game,commander_save_path(&game))){selected_target=0;autoaim=0;look_target=-1;}else message(&game,"Load failed, or no save found.");}if((pressed&PSP_CTRL_SQUARE)&&game.legal>0)police_pay_desk(&game);}
  }
  float turn=0,pitch=0;int throttle=0,fire=0;if(page==FLIGHT){turn=ax;pitch=ay;int rolling=(held&PSP_CTRL_LTRIGGER)&&(held&(PSP_CTRL_LEFT|PSP_CTRL_RIGHT))&&!(held&PSP_CTRL_SQUARE);if(rolling){game.roll+=((held&PSP_CTRL_RIGHT)?1:-1)*dt*2;turn=pitch=0;game.boost=0;autoaim=0;}throttle=(held&PSP_CTRL_RTRIGGER?1:0)-(held&PSP_CTRL_LTRIGGER?1:0);if(rolling||(held&PSP_CTRL_SQUARE)||hard_brake>0)throttle=0;if(hard_brake>0){game.speed*=fmaxf(.15f,1.f-dt*5.5f);if(game.speed<40)game.speed=0;}fire=!fire_blocked&&oldpage==FLIGHT&&!game.dock_stage&&game.approach<0&&game.laser&&(held&PSP_CTRL_CROSS)!=0&&!(held&PSP_CTRL_LTRIGGER)&&game.jump<=0;if(fire&&valid_target(selected_target)&&IS_NPC_ID(selected_target))autoaim=1;align_target(dt,ax,ay);}
  if(page==FLIGHT){if(oldpage!=FLIGHT){turn=pitch=0;throttle=fire=0;}game_tick(&game,dt,turn,pitch,throttle,fire);if(boost_was_active&&!game.boost)game.roll=0;boost_was_active=game.boost;if(game.docked)change_page(HOME);}else boost_was_active=0;
 }
+#include "tutorial-runtime.h"
 static void input_tests(void){
  FILE *f=fopen("input-check.txt","w");if(!f)return;int failures=0;
 #define INPUT_CHECK(c,n) do{int ok=(c);fprintf(f,"%s %s\n",ok?"PASS":"FAIL",n);failures+=!ok;}while(0)
@@ -793,7 +803,7 @@ static void input_tests(void){
  INPUT_CHECK(game.credits==7600&&decorator_finishes[2]==RGB(240,120,96),"equipped paint is free to reselect and preset swatches stay unchanged");
  change_page(DEBUG);row=0;int cash=game.credits;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.credits==cash+10000,"debug adds 1000 displayed units");
   TEST_INIT();launch(&game);page=FLIGHT;hud_mode=hud_hidden=0;input(PSP_CTRL_SELECT,PSP_CTRL_SELECT|PSP_CTRL_LTRIGGER,.016f,0,0);INPUT_CHECK(hud_mode==1&&!hud_hidden&&page==FLIGHT,"L and Select selects minimal HUD");input(PSP_CTRL_SELECT,PSP_CTRL_SELECT|PSP_CTRL_LTRIGGER,.016f,0,0);INPUT_CHECK(hud_mode==2&&hud_hidden,"L and Select selects scenic HUD");input(PSP_CTRL_SELECT,PSP_CTRL_SELECT|PSP_CTRL_LTRIGGER,.016f,0,0);INPUT_CHECK(hud_mode==0&&!hud_hidden,"L and Select restores full HUD");
- TEST_INIT();game.credits=20000;game.systems[game.system].tech=12;page=EQUIP;{int list[EQUIP_COUNT],n=equipment_stock_list(list,EQUIP_COUNT),dock_row=-1,cargo_row=-1,mis_row=-1,mil_row=-1,pulse_row=-1;for(int i=0;i<n;i++){if(list[i]==4)dock_row=i;if(list[i]==10)cargo_row=i;if(list[i]==3)mis_row=i;if(list[i]==7)mil_row=i;if(list[i]==1)pulse_row=i;}INPUT_CHECK(dock_row>=0&&cargo_row>=0&&mis_row>=0,"outfitting lists dock, cargo and missile stock at high-tech hub");row=dock_row;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK((game.upgrades&1)&&game.fit[FIT_NAV]==4&&game.credits==17500,"outfitting fits docking computer into NAV and charges balance");row=cargo_row;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(cargo_capacity(&game)==player_ships[game.ship].capacity+8&&game.fit[FIT_HOLD]==10,"outfitting fits expanded cargo bay into HOLD");int missiles=game.missiles;row=mis_row;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.missiles==missiles+1&&game.credits==13000,"outfitting reloads one missile and charges balance");if(pulse_row>=0){row=pulse_row;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.fit[FIT_WPN]==1&&game.laser,"pulse laser fits WPN slot");}game.systems[game.system].economy=0;n=equipment_stock_list(list,EQUIP_COUNT);mil_row=-1;for(int i=0;i<n;i++)if(list[i]==7)mil_row=i;INPUT_CHECK(mil_row>=0,"industrial hub stocks military shield");{int before=game.credits;row=mil_row;page=EQUIP;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.fit[FIT_DEF]==7&&(game.upgrades&128)&&shield_regen_rate(&game)>3.0f,"military shield fits DEF and raises regen to 4.5");page=INVENTORY;row=FIT_DEF;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.fit[FIT_DEF]==FIT_EMPTY&&game.credits==before-equipment_costs[7]/2,"loadout X sells fitted DEF module for half price");}}
+ TEST_INIT();game.credits=20000;game.systems[game.system].tech=12;page=EQUIP;{int list[EQUIP_COUNT],n=equipment_stock_list(list,EQUIP_COUNT),dock_row=-1,cargo_row=-1,mis_row=-1,mil_row=-1,pulse_row=-1;for(int i=0;i<n;i++){if(list[i]==4)dock_row=i;if(list[i]==10)cargo_row=i;if(list[i]==3)mis_row=i;if(list[i]==7)mil_row=i;if(list[i]==1)pulse_row=i;}INPUT_CHECK(dock_row>=0&&cargo_row>=0&&mis_row>=0,"outfitting lists dock, cargo and missile stock at high-tech hub");row=dock_row;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK((game.upgrades&1)&&game.fit[FIT_NAV]==4&&game.credits==17500,"outfitting fits docking computer into NAV and charges balance");row=cargo_row;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(cargo_capacity(&game)==player_ships[game.ship].capacity+8&&game.fit[FIT_HOLD]==10,"outfitting fits expanded cargo bay into HOLD");int missiles=game.missiles;row=mis_row;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.missiles==missiles+1&&game.credits==13000,"outfitting reloads one missile and charges balance");if(pulse_row>=0){row=pulse_row;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.fit[FIT_WPN]==1&&game.laser,"pulse laser fits WPN slot");}game.systems[game.system].economy=0;n=equipment_stock_list(list,EQUIP_COUNT);mil_row=-1;for(int i=0;i<n;i++)if(list[i]==7)mil_row=i;INPUT_CHECK(mil_row>=0,"industrial hub stocks military shield");{int before=game.credits;row=mil_row;page=EQUIP;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.fit[FIT_DEF]==7&&(game.upgrades&128)&&shield_regen_rate(&game)>3.0f,"military shield fits DEF and raises regen to 4.5");page=INVENTORY;row=FIT_DEF;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.fit[FIT_DEF]==7&&sell_confirm_slot==FIT_DEF,"loadout first X asks before selling");input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.fit[FIT_DEF]==FIT_EMPTY&&game.credits==before-equipment_costs[7]/2,"loadout X sells fitted DEF module for half price");}}
  TEST_INIT();launch(&game);page=FLIGHT;input(PSP_CTRL_SQUARE,PSP_CTRL_SQUARE,.016f,0,0);INPUT_CHECK(page==FLIGHT&&!square_held,"Square tap keeps flight active without flashing the target computer");input(0,0,.016f,0,0);INPUT_CHECK(page==FLIGHT&&valid_target(selected_target),"Square tap selects a visible target near the centre reticle");
  for(int i=0;i<NPC_COUNT;i++)if(game.npc[i].alive&&game.npc[i].role==PIRATES){game.npc[i].target=-2;break;}
  target_filter=2;target_refresh();INPUT_CHECK(target_count>0,"hostile targeting filter finds ships engaging the player");target_filter=10;target_refresh();INPUT_CHECK(target_count>=1,"anomaly filter lists rare system echoes"); galnet_tab=3;INPUT_CHECK(galnet_rows()==7,"SpaceBook provides a scrollable generated feed");galnet_tab=4;INPUT_CHECK(galnet_rows()==5,"Messages sits beside Spacebook with its own feed");
@@ -877,6 +887,7 @@ static void input_tests(void){
  }
  #include "planet-approach-input-tests.h"
  #include "planet-eva-input-tests.h"
+ #include "tutorial-input-tests.h"
  {
   unsigned *saved_fb=fb,*pixels=malloc(STRIDE*H*sizeof(unsigned));
   INPUT_CHECK(pixels!=0,"graphics: disposable framebuffer allocated");
@@ -959,6 +970,7 @@ static void input_tests(void){
    }
    #include "menu-preview-tests.h"
    #include "station-bar-preview-tests.h"
+   #include "tutorial-visual-tests.h"
    {
     int saved_row=row,saved_contrast=high_contrast,labels_ok=1;
     for(int contrast=0;contrast<2;contrast++)for(int slot=0;slot<6;slot++){
@@ -1063,6 +1075,7 @@ int main(void){
  game_init(&game);deck_reset();FILE *flag=fopen("smoke.flag","r");if(flag){smoke=1;fclose(flag);FILE *visual=fopen("visual.flag","r");if(visual){visual_hold=1;fclose(visual);}FILE *log=fopen("boot-check.txt","w");if(log){fprintf(log,"PSP main reached; %d meshes loaded.\n",mesh_count);fclose(log);}}
  if(smoke){radio_tests();steering_tests();game_tests("game-check.txt");input_tests();}
  else {game.voice_time=0;change_page(INTRO);}
+ FILE *tutorialflag=fopen("open-tutorial.flag","r");if(tutorialflag){int step=1,seen=0;fscanf(tutorialflag,"%d %d",&step,&seen);fclose(tutorialflag);tutorial_start();if(step>0&&step<=TUTORIAL_COUNT)game.tutorial_step=step;game.tutorial_seen=seen?game.tutorial_step:0;tutorial_prepare();}
  FILE *introflag=fopen("open-intro.flag","r");if(introflag){fclose(introflag);change_page(INTRO);intro_time=6;}FILE *socialflag=fopen("open-spacebook.flag","r");if(socialflag){fclose(socialflag);change_page(GALNET);galnet_tab=3;game.voice_time=0;}FILE *netflag=fopen("open-galnet.flag","r");if(netflag){int tab=0;fscanf(netflag,"%d",&tab);fclose(netflag);change_page(GALNET);galnet_tab=tab>=0&&tab<6?tab:0;row=0;game.voice_time=0;}FILE *helpflag=fopen("open-help.flag","r");if(helpflag){int tab=0;fscanf(helpflag,"%d",&tab);fclose(helpflag);change_page(HELP);help_tab=tab>=0&&tab<5?tab:0;}
  FILE *yardflag=fopen("open-yard.flag","r");if(yardflag){int ship=0;fscanf(yardflag,"%d",&ship);fclose(yardflag);change_page(YARD);row=ship>=0&&ship<player_ship_count?ship:0;game.voice_time=0;story_complete(&game);}
  FILE *decoratorflag=fopen("open-decorator.flag","r");if(decoratorflag){fclose(decoratorflag);decorator_feedback=0;change_page(DECORATOR);row=2;game.voice_time=0;story_complete(&game);}
@@ -1142,6 +1155,7 @@ int main(void){
   fb=(unsigned *)(0x44000000u+(unsigned)buffer*STRIDE*H*4);pspDebugScreenSetOffset(buffer*STRIDE*H*4);if(page!=FLIGHT||hud_mode==1)rect(0,0,W,H,BG);drawcount=0;
  switch(page){case FLIGHT:space();break;case MARKET:market_screen();break;case CHART:chart();break;case YARD:yard();break;case EQUIP:equipment();break;case INVENTORY:inventory_screen();break;case REPAIR:repair_screen();break;case DECORATOR:decorator_screen();break;case STATUS:status();break;case HELP:help();break;case FACTIONS:factions();break;case LOCAL:local_system();break;case DEBUG:debug_screen();break;case COMMS:communications();break;case DETAILS:system_details();break;case MISSIONS:mission_board();break;case MISSIONLOG:mission_log();break;case TARGETING:targeting_screen();break;case GALNET:galnet_screen();break;case CODEX:codex_screen();break;case STORY:story_screen();break;case GUILD:guild_screen();break;case RADIO:radio_screen();break;case COMMS_PANEL:comms_panel();break;case INTRO:intro_screen();break;case CAMPAIGN:campaign_screen();break;case COMFORT:comfort_screen();break;case WALK:walk_screen();break;default:home();}
   if(page!=FLIGHT&&!paused&&page!=INTRO&&page!=GALNET&&page!=DECORATOR)menu_notice();
+  tutorial_draw();
  if(dump_native&&frames==6)dump_native_bmp("native-480x272.bmp");
   if(dump_native&&smoke&&(frames==95||frames==125||frames==205||frames==215||frames==255||frames==275||frames==355||frames==365||frames==385||frames==425)){char capture[64];snprintf(capture,sizeof(capture),"scene-%03d.bmp",frames);dump_native_bmp(capture);}
   if(dump_native&&smoke&&audit_all&&frames>=160&&frames<=420&&frames%10==5){char capture[64];snprintf(capture,sizeof(capture),"audit-%03d.bmp",frames);dump_native_bmp(capture);}

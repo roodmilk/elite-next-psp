@@ -25,8 +25,8 @@
  TEST_INIT();change_page(GALNET);galnet_tab=3;row=1;unsigned before=spacebook_likes[game.system];input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(spacebook_likes[game.system]==(before^2u),"spacebook: X reacts to the focused local post");
  input(PSP_CTRL_TRIANGLE,0,.016f,0,0);INPUT_CHECK(spacebook_comments,"spacebook: replies expand inside the feed");spacebook_comments=0;
- TEST_INIT();change_page(INTRO);input(PSP_CTRL_START,0,.016f,0,0);
- INPUT_CHECK(page==HOME,"intro: Start skips directly to command deck");
- TEST_INIT();change_page(INTRO);input(PSP_CTRL_CROSS,0,.016f,0,0);
- INPUT_CHECK(page==CAMPAIGN,"intro: Begin opens the story briefing");
+ TEST_INIT();change_page(INTRO);intro_choice=2;input(PSP_CTRL_CROSS,0,.016f,0,0);
+ INPUT_CHECK(page==CAMPAIGN&&!tutorial_active(&game),"intro: New game opens Open Channel without tutorial gates");
+ TEST_INIT();change_page(INTRO);intro_choice=0;input(PSP_CTRL_CROSS,0,.016f,0,0);
+ INPUT_CHECK(page==HOME&&tutorial_active(&game)&&game.tutorial_step==1,"intro: Start tutorial opens First Light");TEST_INIT();
 }

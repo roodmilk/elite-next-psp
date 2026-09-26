@@ -1,3 +1,11 @@
+## 2.5.151 — First Light tutorial
+
+Implemented `src/tutorial.h` (61 authored beats), `src/tutorial-runtime.h` (observed-action adapter and paused briefing), and separate tutorial save V15. Title menu explicitly offers Start/Continue tutorial and normal New/Load commander. Initial tutorial deck exposes only FLY; all other services unlock in sequence. Full script and coverage: `docs/FIRST-LIGHT-TUTORIAL.md`.
+
+Validation: build + all five PSP emulator smoke groups pass (game, input, steering, radio, performance); reports in `../../work/smoke-20260926-193230-889`. Native 480x272 title/briefing/Fly-only/Spacebook/planet captures reviewed. The complete scripted input fixture passes all 61 transitions; physical PSP playtesting remains unverified. The incoming local comms/radio/loadout work is preserved separately in Git before the tutorial commit.
+
+Highest-priority remaining work: human playtest pacing on PSP hardware; optional interactive lessons for advanced combat/mining/passenger contracts beyond the explanations already provided. Existing Heat Buffer catalog/save-validation mismatch from the prior local work is separate and still needs repair. Do not treat UI review lessons as completed purchases or mandatory contracts. Preserve regular `commander.sav`; tutorial uses `tutorial.sav` and dockside checkpoints.
+
 ## In progress 2.5.150 — Roll-independent flight controls
 
 Flight yaw/pitch input is now independent of the visual roll axis and no longer mirrors yaw after pole crossings. This keeps UP/DOWN and LEFT/RIGHT uniform during rolls and loops. Build and smoke checks pass.
