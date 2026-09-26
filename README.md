@@ -1,3 +1,9 @@
+## Boost and roll — 2.5.155
+
+Double-tap R and keep it held to boost. Add L + D-pad Left/Right to roll without cancelling boost or losing acceleration; release L to turn normally, or release R to stop boosting. While boosting, L is a roll modifier instead of a brake. Once R is released, normal L slowdown and double-L hard braking are available again.
+
+Heat still drains shields and can damage the hull. Cockpit and speedometer shaking remain, but heat alone no longer triggers RED ALERT. Actual attacks, missiles and impacts still do.
+
 ## Cockpit-relative steering — 2.5.154
 
 Up/Down and Left/Right now follow the cockpit through any bank or loop, in space and atmosphere. Cancelling exterior docking with Circle preserves your view and gives steering back immediately. Launch and Debug → Return to station reset the full attitude; releasing boost no longer unexpectedly levels the ship. No save reset is required.
@@ -632,7 +638,7 @@ A new commander starts on Handler Kei's Guild brief. X opens the command deck on
 - Double-tap R within 0.32 seconds, holding the second press: boost up to 20 times normal speed. Release R to brake.
 - Double-tap L while moving fast: hard brake that dumps speed quickly.
 - Heat rises from overspeed, boost and flying near the sun. Critical heat locks boost and lasers; max heat destroys the ship. Cool by dropping boost, leaving the star and resting the guns.
-- Hold L + D-pad left/right: roll the ship without changing throttle. Camera, steering and compass respond to roll.
+- Hold L + D-pad left/right: roll the ship. Keep R held during boost to roll while accelerating; release R before using L to brake. Camera, steering and compass respond to roll.
 - X: fire laser.
 - Tap Square to select the visible object nearest the centre reticle; hold Square briefly to open the targeting computer. The list is grouped under Planets, Ships, Stations, Other and Enemies. Hold Square with Left/Right to tab those bands, Up/Down to cycle contacts, L to cycle contacts in front, and R to lock and auto-align. Hold R and press Square to lock the nearest hostile immediately.
 - Hold L and press X: launch a missile at a locked hostile within 12,000 metres. Ordinary X fire remains the laser. Boost above four times normal speed to evade an incoming missile before its countdown expires.

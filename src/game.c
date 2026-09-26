@@ -333,16 +333,19 @@ int eva_toggle(Game *g){
  if(!eva_can_board(g)){float dx=g->pos.x-g->ship_pos.x,dz=g->pos.z-g->ship_pos.z;message(g,dx*dx+dz*dz<=3600?"Land beside ship to board.":"Return to the parked ship to board.");return 0;}
  g->pos=g->ship_pos;g->surface=1;g->speed=0;g->pitch=g->roll=g->jetpack=0;g->boost=0;message(g,"Boarded. Triangle takes off.");return 1;
 }
-static void player_damage(Game *g,float amount,const char *note){
+static void player_damage_kind(Game *g,float amount,const char *note,int attack){
  if(amount<=0||g->dead||g->docked)return;
  if(g->hull<=0&&!g->damaged)g->hull=100;
  if(g->energy>0){float absorbed=fminf(g->energy,amount);g->energy-=absorbed;amount-=absorbed;}
  if(g->energy<=0){g->energy=0;g->damaged=1;}
  if(amount>0){g->damaged=1;g->hull-=fmaxf(.5f,amount*.45f);}
- g->damage_fx=fmaxf(g->damage_fx,1.2f);g->attacked=fmaxf(g->attacked,1.5f);g->cue=SFX_HIT;
+ g->damage_fx=fmaxf(g->damage_fx,1.2f);if(attack)g->attacked=fmaxf(g->attacked,1.5f);g->cue=SFX_HIT;
  if(note&&g->message_time<=0)message(g,note);
  if(g->hull<=0){g->hull=0;g->energy=0;g->dead=1;g->boost=0;g->jump=0;g->explosion=0;g->cue=SFX_DEATH;message(g,"Hull integrity lost. START to recover.");}
 }
+static void player_damage(Game *g,float amount,const char *note){player_damage_kind(g,amount,note,1);}
+/* Thermal stress retains shake and shield/hull damage, not a combat alert. */
+static void thermal_damage(Game *g,float amount,const char *note){player_damage_kind(g,amount,note,0);}
 int ship_repair_cost(const Game *g){
  float hull=g->hull<=0&&!g->damaged?100:g->hull;
  if(!g->damaged&&hull>=99.9f&&g->energy>=99.9f&&g->heat<=.1f)return 0;
@@ -694,7 +697,7 @@ static void game_step(Game *g,float dt,float turn,float pitch,int throttle,int f
   else if(g->boost&&!near_sun)g->heat=fmaxf(0,g->heat-dt*(4.f+g->pip_eng*1.5f));
   /* Critical boost is still available, but the overheated drive now draws
    * directly on shields before the hard runaway threshold is reached. */
-  if(g->boost&&g->heat>=90)player_damage(g,dt*(3.f+(g->heat-90.f)*.5f),"Boost heat is draining the shields.");
+  if(g->boost&&g->heat>=90)thermal_damage(g,dt*(3.f+(g->heat-90.f)*.5f),"Boost heat is draining the shields.");
  if(g->heat>=100){
   g->heat=100;
   if(g->upgrades&16384){
@@ -702,7 +705,7 @@ static void game_step(Game *g,float dt,float turn,float pitch,int throttle,int f
    fit_rebuild(g);g->heat=0;g->energy=40;g->dead=0;g->jump=0;g->boost=0;g->explosion=0;
    docking_complete(g);refuel_full(g);
    message(g,"Escape pod fired. Recovered to hub — pod spent.");speak(g,VOICE_COMP,"Escape pod recovered. Module consumed.");
-  }else {player_damage(g,dt*8,"Thermal runaway. Shields are failing.");}
+  }else {thermal_damage(g,dt*8,"Thermal runaway. Shields are failing.");}
  }
   else if(g->heat>=90){/* Heat and shield bars carry this warning without a caption. */}
  }

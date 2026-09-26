@@ -1,3 +1,9 @@
+## 2.5.155 — Roll while boosting; quieter heat feedback
+
+- Hold R after double-tap boost, then add L + Left/Right to roll without cutting boost. L does not slow or trigger hard brake while boosting; releasing L restores turning and releasing R ends boost. Pitch remains available during boosted rolls.
+- Thermal shield/hull damage keeps damage effects but no longer marks the ship as attacked. Heat alone does not produce RED ALERT; genuine combat, missiles and collisions still do. Damage rates and repair costs are unchanged.
+- Updated Controls help and added regression checks for boost acceleration/roll direction, modifier press/release order, hard-brake isolation, shield drain/shake and real-alert preservation. No save changes.
+
 ## 2.5.154 — Stable steering after docking cancellation
 
 - Replaced world-axis/Euler steering with full cockpit-frame rotation in space and atmospheric flight. Banks, inverted flight and pole crossings no longer swap or reverse steering directions.

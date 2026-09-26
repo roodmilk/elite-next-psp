@@ -1,3 +1,13 @@
+## 2.5.155 — Boost rolling and thermal alert separation
+
+While boost owns R, L is a roll modifier, not slowdown/hard brake. game_input ignores/resets L tap timing while boosting, keeps boost during manual roll, and retains acceleration with R+L. Releasing R still stops boost; ordinary non-boost L controls and EVA remain unchanged. Boosted roll can retain pitch input. Help labels and README explain the chord.
+
+player_damage_kind distinguishes thermal stress from an attack. Both critical-boost drain and full thermal runaway retain damage_fx, shield/hull drain and death behavior, but do not refresh attacked. Existing attack timers are preserved, so an actual attack/missile/impact remains visible even when boosting hot. No alert suppression based solely on boost/heat; no save changes.
+
+Validation: baseline and v2.5.155 build pass all five smoke groups; final reports in `../../work/smoke-20260926-205230-638` (game/input/steering/radio/performance: zero failures). Added real input chord tests and thermal/combat-alert checks in journey-input-tests.h. Physical PSP playtesting remains outstanding.
+
+Highest-priority remaining work: player boost-roll and docking-handoff retest on PSP; deferred tutorial pacing; separate Heat Buffer catalogue/save-validation mismatch. Preserve cockpit-frame steering and mission tracking/dialogue fixes.
+
 ## 2.5.154 — Cockpit-frame steering and docking handoff
 
 Root cause: docking sets roll to station rotation, cancellation retained it, and launch reset yaw/pitch but not roll. The v150 world-axis steering change was not actually screen-relative; its yaw-sign test certified the wrong behavior. Atmospheric steering also had a partial Euler mix. `flight_steer` in game.c rotates the whole camera frame about local input axes and recovers canonical Euler storage with atan2 near the poles. Both free-flight branches use it; landed/EVA controls remain unchanged. No save-format change.

@@ -38,7 +38,7 @@ static void help(void){
  {"Hold Triangle","Circle near a hub","Circle near a world","X / Circle prompt","Circle on surface","Triangle on surface"},
  {"Select in flight","Left / Right on deck","X / Circle","Hold Triangle","L + Select in flight","L on this screen"},
  {"Nub / L + D-pad","D-pad Up / Down","D-pad Left / Right","Hold R / release","Triangle / Circle","Square"}};
- static const char *actions[][6]={{"Steer the ship","Accelerate / slow down","Boost or hard brake","Roll the ship","Laser / locked missile","Power banks SYS/ENG/WEP"},
+ static const char *actions[][6]={{"Steer the ship","Accelerate / slow down","Boost or hard brake","Roll (also in boost)","Laser / locked missile","Power banks SYS/ENG/WEP"},
  {"Reticle target / browser","Change target category","Choose target","Lock + auto-turn","Cancel auto-turn","Use the object ahead"},
  {"Comms and docking request","Request guided docking","Ask to approach","Enter / turn away","Land or leave the ship","Take off / return to orbit"},
  {"Open the paused deck","Change service category","Open / return","Chatter and comms options","Full / minimal / scenic HUD","Toggle analog steering"},

@@ -1,3 +1,36 @@
+/* Boost chords must remain propulsion controls, not accidental braking. */
+{
+ TEST_INIT();launch(&game);page=FLIGHT;game.pos=(Vec3){0,0,-20000};game.speed=400;hard_brake=0;r_tap=l_tap=10;
+ for(int i=0;i<NPC_COUNT;i++)game.npc[i].alive=0;
+ input(PSP_CTRL_RTRIGGER,PSP_CTRL_RTRIGGER,.016f,0,0);input(0,0,.1f,0,0);
+ input(PSP_CTRL_RTRIGGER,PSP_CTRL_RTRIGGER,.016f,0,0);
+ float speed=game.speed,bank=game.roll;
+ input(PSP_CTRL_LTRIGGER,PSP_CTRL_RTRIGGER|PSP_CTRL_LTRIGGER,.016f,0,0);
+ INPUT_CHECK(game.boost&&game.speed>speed&&hard_brake==0,"boost: adding L keeps accelerating without braking");
+ speed=game.speed;
+ input(PSP_CTRL_RIGHT,PSP_CTRL_RTRIGGER|PSP_CTRL_LTRIGGER|PSP_CTRL_RIGHT,.016f,1,0);
+ INPUT_CHECK(game.boost&&game.roll>bank&&game.speed>speed,"boost: L+Right rolls while boost accelerates");
+ bank=game.roll;
+ input(PSP_CTRL_LEFT,PSP_CTRL_RTRIGGER|PSP_CTRL_LTRIGGER|PSP_CTRL_LEFT,.016f,-1,0);
+ INPUT_CHECK(game.boost&&game.roll<bank,"boost: L+Left rolls in the opposite direction");
+ input(0,PSP_CTRL_RTRIGGER,.016f,0,0);l_tap=0;
+ input(PSP_CTRL_LTRIGGER,PSP_CTRL_RTRIGGER|PSP_CTRL_LTRIGGER,.016f,0,0);
+ INPUT_CHECK(game.boost&&hard_brake==0,"boost: repeated L presses cannot activate hard brake");
+ {static Game before;before=game;input(PSP_CTRL_RIGHT,PSP_CTRL_RTRIGGER|PSP_CTRL_RIGHT,.016f,1,0);
+ Vec3 nose=camera(&before,add(before.pos,forward(&game)));
+ INPUT_CHECK(game.boost&&nose.x>.02f,"boost: releasing L restores ordinary cockpit-relative turning");}
+ game.heat=100;game.attacked=game.collision=game.incoming_missile=0;float shield=game.energy;
+ input(0,PSP_CTRL_RTRIGGER,.016f,0,0);
+ INPUT_CHECK(game.boost&&game.energy<shield&&game.damage_fx>0&&!combat_alert_active(),"boost: critical heat damages and shakes without red alert");
+ game.attacked=3;input(0,PSP_CTRL_RTRIGGER,.016f,0,0);
+ INPUT_CHECK(combat_alert_active(),"boost: heat does not hide a real attack alert");
+ game.attacked=0;game.incoming_missile=2;
+ INPUT_CHECK(combat_alert_active(),"boost: incoming missile still raises red alert");
+ game.incoming_missile=0;game.collision=1;
+ INPUT_CHECK(combat_alert_active(),"boost: collision still raises red alert");
+ input(0,PSP_CTRL_LTRIGGER|PSP_CTRL_LEFT,.016f,-1,0);
+ INPUT_CHECK(!game.boost,"boost: releasing R stops boost even while rolling");
+}
 /* Reproduce guidance -> cancel -> steer -> debug berth -> relaunch. */
 {
  static Game before;
