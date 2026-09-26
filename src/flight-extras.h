@@ -112,7 +112,12 @@ static int flight_target_combo(unsigned pressed,unsigned held){
  return 1;
 }
 static int speech_active(void){
- if(!quiet_comms&&game.voice_time>0&&game.voice[0])return 1;
+ if(!quiet_comms&&game.voice_time>0&&game.voice[0]){
+  if(game.voice_who==VOICE_COMP)return 0;
+  if(game.voice_who==VOICE_LAW&&!game.police_stop&&game.legal<=0&&game.attacked<=0)return 0;
+  if(game.voice_who==VOICE_CONTACT&&game.attacked<=0&&game.encounter_kind!=ENCOUNTER_NONE&&!encounter_requires_reply(&game))return 0;
+  return 1;
+ }
  if(game.message_time>0&&!game.dead&&game.message[0]&&strncmp(game.message,"WELCOME",7)&&strncmp(game.message,"TRIANGLE",8))return 1;
  return 0;
 }

@@ -10,12 +10,12 @@ static int equip_slot_for(int i){
  if(i==4||i==5||i==12||i==13)return FIT_NAV;
  if(i==10||i==11||i==22||i==23)return FIT_HOLD;
  if(i==14||i==15)return FIT_FUEL;
- if(i==8||i==9||i==17||i==18||i==19||i==21)return FIT_UTIL;
+ if(i==8||i==9||i==17||i==18||i==19||i==21||i==24)return FIT_UTIL;
  return -1; /* refuel / missiles are services, not slots */
 }
 
 static int fit_value_valid(int slot,int i){
- return slot>=0&&slot<FIT_SLOTS&&(i==FIT_EMPTY||(i>0&&i<24&&equip_slot_for(i)==slot));
+ return slot>=0&&slot<FIT_SLOTS&&(i==FIT_EMPTY||(i>0&&i<25&&equip_slot_for(i)==slot));
 }
 
 static int equip_mask_for(int i){
@@ -36,6 +36,7 @@ static int equip_mask_for(int i){
  if(i==19)return 32768;
  if(i==20)return 65536;
  if(i==21)return 131072;
+ if(i==24)return 262144;
  if(i==22)return 512;
  return 0;
 }
@@ -47,7 +48,7 @@ static void fit_rebuild(Game *g){
  int bits=0,has_laser=0;
  for(int s=0;s<FIT_SLOTS;s++){
   int i=g->fit[s];
-  if(i==FIT_EMPTY||i<=0||i>=24){g->fit[s]=(uint8_t)FIT_EMPTY;continue;}
+  if(i==FIT_EMPTY||i<=0||i>=25){g->fit[s]=(uint8_t)FIT_EMPTY;continue;}
   bits|=equip_mask_for(i);
   if(i==1||i==2||i==20)has_laser=1;
  }
@@ -79,6 +80,7 @@ static void fit_synthesize(Game *g){
  else if(g->upgrades&32768)g->fit[FIT_UTIL]=19;
  else if(g->upgrades&131072)g->fit[FIT_UTIL]=21;
  else if(g->upgrades&16384)g->fit[FIT_UTIL]=18;
+ else if(g->upgrades&262144)g->fit[FIT_UTIL]=24;
  else if((g->upgrades&256)&&g->fit[FIT_DEF]!=16)g->fit[FIT_UTIL]=17;
  fit_rebuild(g);
 }
@@ -115,3 +117,5 @@ static float fuel_scoop_rate(const Game *g){
  if(!(g->upgrades&32))return 0.f;
  return (g->upgrades&8192)?0.75f:0.5f;
 }
+
+

@@ -104,7 +104,7 @@ static void local_system(void){
   for(int j=0;j<8&&first+j<contact_count;j++){int id=contact_ids[first+j],y=7+j*2;if(first+j==row)selected(y);const char *kind=IS_NPC_ID(id)?"SHIP":IS_ANOMALY_ID(id)?"ECHO":IS_DEBRIS_ID(id)?"LOOT":"NAV ";text(3,y,contact_color(id),"%-24s %s %7d M",scanner_known(id)?target_name(id):"UNKNOWN CONTACT",kind,(int)length(sub(target_position(id),game.pos)));}
  page_number_at(52,5,row/8+1,(contact_count+7)/8);footer("UP/DOWN   X LOCK   TRI AUTO-AIM   O BACK");
 }
-static void debug_screen(void){header("DEBUG");const char *items[]={"Add 1,000 units","Refill fuel and shields","Clear local wanted","Add local wanted","Move to station approach","Move near targeted planet","Return to station","Enter planet atmosphere","Install pulse laser","Reveal local Codex","Cool ship and clear heat"};for(int i=0;i<11;i++){if(row==i)selected(5+i*2);text(3,5+i*2,row==i?WHITE:DIM,"%s",items[i]);}footer("UP/DOWN   X APPLY   O BACK");}
+static void debug_screen(void){header("DEBUG");const char *items[]={"Add 1,000 units","Refill fuel and shields","Clear local wanted","Add local wanted","Move to station approach","Move near targeted planet","Return to station","Enter planet atmosphere","Install pulse laser","Reveal local Codex","Cool ship and clear heat","Install Heat Buffer"};for(int i=0;i<12;i++){if(row==i)selected(5+i*2);text(3,5+i*2,row==i?WHITE:DIM,"%s",items[i]);}footer("UP/DOWN   X APPLY   O BACK");}
 static void debug_action(void){
  if(row==0){game.credits+=10000;if(game.credits>100000000)game.credits=100000000;game.cue=SFX_UI;message(&game,"Added 1,000 units.");}
  if(row==1){game.fuel=player_ships[game.ship].range;game.energy=100;message(&game,"Fuel and shields full.");}
@@ -114,9 +114,10 @@ static void debug_action(void){
  if(row==5){if(selected_target<2||selected_target>BODY_COUNT){message(&game,"Select a planet in Contacts first.");return;}Body *b=&game.bodies[selected_target-1];game.docked=0;game.pos=add(b->pos,(Vec3){0,0,-b->radius-800});game.speed=0;game.yaw=game.pitch=game.roll=0;autoaim=0;change_page(FLIGHT);}
  if(row==6){game.planet=-1;game.surface=0;game.docked=1;game.speed=0;game.pos=(Vec3){0,0,3200};change_page(HOME);message(&game,"Docked at the local station.");}
  if(row==7){if(selected_target<2||selected_target>BODY_COUNT){message(&game,"Select a planet in Contacts first.");return;}Body *b=&game.bodies[selected_target-1];if(b->type==GAS||b->type==SUN){message(&game,"Gas giants and suns have no atmosphere flight.");return;}game.docked=0;game.pos=add(b->pos,(Vec3){0,0,-b->radius-800});game.yaw=game.pitch=game.roll=0;game.approach=selected_target-1;if(enter_planet(&game)){autoaim=0;change_page(FLIGHT);}else message(&game,"Could not enter atmosphere.");}
- if(row==8){game.laser=1;message(&game,"Pulse laser installed in WPN slot.");}
+ if(row==8){game.laser=1;game.upgrades|=4;message(&game,"Pulse laser installed in WPN slot.");}
  if(row==9){game.discoveries=256;message(&game,"Local Codex records revealed.");}
  if(row==10){game.heat=0;game.energy=100;message(&game,"Heat dumped and shields restored.");}
+ if(row==11){game.upgrades|=262144;message(&game,"Heat Buffer installed in UTIL slot.");}
 }
 static void body_tint(int sys,int i,unsigned *col,unsigned *acc,int *type){
  const int world_perm[6][4]={{OCEAN,ROCKY,GAS,ROCKY},{ROCKY,GAS,OCEAN,ROCKY},{GAS,OCEAN,ROCKY,ROCKY},{ROCKY,OCEAN,ROCKY,GAS},{OCEAN,GAS,ROCKY,ROCKY},{ROCKY,ROCKY,OCEAN,GAS}};
@@ -370,36 +371,36 @@ static const char *equipment_names[EQUIP_COUNT]={
  "REFUEL TANK","PULSE LASER","BEAM LASER","MISSILE RESTOCK","DOCKING COMPUTER","NAV BEACON",
  "SHIELD BOOSTER","MILITARY SHIELD","LASER COOLING","HEAT SINK","CARGO BAY +8T","FREIGHT RACK +16T",
  "LONG-RANGE SCANNER","PLANET SCANNER","FUEL SCOOP","AGRI SCOOP","ECM SUITE","CHAFF DISPENSER",
- "ESCAPE POD","AUTO-REPAIR KIT","MINING LASER","REFINERY UNIT","PASSENGER CABIN","EXCLUSIVE CLAMP"
+ "ESCAPE POD","AUTO-REPAIR KIT","MINING LASER","REFINERY UNIT","PASSENGER CABIN","EXCLUSIVE CLAMP","HEAT BUFFER"
 };
 static const char *equipment_list_names[EQUIP_COUNT]={
  "REFUEL","PULSE LASER","BEAM LASER","MISSILE +1","DOCK COMP","NAV BEACON",
  "SHIELD BOOST","MIL SHIELD","LASER COOL","HEAT SINK","CARGO +8T","FREIGHT +16T",
  "LONG SCAN","PLANET SCAN","FUEL SCOOP","AGRI SCOOP","ECM SUITE","CHAFF",
- "ESCAPE POD","AUTO-REPAIR","MINING LASER","REFINERY","PAX CABIN","EXCL CLAMP"
+ "ESCAPE POD","AUTO-REPAIR","MINING LASER","REFINERY","PAX CABIN","EXCL CLAMP","HEAT BUFFER"
 };
 static const char *equipment_details[EQUIP_COUNT]={
  "Fill hyperspace tank.","Solid starter pulse.","Twice laser damage.","Load one missile.","Dock from 8,000 m.","Clearer next-hop marks.",
  "Twice shield recharge.","Even faster shields.","Laser cools faster.","Dump heat in a hurry.","Adds eight tonnes.","Adds sixteen tonnes.",
  "IDs distant contacts.","Surface scan assist.","Skim fuel near a sun.","Scoop near agri belts.","Break missile locks.","Decoy flare burst.",
- "One free emergency tow.","Slow hull patching.","Faster rock mining.","Ore→alloys onboard.","+1 passenger berth.","Chandler deck clamp."
+ "One free emergency tow.","Slow hull patching.","Faster rock mining.","Ore→alloys onboard.","+1 passenger berth.","Chandler deck clamp.","Cuts boost heat dramatically."
 };
 static const char *equipment_effects[EQUIP_COUNT]={
  "Tank: now -> ship max","Laser 18 -> 24","Laser 18 -> 36","Missiles +1","Dock 2500 -> 8000 m","Next-hop mark+",
  "Shield 1.5 -> 3.0 /s","Shield 3.0 -> 4.5 /s","Cool 22 -> 38 /s","Dump when lasers overheat","Hold +8 tonnes","Hold +16 tonnes",
  "IDs beyond 2500 m","Survey range +","Fuel +0.5 /s at sun","Fuel +0.75 /s at sun","50% break missile lock","Break missile lock",
- "Consume on ship loss","Hull +2 /s","Mine rocks 1.5x","Minerals -> alloys","Taxi berth required","Cargo clamp+"
+ "Consume on ship loss","Hull +2 /s","Mine rocks 1.5x","Minerals -> alloys","Taxi berth required","Cargo clamp+","Heat generation -70%"
 };
 #include "equipment-fit.h"
-static const int equipment_costs[EQUIP_COUNT]={0,2200,4000,1000,2500,1800,6000,9000,4500,3200,3500,7000,3000,2800,7500,5000,5500,2000,4000,3600,4200,4800,2500,1500};
+static const int equipment_costs[EQUIP_COUNT]={0,2200,4000,1000,2500,1800,6000,9000,4500,3200,3500,7000,3000,2800,7500,5000,5500,2000,4000,3600,4200,4800,2500,1500,6500};
 /* Minimum displayed tech (systems[].tech+1). 0 = always if economy allows. */
-static const int equipment_tech[EQUIP_COUNT]={0,2,4,2,5,3,6,8,5,4,3,6,4,3,7,4,6,3,4,5,4,5,3,2};
+static const int equipment_tech[EQUIP_COUNT]={0,2,4,2,5,3,6,8,5,4,3,6,4,3,7,4,6,3,4,5,4,5,3,2,4};
 /* Economy bands that stock the item: bit0 poor ind … bit7 poor agri. 0xff = all. */
 static const unsigned equipment_econ[EQUIP_COUNT]={
- 0xff,0xff,0x0f,0xff,0xff,0xf0,0x1f,0x07,0x0f,0x1f,0xff,0x0e,0xff,0xf0,0x0f,0xf0,0x0f,0xff,0xff,0x1f,0x0e,0x0e,0xff,0x00
+ 0xff,0xff,0x0f,0xff,0xff,0xf0,0x1f,0x07,0x0f,0x1f,0xff,0x0e,0xff,0xf0,0x0f,0xf0,0x0f,0xff,0xff,0x1f,0x0e,0x0e,0xff,0x00,0xff
 };
 static const char *equip_cat_name(int i){
- static const char *c[]={"FUEL","WPN","WPN","WPN","NAV","NAV","DEF","DEF","DEF","DEF","HOLD","HOLD","NAV","NAV","FUEL","FUEL","DEF","DEF","UTIL","UTIL","UTIL","UTIL","HOLD","HOLD"};
+ static const char *c[]={"FUEL","WPN","WPN","WPN","NAV","NAV","DEF","DEF","DEF","DEF","HOLD","HOLD","NAV","NAV","FUEL","FUEL","DEF","DEF","UTIL","UTIL","UTIL","UTIL","HOLD","HOLD","UTIL"};
  return i>=0&&i<EQUIP_COUNT?c[i]:"UTIL";
 }
 static int equipment_owned(int i){
@@ -571,7 +572,8 @@ static void inventory_screen(void){
  text(35,23,CYAN,"SHIP CONDITION");text(35,25,game.damaged?RED:CYAN,"HULL %3d   SHLD %3d",(int)game.hull,(int)game.energy);
  text(35,27,GOLD,"HEAT %3d   CARGO %d/%d",(int)game.heat,cargo_used(&game),cargo_capacity(&game));
  credits_badge();
- footer(game.docked?"UP/DOWN  X REMOVE  O BACK":"UP/DOWN   O BACK");
+ if(game.docked&&sell_confirm_slot==row){int old=game.fit[row];text(2,29,RED,"SELL %s for %.1f units?  X CONFIRM  O CANCEL",old!=FIT_EMPTY?equipment_list_names[old]:"MODULE",old!=FIT_EMPTY?equip_sell_price(old)*.1f:0.f);footer("X CONFIRM SALE   O CANCEL");}
+ else footer(game.docked?"UP/DOWN  X SELL   O BACK":"UP/DOWN   O BACK");
 }
 
 static void repair_screen(void){
@@ -762,3 +764,5 @@ static void story_screen(void){
  if(game.story<STORY_FREE){if(row==1)selected_span(26,464);text(3,26,row==1?WHITE:DIM,"%s End the optional guide",row==1?">":" ");}
  footer("UP/DOWN CHOOSE   X SELECT   O BACK");
 }
+
+

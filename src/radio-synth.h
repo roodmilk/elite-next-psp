@@ -8,7 +8,7 @@
 #include <stdint.h>
 #include <string.h>
 
-#define RADIO_STATION_COUNT 5
+#define RADIO_STATION_COUNT 6
 
 typedef struct {
  uint32_t phase,phase_b,increment;
@@ -19,18 +19,19 @@ typedef struct {
  short delay_l[8192],delay_r[8192];
  int delay_pos,filter_l,filter_r;
  uint32_t noise,kick_phase,kick_increment;
+ uint32_t chatter_phase,chatter_phase_b;
  int station,step,remaining,step_samples;
  int kick,snare,hat,previous_noise;
 } RadioSynth;
 
 static inline const char *radio_station_name(int index){
  static const char *const names[RADIO_STATION_COUNT]={
-  "Deep Field","Neon Transit","Pixel Comet","Velvet Orbit","Far Horizons"};
- return names[index>=0&&index<RADIO_STATION_COUNT?index:0];
+  "Deep Field","Neon Transit","Pixel Comet","Velvet Orbit","Far Horizons","Cross-Ling Chatter"};
+  return names[index>=0&&index<RADIO_STATION_COUNT?index:0];
 }
 static inline const char *radio_station_genre(int index){
  static const char *const genres[RADIO_STATION_COUNT]={
-  "Ambient","Synthwave","Chiptune","Lounge","Orchestral"};
+  "Ambient","Synthwave","Chiptune","Lounge","Orchestral","Animal Babble"};
  return genres[index>=0&&index<RADIO_STATION_COUNT?index:0];
 }
 static inline uint32_t radio_note_increment(int note){
@@ -76,6 +77,7 @@ static inline void radio_sequence_step(RadioSynth *s){
   {-1,0,-1,2,-1,-1,4,-1,1,-1,-1,2,-1,0,-1,-1},
   {0,-1,-1,-1,1,-1,2,-1,3,-1,-1,-1,2,-1,1,-1}};
  int station=s->station,bar=s->step>>4,beat=s->step&15;
+ if(station==5){s->remaining=s->step_samples;s->step=(s->step+1)&255;return;}
  int chord=bar&7,root=roots[station][chord];
  int third=minor[station][chord]?3:4;
  int degrees[5]={0,third,7,12,14};
@@ -134,7 +136,7 @@ static inline void radio_sequence_step(RadioSynth *s){
  s->step=(s->step+1)&255;
 }
 static inline void radio_synth_reset(RadioSynth *s,int station){
- static const int tempo[5]={66,112,128,88,92};
+ static const int tempo[6]={66,112,128,88,92,176};
  if(!s)return;
  memset(s,0,sizeof(*s));
  s->station=station>=0&&station<RADIO_STATION_COUNT?station:0;
@@ -144,6 +146,25 @@ static inline void radio_synth_reset(RadioSynth *s,int station){
 static inline void radio_synth_sample(RadioSynth *s,int *left,int *right){
  int l=0,r=0,i,n,high,percussion=0;
  if(!s){if(left)*left=0;if(right)*right=0;return;}
+ if(s->station==5){
+  /* A non-musical channel: filtered noise, throat pulses and shifting
+   * formants make short animal-like cross-ling syllables. */
+  int syllable=(s->step/2205)&31,age=s->step%2205,voice=syllable%5;
+  int gate=(age<150?age:age>1850?2205-age:2205),formant=145+voice*47+(syllable&3)*29;
+  int pulse=(int)(s->chatter_phase>>23),second=(int)(s->chatter_phase_b>>22),n;
+  s->noise=s->noise*1664525u+1013904223u;n=(int)(s->noise>>24)-128;
+  s->chatter_phase+=(unsigned)(formant+((syllable&1)?55:0))*97391u;
+  s->chatter_phase_b+=(unsigned)(formant*2+voice*31)*97391u;
+  int throat=pulse<128?pulse-64:192-pulse;
+  int vowel=second<512?second-256:768-second;
+  int click=((age<240||age>1840)?n*2:0),level=gate>220?110:gate/2;
+  int l=((vowel*level)/256)+(throat*(level+30)/256)+click;
+  int r=((vowel*(level+25))/256)-(throat*(level-15)/256)+click/2;
+  l*=5;r*=5;s->step=(s->step+1)&65535;
+  if(l>12000)l=12000;else if(l<-12000)l=-12000;
+  if(r>12000)r=12000;else if(r<-12000)r=-12000;
+  if(left)*left=l;if(right)*right=r;return;
+ }
  if(s->remaining<=0)radio_sequence_step(s);
  --s->remaining;
  for(i=0;i<7;++i){

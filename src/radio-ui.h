@@ -14,7 +14,7 @@ static void radio_screen(void){
  /* Dial glass */
  rect(136,42,166,110,RGB(10,12,16));rect(138,44,162,106,RGB(6,8,12));
  text(18,6,DIM,"TUNER / L-R STATION");
- /* Frequency dial: OFF then stations 1-5, obvious notches. */
+ /* Frequency dial: OFF then stations 1-6, obvious notches. */
  int dial_y=96,dial_x0=152,dial_x1=286,span=dial_x1-dial_x0;
  line(dial_x0,dial_y,dial_x1,dial_y,RGB(90,110,120));
  int notches=RADIO_STATION_COUNT+1;

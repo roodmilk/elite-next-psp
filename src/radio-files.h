@@ -5,7 +5,7 @@
 #define RADIO_TRACK_PATH 160
 static const char *radio_music_dirs[RADIO_STATION_COUNT]={
  "music/Deep Field","music/Neon Transit","music/Pixel Comet",
- "music/Velvet Orbit","music/Far Horizons"
+ "music/Velvet Orbit","music/Far Horizons","music/Cross-Ling Chatter"
 };
 static char radio_tracks[RADIO_STATION_COUNT][RADIO_TRACKS_PER_STATION][RADIO_TRACK_PATH];
 static int radio_track_count[RADIO_STATION_COUNT]={0};

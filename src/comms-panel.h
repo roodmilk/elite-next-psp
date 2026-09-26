@@ -1,6 +1,6 @@
 static int comms_return=FLIGHT,triangle_arm=0,comms_encounter_conversation=0;static float triangle_hold=0;
 static void comms_panel(void){
- if(game.encounter_kind!=ENCOUNTER_NONE&&game.encounter>0){
+ if(encounter_requires_reply(&game)){
   header(comms_encounter_conversation?"INCOMING CHANNEL":"ENCOUNTER TRANSMISSION");panel(8,32,464,156);
   if(comms_encounter_conversation){
    text(3,6,GOLD,"CONTACT RESPONSE");text_wrap(3,9,54,5,WHITE,game.voice[0]?game.voice:"Channel open.",0);

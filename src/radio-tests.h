@@ -78,7 +78,7 @@ static void radio_tests(void){
   RADIO_CHECK(hash==repeat,"station resets deterministically");
  }
  int unique=1;for(int i=0;i<RADIO_STATION_COUNT;i++)for(int j=i+1;j<RADIO_STATION_COUNT;j++)if(hashes[i]==hashes[j])unique=0;
- RADIO_CHECK(unique,"all five radio stations produce different music");
+ RADIO_CHECK(unique,"all six radio stations produce different audio");
  FILE *preview=fopen("radio-preview.flag","rb");if(preview){fclose(preview);for(int i=0;i<RADIO_STATION_COUNT;i++)RADIO_CHECK(radio_preview_wav(i),"export original stereo radio excerpt");}
  radio_volume=5;sound_volume=8;radio_adjust(0,-100);radio_adjust(1,100);
  RADIO_CHECK(!radio_volume&&sound_volume==10,"independent volume controls clamp safely");

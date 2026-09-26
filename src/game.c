@@ -50,7 +50,21 @@ int mesh_id(const char *name){for(int i=0;i<mesh_count;i++)if(!strcmp(meshes[i].
 static uint32_t random_u(Game *g){uint32_t x=g->rng;x^=x<<13;x^=x>>17;x^=x<<5;return g->rng=x;}
 static float random_f(Game *g){return (random_u(g)&65535)/65535.0f;}
 void message(Game *g,const char *s){snprintf(g->message,sizeof(g->message),"%s",s);g->message_time=5;}
-void speak(Game *g,int who,const char *s){g->voice_who=who<VOICE_KEI||who>VOICE_CONTACT?VOICE_COMP:who;snprintf(g->voice,sizeof(g->voice),"%s",s);g->voice_time=6.5f;g->message_time=0;if(!g->cue)g->cue=(g->attacked>0||g->incoming_missile>0||g->encounter>0)?SFX_TALK:SFX_COMM;}
+int encounter_requires_reply(const Game *g){
+ if(!g||g->encounter_kind==ENCOUNTER_NONE||g->encounter<=0)return 0;
+ if(g->encounter_kind==ENCOUNTER_POLICE)return g->legal>0;
+ switch(g->encounter_kind){
+  case ENCOUNTER_DISTRESS:case ENCOUNTER_CONVOY:case ENCOUNTER_PIRATE:
+  case ENCOUNTER_BOUNTY:case ENCOUNTER_ESCAPE_POD:case ENCOUNTER_SMUGGLER:return 1;
+  default:return 0;
+ }
+}
+void speak(Game *g,int who,const char *s){
+ g->voice_who=who<VOICE_KEI||who>VOICE_CONTACT?VOICE_COMP:who;
+ if(g->voice_who==VOICE_LAW&&g->legal<=0&&!g->police_stop&&!g->attacked&&!g->incoming_missile){g->voice[0]=0;g->voice_time=0;return;}
+ if(g->voice_who==VOICE_COMP){g->voice[0]=0;g->voice_time=0;if(!g->cue)g->cue=SFX_COMM;return;}
+ snprintf(g->voice,sizeof(g->voice),"%s",s);g->voice_time=6.5f;g->message_time=0;if(!g->cue)g->cue=(g->attacked>0||g->incoming_missile>0||g->encounter>0)?SFX_TALK:SFX_COMM;
+}
 void encounter_ignore(Game *g){
  int kind=g->encounter_kind;g->encounter_kind=ENCOUNTER_NONE;g->encounter_npc=-1;g->encounter_payload=-1;g->encounter=0;g->voice_time=0;g->voice[0]=0;
  if(kind==ENCOUNTER_POLICE&&g->legal>0){police_begin(g,0);return;}
@@ -645,11 +659,11 @@ static void game_step(Game *g,float dt,float turn,float pitch,int throttle,int f
  /* Heat builds from speed, boost and sun; cools when not boosting and clear of the star. */
  {
   float sun_d=length(sub(g->pos,g->bodies[0].pos)),safe=g->bodies[0].radius+5200.f;
-  int near_sun=sun_d<safe;float speed_ratio=g->speed/fmaxf(1.f,player_ships[g->ship].speed);
-  if(speed_ratio>1.15f)g->heat=fminf(100,g->heat+dt*(speed_ratio-1.f)*10.f);
+  int near_sun=sun_d<safe;float speed_ratio=g->speed/fmaxf(1.f,player_ships[g->ship].speed);float heat_mult=(g->upgrades&262144)?.30f:1.f;
+  if(speed_ratio>1.15f)g->heat=fminf(100,g->heat+dt*(speed_ratio-1.f)*10.f*heat_mult);
   /* Engine pips stretch boost endurance: more ENG means less heat per second
    * and faster recovery while the boost is held. */
-  if(g->boost){float boost_heat=fmaxf(6.f,10.f-g->pip_eng*.75f);g->heat=fminf(100,g->heat+dt*boost_heat);}
+  if(g->boost){float boost_heat=fmaxf(6.f,10.f-g->pip_eng*.75f);g->heat=fminf(100,g->heat+dt*boost_heat*heat_mult);}
   if(near_sun)g->heat=fminf(100,g->heat+dt*(6.f+(safe-sun_d)/safe*10.f));
   /* Once boost is released the heat sinks must work even while the ship is
    * still travelling fast. High speed cools a little more slowly, but it
@@ -668,7 +682,7 @@ static void game_step(Game *g,float dt,float turn,float pitch,int throttle,int f
    message(g,"Escape pod fired. Recovered to hub — pod spent.");speak(g,VOICE_COMP,"Escape pod recovered. Module consumed.");
   }else {player_damage(g,dt*8,"Thermal runaway. Shields are failing.");}
  }
-  else if(g->heat>=90){if(g->message_time<=0)message(g,"ENGINES OVERHEATING... SHIELDS AT RISK!!");}
+  else if(g->heat>=90){/* Heat and shield bars carry this warning without a caption. */}
  }
  g->shot=fmaxf(0,g->shot-dt);g->energy=fminf(100,g->energy+dt*shield_regen_rate(g)*(0.50f+0.25f*g->pip_sys));
  if(g->damaged&&g->energy>25)g->energy=25;
@@ -677,7 +691,7 @@ static void game_step(Game *g,float dt,float turn,float pitch,int throttle,int f
  {float scoop=fuel_scoop_rate(g);if(scoop>0&&length(sub(g->pos,g->bodies[0].pos))<g->bodies[0].radius+4000){g->fuel=fminf((float)player_ships[g->ship].range,g->fuel+dt*scoop);if(g->message_time<=0)message(g,g->heat>80?"Fuel scoop overheating. Break off.":"Fuel scoop filling the tank.");}}
  if(fire&&!g->laser){if(g->message_time<=0)message(g,"No weapon fitted. Visit Outfitting to install one.");fire=0;}
  if(fire&&g->heat>=80&&(g->upgrades&2048)&&g->heat_sink_cd<=0){g->heat=fmaxf(0,g->heat-40);g->heat_sink_cd=30;message(g,"Heat sink dumped.");g->cue=SFX_UI;}
- if(fire&&g->heat>=80&&g->shot<=.001f&&g->message_time<=0)message(g,"Lasers overheated. Wait for the HEAT bar.");
+ if(fire&&g->heat>=80&&g->shot<=.001f){/* The heat bar is the persistent warning. */}
  if(fire&&g->shot<=.001f&&g->heat<80){g->shot=.18f;g->heat+=12;g->shots++;g->cue=SFX_LASER;float closest=2200;int target=-1;
   Vec3 beam_end=add(g->pos,mul(forward(g),2200));
   for(int i=0;i<NPC_COUNT;i++)if(g->npc[i].alive){
@@ -766,7 +780,7 @@ static void game_step(Game *g,float dt,float turn,float pitch,int throttle,int f
    if(roll<34){kind=ENCOUNTER_TRADER;n=trader;}else if(roll<47){kind=ENCOUNTER_POLICE;n=law;}else if(roll<59)kind=ENCOUNTER_CARGO;else if(roll<69){kind=(trader>=0&&pirate>=0)?ENCOUNTER_DISTRESS:ENCOUNTER_WRECKAGE;n=trader;}else if(roll<78){kind=ENCOUNTER_PIRATE;n=pirate;}else if(roll<86)kind=ENCOUNTER_WRECKAGE;else if(roll<91){kind=ENCOUNTER_SMUGGLER;n=trader;}else if(roll<96)kind=ENCOUNTER_MYSTERY;else if(roll<99){kind=ENCOUNTER_BOUNTY;n=pirate;}else kind=ENCOUNTER_UNKNOWN;
    g->encounter_kind=kind;g->encounter_npc=n;g->encounter_payload=-1;g->encounter=8;
    if(kind==ENCOUNTER_CARGO||kind==ENCOUNTER_WRECKAGE){Vec3 p=add(g->pos,mul(forward(g),1400+(random_u(g)%1100)));int slots=kind==ENCOUNTER_WRECKAGE?1+(random_u(g)%4):1;for(int s=0;s<slots;s++){int id=spawn_debris(g,add(p,(Vec3){(float)(s*90),0,(float)(s*55)}),(Vec3){0,0,0},random_u(g)%13,1,0);if(s==0&&id>=0)g->encounter_payload=DEBRIS_ID_MIN+id;}}
-   if(kind==ENCOUNTER_TRADER)speak(g,VOICE_CONTACT,"Evening, Commander. Local traffic is busy tonight.");else if(kind==ENCOUNTER_POLICE)speak(g,VOICE_LAW,g->legal?"Routine patrol. We have your transponder flagged.":"Routine patrol. Safe travels, Commander.");else if(kind==ENCOUNTER_CARGO)speak(g,VOICE_COMP,"Unidentified object detected. Cargo signature drifting ahead.");else if(kind==ENCOUNTER_WRECKAGE)speak(g,VOICE_COMP,"Wreckage field detected. Multiple objects adrift.");else if(kind==ENCOUNTER_DISTRESS)speak(g,VOICE_CONTACT,"Mayday! Trader under fire. Any ship nearby, please respond.");else if(kind==ENCOUNTER_PIRATE)speak(g,VOICE_CONTACT,"Cut engines and dump two tonnes of cargo.");else if(kind==ENCOUNTER_SMUGGLER)speak(g,VOICE_CONTACT,"Interested in something the station does not advertise?");else if(kind==ENCOUNTER_BOUNTY)speak(g,VOICE_CONTACT,"Wanted pilot in your lane. Bounty confirmed on scanner.");else if(kind==ENCOUNTER_MYSTERY)speak(g,VOICE_COMP,"...anyone receiving... signal source lost.");else speak(g,VOICE_COMP,"Unknown contact detected. Speed: impossible.");
+   if(kind==ENCOUNTER_DISTRESS)speak(g,VOICE_CONTACT,"Mayday! Trader under fire. Any ship nearby, please respond.");else if(kind==ENCOUNTER_PIRATE)speak(g,VOICE_CONTACT,"Cut engines and dump two tonnes of cargo.");else if(kind==ENCOUNTER_SMUGGLER)speak(g,VOICE_CONTACT,"Interested in something the station does not advertise?");else if(kind==ENCOUNTER_BOUNTY)speak(g,VOICE_CONTACT,"Wanted pilot in your lane. Bounty confirmed on scanner.");
    if(kind==ENCOUNTER_POLICE)g->voice_role=LAW;else g->voice_role=TRADERS;
   }
  }
@@ -1019,5 +1033,6 @@ int game_tests(const char *path){FILE *f=fopen(path,"w");if(!f)return 1;int fail
 #include "freight-tests.h"
  fprintf(f,"RESULT %d failures\n",fails);fclose(f);return fails;
 }
+
 
 

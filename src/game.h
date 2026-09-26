@@ -164,7 +164,7 @@ int mission_offer_active(const Game *g,int offer);
 int abandon_mission(Game *g,int slot);
 int accept_mission(Game *g,int offer);
 void mission_timers(Game *g,float dt);
-void message(Game *g,const char *s); void speak(Game *g,int who,const char *s); void encounter_respond(Game *g); void encounter_ignore(Game *g); void game_tick(Game *g,float dt,float turn,float pitch,int throttle,int fire);
+void message(Game *g,const char *s); void speak(Game *g,int who,const char *s); int encounter_requires_reply(const Game *g); void encounter_respond(Game *g); void encounter_ignore(Game *g); void game_tick(Game *g,float dt,float turn,float pitch,int throttle,int fire);
 void launch(Game *g); int dock(Game *g); int refuel_full(Game *g); int trade(Game *g,int item,int buy);
 int buy_ship(Game *g,int i); int jump_start(Game *g); int contract_accept(Game *g); int fire_missile(Game *g,int target_id);
 int salvage(Game *g,int target_id);
