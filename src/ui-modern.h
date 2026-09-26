@@ -112,7 +112,7 @@ static void debug_action(void){
  if(row==3){add_crime(&game,5);message(&game,"Local wanted level raised.");}
  if(row==4){game.docked=0;game.pos=(Vec3){0,0,3000};game.speed=0;game.yaw=game.pitch=game.roll=0;selected_target=0;autoaim=0;change_page(FLIGHT);}
  if(row==5){if(selected_target<2||selected_target>BODY_COUNT){message(&game,"Select a planet in Contacts first.");return;}Body *b=&game.bodies[selected_target-1];game.docked=0;game.pos=add(b->pos,(Vec3){0,0,-b->radius-800});game.speed=0;game.yaw=game.pitch=game.roll=0;autoaim=0;change_page(FLIGHT);}
- if(row==6){game.planet=-1;game.surface=0;game.docked=1;game.speed=0;game.pos=(Vec3){0,0,3200};change_page(HOME);message(&game,"Docked at the local station.");}
+ if(row==6){game.planet=game.approach=-1;game.surface=0;game.docked=1;game.speed=0;game.boost=0;game.dock_stage=game.dock_phase=0;game.dock_timer=game.dock_duration=0;game.yaw=game.pitch=game.roll=0;autoaim=0;hard_brake=0;game.pos=(Vec3){0,0,3200};change_page(HOME);message(&game,"Docked at the local station.");}
  if(row==7){if(selected_target<2||selected_target>BODY_COUNT){message(&game,"Select a planet in Contacts first.");return;}Body *b=&game.bodies[selected_target-1];if(b->type==GAS||b->type==SUN){message(&game,"Gas giants and suns have no atmosphere flight.");return;}game.docked=0;game.pos=add(b->pos,(Vec3){0,0,-b->radius-800});game.yaw=game.pitch=game.roll=0;game.approach=selected_target-1;if(enter_planet(&game)){autoaim=0;change_page(FLIGHT);}else message(&game,"Could not enter atmosphere.");}
  if(row==8){game.laser=1;game.upgrades|=4;message(&game,"Pulse laser installed in WPN slot.");}
  if(row==9){game.discoveries=256;message(&game,"Local Codex records revealed.");}

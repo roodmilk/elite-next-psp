@@ -46,6 +46,31 @@ Vec3 camera(const Game *g,Vec3 p){
  }
  Vec3 d=sub(p,g->pos);return (Vec3){dot(d,right),dot(d,up),dot(d,ahead)};
 }
+/* Integrate about cockpit axes, then recover Euler storage. Rotating the full
+ * frame preserves screen-relative input through banks and vertical loops.
+ * atan2(y,horizontal) avoids asin precision loss at the poles. */
+static Vec3 flight_cross(Vec3 a,Vec3 b){return (Vec3){a.y*b.z-a.z*b.y,a.z*b.x-a.x*b.z,a.x*b.y-a.y*b.x};}
+static Vec3 flight_rotate(Vec3 v,Vec3 axis,float c,float s){
+ return add(add(mul(v,c),mul(flight_cross(axis,v),s)),mul(axis,dot(axis,v)*(1-c)));
+}
+static void flight_steer(Game *g,float turn,float pitch,float step){
+ float amount=sqrtf(turn*turn+pitch*pitch);
+ if(amount<.000001f||step<=0)return;
+ float sy=sinf(g->yaw),cy=cosf(g->yaw),sp=sinf(g->pitch),cp=cosf(g->pitch);
+ float sr=sinf(g->roll),cr=cosf(g->roll);
+ Vec3 r={cy,0,-sy},u={-sy*sp,cp,-cy*sp};
+ Vec3 right=add(mul(r,cr),mul(u,sr)),up=add(mul(r,-sr),mul(u,cr));
+ Vec3 axis=mul(sub(mul(up,turn),mul(right,pitch)),1/amount);
+ float c=cosf(amount*step),s=sinf(amount*step);
+ Vec3 ahead=norm(flight_rotate(forward(g),axis,c,s));
+ right=norm(flight_rotate(right,axis,c,s));
+ float horizontal=sqrtf(ahead.x*ahead.x+ahead.z*ahead.z);
+ if(horizontal>.000001f)g->yaw=atan2f(ahead.x,ahead.z);
+ g->pitch=atan2f(ahead.y,horizontal);
+ sy=sinf(g->yaw);cy=cosf(g->yaw);sp=sinf(g->pitch);cp=cosf(g->pitch);
+ r=(Vec3){cy,0,-sy};u=(Vec3){-sy*sp,cp,-cy*sp};
+ g->roll=atan2f(dot(right,u),dot(right,r));
+}
 int mesh_id(const char *name){for(int i=0;i<mesh_count;i++)if(!strcmp(meshes[i].name,name))return i;return 4;}
 static uint32_t random_u(Game *g){uint32_t x=g->rng;x^=x<<13;x^=x>>17;x^=x<<5;return g->rng=x;}
 static float random_f(Game *g){return (random_u(g)&65535)/65535.0f;}
@@ -367,8 +392,7 @@ static void planet_tick(Game *g,float dt,float turn,float pitch,int throttle,flo
   g->yaw+=turn*dt*1.2f;g->pitch+=pitch*dt;if(g->pitch>.5f)g->pitch=.5f;if(g->pitch<-.2f)g->pitch=-.2f;
   g->speed=0;g->boost=0;g->pos.y=terrain_height(g,g->pos.x,g->pos.z)+18;return;
  }
- float localturn=turn*cosf(g->roll)-pitch*sinf(g->roll),localpitch=turn*sinf(g->roll)+pitch*cosf(g->roll);
- g->yaw+=localturn*dt*1.4f;g->pitch=wrap_range(g->pitch+localpitch*dt*1.4f,3.14159265f);
+ flight_steer(g,turn,pitch,dt*1.4f);
  g->speed+=throttle*dt*(g->boost?700:110);if(g->speed<0)g->speed=0;float maxspeed=160*(g->boost?2.2f:1.f);if(g->speed>maxspeed)g->speed=maxspeed;
  g->pos=add(g->pos,mul(forward(g),g->speed*dt));
  if(!g->boost)g->pos.y-=32*dt;
@@ -499,7 +523,7 @@ void game_spawn(Game *g){
  jobs_sync(g);
 }
 void game_init(Game *g){memset(g,0,sizeof(*g));g->rng=0x19841991;g->ai_phase=-1;galaxy(g->systems);g->system=7;g->destination=129;g->route_goal=-1;g->passenger_dest=-1;g->trader_offer_system=-1;g->trader_offer_npc=-1;g->encounter_npc=-1;g->encounter_payload=-1;g->tractor_target=-1;g->credits=1000;g->fuel=60;g->energy=100;g->docked=1;g->contract=-1;g->mission_target=-1;g->missile_target=-1;g->incoming_source=-1;g->approach=-1;g->planet=-1;g->missiles=1;g->pip_sys=2;g->pip_eng=2;g->pip_wep=4;fit_clear_all(g);travellers_seed(g);market(g);game_spawn(g);g->cargo[0]=2;message(g,"X opens the deck.");speak(g,VOICE_KEI,"Kei Aven. Ryn is missing — and this berth is yours until we find her.");}
-void launch(Game *g){if(!g->docked)return;guild_event(g,GUILD_LAUNCH);g->docked=0;g->pos=(Vec3){0,0,0};g->yaw=g->pitch=0;g->speed=100;game_spawn(g);int before=g->story;story_event(g,STORY_EV_LAUNCH);if(g->story==before)message(g,"Station ahead. Select opens the deck.");if(g->story==STORY_SIGHT||g->story==STORY_RETURN)speak(g,VOICE_VENN,"Tower. Cleared. Soft launch — come home in one piece.");if(!g->cue)g->cue=SFX_DOCK;campaign_event(g,CP_LAUNCH);}
+void launch(Game *g){if(!g->docked)return;guild_event(g,GUILD_LAUNCH);g->docked=0;g->pos=(Vec3){0,0,0};g->yaw=g->pitch=g->roll=0;g->dock_phase=0;g->dock_timer=g->dock_duration=0;g->speed=100;game_spawn(g);int before=g->story;story_event(g,STORY_EV_LAUNCH);if(g->story==before)message(g,"Station ahead. Select opens the deck.");if(g->story==STORY_SIGHT||g->story==STORY_RETURN)speak(g,VOICE_VENN,"Tower. Cleared. Soft launch — come home in one piece.");if(!g->cue)g->cue=SFX_DOCK;campaign_event(g,CP_LAUNCH);}
 #include "docking.h"
 #include "journey.h"
 int trade(Game *g,int i,int buy){if(!g->docked||i<0||i>=GOODS)return 0;
@@ -648,10 +672,7 @@ static void game_step(Game *g,float dt,float turn,float pitch,int throttle,int f
  if(g->tractor_time>0){g->tractor_time-=dt;g->speed=0;g->boost=0;if(g->tractor_time<=0){int id=g->tractor_target;g->tractor_target=-1;g->tractor_time=0;salvage_collect(g,id);}return;}
  if(g->dead||g->docked||g->approach>=0)return;
  if(g->planet>=0){planet_tick(g,dt,turn,pitch,throttle,strafe);return;}
- /* Roll is visual banking only: steering stays screen-relative after rolls
-  * and full loops, so each D-pad direction keeps one consistent meaning. */
- float localturn=turn,localpitch=pitch;
- g->yaw+=localturn*dt*1.5f;g->pitch=wrap_range(g->pitch+localpitch*dt*1.5f,3.14159265f);
+ flight_steer(g,turn,pitch,dt*1.5f);
  float damage_factor=g->damaged?fmaxf(.45f,g->hull/100.f):1.f;
  g->speed+=throttle*dt*(g->boost?4500:180)*damage_factor;if(g->speed<0)g->speed=0;float maxspeed=player_ships[g->ship].speed*(g->boost?20.f:1.f)*(0.70f+0.15f*g->pip_eng)*damage_factor;if(g->speed>maxspeed)g->speed=maxspeed;
  if(g->boost&&g->planet<0&&g->jump<=0){g->fuel=fmaxf(0,g->fuel-dt*.35f);if(g->fuel<=0){g->fuel=0;g->boost=0;if(g->message_time<=0)message(g,"Fuel empty. Boost cut.");}}

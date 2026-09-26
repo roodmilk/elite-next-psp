@@ -1,3 +1,10 @@
+## 2.5.154 — Stable steering after docking cancellation
+
+- Replaced world-axis/Euler steering with full cockpit-frame rotation in space and atmospheric flight. Banks, inverted flight and pole crossings no longer swap or reverse steering directions.
+- Circle cancellation clears exterior docking phase/timing and braking while preserving position and view. Launch resets yaw, pitch and roll; Debug Return to station also clears docking, approach and auto-aim state.
+- Removed the hidden roll reset when boost ends, preventing an uncommanded change of cockpit bank.
+- Replaced an incorrect yaw-sign regression with camera-space direction checks. Added all four steering directions across banks/poles, repeated loops, every exterior docking leg, debug return/relaunch and boost-release coverage. Existing save formats are unchanged.
+
 ## 2.5.153 — Mission Log owns tracking; clearer mission instructions
 
 - Removed the duplicate Explorers Guild entry from Work. Choose Guild, main story or a contract in Mission Log; Tracked Mission shows that selection's current step and working actions.

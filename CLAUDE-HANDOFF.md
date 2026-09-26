@@ -1,3 +1,13 @@
+## 2.5.154 — Cockpit-frame steering and docking handoff
+
+Root cause: docking sets roll to station rotation, cancellation retained it, and launch reset yaw/pitch but not roll. The v150 world-axis steering change was not actually screen-relative; its yaw-sign test certified the wrong behavior. Atmospheric steering also had a partial Euler mix. `flight_steer` in game.c rotates the whole camera frame about local input axes and recovers canonical Euler storage with atan2 near the poles. Both free-flight branches use it; landed/EVA controls remain unchanged. No save-format change.
+
+Circle cancellation clears docking phase/timers and hard brake without snapping position or orientation. Launch levels all three axes. Debug Return to station clears approach/docking/auto-aim and attitude. Removed the boost-release roll reset: now that roll carries actual frame orientation, forcibly zeroing it would cause a view jump. Preserve manual roll and rotating-station aperture alignment.
+
+Regression evidence: baseline passed; new cockpit-space matrix failed on old code in both space and atmosphere, and the launch-roll test failed. Corrected build passes all five smoke groups in `../../work/smoke-20260926-204314-956`; final versioned release build also passes in `../../work/smoke-20260926-204508-384`. Added 192 bank/pole/direction cases, continuous full loops, and real-input cancellation of every exterior guidance leg at three station rotations followed by debug return/relaunch. Old yaw-sign assertion replaced by actual nose movement in the previous camera frame. Physical PSP testing remains outstanding.
+
+Highest-priority remaining work: player retest of docking cancellation and repeated relaunch on real PSP; deferred tutorial pacing after speed/boost/brake; separate Heat Buffer catalogue/save-validation mismatch. Keep shared dialogue and Mission Log tracking behavior intact.
+
 ## 2.5.153 — Mission selection and readable instructions
 
 Mission Log is the selection authority. X tracks; Select tracks and opens CAMPAIGN (Tracked Mission). Guild actions run there; Work service ID 18 is retired but other IDs remain stable. GUILD redirects to the tracked Guild; legacy STORY redirects to HOME and the frontend retires old coaching without rewards. The dedicated First Light tutorial remains intact and its Guild lesson now uses service 13. Tutorial pacing is still explicitly deferred.

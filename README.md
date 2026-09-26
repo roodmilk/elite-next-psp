@@ -1,3 +1,7 @@
+## Cockpit-relative steering — 2.5.154
+
+Up/Down and Left/Right now follow the cockpit through any bank or loop, in space and atmosphere. Cancelling exterior docking with Circle preserves your view and gives steering back immediately. Launch and Debug → Return to station reset the full attitude; releasing boost no longer unexpectedly levels the ship. No save reset is required.
+
 ## Pick your mission in the log — 2.5.153
 
 In **Mission Log**, highlight a mission and press **X** to track it, or **Select** to track it and open its next-step details. **Tracked Mission** follows that choice: main story, Explorers Guild, accepted contracts or Station Welcome. Guild no longer has a duplicate Work menu. The old optional flight guide is retired; the dedicated Start tutorial mode remains available.

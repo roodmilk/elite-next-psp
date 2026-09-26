@@ -1,3 +1,41 @@
+/* Reproduce guidance -> cancel -> steer -> debug berth -> relaunch. */
+{
+ static Game before;
+ int handed_back=1,directions=1,relaunch_ok=1;
+ for(int phase=0;phase<4;phase++)for(int bank=1;bank<=3;bank++){
+  TEST_INIT();launch(&game);page=FLIGHT;
+  for(int i=0;i<NPC_COUNT;i++)game.npc[i].alive=0;
+  game.pos=(Vec3){200,100,phase<2?4300:2700};game.time=bank*62.831853f;
+  handed_back&=dock(&game)&&game.dock_stage==1;
+  /* Exercise each guidance leg without waiting through the earlier legs. */
+  game.dock_phase=phase;game.dock_from=game.pos;game.dock_to=(Vec3){200,0,2700};game.dock_duration=3;game.dock_timer=0;
+  input(0,0,.1f,0,0);before=game;
+  input(PSP_CTRL_CIRCLE,PSP_CTRL_CIRCLE,.016f,0,0);
+  handed_back&=!game.dock_stage&&!game.dock_phase&&game.dock_timer==0&&game.dock_duration==0&&!game.docked;
+  handed_back&=game.yaw==before.yaw&&game.pitch==before.pitch&&game.roll==before.roll&&length(sub(game.pos,before.pos))<.001f;
+  for(int d=0;d<4;d++){
+   float tx=d<2?(d==0?1:-1):0,ty=d>=2?(d==2?1:-1):0;
+   unsigned key=d==0?PSP_CTRL_RIGHT:d==1?PSP_CTRL_LEFT:d==2?PSP_CTRL_UP:PSP_CTRL_DOWN;
+   before=game;input(key,key,.016f,tx,ty);
+   Vec3 nose=camera(&before,add(before.pos,forward(&game)));
+   directions&=nose.x*tx+nose.y*ty>.02f&&fabsf(nose.x*ty-nose.y*tx)<.001f;
+  }
+  change_page(DEBUG);row=6;input(PSP_CTRL_CROSS,0,0,0,0);
+  relaunch_ok&=game.docked&&game.roll==0&&game.pitch==0&&game.yaw==0&&!autoaim;
+  launch(&game);page=FLIGHT;before=game;input(0,PSP_CTRL_UP,.016f,0,1);
+  Vec3 nose=camera(&before,add(before.pos,forward(&game)));
+  relaunch_ok&=nose.y>.02f&&fabsf(nose.x)<.001f;
+ }
+ INPUT_CHECK(handed_back,"guidance cancellation clears automation without snapping the cockpit");
+ INPUT_CHECK(directions,"all four directions work after cancelling every exterior guidance leg at varied station rolls");
+ INPUT_CHECK(relaunch_ok,"debug return and relaunch restore level cockpit and correct steering");
+ TEST_INIT();launch(&game);game.pos=(Vec3){0,0,2700};dock(&game);game.roll=2;autoaim=1;
+ change_page(DEBUG);row=6;debug_action();
+ INPUT_CHECK(game.docked&&!game.dock_stage&&!game.dock_phase&&game.dock_timer==0&&game.dock_duration==0&&game.roll==0&&!autoaim,"debug return during guidance clears stale docking and aiming state");
+ TEST_INIT();launch(&game);page=FLIGHT;game.pos=(Vec3){0,0,-20000};game.speed=0;game.roll=2;
+ game.boost=1;input(0,0,.016f,0,0);game.boost=0;input(0,0,.016f,0,0);
+ INPUT_CHECK(game.roll==2,"ending boost does not unexpectedly reset cockpit bank");
+}
 {
  TEST_INIT();accept_mission(&game,0);launch(&game);page=HOME;
  float remain=game.jobs[0].time;input(0,0,.05f,0,0);

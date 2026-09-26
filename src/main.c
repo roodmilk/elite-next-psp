@@ -540,7 +540,7 @@ static unsigned flight_steer_buttons(unsigned buttons){
  return buttons;
 }
 static void game_input(unsigned pressed,unsigned held,float dt,float ax,float ay){
- static unsigned in_held=0;static int sq_arm=0,boost_was_active=0;static float square_hold=0;
+ static unsigned in_held=0;static int sq_arm=0;static float square_hold=0;
  if(!tutorial_active(&game))station_tour_tick();
  unsigned released=in_held&~held;in_held=held;if(page!=FLIGHT||paused||game.police_stop||game.approach>=0||game.dock_stage)sq_arm=0;
  if(!(held&PSP_CTRL_CROSS))fire_blocked=0;
@@ -580,7 +580,7 @@ static void game_input(unsigned pressed,unsigned held,float dt,float ax,float ay
  if(page==FLIGHT&&!game.dead&&!game.police_stop&&game.jump<=0&&!game.dock_stage)paused=(held&PSP_CTRL_START)!=0;else if(paused)paused=0;
  /* Hold Start: redistribute on the existing SYS/ENG/WEP meters — no separate panel. */
  if(paused){fire_blocked=1;game.boost=0;if(pressed&PSP_CTRL_LEFT)pip_sel=(pip_sel+2)%3;if(pressed&PSP_CTRL_RIGHT)pip_sel=(pip_sel+1)%3;if(pressed&PSP_CTRL_UP)pip_shift(&game,pip_sel);if(pressed&PSP_CTRL_DOWN)pip_selected_move(&game,pip_sel,-1);return;}
- if(game.dock_stage){autoaim=0;if(game.dock_stage==1&&(pressed&PSP_CTRL_CIRCLE)){game.dock_stage=0;game.speed=0;game.boost=0;message(&game,"Docking guidance cancelled. You have control.");return;}game_tick(&game,dt,0,0,0,0);if(game.docked)change_page(HOME);return;}
+ if(game.dock_stage){autoaim=0;if(game.dock_stage==1&&(pressed&PSP_CTRL_CIRCLE)){game.dock_stage=game.dock_phase=0;game.dock_timer=game.dock_duration=0;game.speed=0;game.boost=0;hard_brake=0;message(&game,"Docking guidance cancelled. You have control.");return;}game_tick(&game,dt,0,0,0,0);if(game.docked)change_page(HOME);return;}
  if(game.dead){game_tick(&game,dt,0,0,0,0);return;}
  if(page==FLIGHT&&game.jump>0){game.boost=0;game_tick(&game,dt,0,0,0,0);if(game.jump<=0){selected_target=0;autoaim=0;}return;}
  /* On foot owns its controls; spacecraft roll, boost and target chords never run here. */
@@ -771,7 +771,7 @@ else if(page==COMMS_PANEL&&(pressed&PSP_CTRL_CROSS)){
   else if(page==STATUS&&game.docked){if(pressed&PSP_CTRL_CROSS)save_game(&game,commander_save_path(&game));if(pressed&PSP_CTRL_TRIANGLE){if(load_game(&game,commander_save_path(&game))){selected_target=0;autoaim=0;look_target=-1;}else message(&game,"Load failed, or no save found.");}if((pressed&PSP_CTRL_SQUARE)&&game.legal>0)police_pay_desk(&game);}
  }
  float turn=0,pitch=0;int throttle=0,fire=0;if(page==FLIGHT){turn=ax;pitch=ay;int rolling=(held&PSP_CTRL_LTRIGGER)&&(held&(PSP_CTRL_LEFT|PSP_CTRL_RIGHT))&&!(held&PSP_CTRL_SQUARE);if(rolling){game.roll+=((held&PSP_CTRL_RIGHT)?1:-1)*dt*2;turn=pitch=0;game.boost=0;autoaim=0;}throttle=(held&PSP_CTRL_RTRIGGER?1:0)-(held&PSP_CTRL_LTRIGGER?1:0);if(rolling||(held&PSP_CTRL_SQUARE)||hard_brake>0)throttle=0;if(hard_brake>0){game.speed*=fmaxf(.15f,1.f-dt*5.5f);if(game.speed<40)game.speed=0;}fire=!fire_blocked&&oldpage==FLIGHT&&!game.dock_stage&&game.approach<0&&game.laser&&(held&PSP_CTRL_CROSS)!=0&&!(held&PSP_CTRL_LTRIGGER)&&game.jump<=0;if(fire&&valid_target(selected_target)&&IS_NPC_ID(selected_target))autoaim=1;align_target(dt,ax,ay);}
- if(page==FLIGHT){if(oldpage!=FLIGHT){turn=pitch=0;throttle=fire=0;}game_tick(&game,dt,turn,pitch,throttle,fire);if(boost_was_active&&!game.boost)game.roll=0;boost_was_active=game.boost;if(game.docked)change_page(HOME);}else boost_was_active=0;
+ if(page==FLIGHT){if(oldpage!=FLIGHT){turn=pitch=0;throttle=fire=0;}game_tick(&game,dt,turn,pitch,throttle,fire);if(game.docked)change_page(HOME);}
 }
 #include "mission-tracking-input.h"
 #include "tutorial-runtime.h"
@@ -815,7 +815,7 @@ static void input_tests(void){
  {int vis[6],n=deck_fill(2,vis),saw=0;for(int i=0;i<n;i++)if(vis[i]==12)saw=1;INPUT_CHECK(!saw,"undocked Work tab omits Mission board");}
  game.cargo[0]=2;game.cargo[7]=1;INPUT_CHECK(cargo_rows()==2&&cargo_item(1)==7,"flight inventory lists only owned cargo");contacts_refresh();INPUT_CHECK(contact_count>=BODY_COUNT+1&&contact_ids[BODY_COUNT]==BODY_COUNT,"contacts include station and every celestial body");
  page=FLIGHT;game.pos=(Vec3){0,0,-20000};float speed=game.speed;input(0,PSP_CTRL_LTRIGGER|PSP_CTRL_RIGHT,.016f,1,0);INPUT_CHECK(game.roll>0&&game.speed==speed,"L and right rolls without changing throttle");
- game.roll=3.1415926f;float yaw_before=game.yaw;input(0,PSP_CTRL_RIGHT,.016f,1,0);INPUT_CHECK(game.yaw>yaw_before,"right steering stays right-way-up after a full roll");
+ game.roll=3.1415926f;{static Game before;before=game;input(0,PSP_CTRL_RIGHT,.016f,1,0);Vec3 nose=camera(&before,add(before.pos,forward(&game)));INPUT_CHECK(nose.x>.02f&&fabsf(nose.y)<.001f,"Right steers toward cockpit right when inverted");}
  TEST_INIT();game.ship=9;game.credits=10000;change_page(DECORATOR);row=2;
  input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(ship_paint[9]==decorator_finishes[2]&&game.credits==7600,"decorator applies chosen paint to the tenth hull at its displayed 240-unit cost");
