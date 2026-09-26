@@ -1,3 +1,10 @@
+## 2.5.156 — SPACE TALK and readable radio tuning
+
+- Moved LOCKED/STATIC/RADIO OFF below the frequency numbers and expanded the dial glass so title and category have separate rows.
+- Renamed station 6 to SPACE TALK, category TALK RADIO, without changing station IDs, folders or saved preferences.
+- Replaced the repeating ~1.5-second babble loop and noisy, asymmetric throat pulse with integer-only varied speech phrases: six speaker profiles, different syllable lengths/vowels/pitch contours and genuinely silent pauses. No continuous noise bed.
+- Added audio checks for variation, silence, smooth edges, deterministic reset and mix headroom; native locked/static/off radio captures and a 32-second station audition.
+
 ## 2.5.155 — Roll while boosting; quieter heat feedback
 
 - Hold R after double-tap boost, then add L + Left/Right to roll without cutting boost. L does not slow or trigger hard brake while boosting; releasing L restores turning and releasing R ends boost. Pitch remains available during boosted rolls.

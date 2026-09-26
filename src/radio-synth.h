@@ -20,18 +20,19 @@ typedef struct {
  int delay_pos,filter_l,filter_r;
  uint32_t noise,kick_phase,kick_increment;
  uint32_t chatter_phase,chatter_phase_b;
+ int talk_age,talk_length,talk_gap,talk_words,talk_voice,talk_pitch,talk_end,talk_vowel;
  int station,step,remaining,step_samples;
  int kick,snare,hat,previous_noise;
 } RadioSynth;
 
 static inline const char *radio_station_name(int index){
  static const char *const names[RADIO_STATION_COUNT]={
-  "Deep Field","Neon Transit","Pixel Comet","Velvet Orbit","Far Horizons","Cross-Ling Chatter"};
+  "Deep Field","Neon Transit","Pixel Comet","Velvet Orbit","Far Horizons","SPACE TALK"};
   return names[index>=0&&index<RADIO_STATION_COUNT?index:0];
 }
 static inline const char *radio_station_genre(int index){
  static const char *const genres[RADIO_STATION_COUNT]={
-  "Ambient","Synthwave","Chiptune","Lounge","Orchestral","Animal Babble"};
+  "Ambient","Synthwave","Chiptune","Lounge","Orchestral","TALK RADIO"};
  return genres[index>=0&&index<RADIO_STATION_COUNT?index:0];
 }
 static inline uint32_t radio_note_increment(int note){
@@ -147,22 +148,32 @@ static inline void radio_synth_sample(RadioSynth *s,int *left,int *right){
  int l=0,r=0,i,n,high,percussion=0;
  if(!s){if(left)*left=0;if(right)*right=0;return;}
  if(s->station==5){
-  /* A non-musical channel: filtered noise, throat pulses and shifting
-   * formants make short animal-like cross-ling syllables. */
-  int syllable=(s->step/2205)&31,age=s->step%2205,voice=syllable%5;
-  int gate=(age<150?age:age>1850?2205-age:2205),formant=145+voice*47+(syllable&3)*29;
-  int pulse=(int)(s->chatter_phase>>23),second=(int)(s->chatter_phase_b>>22),n;
-  s->noise=s->noise*1664525u+1013904223u;n=(int)(s->noise>>24)-128;
-  s->chatter_phase+=(unsigned)(formant+((syllable&1)?55:0))*97391u;
-  s->chatter_phase_b+=(unsigned)(formant*2+voice*31)*97391u;
-  int throat=pulse<128?pulse-64:192-pulse;
-  int vowel=second<512?second-256:768-second;
-  int click=((age<240||age>1840)?n*2:0),level=gate>220?110:gate/2;
-  int l=((vowel*level)/256)+(throat*(level+30)/256)+click;
-  int r=((vowel*(level+25))/256)-(throat*(level-15)/256)+click/2;
-  l*=5;r*=5;s->step=(s->step+1)&65535;
-  if(l>12000)l=12000;else if(l<-12000)l=-12000;
-  if(r>12000)r=12000;else if(r<-12000)r=-12000;
+  /* Speech-only phrases: no noise bed, percussion or unipolar throat pulse.
+   * Randomise only at syllable boundaries; keep the sample loop integer-only. */
+  if(s->talk_gap>0){--s->talk_gap;if(left)*left=0;if(right)*right=0;return;}
+  if(s->talk_age>=s->talk_length){
+   s->noise=s->noise*1664525u+1013904223u;uint32_t choice=s->noise;
+   if(s->talk_words<=0){
+    int previous=s->talk_voice;s->talk_voice=(previous+1+(int)(choice%5))%6;
+    s->talk_words=4+(int)((choice>>5)%12);
+   }
+   s->talk_length=2646+(int)((choice>>9)%3969);s->talk_age=0;
+   s->talk_pitch=220+s->talk_voice*65+(int)((choice>>17)%140);
+   s->talk_end=s->talk_pitch+(int)((choice>>24)%121)-60;
+   s->talk_vowel=(choice>>14)%4;
+  }
+  int age=s->talk_age++,left_in=s->talk_length-s->talk_age;
+  int envelope=age<441?age:441;if(left_in<envelope)envelope=left_in;
+  int hz=s->talk_pitch+(s->talk_end-s->talk_pitch)*age/s->talk_length;
+  s->chatter_phase+=(uint32_t)hz*97391u;
+  s->chatter_phase_b+=(uint32_t)(hz*(2+s->talk_vowel))*97391u;
+  int fundamental=radio_triangle(s->chatter_phase),formant=radio_triangle(s->chatter_phase_b);
+  int value=(fundamental*(5-s->talk_vowel)+formant*(1+s->talk_vowel))*envelope/441;
+  int l=value*(s->talk_voice&1?3:4),r=value*(s->talk_voice&1?4:3);
+  if(s->talk_age>=s->talk_length){
+   s->noise=s->noise*1664525u+1013904223u;
+   s->talk_gap=--s->talk_words?882+(int)(s->noise%2646):8820+(int)(s->noise%17640);
+  }
   if(left)*left=l;if(right)*right=r;return;
  }
  if(s->remaining<=0)radio_sequence_step(s);

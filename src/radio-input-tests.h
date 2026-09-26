@@ -22,5 +22,18 @@
  input(PSP_CTRL_CIRCLE,0,.016f,0,0);
  INPUT_CHECK(page==HOME&&!radio_dirty,"radio: returning saves preferences");
  remove("radio.cfg");remove("radio.cfg.bak");remove("radio.cfg.tmp");
- radio_station=0;radio_volume=5;sound_volume=8;radio_off=0;radio_dirty=0;
+ {
+  unsigned *saved=fb,*pixels=malloc(STRIDE*H*sizeof(unsigned));
+  INPUT_CHECK(pixels!=0,"radio: native layout capture buffer available");
+  if(pixels){
+   fb=pixels;radio_station=5;
+   for(int state=0;state<3;state++){
+    radio_off=state==2;radio_static_ms=state==1?200:0;
+    rect(0,0,W,H,BG);radio_screen();
+    dump_native_bmp(state==0?"radio-locked.bmp":state==1?"radio-static.bmp":"radio-off.bmp");
+   }
+   fb=saved;free(pixels);
+  }
+ }
+ radio_static_ms=0;radio_station=0;radio_volume=5;sound_volume=8;radio_off=0;radio_dirty=0;
 }

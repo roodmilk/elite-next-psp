@@ -77,6 +77,24 @@ static void radio_tests(void){
   for(int i=0;i<44100*4;i++){int l,r;radio_synth_sample(&s,&l,&r);repeat=(repeat^(unsigned)l)*16777619u;}
   RADIO_CHECK(hash==repeat,"station resets deterministically");
  }
+ RADIO_CHECK(!strcmp(radio_station_name(5),"SPACE TALK")&&!strcmp(radio_station_genre(5),"TALK RADIO"),"talk station has requested title and category");
+ {
+  RadioSynth talk;radio_synth_reset(&talk,5);int quiet=0,longest=0,run=0,voices=0,changed=0,last=0,jump=0;
+  unsigned chunks[12]={0};
+  for(int i=0;i<44100*12;i++){
+   int l,r;radio_synth_sample(&talk,&l,&r);
+   chunks[i/44100]=(chunks[i/44100]^(unsigned)l)*16777619u;
+   voices|=1<<talk.talk_voice;
+   if(!l&&!r){quiet++;if(++run>longest)longest=run;}else run=0;
+   if(abs(l-last)>jump)jump=abs(l-last);
+   last=l;
+  }
+  for(int i=1;i<12;i++)changed+=chunks[i]!=chunks[i-1];
+  RADIO_CHECK(quiet>44100&&longest>=8820,"talk radio has truly silent pauses with no shuffling bed");
+  RADIO_CHECK(changed==11&&(voices&(voices-1)),"talk radio varies phrases and speakers beyond the old short loop");
+  RADIO_CHECK(jump<1500,"talk syllables have smooth edges without noise clicks");
+ }
+ RADIO_CHECK(radio_preview_wav(5),"export SPACE TALK audition");
  int unique=1;for(int i=0;i<RADIO_STATION_COUNT;i++)for(int j=i+1;j<RADIO_STATION_COUNT;j++)if(hashes[i]==hashes[j])unique=0;
  RADIO_CHECK(unique,"all six radio stations produce different audio");
  FILE *preview=fopen("radio-preview.flag","rb");if(preview){fclose(preview);for(int i=0;i<RADIO_STATION_COUNT;i++)RADIO_CHECK(radio_preview_wav(i),"export original stereo radio excerpt");}

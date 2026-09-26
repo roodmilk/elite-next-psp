@@ -1,3 +1,7 @@
+## SPACE TALK — 2.5.156
+
+Station 6 is now **SPACE TALK**, category **TALK RADIO**. Its generated babble has varied speakers, syllable lengths, pitch contours and phrase pauses, without the old noisy shuffle underneath. Radio status now has its own row below the channel numbers, including LOCKED, STATIC and RADIO OFF. Existing radio preferences and music folders are unchanged.
+
 ## Boost and roll — 2.5.155
 
 Double-tap R and keep it held to boost. Add L + D-pad Left/Right to roll without cancelling boost or losing acceleration; release L to turn normally, or release R to stop boosting. While boosting, L is a roll modifier instead of a brake. Once R is released, normal L slowdown and double-L hard braking are available again.

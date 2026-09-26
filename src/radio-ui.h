@@ -12,9 +12,9 @@ static void radio_screen(void){
  button_icon(43,164,'T',RGB(80,220,110));
 
  /* Dial glass */
- rect(136,42,166,110,RGB(10,12,16));rect(138,44,162,106,RGB(6,8,12));
+ rect(136,42,166,136,RGB(10,12,16));rect(138,44,162,132,RGB(6,8,12));
  text(18,6,DIM,"TUNER / L-R STATION");
- /* Frequency dial: OFF then stations 1-6, obvious notches. */
+ /* Frequency dial: 0 is OFF, then stations 1-6. Equal-width labels. */
  int dial_y=96,dial_x0=152,dial_x1=286,span=dial_x1-dial_x0;
  line(dial_x0,dial_y,dial_x1,dial_y,RGB(90,110,120));
  int notches=RADIO_STATION_COUNT+1;
@@ -22,7 +22,7 @@ static void radio_screen(void){
   int x=dial_x0+(span*i)/(notches-1);
   int active=radio_off?i==0:(!radio_off&&radio_station==i-1);
   line(x,dial_y-12,x,dial_y+12,active?GOLD:RGB(120,140,150));
-  if(i==0)text(x/8-1,dial_y/8+2,active?GOLD:DIM,"OFF");
+  if(i==0)text(x/8,dial_y/8+2,active?GOLD:DIM,"0");
   else {text(x/8,dial_y/8+2,active?GOLD:CYAN,"%d",i);rect(x-2,dial_y-16,5,3,active?GOLD:RGB(70,90,100));}
  }
  /* Needle */
@@ -34,11 +34,11 @@ static void radio_screen(void){
  /* Between-station static cue on the glass */
  if(radio_static_ms>0){
   for(int s=0;s<18;s++){int sx=148+(s*17+radio_static_ms*3)%150,sy=52+(s*11)%36;pixel(sx,sy,AMBER);pixel(sx+1,sy,RGB(180,140,40));}
-  text(18,14,AMBER,"STATIC");
- }else if(radio_off)text(18,14,DIM,"RADIO OFF");
- else text(18,14,CYAN,"LOCKED");
- if(radio_static_ms<=0)text(18,16,radio_off?DIM:WHITE,"%.18s",radio_off?"(silence)":radio_station_name(radio_station));
- text(18,18,CYAN,"%.18s",radio_off?"Right: station 1":radio_station_genre(radio_station));
+  text(18,16,AMBER,"STATIC");
+ }else if(radio_off)text(18,16,DIM,"RADIO OFF");
+ else text(18,16,CYAN,"LOCKED");
+ if(radio_static_ms<=0)text(18,18,radio_off?DIM:WHITE,"%.18s",radio_off?"(silence)":radio_station_name(radio_station));
+ text(18,20,CYAN,"%.18s",radio_off?"Right: station 1":radio_station_genre(radio_station));
 
  /* Volume panel */
  panel(320,32,152,188);

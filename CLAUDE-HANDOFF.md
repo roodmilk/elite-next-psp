@@ -1,3 +1,13 @@
+## 2.5.156 — SPACE TALK radio polish
+
+radio-ui.h separates tuner number row 14, status 16, name 18 and genre 20; glass extends to y178. Station 6 labels are SPACE TALK / TALK RADIO; station ID, folder mapping and save format stay intact.
+
+radio-synth.h replaces station 5's sample-count loop (65536 samples, ~1.5 sec), asymmetric throat waveform and boundary noise bursts with seeded phrase/syllable events, six alternating voice profiles, pitch contours and balanced triangle harmonics. Envelopes reach zero at both ends; word and phrase gaps output exact silence. PRNG updates only at boundaries; audio worker remains integer-only and allocation-free. The five music stations are unchanged.
+
+Validation: final v2.5.156 build and all five smoke groups pass in `../../work/smoke-20260926-211228-988`; no new compiler warnings. Native 480x272 locked/static/off captures reviewed; final 0-6 dial labels checked after replacing cramped OFF notch text. radio-tests.h checks silent gaps, speaker/phrase variation, click bounds, metadata and existing stereo/headroom/reset rules, and exports radio-preview-6.wav. radio-input-tests.h captures locked/static/off states. Physical PSP listening remains outstanding; subjective sound approval belongs to the player.
+
+Highest-priority remaining work: player listen to SPACE TALK and retest boosted rolls/docking handoff; deferred tutorial pacing; separate Heat Buffer catalogue/save-validation mismatch.
+
 ## 2.5.155 — Boost rolling and thermal alert separation
 
 While boost owns R, L is a roll modifier, not slowdown/hard brake. game_input ignores/resets L tap timing while boosting, keeps boost during manual roll, and retains acceleration with R+L. Releasing R still stops boost; ordinary non-boost L controls and EVA remain unchanged. Boosted roll can retain pitch input. Help labels and README explain the chord.
