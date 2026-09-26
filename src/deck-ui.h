@@ -9,7 +9,7 @@ static void home(void){
  {"view game controls","Four short reference pages."},{"Meet the local factions.","Learn their colours and roles."},{"Select ships or worlds.","Choose a target to follow."},
  {"Change cash or world state.","Debug changes affect saves."},{"Hail station or get help.","Request guided docking."},{"Economy, risk and planets.","Know where you are flying."},
  {"Find work at this station.","Dock to accept a contract."},{"Review jobs and route.","Reading pauses job clocks."},{"News and local SpaceBook.","Take a break from flying."},
- {"Review your discoveries.","Keep a record of your travels."},{"cruise to sweet tunes!","Set music and effects levels."},{"Guide for tracked mission.","Choose tracking in Mission Log."},
+ {"Review your discoveries.","Keep a record of your travels."},{"cruise to sweet tunes!","Set music and effects levels."},{"Your selected mission.","Choose it in Mission Log."},
  {"Optional Guild assignments.","Also listed in Mission Log."},{"Choose HUD and chatter.","Keep the view comfortable."},{"SEE WHATS AROUND!","LOOK SPEAK GO TAKE on hotspots."},{"SEE WHATS ON YOUR SHIP","See what your ship carries."},{"A readable history of the galaxy.","Explore the major eras, peoples and powers."},{"REPAINT YOUR HULL","Choose a finish or pattern."},{"RESTORE SHIP CONDITION","Station engineers repair damage for a fee."}};
  panel(8,58,222,132);panel(238,58,234,132);
  int vis[6],vn=deck_fill(group,vis);
@@ -25,7 +25,7 @@ static void home(void){
  /* The detail pane is 27 native columns wide; keep future copy inside it. */
  text(31,22,RGB(229,210,163),"%.27s",hints[row][0]);
  if(!game.docked&&row==20)text(31,23,RGB(240,180,91),"Dock first to open this.");
- if(is_story){rect(246,178,218,2,RGB(193,139,77));text(31,23,RGB(240,180,91),"Open to see your next step.");}
+ if(is_story){rect(246,172,218,2,RGB(193,139,77));text(31,23,RGB(240,180,91),"Open to see your next step.");}
  text(2,25,RGB(85,212,212),"System: %.12s",game.systems[game.system].name);
  {int wl=wanted_level(&game);text(2,26,wl?RED:RGB(155,154,165),wl?"Wanted [%s]":"Clear warrant",stars(wl));}
  text(31,25,RGB(229,210,163),"%s",game.docked?"DOCKED":"PAUSED");credits_badge();

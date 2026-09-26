@@ -6,7 +6,7 @@ Station Welcome now has a selectable log row after the contracts, mapping to sta
 
 First Flight has state-specific next-step dialogue and visible launch/resume/reward actions; no launch-generated fake target-lock event. Kei's four later briefings and associated aftermath have expanded prose. Saga local objectives explain scan/dock/hunt controls, with flight actions rather than same-system routing. Ch.05 choices wait for the evidence delivery. Keep shared `dialogue-ui.h` styling and orange replies.
 
-Validation: final build and all five smoke groups passed in `../../work/smoke-20260926-203218-695` (game, input, steering, radio, performance: zero failures). Added `mission-tracking-tests.h` for log selection, tour isolation, job compaction, launch/docking instructions and full-log captures. Native 480x272 Work, full Mission Log, First Flight and Guild captures reviewed. Physical PSP playtesting remains outstanding.
+Validation: final build and all five smoke groups passed in `../../work/smoke-20260926-203406-655` (game, input, steering, radio, performance: zero failures). Added `mission-tracking-tests.h` for log selection, tour isolation, job compaction, launch/docking instructions and full-log captures. Native 480x272 Work, full Mission Log, First Flight and Guild captures reviewed. Physical PSP playtesting remains outstanding.
 
 Highest-priority remaining work: requested tutorial delay after speed/boost/brake practice (deferred); Heat Buffer catalogue/save-validation mismatch; real PSP control, readability and long-session testing. Do not reintroduce a separate Guild/optional coaching menu or automatic tracking overrides.
 
