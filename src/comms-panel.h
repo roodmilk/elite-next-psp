@@ -1,13 +1,18 @@
 static int comms_return=FLIGHT,triangle_arm=0,comms_encounter_conversation=0;static float triangle_hold=0;
 static void comms_panel(void){
- if(encounter_requires_reply(&game)){
-  header(comms_encounter_conversation?"INCOMING CHANNEL":"ENCOUNTER TRANSMISSION");panel(8,32,464,156);
+ if(comms_encounter_conversation||encounter_requires_reply(&game)){
+  dialogue_begin(comms_encounter_conversation?"INCOMING CHANNEL":"ENCOUNTER TRANSMISSION");
+  static const char *names[]={"CONTACT","KEI","VENN","DOCKHAND","LOCAL LAW","COMPUTER","CONTACT"};
+  int who=game.voice_who,role=game.voice_role;
+  if(who<0||who>VOICE_CONTACT)who=0;
+  if(role<0||role>EXPLORERS)role=EXPLORERS;
+  dialogue_speech(who==VOICE_CONTACT?faction_names[role]:names[who],role,game.voice_seed,game.voice[0]?game.voice:"Channel open.",0);
+  dialogue_context("YOUR REPLY",comms_encounter_conversation?"Choose how to continue the conversation.":"Respond to this encounter, or ignore the channel.");
   if(comms_encounter_conversation){
-   text(3,6,GOLD,"CONTACT RESPONSE");text_wrap(3,9,54,5,WHITE,game.voice[0]?game.voice:"Channel open.",0);
    const char *options[]={"CONTINUE DISCUSSION","ASK ABOUT THIS ENCOUNTER","END CHANNEL"};
-   for(int i=0;i<3;i++){int y=15+i*2;text(3,y,row==i?GOLD:WHITE,"%s%s",row==i?"> ":"  ",options[i]);}
+   for(int i=0;i<3;i++)dialogue_reply(i,options[i]);
   }else{
-   text(3,6,GOLD,"NEW SPACE ENCOUNTER");text_wrap(3,9,54,5,WHITE,game.voice[0]?game.voice:"Transmission received.",0);text(3,20,row==0?GOLD:WHITE,"RESPOND");text(20,20,row==1?GOLD:WHITE,"IGNORE");
+   dialogue_reply(0,"Respond");dialogue_reply(1,"Ignore");
   }
   footer("UP/DOWN   X CHOOSE   O RETURN");return;
  }

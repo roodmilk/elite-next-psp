@@ -1,5 +1,8 @@
 ELITE: NEXT for PSP
 
+2.5.152: All mission conversations now share the same layout and reply boxes.
+See BUILD-2.5.152.txt. Tutorial pacing is unchanged.
+
 2.5.151: Choose START TUTORIAL for First Light, a 61-lesson guided story.
 Tutorial checkpoints use tutorial.sav; regular saves use commander.sav.
 See BUILD-2.5.151.txt for controls and continuation.

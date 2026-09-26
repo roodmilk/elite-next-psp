@@ -47,58 +47,13 @@ static void narrative_do(int screen){
  else if(action==NA_MAP){int type=guild_required_contract(&game);if(type>=0&&assignment_job()<0){int station=guild_contract_station(&game),hops=0,hop=route_next_hop(&game,station,&hops);game.destination=hop>=0?hop:station;change_page(CHART);char note[96];snprintf(note,sizeof(note),"Route to %s Hub. Required contract confirmed there.",game.systems[station].name);message(&game,note);}else change_page(CHART);}
  else change_page(HOME);
 }
-static void narrative_choice(int index,int y,const char *label){
- if(row==index)selected_span(y,464);
- text(3,y,row==index?WHITE:DIM,"%s %s",row==index?">":" ",label);
-}
-static void narrative_reply_choice(int index,int y,const char *label){
- int active=row==index,py=y*8-3;unsigned edge=active?RGB(245,157,62):RGB(119,71,38),fill=active?RGB(62,36,24):RGB(28,24,23);
- rect(16,py,448,14,fill);rect(16,py,448,1,edge);rect(16,py+13,448,1,edge);rect(16,py,2,14,edge);rect(462,py,2,14,edge);
- /* The right-hand tail marks this as the commander's side of the exchange. */
- line(464,py+4,470,py+7,edge);line(470,py+7,464,py+10,edge);
- /* Commander line only — no "YOU:" chrome (reads like broken English on PSP). */
- text(3,y,active?GOLD:AMBDIM,"%s %s",active?">":" ",label);
-}
 static int saga_speaker_role(const SagaBeat *b){
  if(!b)return EXPLORERS;
  if(b->role==3)return LAW;
  if(b->role==2)return TRADERS;
  return EXPLORERS;
 }
-static unsigned saga_speaker_color(const SagaBeat *b){
- int role=saga_speaker_role(b);
- if(b&&(!strcmp(b->speaker,"KEI")||!strcmp(b->speaker,"RYN")))return RGB(76,181,190);
- return faction_colors[role];
-}
-static void saga_speaker_face(int x,int y,int size,const SagaBeat *b){
- if(!b){draw_kei(x,y,size,0);return;}
- if(!strcmp(b->speaker,"KEI")||!strcmp(b->speaker,"RYN")){draw_kei(x,y,size,!strcmp(b->speaker,"RYN")?1:0);return;}
- int role=saga_speaker_role(b);unsigned seed=0;
- for(const char *p=b->speaker;*p;p++)seed=seed*131u+(unsigned char)*p;
- draw_portrait(x,y,size,size,(int)(seed%2000)+role*37,role);
-}
-static void kei_speech_bubble(int y,const char *line1,const char *line2,int expression){
- const int px=16,size=48,bx=76,bw=388,bh=72;unsigned edge=RGB(76,181,190),fill=RGB(14,29,39);
- draw_kei(px,y+7,size,expression);
- rect(bx,y,bw,bh,fill);rect(bx,y,bw,2,edge);rect(bx,y+bh-2,bw,2,RGB(30,78,86));rect(bx+bw-2,y,2,bh,edge);
- /* A compact pixel tail physically links these words to Kei's portrait. */
- line(bx,y+20,bx-12,y+28,edge);line(bx-12,y+28,bx,y+36,edge);rect(bx-3,y+22,4,13,fill);
- speaker_name_tag(11,y/8+1,"KEI",edge);
- /* Wrap into the bubble width — never hard-truncate mid-sentence. */
- int col=11,cap=((bx+bw-8)/8)-col,row=y/8+3,bottom=y/8+7;
- const char *left=0;
- if(line1&&line1[0])row+=text_wrap(col,row,cap,3,WHITE,line1,&left);
- if(line2&&line2[0]&&row<=bottom)text_wrap(col,row,cap,bottom+1-row,WHITE,line2,0);
-}
-/* Orange right-tailed bubble: the commander speaks before the NPC answers. */
-static void player_speech_bubble(int y,const char *speech){
- const int bx=16,bw=388,bh=68;unsigned edge=RGB(245,157,62),fill=RGB(42,24,14);
- rect(bx,y,bw,bh,fill);rect(bx,y,bw,2,edge);rect(bx,y+bh-2,bw,2,RGB(119,71,38));rect(bx,y,2,bh,edge);
- line(bx+bw,y+20,bx+bw+12,y+28,edge);line(bx+bw+12,y+28,bx+bw,y+36,edge);rect(bx+bw-1,y+22,4,13,fill);
- speaker_name_tag(3,y/8+1,"COMMANDER",edge);
- text_wrap(3,y/8+3,46,3,WHITE,speech&&speech[0]?speech:"...",0);
-}
-static void narrative_footer(void){footer("UP/DOWN CHOOSE   X SELECT   O BACK");}
+static void narrative_footer(void){footer(page==CAMPAIGN?"UP/DOWN   X CHOOSE   O BACK   SELECT LOG":"UP/DOWN   X CHOOSE   O BACK");}
 enum { PROLOGUE_BRIEF_BEATS = 6 };
 static int saga_brief_beat=0,saga_brief_chapter=-1,prologue_brief_beat=0;
 /* echo=1: player just asked; next Cross reveals the NPC answer (never answer-before-ask). */

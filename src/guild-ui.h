@@ -1,10 +1,14 @@
+static void guild_dialogue(void){
+ char title[96];snprintf(title,sizeof(title),"GUILD %d/4 / %s",game.guild_chapter>=4?4:game.guild_chapter+1,guild_title(&game));
+ dialogue_begin(title);
+ const char *a=guild_line(&game,0),*sep=strchr(a,':');char speaker[24]="GUILD";
+ if(sep){int n=(int)(sep-a);if(n>23)n=23;memcpy(speaker,a,n);speaker[n]=0;a=sep+1;while(*a==' ')a++;}
+ dialogue_named(speaker,EXPLORERS,a,guild_line(&game,1));
+ dialogue_context("CURRENT OBJECTIVE",guild_objective(&game));
+}
 static void guild_screen(void){
- header("OPTIONAL ASSIGNMENTS");panel(8,32,464,190);
- text(2,5,GOLD,"OPTIONAL %d/4 / %s",game.guild_chapter>=4?4:game.guild_chapter+1,guild_title(&game));
- kei_speech_bubble(54,guild_line(&game,0),guild_line(&game,1),0);
- rect(16,126,448,27,RGB(13,36,43));text(3,16,GOLD,"CURRENT OBJECTIVE");text_wrap(3,18,54,1,WHITE,guild_objective(&game),0);
- text(3,20,DIM,"CHOOSE AN ACTION");
- narrative_reply_choice(0,21,narrative_label(narrative_action(GUILD)));
- narrative_reply_choice(1,24,"Show me the optional flight guide.");
+ guild_dialogue();
+ dialogue_reply(0,narrative_label(narrative_action(GUILD)));
+ dialogue_reply(1,"Show me the optional flight guide.");
  narrative_footer();
 }

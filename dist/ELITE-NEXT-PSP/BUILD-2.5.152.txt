@@ -1,0 +1,15 @@
+ELITE: NEXT 2.5.152 - CONSISTENT MISSION CONVERSATIONS
+
+First flight, later story, Explorers Guild, contracts, station welcome and
+incoming Triangle conversations use one shared speech and reply layout.
+
+UP/DOWN highlights a reply. CROSS chooses it. CIRCLE returns.
+SELECT opens the mission log from Tracked Mission.
+Long speeches show L/R and a page count: shoulder buttons turn the page.
+Notifications stay above replies. Guild speaker portraits match their dialogue.
+
+Mission actions and rewards are unchanged. No save migration is required.
+Tutorial timing improvements are deferred to a later update.
+
+Tested with the PSP emulator smoke suite and native-resolution captures.
+Physical PSP playtesting remains outstanding.

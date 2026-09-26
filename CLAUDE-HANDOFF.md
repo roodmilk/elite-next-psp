@@ -1,3 +1,11 @@
+## 2.5.152 — Shared mission conversation UI
+
+`src/dialogue-ui.h` owns all mission speech geometry, text paging, speaker presentation, objective/feedback band and response rows. Campaign (prologue, saga, coda, choices, epilogue, tracked Guild, station welcome, contracts), direct Guild and Triangle conversations call it. Do not add bespoke speech rectangles to these screens. `src/dialogue-visual-tests.h` captures 12 states in normal/high contrast and checks layout, selection, paging, safe punctuation and untracked-choice isolation. Existing gameplay actions are retained; no save-format changes.
+
+Final build and all five emulator smoke groups passed: `../../work/smoke-20260926-200222-610` (game, input, steering, radio, performance each report zero failures). Native 480x272 captures reviewed across prologue, commander reply, saga decisions, direct/tracked Guild, contracts and Triangle channels, including high contrast. Physical PSP rendering/input remains unverified.
+
+Highest-priority remaining work: tutorial timing explicitly deferred by the player. Allow a few seconds after double-tap R/L and speed exercises in a later pacing pass. Continue real-hardware playtesting; preserve separate tutorial/commander saves. Existing Heat Buffer catalog/save-validation mismatch remains separate. Legacy optional flight guide and paused First Light lesson presentation were intentionally not redesigned in this mission UI pass.
+
 ## 2.5.151 — First Light tutorial
 
 Implemented `src/tutorial.h` (61 authored beats), `src/tutorial-runtime.h` (observed-action adapter and paused briefing), and separate tutorial save V15. Title menu explicitly offers Start/Continue tutorial and normal New/Load commander. Initial tutorial deck exposes only FLY; all other services unlock in sequence. Full script and coverage: `docs/FIRST-LIGHT-TUTORIAL.md`.

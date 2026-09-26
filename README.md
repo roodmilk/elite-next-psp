@@ -1,3 +1,7 @@
+## Consistent mission dialogue — 2.5.152
+
+Tracked missions, Open Channel chapters, Explorers Guild, contracts and incoming Triangle conversations share one speech/reply layout. Use Up/Down to highlight replies and Cross to choose; L/R pages longer speeches when shown. Notifications no longer cover reply choices. Tutorial pacing is unchanged in this release.
+
 ## First Light tutorial — 2.5.151
 
 Choose **Start tutorial** on the opening menu for a 61-lesson story with Kei and Venn. Only FLY is visible at first. Learn piloting, targeting, power, docking, trade, outfitting, station life, Spacebook, travel and planetary surveying as services unlock.

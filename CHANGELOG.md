@@ -1,3 +1,11 @@
+## 2.5.152 — One mission conversation style
+
+- Unified first-flight dialogue, later story briefings/replies/decisions/codas, Guild assignments, tracked contracts, station welcome and Triangle conversations under one shared PSP layout.
+- Consistent portrait/speaker, speech box, objective band and wrapped orange reply buttons. Guild speakers now match the authored dialogue. Long speech pages with L/R; unsupported smart punctuation is converted for the PSP font.
+- Notifications use the objective band rather than covering replies. Fixed invisible choices leaking from an untracked story decision into Guild/contract menus.
+- Open incoming conversations remain conversations when an encounter ends; Back clears conversation mode. Mission actions and tutorial pacing are unchanged.
+- Added native-resolution captures for 12 conversation states in both palettes, geometry/highlight tests, paging, punctuation and reply-count regressions.
+
 ## 2.5.151 — First Light story tutorial
 
 - Added Start tutorial, Continue tutorial, New game and Load commander to the title menu.

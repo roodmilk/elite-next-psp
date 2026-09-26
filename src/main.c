@@ -495,6 +495,7 @@ static void space(void){
 #include "ui-modern.h"
 #include "station-crawl.h"
 #include "station-tour.h"
+#include "dialogue-ui.h"
 #include "narrative-nav.h"
 #include "guild-ui.h"
 #include "campaign-ui.h"
@@ -618,8 +619,13 @@ static void game_input(unsigned pressed,unsigned held,float dt,float ax,float ay
   if(page==FLIGHT){if(pressed&PSP_CTRL_SELECT)change_page(HOME);else if(pressed&PSP_CTRL_TRIANGLE){if(speech_active()&&game.encounter_kind!=ENCOUNTER_NONE){comms_quick=1;comms_quick_choice=1;}else if(speech_active())speech_ok();else hail_target();}else if(pressed&PSP_CTRL_CIRCLE){pick_look_target();int target=selected_target;if(station_circle_ready())target=0;else if(look_target>=0)target=look_target;if(IS_NPC_ID(target)){selected_target=target;game.npc[target-BODY_COUNT-1].name_known=1;scan_cat=target_category(target);autoaim=0;message(&game,npc_is_hostile(&game.npc[target-BODY_COUNT-1])?"Hostile locked. Triangle to hail.":"Ship locked. Triangle to talk.");}else if(IS_ANOMALY_ID(target))analysis_scan(&game,target);else if(IS_DEBRIS_ID(target)){selected_target=target;scan_cat=3;autoaim=0;salvage(&game,target);}else if(target>=2&&target<=BODY_COUNT){if(approach_planet(&game,target-1)){selected_target=target;scan_cat=0;autoaim=0;}}else if(target==0){if(dock(&game)){autoaim=0;change_page(FLIGHT);}}else if(target==1)message(&game,"The sun has no landing approach.");else message(&game,"Look at a station, planet, echo, cargo, or mission target.");}}
  else {
   if(page==LOCAL)contacts_refresh();
+  if((page==CAMPAIGN||page==GUILD||(page==COMMS_PANEL&&(comms_encounter_conversation||encounter_requires_reply(&game))))&&dialogue_pages>1&&(pressed&(PSP_CTRL_LTRIGGER|PSP_CTRL_RTRIGGER))){
+   if((pressed&PSP_CTRL_LTRIGGER)&&dialogue_page>0)dialogue_page--;
+   if((pressed&PSP_CTRL_RTRIGGER)&&dialogue_page+1<dialogue_pages)dialogue_page++;
+   game.cue=SFX_SELECT;return;
+  }
    if(page==TARGETING){int ids[1+BODY_COUNT+NPC_COUNT+DEBRIS_COUNT+ANOMALY_COUNT];target_count=collect_scan_ids(ids,scan_cat);if(target_count>0){for(int i=0;i<target_count;i++)target_ids[i]=ids[i];}if(row>=target_count)row=0;}
-  int saga_choices=game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT&&game.saga_step&&saga_beats[game.saga_chapter].kind==SAGA_CHOICE;
+  int saga_choices=tracked_mission==0&&game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT&&game.saga_step&&saga_beats[game.saga_chapter].kind==SAGA_CHOICE;
   int count=page==COMFORT?6:page==DECORATOR?8:page==CAMPAIGN?(tracked_mission==0&&game.campaign_stage==0?1:tracked_mission==0&&saga_coda_pending>=0?1:tracked_mission==0&&game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT&&!game.saga_step?1:saga_choices?3:tracked_mission>=2?2:1):page==GUILD?2:page==STORY?(game.story<STORY_FREE?2:1):page==COMMS_PANEL?(comms_encounter_conversation?3:(game.encounter_kind!=ENCOUNTER_NONE&&game.encounter>0?2:17)):page==RADIO?2:page==HOME?DECK_ITEMS:page==MISSIONS?mission_count(&game):page==MISSIONLOG?2+game.job_n:page==DEBUG?11:page==LOCAL?contact_count:page==TARGETING?target_count:page==GALNET?galnet_rows():page==MARKET?cargo_rows():page==CHART?near_count:page==YARD?player_ship_count:page==EQUIP?equip_row_count():page==INVENTORY?6:page==FACTIONS?FACTION_COUNT:page==DETAILS?(1+BODY_COUNT):page==CODEX?codex_rows():1;
   if(page==MARKET&&!game.docked&&(pressed&(PSP_CTRL_LEFT|PSP_CTRL_RIGHT))){message(&game,"Dock to buy or sell. Market controls are locked.");game.cue=SFX_UI;return;}
   if(page==REPAIR)count=1;
@@ -644,7 +650,7 @@ static void game_input(unsigned pressed,unsigned held,float dt,float ax,float ay
    if(page==GALNET&&(pressed&(PSP_CTRL_LTRIGGER|PSP_CTRL_RTRIGGER))){galnet_tab=(galnet_tab+(pressed&PSP_CTRL_RTRIGGER?1:5))%6;row=0;}
    if(page==CODEX&&codex_scope==0&&(pressed&(PSP_CTRL_LTRIGGER|PSP_CTRL_RTRIGGER))){codex_tab=(codex_tab+(pressed&PSP_CTRL_RTRIGGER?1:3))%4;row=0;}
    if(page==CODEX&&codex_scope==3&&(pressed&(PSP_CTRL_LTRIGGER|PSP_CTRL_RTRIGGER))){int category=row/3;category=(category+(pressed&PSP_CTRL_RTRIGGER?1:5))%6;row=category*3;game.cue=SFX_SELECT;}
-   if(pressed&PSP_CTRL_CIRCLE){if(page==INVENTORY&&sell_confirm_slot>=0){sell_confirm_slot=-1;message(&game,"Sale cancelled.");return;}if(page==CODEX&&codex_scope==3){codex_scope=0;menu_back();return;}if(page==CODEX&&codex_scope==2){codex_scope=1;row=codex_system_row_for_body(codex_system,codex_body);return;}if(page==CODEX&&codex_scope==1){codex_scope=0;int n=vis_count();row=0;for(int i=0;i<n;i++)if(vis_sys(i)==codex_system)row=i;return;}if(page==MISSIONLOG&&abandon_confirm){abandon_confirm=0;message(&game,"Abandon cancelled. Your job is safe.");return;}if((page==RADIO||page==COMMS_PANEL||page==COMFORT)&&radio_dirty&&!radio_save_settings("radio.cfg")){message(&game,"Audio settings could not be saved. Try again.");return;}if(page==COMMS_PANEL)change_page(comms_return);else if(page==TARGETING){if(game.docked)menu_back();else change_page(FLIGHT);}else if(page==GALNET)change_page(HOME);else if(page==HOME){if(!game.docked)change_page(FLIGHT);}else menu_back();}
+   if(pressed&PSP_CTRL_CIRCLE){if(page==INVENTORY&&sell_confirm_slot>=0){sell_confirm_slot=-1;message(&game,"Sale cancelled.");return;}if(page==CODEX&&codex_scope==3){codex_scope=0;menu_back();return;}if(page==CODEX&&codex_scope==2){codex_scope=1;row=codex_system_row_for_body(codex_system,codex_body);return;}if(page==CODEX&&codex_scope==1){codex_scope=0;int n=vis_count();row=0;for(int i=0;i<n;i++)if(vis_sys(i)==codex_system)row=i;return;}if(page==MISSIONLOG&&abandon_confirm){abandon_confirm=0;message(&game,"Abandon cancelled. Your job is safe.");return;}if((page==RADIO||page==COMMS_PANEL||page==COMFORT)&&radio_dirty&&!radio_save_settings("radio.cfg")){message(&game,"Audio settings could not be saved. Try again.");return;}if(page==COMMS_PANEL){comms_encounter_conversation=0;change_page(comms_return);}else if(page==TARGETING){if(game.docked)menu_back();else change_page(FLIGHT);}else if(page==GALNET)change_page(HOME);else if(page==HOME){if(!game.docked)change_page(FLIGHT);}else menu_back();}
    else if(page==COMMS&&(pressed&PSP_CTRL_SQUARE))change_page(RADIO);
    else if(page==STORY&&(pressed&PSP_CTRL_CROSS)){
     if(row==1&&game.story<STORY_FREE){story_skip(&game);change_page(HOME);}
@@ -1048,6 +1054,7 @@ static void input_tests(void){
      high_contrast=0;sfx_fx_reset();
     }
    }
+   #include "dialogue-visual-tests.h"
    preview_reset();quiet_comms=old_quiet;fb=saved_fb;free(pixels);TEST_INIT();
   }
  }
@@ -1154,7 +1161,8 @@ int main(void){
   if(smoke&&!visual_hold&&frames==420){change_page(RADIO);}if(smoke&&!visual_hold&&frames==415){game_init(&game);deck_reset();launch(&game);page=FLIGHT;game.pos=game.anomaly[0].pos;analysis_scan(&game,ANOMALY_ID_MIN);}
   fb=(unsigned *)(0x44000000u+(unsigned)buffer*STRIDE*H*4);pspDebugScreenSetOffset(buffer*STRIDE*H*4);if(page!=FLIGHT||hud_mode==1)rect(0,0,W,H,BG);drawcount=0;
  switch(page){case FLIGHT:space();break;case MARKET:market_screen();break;case CHART:chart();break;case YARD:yard();break;case EQUIP:equipment();break;case INVENTORY:inventory_screen();break;case REPAIR:repair_screen();break;case DECORATOR:decorator_screen();break;case STATUS:status();break;case HELP:help();break;case FACTIONS:factions();break;case LOCAL:local_system();break;case DEBUG:debug_screen();break;case COMMS:communications();break;case DETAILS:system_details();break;case MISSIONS:mission_board();break;case MISSIONLOG:mission_log();break;case TARGETING:targeting_screen();break;case GALNET:galnet_screen();break;case CODEX:codex_screen();break;case STORY:story_screen();break;case GUILD:guild_screen();break;case RADIO:radio_screen();break;case COMMS_PANEL:comms_panel();break;case INTRO:intro_screen();break;case CAMPAIGN:campaign_screen();break;case COMFORT:comfort_screen();break;case WALK:walk_screen();break;default:home();}
-  if(page!=FLIGHT&&!paused&&page!=INTRO&&page!=GALNET&&page!=DECORATOR)menu_notice();
+  if(page==CAMPAIGN||page==GUILD||(page==COMMS_PANEL&&(comms_encounter_conversation||encounter_requires_reply(&game))))dialogue_notice();
+  else if(page!=FLIGHT&&!paused&&page!=INTRO&&page!=GALNET&&page!=DECORATOR)menu_notice();
   tutorial_draw();
  if(dump_native&&frames==6)dump_native_bmp("native-480x272.bmp");
   if(dump_native&&smoke&&(frames==95||frames==125||frames==205||frames==215||frames==255||frames==275||frames==355||frames==365||frames==385||frames==425)){char capture[64];snprintf(capture,sizeof(capture),"scene-%03d.bmp",frames);dump_native_bmp(capture);}
