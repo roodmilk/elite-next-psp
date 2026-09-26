@@ -7,10 +7,10 @@
   int replies=1;
   if(scene>=1&&scene<=5){game.campaign_stage=6;game.saga_chapter=0;game.saga_step=0;saga_brief_reset(0);}
   if(scene==2)saga_brief_echo=1;
-  if(scene==3){game.saga_step=1;for(int ch=0;ch<SAGA_COUNT;ch++)if(saga_beats[ch].kind==SAGA_CHOICE){game.saga_chapter=ch;break;}row=2;replies=3;}
+  if(scene==3){game.saga_step=1;game.saga_flags|=SAGA_TIMESTAMP_FOUND;for(int ch=0;ch<SAGA_COUNT;ch++)if(saga_beats[ch].kind==SAGA_CHOICE){game.saga_chapter=ch;break;}row=2;replies=3;}
   if(scene==4){saga_coda_pending=0;}
   if(scene==5){game.saga_chapter=SAGA_COUNT;replies=0;}
-  if(scene==6||scene==7){game.guild_chapter=1;page=scene==6?GUILD:CAMPAIGN;tracked_mission=1;replies=scene==6?2:0;}
+  if(scene==6||scene==7){game.guild_chapter=1;page=scene==6?GUILD:CAMPAIGN;tracked_mission=1;replies=1;}
   if(scene==8){tracked_mission=2;game.job_n=1;memset(&game.jobs[0],0,sizeof(Job));game.jobs[0].type=MISSION_DELIVERY;game.jobs[0].dest=7;game.jobs[0].time=300;game.jobs[0].reward=900;replies=2;}
   if(scene==9||scene==10){page=COMMS_PANEL;game.encounter_kind=ENCOUNTER_DISTRESS;game.encounter=4;speak(&game,VOICE_CONTACT,"Thank you, Commander. Please help us get home.");game.voice_role=TRADERS;comms_encounter_conversation=scene==10;replies=scene==10?3:2;}
   if(scene==11){game.campaign_stage=6;game.saga_chapter=0;game.saga_step=1;}

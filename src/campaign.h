@@ -12,7 +12,7 @@ static inline int campaign_training(const Game *g){return g->campaign_stage>=1&&
 static inline const char *campaign_task(const Game *g){
  static const char *tasks[]={"Meet Kei at Lave System Hub.","Launch when you are ready.",
  "Lock Lave Hub. Fly 600 m, then return.","Fly 600 m, then return to Lave Hub.",
- "Return to Lave Hub. Guidance is available.","Report to Kei for your harbour badge.",
+ "Approach Lave Hub and press Circle to dock.","Report to Kei for your harbour badge.",
  "Harbour badge earned. The channel stays open."};
  int s=g->campaign_stage;return tasks[s>=0&&s<=6?s:0];
 }

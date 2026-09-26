@@ -1,3 +1,15 @@
+## 2.5.153 — Mission selection and readable instructions
+
+Mission Log is the selection authority. X tracks; Select tracks and opens CAMPAIGN (Tracked Mission). Guild actions run there; Work service ID 18 is retired but other IDs remain stable. GUILD redirects to the tracked Guild; legacy STORY redirects to HOME and the frontend retires old coaching without rewards. The dedicated First Light tutorial remains intact and its Guild lesson now uses service 13. Tutorial pacing is still explicitly deferred.
+
+Station Welcome now has a selectable log row after the contracts, mapping to stable frontend sentinel `TRACK_STATION_TOUR`. Its presentation/HUD/automatic route respect tracking. The eight-row maximum fits above the objective band. `mission-tracking-input.h` preserves a tracked contract's identity when another job is removed, using immutable contract fields. Tracking remains session-local as before; no save-format change.
+
+First Flight has state-specific next-step dialogue and visible launch/resume/reward actions; no launch-generated fake target-lock event. Kei's four later briefings and associated aftermath have expanded prose. Saga local objectives explain scan/dock/hunt controls, with flight actions rather than same-system routing. Ch.05 choices wait for the evidence delivery. Keep shared `dialogue-ui.h` styling and orange replies.
+
+Validation: final build and all five smoke groups passed in `../../work/smoke-20260926-203218-695` (game, input, steering, radio, performance: zero failures). Added `mission-tracking-tests.h` for log selection, tour isolation, job compaction, launch/docking instructions and full-log captures. Native 480x272 Work, full Mission Log, First Flight and Guild captures reviewed. Physical PSP playtesting remains outstanding.
+
+Highest-priority remaining work: requested tutorial delay after speed/boost/brake practice (deferred); Heat Buffer catalogue/save-validation mismatch; real PSP control, readability and long-session testing. Do not reintroduce a separate Guild/optional coaching menu or automatic tracking overrides.
+
 ## 2.5.152 — Shared mission conversation UI
 
 `src/dialogue-ui.h` owns all mission speech geometry, text paging, speaker presentation, objective/feedback band and response rows. Campaign (prologue, saga, coda, choices, epilogue, tracked Guild, station welcome, contracts), direct Guild and Triangle conversations call it. Do not add bespoke speech rectangles to these screens. `src/dialogue-visual-tests.h` captures 12 states in normal/high contrast and checks layout, selection, paging, safe punctuation and untracked-choice isolation. Existing gameplay actions are retained; no save-format changes.

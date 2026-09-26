@@ -95,11 +95,11 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
   }
   return;
  }
- if(!tutorial_active(&game)){game_input(pressed,held,dt,ax,ay);return;}
+ if(!tutorial_active(&game)){story_complete(&game);tracked_game_input(pressed,held,dt,ax,ay);return;}
  tutorial_prepare();
  if(game.dead){
   if(pressed&PSP_CTRL_START)tutorial_resume();
-  else game_input(0,0,dt,0,0);
+  else tracked_game_input(0,0,dt,0,0);
   return;
  }
  if(page==HOME&&!tutorial_modal&&game.tutorial_seen==game.tutorial_step&&(pressed&PSP_CTRL_TRIANGLE)){tutorial_modal=1;return;}
@@ -139,7 +139,7 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
  int oldpip=game.pip_sys+game.pip_eng*8+game.pip_wep*64;
  float oldyaw=game.yaw,oldpitch=game.pitch,oldroll=game.roll;
  int oldstep=game.tutorial_step;
- game_input(pressed,held,dt,ax,ay);
+ tracked_game_input(pressed,held,dt,ax,ay);
  if(game.tutorial_step!=oldstep||game.dead)return;
  int event=-1,arg=0;
  switch(b->event){

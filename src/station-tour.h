@@ -26,7 +26,7 @@ static void station_tour_tick(void){
  station_tour_begin();
  if(!station_tour_active())return;
  if(station_tour_stage==STATION_TOUR_ROUTE){
-  if(game.system==7&&!game.docked){
+  if(tracked_mission==TRACK_STATION_TOUR&&!game.docked){
    route_set_goal(&game,STATION_TOUR_DEST);route_refresh_destination(&game);
    station_tour_stage=STATION_TOUR_DOCK;
    message(&game,"Station Welcome: follow the plotted route to Reorte.");
@@ -34,7 +34,7 @@ static void station_tour_tick(void){
  }else if(station_tour_stage==STATION_TOUR_DOCK){
   if(game.system==STATION_TOUR_DEST&&game.docked&&game.station_variant==0){
    station_tour_stage=STATION_TOUR_WALK;
-   route_clear(&game);
+   if(tracked_mission==TRACK_STATION_TOUR)route_clear(&game);
    message(&game,"Docked at Reorte Hub. Disembark, then walk to CANTEEN.");
   }else if(game.system==STATION_TOUR_DEST&&game.docked&&game.station_variant!=0&&!station_tour_wrong_hub_notice){
    station_tour_wrong_hub_notice=1;
@@ -64,6 +64,7 @@ static void station_tour_tick(void){
 static void station_tour_action(void){
  if(!station_tour_active())return;
  if(station_tour_stage==STATION_TOUR_ROUTE||station_tour_stage==STATION_TOUR_DOCK){
+  if(game.system==STATION_TOUR_DEST&&game.docked&&game.station_variant==0){station_tour_stage=STATION_TOUR_WALK;station_tour_action();return;}
   route_set_goal(&game,STATION_TOUR_DEST);route_refresh_destination(&game);change_page(CHART);
   message(&game,"Route plotted: Reorte. Choose the highlighted next jump.");
  }else if(station_tour_stage==STATION_TOUR_WALK||station_tour_stage==STATION_TOUR_BAR||station_tour_stage==STATION_TOUR_TALK){

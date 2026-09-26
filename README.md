@@ -1,3 +1,9 @@
+## Pick your mission in the log — 2.5.153
+
+In **Mission Log**, highlight a mission and press **X** to track it, or **Select** to track it and open its next-step details. **Tracked Mission** follows that choice: main story, Explorers Guild, accepted contracts or Station Welcome. Guild no longer has a duplicate Work menu. The old optional flight guide is retired; the dedicated Start tutorial mode remains available.
+
+First Flight and Kei's main-story briefings now use fuller instructions. Orange replies offer the appropriate launch, return-to-flight, routing or reward action. To dock, approach the station and press Circle within range; the story no longer sends you to a separate guidance page.
+
 ## Consistent mission dialogue — 2.5.152
 
 Tracked missions, Open Channel chapters, Explorers Guild, contracts and incoming Triangle conversations share one speech/reply layout. Use Up/Down to highlight replies and Cross to choose; L/R pages longer speeches when shown. Notifications no longer cover reply choices. Tutorial pacing is unchanged in this release.

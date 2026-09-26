@@ -1,3 +1,12 @@
+## 2.5.153 — Mission Log owns tracking; clearer mission instructions
+
+- Removed the duplicate Explorers Guild entry from Work. Choose Guild, main story or a contract in Mission Log; Tracked Mission shows that selection's current step and working actions.
+- Retired the legacy optional flight guide. First Flight now explains launch, targeting, practice distance, Circle docking and claiming the reward directly, keeping orange reply boxes. No separate docking-guidance page detour.
+- Expanded Kei's first-flight, later main-story and aftermath dialogue into full sentences; Guild instructions now respond to launch, accepted-contract and reward state.
+- Station Welcome is explicitly selectable in Mission Log and no longer overrides another tracked mission or plots an unrelated route. All five contracts plus both campaigns and the welcome mission fit in the log.
+- Both X tracking and Select next-step synchronize contract selection; removing an earlier contract preserves the selected job. Local story objectives offer flight actions instead of plotting a route to the current system. Evidence choices appear after the required delivery.
+- Updated the existing tutorial's Guild lesson to use Mission Log, without changing lesson timing. Added tracking regressions and native PSP captures.
+
 ## 2.5.152 — One mission conversation style
 
 - Unified first-flight dialogue, later story briefings/replies/decisions/codas, Guild assignments, tracked contracts, station welcome and Triangle conversations under one shared PSP layout.

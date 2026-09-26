@@ -16,8 +16,8 @@ void campaign_event(Game *g,int event){
  if(event==CP_LAUNCH)speak(g,VOICE_VENN,"Lave traffic. New commander leaving berth six — soft launch, and keep the collar clean.");
  if(event==CP_GUIDANCE)speak(g,VOICE_VENN,"Clearance granted. I will show you the way in; prefer boring over clever.");
  if(event==CP_RETURN&&g->campaign_stage==5){
-  speak(g,VOICE_KEI,"Good. Now I know where to find you when the next call goes quiet.");
-  message(g,"First flight complete. Open Campaign to report to Kei.");
+  speak(g,VOICE_KEI,"Welcome back, Commander. Open Tracked Mission when you are ready to report and collect your harbour badge.");
+  message(g,"First flight complete. Open Tracked Mission to report to Kei.");
  }
 }
 static void campaign_flight(Game *g,Vec3 previous){

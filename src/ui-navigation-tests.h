@@ -1,7 +1,7 @@
 {
  TEST_INIT();deck_reset();change_page(HOME);int seen=0,unique=1;
  for(int g=0;g<5;g++)for(int i=0;i<deck_sizes[g];i++){int id=deck_rows[g][i];if(id<0||id>=DECK_ITEMS||(seen&(1<<id)))unique=0;else seen|=1<<id;}
- INPUT_CHECK(unique&&seen==((1<<DECK_ITEMS)-1),"deck: every service appears once including Guild and display settings");
+ INPUT_CHECK(unique&&seen==(((1<<DECK_ITEMS)-1)&~(1<<18)),"deck: every active service appears once without the duplicate Guild page");
  row=8;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(page==TARGETING&&target_count>0,"deck: Targeting computer opens the same target HUD used in flight");input(PSP_CTRL_CIRCLE,0,.016f,0,0);INPUT_CHECK(page==HOME&&row==8,"deck: leaving the targeting computer restores its Fly selection");row=0;
  input(PSP_CTRL_RIGHT,0,.016f,0,0);INPUT_CHECK(row==1&&deck_group(row)==1,"deck: Right moves from Fly to Ship");
  input(PSP_CTRL_DOWN,0,.016f,0,0);INPUT_CHECK(row==3,"deck: Down follows the visible Ship list");
@@ -24,7 +24,7 @@
  {int ship_vis[6],ship_n=deck_fill(1,ship_vis),work_vis[6],work_n=deck_fill(2,work_vis),hidden=0;
   for(int i=0;i<ship_n;i++)if(ship_vis[i]==3||ship_vis[i]==4)hidden=1;
   for(int i=0;i<work_n;i++)if(work_vis[i]==12)hidden=1;
- INPUT_CHECK(!hidden&&ship_n==2&&work_n==4,"deck: Shipyard, Outfitting and Mission board hide while undocked");}
+ INPUT_CHECK(!hidden&&ship_n==2&&work_n==3,"deck: Shipyard, Outfitting and Mission board hide while undocked");}
  row=3;deck_clamp_row();INPUT_CHECK(row!=3&&deck_service_visible(row),"deck: undocked focus clamps off hidden station services");
  int distinct=1;for(unsigned seed=0;seed<256;seed++)for(int role=0;role<FACTION_COUNT;role++){
   int id=faction_portrait_index(seed,role);if(id<0||id>=8||id%4!=role)distinct=0;

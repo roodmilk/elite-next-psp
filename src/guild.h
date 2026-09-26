@@ -43,11 +43,11 @@ static inline const char *guild_objective(const Game *g){
 static inline const char *guild_line(const Game *g,int line){
  /* Expanded Guild dialogue from manuscript Vol III — echo Open Channel verbs without spoiling Act I. */
  static const char *lines[][4]={
-  {"KEI: Borrowed hulls remember their last pilot.","Learn her turns before you ask for heroics.","VENN: Prefer docking soft enough that I do not file you.","A safe return is a good first story."},
-  {"TAMSIN: A crate can look like a number.","At the far end, someone needs dinner.","KEI: Take a food job from the board.","Keep its crate aboard until you dock."},
-  {"ORU: Silence is rarely quite empty.","Find an anomaly in your target list.","Get close, then press Circle to scan.","KEI: Ryn taught me to listen twice."},
-  {"KEI: A rescue beacon is still calling.","Take a pilot rescue from the board.","Hail them nearby, then bring them home.","Nobody should become a missing number."},
-  {"KEI: You brought people and answers home.","That matters. Thank you.","Her trail goes beyond these assignments.","For now, the galaxy is yours to explore."}
+  {"KEI: Before I send you on a survey, I want to know that you can leave a station and return safely.","Launch from the berth, fly clear of the station, then approach the hub and press Circle to dock. Return to this assignment for your reward.","VENN: Prefer docking soft enough that I do not file you.","A safe return is a good first story."},
+  {"TAMSIN: A settlement is waiting for food, and we need a pilot who can get the supplies there intact.","Take the food-delivery contract named below. Keep its food aboard, travel to the destination and dock to complete the delivery.","KEI: Take a food job from the board.","Keep its crate aboard until you dock."},
+  {"ORU: Our charts have a gap that I would like you to investigate. Look for an unscanned anomaly in the local system.","Select the signal in your target list, approach it and press Circle to scan. When the scan is recorded, dock at a station to collect your reward.","Get close, then press Circle to scan.","KEI: Ryn taught me to listen twice."},
+  {"KEI: A pilot has sent a rescue beacon, and the Guild needs someone who can bring them back safely.","Accept a pilot-rescue contract from the mission board named below. Follow its instructions to pick up the survivor, then return them to a station.","Hail them nearby, then bring them home.","Nobody should become a missing number."},
+  {"KEI: You have completed all four of our opening assignments. You brought supplies, information and people back where they were needed.","Thank you for seeing them through. Choose another mission in the log whenever you are ready; our search for Ryn is a separate entry.","Her trail goes beyond these assignments.","For now, the galaxy is yours to explore."}
  };
  int i=g->guild_chapter;if(i<0)i=0;if(i>4)i=4;
  return line>=0&&line<4?lines[i][line]:"";

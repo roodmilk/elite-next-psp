@@ -48,6 +48,17 @@ static const unsigned decorator_finishes[8]={GOLD,CYAN,RGB(240,120,96),RGB(160,1
 static int decorator_feedback=0;
 /* 0 = Kei/Ryn campaign, 1 = Guild assignments, 2+ = accepted job slot. */
 static int tracked_mission=0;
+enum { TRACK_STATION_TOUR=MISSION_SLOTS+2 };
+static int station_tour_active(void);
+static const char *station_tour_objective(void);
+static int mission_log_count(void){return 2+game.job_n+(station_tour_active()?1:0);}
+static int mission_track_at(int index){return station_tour_active()&&index==2+game.job_n?TRACK_STATION_TOUR:index;}
+static int mission_track_row(void){return tracked_mission==TRACK_STATION_TOUR?2+game.job_n:tracked_mission;}
+static void mission_track_select(int index){
+ if(index<0||index>=mission_log_count())return;
+ tracked_mission=mission_track_at(index);
+ if(tracked_mission>=2&&tracked_mission<TRACK_STATION_TOUR)game.job_sel=tracked_mission-2;
+}
 static float warp_arrival_fade=0;
 /* Short, session-local onboarding mission that showcases the authored station bar. */
 enum { STATION_TOUR_OFF=0, STATION_TOUR_ROUTE, STATION_TOUR_DOCK, STATION_TOUR_WALK, STATION_TOUR_BAR, STATION_TOUR_TALK, STATION_TOUR_DONE };
@@ -364,6 +375,8 @@ static int tutorial_page_allowed(int p){
  return 0;
 }
 static void change_page(int p){
+ if(p==STORY){story_complete(&game);p=HOME;}
+ if(p==GUILD){tracked_mission=1;p=CAMPAIGN;}
  if(!tutorial_page_allowed(p)){message(&game,tutorial_beat(&game)->task);return;}
  if(p==FLIGHT&&page!=FLIGHT)fire_blocked=1;
  if(page==HOME&&row>=0&&row<DECK_ITEMS){deck_last=row;deck_focus[deck_group(row)]=row;}
@@ -371,7 +384,7 @@ static void change_page(int p){
  else if(!nav_back&&p!=page){if(nav_depth<8){nav_pages[nav_depth]=page==INTRO?HOME:page;nav_rows[nav_depth]=page==INTRO?deck_last:row;nav_depth++;}}
  comms_rescue_confirm=0;abandon_confirm=0;sell_confirm_slot=-1;game.boost=0;page=p;row=p==HOME?deck_last:0;game.message_time=0;
  if(p==CHART){update_nearby();if(tracked_mission==0&&game.campaign_stage>=6&&game.saga_step&&game.saga_chapter<SAGA_COUNT)chart_cursor=game.saga_dest;else if(game.route_goal>=0)chart_cursor=game.route_goal;else chart_cursor=game.destination;for(int i=0;i<near_count;i++)if(nearby[i]==game.destination)row=i;}
- if(p==MISSIONLOG){int max=2+game.job_n;if(tracked_mission>=max)tracked_mission=0;row=tracked_mission;}
+ if(p==MISSIONLOG){if((tracked_mission==TRACK_STATION_TOUR&&!station_tour_active())||(tracked_mission!=TRACK_STATION_TOUR&&tracked_mission>=2+game.job_n))tracked_mission=0;row=mission_track_row();}
  if(p==HOME)deck_clamp_row();
  if(p==FACTIONS)faction_lore_card=0;
 }
@@ -625,8 +638,8 @@ static void game_input(unsigned pressed,unsigned held,float dt,float ax,float ay
    game.cue=SFX_SELECT;return;
   }
    if(page==TARGETING){int ids[1+BODY_COUNT+NPC_COUNT+DEBRIS_COUNT+ANOMALY_COUNT];target_count=collect_scan_ids(ids,scan_cat);if(target_count>0){for(int i=0;i<target_count;i++)target_ids[i]=ids[i];}if(row>=target_count)row=0;}
-  int saga_choices=tracked_mission==0&&game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT&&game.saga_step&&saga_beats[game.saga_chapter].kind==SAGA_CHOICE;
-  int count=page==COMFORT?6:page==DECORATOR?8:page==CAMPAIGN?(tracked_mission==0&&game.campaign_stage==0?1:tracked_mission==0&&saga_coda_pending>=0?1:tracked_mission==0&&game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT&&!game.saga_step?1:saga_choices?3:tracked_mission>=2?2:1):page==GUILD?2:page==STORY?(game.story<STORY_FREE?2:1):page==COMMS_PANEL?(comms_encounter_conversation?3:(game.encounter_kind!=ENCOUNTER_NONE&&game.encounter>0?2:17)):page==RADIO?2:page==HOME?DECK_ITEMS:page==MISSIONS?mission_count(&game):page==MISSIONLOG?2+game.job_n:page==DEBUG?11:page==LOCAL?contact_count:page==TARGETING?target_count:page==GALNET?galnet_rows():page==MARKET?cargo_rows():page==CHART?near_count:page==YARD?player_ship_count:page==EQUIP?equip_row_count():page==INVENTORY?6:page==FACTIONS?FACTION_COUNT:page==DETAILS?(1+BODY_COUNT):page==CODEX?codex_rows():1;
+  int saga_choices=tracked_mission==0&&game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT&&game.saga_step&&saga_beats[game.saga_chapter].kind==SAGA_CHOICE&&(game.saga_chapter!=3||(game.saga_flags&SAGA_TIMESTAMP_FOUND));
+  int count=page==COMFORT?6:page==DECORATOR?8:page==CAMPAIGN?(tracked_mission==TRACK_STATION_TOUR?1:tracked_mission==0&&game.campaign_stage==0?1:tracked_mission==0&&saga_coda_pending>=0?1:tracked_mission==0&&game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT&&!game.saga_step?1:saga_choices?3:tracked_mission>=2?2:1):page==GUILD?1:page==STORY?(game.story<STORY_FREE?2:1):page==COMMS_PANEL?(comms_encounter_conversation?3:(game.encounter_kind!=ENCOUNTER_NONE&&game.encounter>0?2:17)):page==RADIO?2:page==HOME?DECK_ITEMS:page==MISSIONS?mission_count(&game):page==MISSIONLOG?mission_log_count():page==DEBUG?11:page==LOCAL?contact_count:page==TARGETING?target_count:page==GALNET?galnet_rows():page==MARKET?cargo_rows():page==CHART?near_count:page==YARD?player_ship_count:page==EQUIP?equip_row_count():page==INVENTORY?6:page==FACTIONS?FACTION_COUNT:page==DETAILS?(1+BODY_COUNT):page==CODEX?codex_rows():1;
   if(page==MARKET&&!game.docked&&(pressed&(PSP_CTRL_LEFT|PSP_CTRL_RIGHT))){message(&game,"Dock to buy or sell. Market controls are locked.");game.cue=SFX_UI;return;}
   if(page==REPAIR)count=1;
   if(page==COMMS_PANEL&&!comms_encounter_conversation&&!encounter_requires_reply(&game))count=17;
@@ -656,7 +669,7 @@ static void game_input(unsigned pressed,unsigned held,float dt,float ax,float ay
     if(row==1&&game.story<STORY_FREE){story_skip(&game);change_page(HOME);}
     else {int next=game.story<STORY_FREE?story_home_row(&game):0;change_page(HOME);row=next;deck_last=next;}
    }
-   else if(page==GUILD&&(pressed&PSP_CTRL_CROSS)){if(row==0)narrative_do(GUILD);else change_page(STORY);}
+   else if(page==GUILD&&(pressed&PSP_CTRL_CROSS))narrative_do(GUILD);
    else if(page==REPAIR&&(pressed&PSP_CTRL_CROSS)){repair_ship(&game);}
    else if(page==DECORATOR&&(pressed&PSP_CTRL_CROSS)){decorator_feedback=1;if(!game.docked){message(&game,"Dock at a station to repaint your ship.");return;}static const int fees[]={120,180,240,320,400,520,700,900};int finish=row<0?0:row>7?7:row;int fee=fees[finish]*10;if(ship_paint[game.ship]==decorator_finishes[finish]){message(&game,"That finish is already on your ship.");return;}if(game.credits<fee){message(&game,"Not enough units for that paint finish.");return;}game.credits-=fee;ship_paint[game.ship]=decorator_finishes[finish];message(&game,"Paint finish applied. Exterior preview updated.");}
    else if(page==DECORATOR&&(pressed&PSP_CTRL_TRIANGLE)){change_page(REPAIR);}
@@ -675,11 +688,11 @@ static void game_input(unsigned pressed,unsigned held,float dt,float ax,float ay
   else if(page==COMMS&&(pressed&PSP_CTRL_TRIANGLE)){comms_rescue_confirm=!comms_rescue_confirm;}else if(page==COMMS&&(pressed&PSP_CTRL_CROSS)){if(comms_rescue_confirm){if(emergency_rescue(&game)){selected_target=0;autoaim=0;change_page(HOME);}return;}if(game.docked){message(&game,"Already docked.");game.cue=SFX_UI;}else if(dock(&game)){selected_target=0;autoaim=0;change_page(FLIGHT);}}
    else if(page==CAMPAIGN&&(pressed&PSP_CTRL_SELECT)){change_page(MISSIONLOG);}
    else if(page==MISSIONS&&(pressed&PSP_CTRL_SELECT))change_page(MISSIONLOG);
-   else if(page==MISSIONLOG&&(pressed&PSP_CTRL_SELECT)){tracked_mission=row;change_page(CAMPAIGN);}
+   else if(page==MISSIONLOG&&(pressed&PSP_CTRL_SELECT)){mission_track_select(row);change_page(CAMPAIGN);}
    else if(page==MISSIONS&&(pressed&PSP_CTRL_CROSS)){accept_mission(&game,row);}
    else if(page==MISSIONLOG){
-    if(row>=2&&(pressed&PSP_CTRL_TRIANGLE)){abandon_confirm=1;message(&game,"Abandon this job? Press X again to confirm, Circle to cancel.");}
-    if((pressed&PSP_CTRL_CROSS)&&!abandon_confirm){tracked_mission=row;if(row>=2)game.job_sel=row-2;message(&game,row==0?"Tracking: Kei and Ryn.":row==1?"Tracking: Explorers Guild assignment.":"Contract tracked. Select opens its next step.");}
+    if(row>=2&&row<2+game.job_n&&(pressed&PSP_CTRL_TRIANGLE)){abandon_confirm=1;message(&game,"Abandon this job? Press X again to confirm, Circle to cancel.");}
+    if((pressed&PSP_CTRL_CROSS)&&!abandon_confirm){mission_track_select(row);message(&game,row==0?"Tracking: Kei and Ryn.":row==1?"Tracking: Explorers Guild assignment.":tracked_mission==TRACK_STATION_TOUR?"Tracking: Station Welcome. Select opens its next step.":"Contract tracked. Select opens its next step.");}
     if(row>=2&&row-2<game.job_n){int ji=row-2;Job *j=&game.jobs[ji];game.job_sel=ji;game.contract=j->dest;game.mission_type=j->type;game.mission_stage=j->stage;game.mission_target=j->target;game.mission_item=j->item;game.contract_reward=j->reward;game.contract_time=j->time;
      if(pressed&PSP_CTRL_CROSS){
       if(abandon_confirm){abandon_confirm=0;abandon_mission(&game,ji);if(tracked_mission==row)tracked_mission=0;if(row>=2+game.job_n)row=1+game.job_n;}
@@ -697,8 +710,8 @@ static void game_input(unsigned pressed,unsigned held,float dt,float ax,float ay
  else if(row==5){third_person=!third_person;message(&game,third_person?"Third-person flight view on.":"Cockpit flight view on.");}
 }
 else if(page==CAMPAIGN&&(pressed&PSP_CTRL_CROSS)){
- if(station_tour_active()){
-  station_tour_action();
+ if(tracked_mission==TRACK_STATION_TOUR){
+  if(station_tour_active())station_tour_action();else change_page(MISSIONLOG);
  }
  else if(tracked_mission==0&&prologue_brief_locked()){
   if(prologue_brief_beat<PROLOGUE_BRIEF_BEATS-1){
@@ -711,11 +724,11 @@ else if(page==CAMPAIGN&&(pressed&PSP_CTRL_CROSS)){
  else if(tracked_mission==0&&game.campaign_stage>=6){
   if(saga_coda_pending>=0){saga_coda_pending=-1;row=0;game.cue=SFX_SELECT;}
   else if(game.saga_chapter<SAGA_COUNT&&!game.saga_step){if(saga_brief_beat<SAGA_BRIEF_BEATS-1){if(!saga_brief_echo&&saga_brief_needs_echo(saga_brief_beat)){saga_brief_echo=1;row=0;game.cue=SFX_SELECT;}else{saga_brief_echo=0;saga_brief_beat++;row=0;game.cue=SFX_SELECT;}}else{saga_begin(&game);saga_brief_echo=0;}}
-  else if(game.saga_chapter<SAGA_COUNT&&saga_beats[game.saga_chapter].kind==SAGA_CHOICE){game.saga_choice=row+1;saga_advance(&game);row=0;}
-  else if(!saga_advance(&game)){int hops=0,hop=saga_next_hop(&game,&hops);if(hop<0){message(&game,"No route with this drive. Fit more jump range.");}else{route_clear(&game);game.destination=hop;change_page(CHART);char note[96];snprintf(note,sizeof(note),hop==game.saga_dest?"Destination selected: %s.":"Next jump: %s. Final destination: %s.",game.systems[hop].name,game.systems[game.saga_dest].name);message(&game,note);}}
+  else if(game.saga_chapter<SAGA_COUNT&&saga_beats[game.saga_chapter].kind==SAGA_CHOICE&&(game.saga_chapter!=3||(game.saga_flags&SAGA_TIMESTAMP_FOUND))){game.saga_choice=row+1;saga_advance(&game);row=0;}
+  else if(!saga_advance(&game)){if(game.saga_chapter>=SAGA_COUNT){change_page(MISSIONLOG);return;}if(game.system==game.saga_dest){if(game.docked){analog_ready=0;launch(&game);}change_page(FLIGHT);return;}int hops=0,hop=saga_next_hop(&game,&hops);if(hop<0){message(&game,"No route with this drive. Fit more jump range.");}else{route_clear(&game);game.destination=hop;change_page(CHART);char note[96];snprintf(note,sizeof(note),hop==game.saga_dest?"Destination selected: %s.":"Next jump: %s. Final destination: %s.",game.systems[hop].name,game.systems[game.saga_dest].name);message(&game,note);}}
  }
- else if(tracked_mission==0){if(narrative_action(CAMPAIGN)==NA_REWARD)campaign_claim(&game);else game.cue=SFX_UI;}
- else if(tracked_mission==1){if(narrative_action(GUILD)==NA_REWARD)guild_claim(&game);else game.cue=SFX_UI;}
+ else if(tracked_mission==0)narrative_do(CAMPAIGN);
+ else if(tracked_mission==1)narrative_do(GUILD);
  else {int ji=tracked_mission-2;if(row==0&&ji>=0&&ji<game.job_n)navigate_job(ji);else change_page(MISSIONLOG);}
 }
 else if(page==COMMS_PANEL&&(pressed&PSP_CTRL_CROSS)){
@@ -760,11 +773,12 @@ else if(page==COMMS_PANEL&&(pressed&PSP_CTRL_CROSS)){
  float turn=0,pitch=0;int throttle=0,fire=0;if(page==FLIGHT){turn=ax;pitch=ay;int rolling=(held&PSP_CTRL_LTRIGGER)&&(held&(PSP_CTRL_LEFT|PSP_CTRL_RIGHT))&&!(held&PSP_CTRL_SQUARE);if(rolling){game.roll+=((held&PSP_CTRL_RIGHT)?1:-1)*dt*2;turn=pitch=0;game.boost=0;autoaim=0;}throttle=(held&PSP_CTRL_RTRIGGER?1:0)-(held&PSP_CTRL_LTRIGGER?1:0);if(rolling||(held&PSP_CTRL_SQUARE)||hard_brake>0)throttle=0;if(hard_brake>0){game.speed*=fmaxf(.15f,1.f-dt*5.5f);if(game.speed<40)game.speed=0;}fire=!fire_blocked&&oldpage==FLIGHT&&!game.dock_stage&&game.approach<0&&game.laser&&(held&PSP_CTRL_CROSS)!=0&&!(held&PSP_CTRL_LTRIGGER)&&game.jump<=0;if(fire&&valid_target(selected_target)&&IS_NPC_ID(selected_target))autoaim=1;align_target(dt,ax,ay);}
  if(page==FLIGHT){if(oldpage!=FLIGHT){turn=pitch=0;throttle=fire=0;}game_tick(&game,dt,turn,pitch,throttle,fire);if(boost_was_active&&!game.boost)game.roll=0;boost_was_active=game.boost;if(game.docked)change_page(HOME);}else boost_was_active=0;
 }
+#include "mission-tracking-input.h"
 #include "tutorial-runtime.h"
 static void input_tests(void){
  FILE *f=fopen("input-check.txt","w");if(!f)return;int failures=0;
 #define INPUT_CHECK(c,n) do{int ok=(c);fprintf(f,"%s %s\n",ok?"PASS":"FAIL",n);failures+=!ok;}while(0)
-#define TEST_INIT() do{game_init(&game);deck_reset();story_complete(&game);paused=0;selected_target=0;autoaim=0;scan_cat=2;tracked_mission=0;prologue_brief_beat=0;prologue_brief_echo=0;saga_brief_beat=0;saga_brief_echo=0;saga_brief_chapter=-1;saga_coda_pending=-1;}while(0)
+#define TEST_INIT() do{game_init(&game);deck_reset();story_complete(&game);paused=0;selected_target=0;autoaim=0;scan_cat=2;tracked_mission=0;prologue_brief_beat=0;prologue_brief_echo=0;saga_brief_beat=0;saga_brief_echo=0;saga_brief_chapter=-1;saga_coda_pending=-1;station_tour_stage=STATION_TOUR_OFF;}while(0)
  TEST_INIT();launch(&game);page=FLIGHT;game.pos=(Vec3){0,0,-20000};game.speed=0;for(int i=0;i<NPC_COUNT;i++)game.npc[i].alive=0;
  input(PSP_CTRL_RTRIGGER,PSP_CTRL_RTRIGGER,.016f,0,0);INPUT_CHECK(!game.boost,"single R press does not boost");
  input(0,0,.1f,0,0);input(PSP_CTRL_RTRIGGER,PSP_CTRL_RTRIGGER,.016f,0,0);INPUT_CHECK(game.boost,"double R press starts boost");
@@ -847,14 +861,14 @@ static void input_tests(void){
  TEST_INIT();game.system=0;launch(&game);page=FLIGHT;for(int i=0;i<NPC_COUNT;i++)if(game.npc[i].alive&&game.npc[i].role==PIRATES){game.npc[i].target=-2;game.npc[i].pos=(Vec3){0,0,600};break;}
  input(PSP_CTRL_SQUARE,PSP_CTRL_SQUARE|PSP_CTRL_RTRIGGER,.016f,0,0);INPUT_CHECK(page==FLIGHT&&selected_target>BODY_COUNT&&npc_is_hostile(&game.npc[selected_target-BODY_COUNT-1])&&scan_cat==4,"R and Square locks nearest hostile on the ENEMIES band");int shots=game.shots;input(PSP_CTRL_CROSS,PSP_CTRL_CROSS|PSP_CTRL_LTRIGGER,.016f,0,0);INPUT_CHECK(game.missile_time>0&&game.missiles==0&&game.shots==shots,"L and X launches missile without firing laser");
  TEST_INIT();game.contract=game.system;game.mission_type=MISSION_DELIVERY;page=TARGETING;target_filter=5;target_refresh();INPUT_CHECK(target_count==1&&target_ids[0]==0,"mission filter isolates marked station objective");
- TEST_INIT();INPUT_CHECK(!strcmp(tracked_hud_cue(),"DOCK: LAVE HUB"),"HUD cue tells the player to dock for the tracked story");game.credits=20000;accept_mission(&game,0);tracked_mission=2;INPUT_CHECK(strstr(tracked_hud_cue(),game.systems[game.jobs[0].dest].name)!=0,"HUD cue follows a tracked station contract destination");
+ TEST_INIT();INPUT_CHECK(!strcmp(tracked_hud_cue(),"OPEN: TRACKED MISSION"),"HUD cue tells a docked player to open the tracked briefing");game.credits=20000;accept_mission(&game,0);tracked_mission=2;INPUT_CHECK(strstr(tracked_hud_cue(),game.systems[game.jobs[0].dest].name)!=0,"HUD cue follows a tracked station contract destination");
  TEST_INIT();game.credits=20000;int took=0;for(int i=0;i<5;i++)took+=accept_mission(&game,i)!=0;int old_destination=game.destination;INPUT_CHECK(took==5&&game.job_n==5&&!accept_mission(&game,0)&&game.destination==old_destination,"mission board rejects a sixth job when the log is full");
  TEST_INIT();game.credits=20000;accept_mission(&game,0);INPUT_CHECK(mission_offer_active(&game,0)&&!accept_mission(&game,0)&&game.job_n==1,"accepted offer stays in progress and cannot be taken twice");change_page(MISSIONLOG);row=1;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(tracked_mission==1,"mission log tracks the optional Guild assignment");input(PSP_CTRL_SELECT,0,.016f,0,0);INPUT_CHECK(page==CAMPAIGN&&tracked_mission==1,"tracked next-step screen follows the selected Guild mission");change_page(MISSIONLOG);row=2;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(tracked_mission==2&&game.job_sel==0,"mission log tracks an accepted station contract");input(PSP_CTRL_TRIANGLE,0,.016f,0,0);INPUT_CHECK(game.job_n==1&&abandon_confirm,"triangle asks before abandoning the focused mission");input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.job_n==0&&!abandon_confirm&&tracked_mission==0,"second X abandons the contract and restores story tracking");
- game_init(&game);deck_reset();change_page(HOME);INPUT_CHECK(row==0,"new commander opens the Fly category with Launch focused");row=6;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(page==HELP&&game.story==STORY_LAUNCH,"opening Controls advances the optional coach");
- game_init(&game);deck_reset();change_page(HOME);row=3;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(page==YARD&&game.story==STORY_BRIEF,"optional coaching leaves the shipyard available");
+ game_init(&game);deck_reset();change_page(HOME);INPUT_CHECK(row==0,"new commander opens the Fly category with Launch focused");row=6;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(page==HELP&&game.story==STORY_FREE,"opening Controls does not start retired optional coaching");
+ game_init(&game);deck_reset();change_page(HOME);row=3;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(page==YARD&&game.story==STORY_FREE,"retired coaching does not restrict the shipyard");
  TEST_INIT();change_page(HOME);row=15;input(PSP_CTRL_CIRCLE,0,.016f,0,0);INPUT_CHECK(page==HOME&&row==15,"circle on a docked deck keeps the selected door");
  TEST_INIT();change_page(COMMS);input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.docked&&page==COMMS,"comms while docked stays on the station channel");
- game_init(&game);deck_reset();change_page(STORY);row=1;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(game.story==STORY_FREE&&page==HOME,"flight guide ends only through its visible menu option");
+ game_init(&game);deck_reset();change_page(STORY);INPUT_CHECK(game.story==STORY_FREE&&page==HOME,"optional flight guide is no longer an accessible side path");
  TEST_INIT();change_page(HOME);row=20;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(page==WALK&&walk_kind==0,"docked Fly menu disembarks onto the station concourse");
  input(0,0,.016f,0,0); /* build station rooms */
  {int h0=sc_hot;input(PSP_CTRL_DOWN,0,.016f,0,0);INPUT_CHECK(page==WALK&&sc_hot!=h0,"station: DOWN cycles options list");}
@@ -997,7 +1011,7 @@ static void input_tests(void){
     int visible=1;
     for(int mode=0;mode<2;mode++){
      high_contrast=mode;memset(pixels,0,STRIDE*H*sizeof(unsigned));mission_log();
-     int label=0;for(int yy=168;yy<176;yy++)for(int xx=32;xx<216;xx++)if(pixels[yy*STRIDE+xx]==WHITE)label++;
+     int label=0;for(int yy=152;yy<160;yy++)for(int xx=32;xx<216;xx++)if(pixels[yy*STRIDE+xx]==WHITE)label++;
      if(!label)visible=0;
      dump_native_bmp(mode?"mission-log-full-contrast.bmp":"mission-log-full-normal.bmp");
     }
@@ -1055,6 +1069,7 @@ static void input_tests(void){
     }
    }
    #include "dialogue-visual-tests.h"
+   #include "mission-tracking-tests.h"
    preview_reset();quiet_comms=old_quiet;fb=saved_fb;free(pixels);TEST_INIT();
   }
  }

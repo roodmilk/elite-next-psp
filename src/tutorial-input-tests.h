@@ -6,7 +6,7 @@
  for(int g=1;g<DECK_GROUPS;g++)only_fly&=deck_fill(g,vis)==0;
  INPUT_CHECK(only_fly,"tutorial: only FLY is visible at the start");
  int introduced=0;for(int i=0;i<TUTORIAL_COUNT;i++)if(tutorial_beats[i].unlock>=0)introduced|=1<<tutorial_beats[i].unlock;
- INPUT_CHECK(introduced==((1<<DECK_ITEMS)-1),"tutorial: script introduces every command-deck service");
+ INPUT_CHECK(introduced==(((1<<DECK_ITEMS)-1)&~(1<<18)),"tutorial: script introduces every command-deck service");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(game.docked&&game.tutorial_step==1,"tutorial: briefing confirmation never launches");
  row=23;input(PSP_CTRL_CROSS,0,.016f,0,0);
@@ -58,7 +58,7 @@
     page=WALK;walk_kind=0;sc_room=SC_R_SHOP;sc_menu=SC_MENU_NONE;
     sc_hot=sc_find_hot(SC_H_PERSON,0);input(PSP_CTRL_CROSS,0,.016f,0,0);
     sc_talk_row=1;input(PSP_CTRL_CROSS,0,.016f,0,0);break;
-   case TU_GUILD:page=HOME;row=18;input(PSP_CTRL_CROSS,0,.016f,0,0);input(PSP_CTRL_CIRCLE,0,.016f,0,0);break;
+   case TU_GUILD:page=HOME;row=13;input(PSP_CTRL_CROSS,0,.016f,0,0);row=1;input(PSP_CTRL_CROSS,0,.016f,0,0);break;
    case TU_FIRE:page=FLIGHT;game.yaw=3.14f;game.pitch=0;input(0,0,.016f,0,0);input(PSP_CTRL_CROSS,PSP_CTRL_CROSS,.016f,0,0);break;
    case TU_SALVAGE:
     page=FLIGHT;input(PSP_CTRL_CIRCLE,0,.016f,0,0);

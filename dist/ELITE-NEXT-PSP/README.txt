@@ -1,5 +1,9 @@
 ELITE: NEXT for PSP
 
+2.5.153: Choose the tracked mission in Mission Log. Clearer mission instructions;
+Guild's separate Work menu and the old optional flight guide are retired.
+See BUILD-2.5.153.txt. Tutorial practice timing is unchanged.
+
 2.5.152: All mission conversations now share the same layout and reply boxes.
 See BUILD-2.5.152.txt. Tutorial pacing is unchanged.
 

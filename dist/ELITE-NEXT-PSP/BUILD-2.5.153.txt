@@ -1,0 +1,18 @@
+ELITE: NEXT 2.5.153 - YOUR SELECTED MISSION, YOUR NEXT STEP
+
+WORK > MISSION LOG: highlight a mission, then X to track it.
+SELECT tracks the highlighted mission and opens its next-step details.
+WORK > TRACKED MISSION always follows that selection.
+
+Explorers Guild lives in Mission Log, not a separate Work menu.
+Station Welcome is an optional log selection, never an automatic override.
+The old optional flight guide is retired. START TUTORIAL remains available.
+
+First Flight explains launch, steering, target selection, flight distance,
+docking and rewards in full dialogue. Orange reply boxes remain.
+Approach the station and press CIRCLE within 2,500 m to request docking.
+There is no separate docking-guidance menu step in the story.
+
+Kei's later briefings have clearer prose and mission steps update with progress.
+Tutorial Guild instructions now use Mission Log; exercise timing is unchanged.
+No save migration is required. Physical PSP testing remains outstanding.

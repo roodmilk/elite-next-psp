@@ -326,11 +326,11 @@ Completion: `VIEW` (17). Introduces service ID 17.
 
 ### 39. THE GUILD'S OTHER PROMISES
 
-**KEI:** Guild assignments live alongside the main story in Mission log. They reward exploration and helping people. Inspect the Guild page. You do not owe the Guild every waking minute, whatever its stationery implies.
+**KEI:** Guild assignments are listed beside our main story in Mission log. Highlight Explorers Guild and press X to track it. Tracked Mission will then show the next step for that assignment. You can switch back to our story in the same way.
 
-**Do:** WORK > Explorers Guild. Inspect; O back.
+**Do:** WORK > Mission log > Explorers Guild. X to track.
 
-Completion: `GUILD`. Introduces service ID 18.
+Completion: `GUILD`. Uses Mission log (service ID 13); the duplicate Guild service is retired.
 
 ### 40. KEEP THE VIEW YOURS
 
