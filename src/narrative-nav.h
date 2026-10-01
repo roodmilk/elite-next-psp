@@ -37,8 +37,8 @@ static void narrative_do(int screen){
  int action=narrative_action(screen);
  if(action==NA_BEGIN){campaign_accept(&game);row=0;}
  else if(action==NA_REWARD){if(screen==CAMPAIGN)campaign_claim(&game);else guild_claim(&game);row=0;}
- else if(action==NA_FLY){analog_ready=0;launch(&game);selected_target=0;autoaim=0;scan_cat=0;change_page(FLIGHT);}
- else if(action==NA_DOCK){change_page(FLIGHT);message(&game,"Approach the station. Press Circle within 2,500 m to request docking.");}
+ else if(action==NA_FLY){analog_ready=0;launch_departure(&game);selected_target=0;autoaim=0;scan_cat=0;change_page(FLIGHT);}
+ else if(action==NA_DOCK){change_page(FLIGHT);message(&game,"Approach the station. Press Triangle within 2,500 m, then choose REQUEST AUTO-DOCK.");}
  else if(action==NA_ROUTE){int hops=0,hop=route_next_hop(&game,7,&hops);game.destination=hop>=0?hop:7;change_page(CHART);message(&game,"Choose a jump toward Lave. Check fuel first.");}
  else if(action==NA_ASSIGNMENTS)change_page(MISSIONLOG);
  else if(action==NA_BOARD){int offer=assignment_offer();change_page(MISSIONS);if(offer>=0)row=offer;}
@@ -56,9 +56,9 @@ static int saga_speaker_role(const SagaBeat *b){
 static void narrative_footer(void){footer(page==CAMPAIGN?"UP/DOWN   X CHOOSE   O BACK   SELECT LOG":"UP/DOWN   X CHOOSE   O BACK");}
 enum { PROLOGUE_BRIEF_BEATS = 6 };
 static int saga_brief_beat=0,saga_brief_chapter=-1,prologue_brief_beat=0;
-/* echo=1: player just asked; next Cross reveals the NPC answer (never answer-before-ask). */
-static int prologue_brief_echo=0,saga_brief_echo=0;
-static void saga_brief_reset(int chapter){if(saga_brief_chapter!=chapter){saga_brief_chapter=chapter;saga_brief_beat=0;saga_brief_echo=0;}}
+/* Player replies stay in the bottom choices; selecting one advances to the NPC. */
+static int prologue_brief_echo=0;
+static void saga_brief_reset(int chapter){if(saga_brief_chapter!=chapter){saga_brief_chapter=chapter;saga_brief_beat=0;}}
 static int saga_coda_locked(void){return saga_coda_pending>=0;}
 /* Locked until the player finishes every beat and accepts the next step. */
 static int saga_brief_locked(void){return game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT&&!game.saga_step&&saga_coda_pending<0;}
@@ -108,12 +108,12 @@ static const char *prologue_brief_line2(int beat){
   "Once you are safely docked, report here for your harbour badge and 100 units. Then we can follow the first lead Ryn left behind.",
   "You do not need to buy weapons or upgrades for this job. I would rather you learn how it moves before spending your credits.",
   "Press Select in flight to pause at the command deck. Tracked Mission will remind you what to do next, so you can take your time.",
-  "Fly at least 600 metres, then return. Approach the hub and press Circle within 2,500 metres to request docking. The tower will bring you inside.",
+  "Fly at least 600 metres, then return. Approach the hub and press Triangle within 2,500 metres, then choose REQUEST AUTO-DOCK. The tower will bring you inside.",
   "When you return, open Tracked Mission to collect your reward. After that, I will explain where Mara is keeping Ryn\'s sealed receiver."};
  return b[beat>=0&&beat<PROLOGUE_BRIEF_BEATS?beat:PROLOGUE_BRIEF_BEATS-1];
 }
 static const char *prologue_brief_reply(int beat){
- /* Ask is chosen on this beat; NPC answer arrives only after the echo beat. */
+ /* Ask is chosen on this beat; NPC answer arrives immediately after selection. */
  static const char *r[PROLOGUE_BRIEF_BEATS]={
   "What do you need me to do on this first flight?",
   "Tell me about Ryn's ship.",
@@ -123,5 +123,4 @@ static const char *prologue_brief_reply(int beat){
   "Accept first flight"};
  return r[beat>=0&&beat<PROLOGUE_BRIEF_BEATS?beat:PROLOGUE_BRIEF_BEATS-1];
 }
-static int prologue_brief_needs_echo(int beat){return beat>=0&&beat<PROLOGUE_BRIEF_BEATS-1;}
-static int saga_brief_needs_echo(int beat){return beat>=0&&beat<SAGA_BRIEF_BEATS-1;}
+

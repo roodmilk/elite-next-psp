@@ -70,7 +70,8 @@ static const char *travellers_galnet_traffic(const Game *g){
 
 static const char *travellers_galnet_spotter(const Game *g){
  static char line[80];
- int id=travellers_elsewhere_id(g,g->system*5+6);
+ int id=-1;for(int i=0;i<12;i++)if(g->travellers[i].sys==g->system){id=i;break;}
+ if(id<0){snprintf(line,sizeof(line),"Spotted nobody from the long-haul list here today. Quiet watch.");return line;}
  if(g->travellers[id].sys==g->system){
   snprintf(line,sizeof(line),"%.12s lingering near %.8s.",traveller_defs[id].callsign,g->systems[g->system].name);
  }else{

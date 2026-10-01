@@ -36,7 +36,7 @@ static void radio_screen(void){
   for(int s=0;s<18;s++){int sx=148+(s*17+radio_static_ms*3)%150,sy=52+(s*11)%36;pixel(sx,sy,AMBER);pixel(sx+1,sy,RGB(180,140,40));}
   text(18,16,AMBER,"STATIC");
  }else if(radio_off)text(18,16,DIM,"RADIO OFF");
- else text(18,16,CYAN,"LOCKED");
+ else text(18,16,CYAN,"NOW PLAYING:");
  if(radio_static_ms<=0)text(18,18,radio_off?DIM:WHITE,"%.18s",radio_off?"(silence)":radio_station_name(radio_station));
  text(18,20,CYAN,"%.18s",radio_off?"Right: station 1":radio_station_genre(radio_station));
 
@@ -45,7 +45,10 @@ static void radio_screen(void){
  text(41,5,GOLD,"LEVELS");
  for(int i=0;i<2;i++){
   int y=8+i*4,volume=i?sound_volume:radio_volume;
-  if(row==1+i)rect(326,y*8-2,140,14,RGB(25,65,77));
+  /* Radio input uses rows 0=music and 1=FX. Keep the focus box on those
+   * same rows; the old +1 offset made the visible focus disagree with the
+   * level that Left/Right actually changed. */
+  if(row==i)rect(326,y*8-2,140,14,RGB(25,65,77));
   text(41,y,WHITE,"%-7s %2d",i?"FX":"MUSIC",volume);
   rect(330,y*8+10,120,5,DIM);rect(330,y*8+10,volume*12,5,i?AMBER:CYAN);
  }

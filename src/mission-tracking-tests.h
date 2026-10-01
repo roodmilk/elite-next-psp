@@ -5,6 +5,7 @@
  campaign_screen();INPUT_CHECK(tracked_mission==1&&page==CAMPAIGN&&strstr(dialogue_source,"survey")!=0,"tracking: Guild selected in the log opens its own next-step conversation");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(page==FLIGHT&&!game.docked,"tracking: Guild Launch reply works without a separate Guild menu");
+ for(int frame=0;frame<320;frame++)input(0,0,.016f,0,0);
  input(0,0,.016f,0,0);
  INPUT_CHECK(station_tour_stage==STATION_TOUR_ROUTE&&game.route_goal!=STATION_TOUR_DEST,"tracking: untracked welcome tour cannot reroute a flight");
  change_page(MISSIONLOG);row=mission_log_count()-1;input(PSP_CTRL_SELECT,0,.016f,0,0);
@@ -24,8 +25,9 @@
  dump_native_bmp("tracking-first-flight-launch.bmp");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(page==FLIGHT&&!game.docked&&!(game.campaign_flags&CP_LOCKED),"tracking: launch does not pretend the player has locked the hub");
+ for(int frame=0;frame<320;frame++)input(0,0,.016f,0,0);
  game.campaign_stage=4;game.campaign_flags|=CP_FLEW;game.campaign_distance=600;change_page(CAMPAIGN);campaign_screen();
- INPUT_CHECK(strstr(dialogue_source,"Circle within 2,500")!=0&&strstr(narrative_label(narrative_action(CAMPAIGN)),"guidance")==0,"tracking: return step explains real docking controls without a guidance-menu detour");
+ INPUT_CHECK(strstr(dialogue_source,"Triangle within 2,500")!=0&&strstr(narrative_label(narrative_action(CAMPAIGN)),"guidance")==0,"tracking: return step explains real docking controls without a guidance-menu detour");
  dump_native_bmp("tracking-first-flight-return.bmp");input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(page==FLIGHT&&!game.dock_stage,"tracking: return-to-flight reply leaves docking under the player's control");
  TEST_INIT();tracked_mission=1;game.guild_chapter=1;page=CAMPAIGN;campaign_screen();dump_native_bmp("tracking-guild-next-step.bmp");

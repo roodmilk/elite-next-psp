@@ -42,8 +42,14 @@ static int freight_route(Game *g,NPC *n,int slot){
   * Reject entire routes through planets or other hubs, not just endpoints. */
  for(int attempt=0;attempt<24;attempt++){
   float a=(seed%6283)*.001f+attempt*2.399963f;
-  Vec3 out={cosf(a),0,sinf(a)},berth=add(hub,mul(out,1800+n->freight_style*240)),gate=add(berth,mul(out,6200+(seed%2400)));
+  int body=1+(slot/12+n->freight_trip+attempt)%4;
+  Vec3 gate=traffic_world_point(g,body);
+  Vec3 offset={cosf(a)*2400,((attempt%3)-1)*1400.f,sinf(a)*2400};gate=add(gate,offset);
+  float berth_distance=n->freight_hub==0?fmaxf(2200+n->freight_style*240,station_architecture_clearance(g)+900):2200+n->freight_style*240;
+  Vec3 out=norm(sub(gate,hub)),berth=add(hub,mul(out,berth_distance));
   int safe=length(sub(gate,g->pos))>2500;
+  float angle=station_angle(g);
+  if(station_architecture_hit(g,station_arch_rotate(sub(berth,(Vec3){0,0,STATION_Z}),-angle),station_arch_rotate(sub(gate,(Vec3){0,0,STATION_Z}),-angle),750,0))safe=0;
   for(int b=0;b<BODY_COUNT;b++)if(route_clearance(berth,gate,g->bodies[b].pos)<g->bodies[b].radius+n->radius+500)safe=0;
   for(int h=0;h<HUB_COUNT;h++)if(route_clearance(berth,gate,hub_position(g,h))<n->radius+600)safe=0;
   for(int j=8;j<36;j+=12)if(&g->npc[j]!=n&&g->npc[j].alive&&route_clearance(berth,gate,g->npc[j].pos)<n->radius+g->npc[j].radius+500)safe=0;
@@ -81,7 +87,7 @@ static void freight_update(Game *g,float dt){
    float pd=length(sub(g->pos,n->pos));n->target=-2;
    Vec3 desired=norm(sub(g->pos,n->pos));n->dir=norm(add(mul(n->dir,1-dt*1.1f),mul(desired,dt*1.1f)));
    if(pd>420)n->pos=add(n->pos,mul(n->dir,dt*fminf(n->cruise+40.f,140.f)));
-   if(pd<3200&&dot(n->dir,desired)>.72f&&n->cooldown<=0){n->cooldown=1.1f;n->flash=.12f;g->energy-=7;g->attacked=3.5f;g->cue=SFX_HIT;}
+   if(pd<3200&&dot(n->dir,desired)>.72f&&n->cooldown<=0){n->cooldown=1.1f;n->flash=.12f;g->energy-=7;g->attacked=3.5f;g->fire_bearing_time[i]=2.5f;g->cue=SFX_HIT;}
    continue;
   }
   n->target=-1;

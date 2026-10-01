@@ -28,21 +28,31 @@
  CHECK(length((Vec3){g.pos.x-before.x,0,g.pos.z-before.z})<=6.201f&&g.pos.x>before.x&&g.pos.z>before.z,"EVA diagonal movement is level and speed capped while looking up");
  g.pos=(Vec3){pad.x+EVA_FIELD_RADIUS-.1f,0,pad.z};g.pos.y=terrain_height(&g,g.pos.x,g.pos.z)+22;g.yaw=1.5707963f;g.message_time=0;
  before=g.pos;game_eva_tick(&g,.1f,0,0,1,0,0);
+ fprintf(f,"EVA boundary diagnostic: delta %.6f, before %.3f/%.3f/%.3f after %.3f/%.3f/%.3f message [%s]\n",length(sub(g.pos,before)),before.x,before.y,before.z,g.pos.x,g.pos.y,g.pos.z,g.message);
  CHECK(length(sub(g.pos,before))<1&&strstr(g.message,"Field edge"),"EVA field edge blocks outward movement without teleporting");
  game_eva_tick(&g,.1f,0,0,-1,0,0);
  CHECK(g.pos.x<before.x-2,"EVA can retreat from the local field edge");
  /* Find the actual drawn shore tile boundary, then approach from dry land. */
- g.bodies[2].type=OCEAN;float shore=pad.x;while(!terrain_is_water(&g,shore,pad.z)&&shore<pad.x+600)shore+=1;
+ g.bodies[2].type=OCEAN;float shore=pad.x;while(!terrain_is_water(&g,shore,pad.z)&&shore<pad.x+EVA_FIELD_RADIUS)shore+=1;
  g.pos=(Vec3){shore-2,46,pad.z};g.yaw=1.5707963f;g.message_time=0;before=g.pos;
  game_eva_tick(&g,.1f,0,0,1,0,1);
  CHECK(!terrain_is_water(&g,g.pos.x,g.pos.z)&&g.pos.x<shore&&strstr(g.message,"Shoreline"),"EVA shoreline blocks walking and jet translation into visible water");
  game_eva_tick(&g,.1f,0,0,-1,0,0);CHECK(g.pos.x<before.x-2,"EVA shore collision allows a safe retreat");
  g.pos=g.ship_pos;g.pos.y+=4;g.jetpack=0;float fuel=g.fuel;
+ game_eva_tick(&g,.05f,0,0,0,0,0);
+ float jump_floor=g.pos.y,peak=0;
+ game_eva_tick(&g,.05f,0,0,0,0,1);
+ CHECK(g.pos.y>jump_floor&&!eva_toggle(&g)&&g.surface==2,"EVA R gives a short jump; airborne boarding remains blocked");
+ for(int i=0;i<120;i++){game_eva_tick(&g,.05f,0,0,0,0,1);peak=fmaxf(peak,g.pos.y-jump_floor);}
+ CHECK(peak>5&&peak<18&&fabsf(g.pos.y-jump_floor)<.01f&&g.fuel==fuel,"EVA holding R for six seconds gives only one small jump and lands");
+ game_eva_tick(&g,.05f,0,0,0,0,1);
+ CHECK(fabsf(g.pos.y-jump_floor)<.01f,"EVA holding through landing never auto-hops");
+ game_eva_tick(&g,.05f,0,0,0,0,0);game_eva_tick(&g,.05f,0,0,0,0,1);
+ float velocity=g.jetpack;game_eva_tick(&g,.05f,0,0,0,0,0);game_eva_tick(&g,.05f,0,0,0,0,1);
+ CHECK(g.jetpack<velocity,"EVA double-tap R cannot recharge the boost in mid-air");
  for(int i=0;i<120;i++)game_eva_tick(&g,.05f,0,0,0,0,1);
- CHECK(g.pos.y<=terrain_height(&g,g.pos.x,g.pos.z)+142.01f&&g.fuel==fuel,"EVA jet has bounded height and does not spend ship fuel");
- CHECK(!eva_toggle(&g)&&g.surface==2,"EVA cannot board a ship from high above it");
+ CHECK(fabsf(g.pos.y-jump_floor)<.01f&&eva_can_board(&g),"EVA double-tap then hold still lands and restores boarding");
  for(int i=0;i<90;i++)game_eva_tick(&g,.05f,0,0,0,0,0);
- CHECK(fabsf(g.pos.y-(terrain_height(&g,g.pos.x,g.pos.z)+22))<.01f&&eva_can_board(&g),"EVA jet release lands at eye height and restores boarding");
  g.pos.y+=2.1f;CHECK(!eva_can_board(&g),"EVA boarding rejects even a low airborne hover");g.pos.y-=2.1f;
  g.dead=1;CHECK(!eva_toggle(&g),"dead commander cannot board");g.dead=0;
  CHECK(eva_toggle(&g)&&g.jetpack==0&&!g.boost&&g.pitch==0,"boarding clears jet velocity and restores level ship controls");

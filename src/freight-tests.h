@@ -50,7 +50,8 @@
  int inventory[GOODS];memcpy(inventory,g.stock,sizeof(inventory));
  for(int k=0;k<100;k++)freight_update(&g,.1f);
  CHECK(!memcmp(inventory,g.stock,sizeof(inventory)),"freight: loitering at the berth never repeats a delivery");
- for(int k=0;k<3000&&n->alive;k++)freight_update(&g,.1f);
+ int trip_ticks=(int)(length(sub(n->freight_gate,n->freight_berth))/n->cruise/.1f)+1000;
+ for(int k=0;k<trip_ticks&&n->alive;k++)freight_update(&g,.1f);
  CHECK(!n->alive&&n->freight_state==FREIGHT_ABSENT&&n->freight_timer>0&&g.freight_gap>0,"freight: loading, outward flight and warp complete without teleporting back");
  g.freight_next=0;for(int k=0;k<400;k++)freight_update(&g,.1f);
  CHECK(!n->alive,"freight: a departing ship cannot instantly respawn");

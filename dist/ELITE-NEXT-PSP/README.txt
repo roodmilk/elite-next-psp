@@ -1,4 +1,10 @@
-ELITE: NEXT for PSP
+ELITE: NEXT 2.5.252 for PSP - development snapshot
+
+Includes cumulative station/planetary work and Elite Exploration radio.
+Back up existing saves before updating. No player saves or custom music included.
+Known inherited input/outfitting test failures remain; physical PSP validation
+is outstanding. See the project CHANGELOG.md for the current update history.
+The notes below describe earlier updates, not the current build version.
 
 2.5.153: Choose the tracked mission in Mission Log. Clearer mission instructions;
 Guild's separate Work menu and the old optional flight guide are retired.
@@ -16,4 +22,5 @@ Copy this entire ELITE-NEXT-PSP folder to PSP/GAME on the Memory Stick.
 Custom music:
 Put MP3 files into the matching folder under music. The game scans the folders at startup and shuffles the selected station. Restart the game after adding or removing tracks.
 
-Do not rename the five station folders.
+Do not rename the station folders. Elite Exploration accepts OGG/MP3 tracks;
+follow each folder's instructions. Thargoid Battle has its own music folder.

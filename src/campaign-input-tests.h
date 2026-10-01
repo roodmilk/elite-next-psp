@@ -36,15 +36,14 @@
  INPUT_CHECK(game.campaign_stage==6&&game.credits==cash+1000&&narrative_action(CAMPAIGN)==NA_ASSIGNMENTS,"story: collecting once replaces the reward action");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(page==CAMPAIGN&&game.credits==cash+1000,"story: completed chapter has no hidden Guild-menu action or duplicate repayment");
- /* Open Channel brief: ask echo then answer for each beat, Select/Circle blocked, then accept. */
- saga_brief_beat=0;saga_brief_echo=0;saga_brief_chapter=game.saga_chapter;row=0;
+ /* Open Channel brief: direct NPC answer for each beat, Select/Circle available, then accept. */
+ saga_brief_beat=0;saga_brief_chapter=game.saga_chapter;row=0;
  INPUT_CHECK(saga_brief_locked()&&!game.saga_step,"saga brief: chapter opens locked before accept");
  input(PSP_CTRL_CIRCLE,0,.016f,0,0);INPUT_CHECK(page!=CAMPAIGN&&!game.saga_step,"saga brief: Circle backs out mid-conversation");
  change_page(CAMPAIGN);input(PSP_CTRL_SELECT,0,.016f,0,0);INPUT_CHECK(page==MISSIONLOG&&!game.saga_step,"saga brief: Select opens the mission log mid-conversation");
  change_page(CAMPAIGN);
  for(int i=0;i<SAGA_BRIEF_BEATS-1;i++){
-  input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(saga_brief_echo==1&&!game.saga_step,"saga brief: Cross speaks before the next NPC line");
-  input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(saga_brief_echo==0&&saga_brief_beat==i+1&&!game.saga_step,"saga brief: second Cross walks to the next NPC beat");
+  input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(saga_brief_beat==i+1&&!game.saga_step,"saga brief: one Cross advances directly to the next NPC answer");
  }
  INPUT_CHECK(saga_brief_beat==SAGA_BRIEF_BEATS-1,"saga brief: final beat is the reinforce / accept step");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
@@ -77,7 +76,12 @@
  TEST_INIT();game.guild_chapter=1;game.guild_flags=0;game.credits=20000;
  change_page(GUILD);INPUT_CHECK(narrative_action(GUILD)==NA_BOARD,"assignments: food delivery opens the matching board offer");
  input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(page==MISSIONS&&mission_type_for_offer(&game,row)==MISSION_DELIVERY,"assignments: board highlights the required delivery");
- TEST_INIT();game.guild_chapter=1;game.guild_flags=0;game.docked=1;int no_food=-1;for(int s=0;s<256;s++)if(guild_offer_index_at(&game,s,MISSION_DELIVERY)<0){no_food=s;break;}game.system=no_food;int food_hub=guild_contract_station(&game);INPUT_CHECK(no_food>=0&&food_hub!=no_food&&guild_offer_index_at(&game,food_hub,MISSION_DELIVERY)>=0,"assignments: missing local food job resolves to a station that really offers one");change_page(GUILD);INPUT_CHECK(narrative_action(GUILD)==NA_MAP&&strstr(guild_objective(&game),game.systems[food_hub].name),"assignments: next step names the verified food-contract station");input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(page==CHART&&game.destination>=0,"assignments: route action charts the verified contract station");
+ TEST_INIT();game.guild_chapter=1;game.guild_flags=0;game.docked=1;
+ for(int system=0;system<256;system++){game.system=system;int offer=guild_offer_index_at(&game,system,MISSION_DELIVERY);
+  INPUT_CHECK(offer>=0&&mission_offer_valid(&game,offer,0)&&mission_type_for_offer(&game,offer)==MISSION_DELIVERY&&guild_contract_station(&game)==system,"assignments: Guild resolves to the real local food offer in every system");
+ }
+ change_page(GUILD);INPUT_CHECK(narrative_action(GUILD)==NA_BOARD,"assignments: next step opens local board");
+ input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(page==MISSIONS&&mission_type_for_offer(&game,row)==MISSION_DELIVERY,"assignments: board action highlights the actual food contract");
  TEST_INIT();game.guild_chapter=1;game.guild_flags=0;game.credits=20000;int local_food=assignment_offer();INPUT_CHECK(local_food>=0&&accept_mission(&game,local_food),"assignments: verified local food offer can be accepted");change_page(GUILD);INPUT_CHECK(narrative_action(GUILD)==NA_LOG,"assignments: accepted delivery changes next step to Track");
  input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(page==MISSIONLOG&&row>=2&&game.jobs[row-2].type==MISSION_DELIVERY,"assignments: Track opens the existing contract");
  TEST_INIT();change_page(STORY);
@@ -131,3 +135,18 @@
  }
  TEST_INIT();
 }
+/* Every main-story chapter uses the same single-press question/answer flow. */
+{
+ for(int chapter=0;chapter<SAGA_COUNT;chapter++){
+  TEST_INIT();game.campaign_stage=6;game.saga_chapter=chapter;game.saga_step=0;
+  page=CAMPAIGN;saga_brief_reset(chapter);
+  for(int beat=0;beat<SAGA_BRIEF_BEATS-1;beat++){
+   input(PSP_CTRL_CROSS,0,.016f,0,0);
+   INPUT_CHECK(saga_brief_beat==beat+1&&!game.saga_step&&page==CAMPAIGN,"all chapters: one reply press advances to NPC, without accepting early");
+   campaign_screen();
+   INPUT_CHECK(!strcmp(dialogue_source,saga_brief_line(&saga_beats[chapter],beat+1)),"all chapters: upper speech contains the NPC answer, not selected player text");
+  }
+ }
+ TEST_INIT();
+}
+

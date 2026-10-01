@@ -39,6 +39,9 @@ static void radio_tests(void){
   if(previous>=0&&order[count-1]!=previous)valid_order=0;
  }
  RADIO_CHECK(valid_order,"shuffle visits every candidate once and defers previous until alternatives fail");
+  RADIO_CHECK(RADIO_BATTLE_SOURCE==RADIO_STATION_COUNT&&RADIO_FILE_SOURCE_COUNT==RADIO_STATION_COUNT+1&&!strcmp(radio_music_dirs[RADIO_BATTLE_SOURCE],"music/Thargoid Battle"),"battle score has a dedicated non-radio music source and folder");
+  RADIO_CHECK(!strcmp(radio_station_name(7),"Elite Exploration")&&!strcmp(radio_station_genre(7),"EXPLORATION")&&!strcmp(radio_music_dirs[7],"music/Elite Exploration"),"Elite Exploration has a selectable identity and dedicated music folder");
+  RADIO_CHECK(radio_has_music_extension("intercept.ogg")&&radio_has_music_extension("INTERCEPT.OGG")&&radio_has_music_extension("legacy.mp3")&&!radio_has_music_extension("notes.txt"),"music library accepts OGG Vorbis and MP3 files case-insensitively");
  seed=0x7141u;radio_candidate_order(3,0,&seed,order);
  int attempts=0,selected=-1;for(int i=0;i<3;i++){attempts++;if(order[i]==2){selected=2;break;}}
  RADIO_CHECK(selected==2&&attempts<=2,"shuffle reaches playable slot 2 despite malformed slot 1 and previous slot 0");
@@ -78,13 +81,15 @@ static void radio_tests(void){
   RADIO_CHECK(hash==repeat,"station resets deterministically");
  }
  RADIO_CHECK(!strcmp(radio_station_name(5),"SPACE TALK")&&!strcmp(radio_station_genre(5),"TALK RADIO"),"talk station has requested title and category");
+ RADIO_CHECK(!strncmp(radio_voice_script(5,0),"SPACE TALK:",11)&&!strncmp(radio_voice_script(6,0),"VOID TALES:",11),"presenter scripts belong to the two visible radio channels");
  {
-  RadioSynth talk;radio_synth_reset(&talk,5);int quiet=0,longest=0,run=0,voices=0,changed=0,last=0,jump=0;
+  RadioSynth talk;radio_synth_reset(&talk,5);int quiet=0,longest=0,run=0,voices=0,changed=0,last=0,jump=0,cursor_advanced=0;
   unsigned chunks[12]={0};
   for(int i=0;i<44100*12;i++){
    int l,r;radio_synth_sample(&talk,&l,&r);
    chunks[i/44100]=(chunks[i/44100]^(unsigned)l)*16777619u;
    voices|=1<<talk.talk_voice;
+   cursor_advanced|=radio_voice_station==5&&(radio_voice_line>0||radio_voice_char>12);
    if(!l&&!r){quiet++;if(++run>longest)longest=run;}else run=0;
    if(abs(l-last)>jump)jump=abs(l-last);
    last=l;
@@ -93,10 +98,18 @@ static void radio_tests(void){
   RADIO_CHECK(quiet>44100&&longest>=8820,"talk radio has truly silent pauses with no shuffling bed");
   RADIO_CHECK(changed==11&&(voices&(voices-1)),"talk radio varies phrases and speakers beyond the old short loop");
   RADIO_CHECK(jump<1500,"talk syllables have smooth edges without noise clicks");
+  RADIO_CHECK(cursor_advanced,"SPACE TALK audio advances the shared on-screen transcript cursor");
  }
  RADIO_CHECK(radio_preview_wav(5),"export SPACE TALK audition");
+ RADIO_CHECK(!strcmp(radio_station_name(6),"VOID TALES")&&!strcmp(radio_station_genre(6),"ALIEN STORY"),"alien story channel has its own title and genre");
+ RadioSynth tales;radio_synth_reset(&tales,6);int tale_silence=0,tale_longest=0,tale_run=0,tale_voices=0,tale_changes=0,tale_last=0,tale_cursor=0;
+ for(int i=0;i<44100*18;i++){int l,r;radio_synth_sample(&tales,&l,&r);int active=l||r;tale_cursor|=radio_voice_station==6&&(radio_voice_line>0||radio_voice_char>12);if(!active){tale_silence++;tale_run++;if(tale_run>tale_longest)tale_longest=tale_run;}else{tale_run=0;tale_changes+=((l>0)!=(tale_last>0));tale_last=l;tale_voices|=1<<tales.talk_voice;}}
+ RADIO_CHECK(tale_silence>44100*2&&tale_longest>=22050,"alien story channel leaves long pauses between narrated tale phrases");
+ RADIO_CHECK(tale_changes>4&&(tale_voices&(tale_voices-1)),"alien story channel varies its slow alien voices");
+ RADIO_CHECK(tale_cursor,"VOID TALES audio advances the shared on-screen transcript cursor");
+ RADIO_CHECK(radio_preview_wav(6),"export VOID TALES audition");
  int unique=1;for(int i=0;i<RADIO_STATION_COUNT;i++)for(int j=i+1;j<RADIO_STATION_COUNT;j++)if(hashes[i]==hashes[j])unique=0;
- RADIO_CHECK(unique,"all six radio stations produce different audio");
+ RADIO_CHECK(unique,"all eight radio stations produce different audio");
  FILE *preview=fopen("radio-preview.flag","rb");if(preview){fclose(preview);for(int i=0;i<RADIO_STATION_COUNT;i++)RADIO_CHECK(radio_preview_wav(i),"export original stereo radio excerpt");}
  radio_volume=5;sound_volume=8;radio_adjust(0,-100);radio_adjust(1,100);
  RADIO_CHECK(!radio_volume&&sound_volume==10,"independent volume controls clamp safely");
@@ -106,6 +119,12 @@ static void radio_tests(void){
  RADIO_CHECK(radio_load_settings("test-radio.cfg")&&radio_station==3&&radio_volume==4&&sound_volume==7,"station and both levels survive reload");
  radio_tune(2);radio_save_settings("test-radio.cfg");FILE *bad=fopen("test-radio.cfg","wb");if(bad){fputs("bad",bad);fclose(bad);}
  RADIO_CHECK(radio_load_settings("test-radio.cfg")&&radio_station==3,"invalid settings recover previous valid backup");
+ radio_tune(7);radio_off=0;radio_save_settings("test-radio.cfg");radio_station=0;
+ RADIO_CHECK(radio_load_settings("test-radio.cfg")&&!radio_off&&radio_station==7,"Elite Exploration selection survives reload");
+ RadioSettings legacy={0x52414449u,2,7,5,8,0,0};legacy.check=radio_checksum(&legacy);
+ FILE *legacy_file=fopen("test-radio.cfg","wb");if(legacy_file){fwrite(&legacy,1,sizeof(legacy),legacy_file);fclose(legacy_file);}
+ radio_off=0;radio_station=3;
+ RADIO_CHECK(radio_load_settings("test-radio.cfg")&&radio_off,"version-two radio-off setting does not become Elite Exploration");
  remove("test-radio.cfg");remove("test-radio.cfg.bak");remove("test-radio.cfg.tmp");
  radio_station=0;radio_volume=5;sound_volume=8;radio_dirty=0;
  /* Suspend prep must leave MP3 frozen without waiting; resume path restarts audio. */

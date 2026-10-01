@@ -16,7 +16,7 @@ static inline const char *story_line(const Game *g,int line){
   {"Kei. Ryn was my surveyor, and my friend, until her last ping went quiet.","This ship is yours while we look. Open CONTROLS and learn it properly.","I will not lose anyone else to a silence I could have challenged sooner.","Stay on this channel — panic makes me over-explain, and today I am scared."},
   {"Your ship is ready at the hub. Hit Launch when your hands mean it.","D-pad steers; hold R for speed and L to slow without turning courage into wreckage.","I need you on this channel for the return, not only the departure.","Clear the pad cleanly. Venn has buried enough clever pilots already."},
   {"Do not fly blind. Ryn did that once, and the silence afterward was worse than the mistake.","Tap Square for the target list; hold Square with Left or Right to tab without turning.","Find her ping if it still answers, then come home before you invent a second silence.","Eyes open is not optional out here — it is how people keep their names on the board."},
-  {"Bring the ship in as a living hull, not a ghost story for the tower to file.","Face the hub and press O to dock, or open Comms and let Venn guide a boring approach.","He kept Ryn's berth warm through procedure, which is how he survives grief.","A clean dock is the first promise you make to everyone still waiting on the pad."},
+  {"Bring the ship in as a living hull, not a ghost story for the tower to file.","Face the hub and press Triangle to dock, or open Comms and let Venn guide a boring approach.","He kept Ryn's berth warm through procedure, which is how he survives grief.","A clean dock is the first promise you make to everyone still waiting on the pad."},
   {"Learn the sky she used to fly — open Details or Factions and see who shares Lave with you.","Someone sold her route as if a chart could be private weather.","Names and uniforms matter here; do not let a seed choose your friends for you.","Understanding the room is how you notice when the room starts lying."},
   {"This is where the rumours live. I posted the last thing she sent like a letter, not a trophy.","A Meridian echo sits on the wire. Read it carefully before you decide what it means.","She wanted someone to look, not someone to own the looking.","GalacticNet is noisy; her silence is still the loudest line on it."},
   {"Money will not find her. Work will keep you flying long enough to keep looking.","Open Missions and take one job you can finish without turning the hold into a shrine.","Read the brief first. Job clocks pause in menus so reading is not a trap.","Paid work is how independent pilots stay available when the next call goes wrong."},
@@ -74,9 +74,9 @@ static inline int story_home_row(const Game *g){
 }
 static __attribute__((unused)) const char *story_hint(const Game *g){
  if(g->planet>=0){
-  if(g->surface==2)return "D-pad moves. Hold R lifts. Triangle faces ship.";
-  if(g->surface==1)return "O to walk. Triangle to take off.";
-  return "Land on the cyan pad, then press O.";
+  if(g->surface==2)return "D-pad moves. Tap R jumps; hold R runs. Triangle boards beside ship.";
+  if(g->surface==1)return "R launches. X steps outside.";
+  return "Circle opens guided landing options.";
  }
  if(g->approach>=0)return "X to go in. O to turn back.";
  if(g->dock_stage)return "Match the cyan slot to dock.";

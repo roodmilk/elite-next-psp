@@ -1,6 +1,8 @@
 #include "next-art.h"
 #include "campaign-art.h"
 #include "sun-sprites.h"
+#include "system-almanac-art.h"
+#include "intro-art.h"
 /* Assets are compiled ARGB1555. All sampling stays on the native pixel grid. */
 static unsigned sun_hash(unsigned x){x^=x>>16;x*=0x7feb352du;x^=x>>15;x*=0x846ca68bu;return x^(x>>16);}
 static void draw_next_art(const uint16_t *data,int sw,int sh,int x,int y,int w,int h){
@@ -28,53 +30,37 @@ static void sun_bloom_dot(int x,int y,unsigned c,int xt,int yt,int xb,int yb){
  int b=(((d>>16)&255)+((c>>16)&255));if(b>255)b=255;
  fb[y*STRIDE+x]=RGB(r,g,b);
 }
-/* Animated pixel-art star. Family from seed; frame from time. Tint shifts the sheet toward the system colour. */
+/* All families are luminous stars, never dark-centred anomaly silhouettes.
+ * Existing animated sheets provide granulation only, not transparency or shading. */
 static void draw_sun_sprite(int cx,int cy,int radius,unsigned tint,unsigned seed,float time,int xt,int yt,int xb,int yb){
  if(radius<1)return;
  int fam=sun_family(seed),frame=((int)(time*6.f+(seed&7))&3);
- if(frame<0)frame=0;if(frame>3)frame=3;
  const uint16_t *sheet=sun_sprites[fam][frame];
- int tr=180+((tint&255)*76)/255,tg=180+(((tint>>8)&255)*76)/255,tb=180+(((tint>>16)&255)*76)/255;
- int d=radius*2;if(d<2)d=2;
- int x0=cx-radius,y0=cy-radius;
- int left=x0>xt?x0:xt,top=y0>yt?y0:yt,right=x0+d<xb?x0+d:xb,bottom=y0+d<yb?y0+d:yb;
- if(left<0)left=0;if(top<0)top=0;if(right>W)right=W;if(bottom>H)bottom=H;
- /* Disc from the 32x32 pixel-art sheet (nearest-neighbour — keeps chunky look). */
- for(int py=top;py<bottom;py++){
-  int sy=((py-y0)*32)/d;if(sy<0)sy=0;if(sy>31)sy=31;
-  for(int px=left;px<right;px++){
-   int sx=((px-x0)*32)/d;if(sx<0)sx=0;if(sx>31)sx=31;
-   unsigned p=sheet[sy*32+sx];if(!(p&0x8000))continue;
-   int cr=(p>>10)&31,cg=(p>>5)&31,cb=p&31;
-   int r=((cr<<3)|(cr>>2))*tr/255,g=((cg<<3)|(cg>>2))*tg/255,b=((cb<<3)|(cb>>2))*tb/255;
-   pixel(px,py,RGB(r,g,b));
+ int glow=radius+radius/3+2,left=cx-glow,top=cy-glow,right=cx+glow+1,bottom=cy+glow+1;
+ if(left<xt)left=xt;if(left<0)left=0;if(top<yt)top=yt;if(top<0)top=0;
+ if(right>xb)right=xb;if(right>W)right=W;if(bottom>yb+1)bottom=yb+1;if(bottom>H)bottom=H;
+ int r2=radius*radius,g2=glow*glow;
+ for(int y=top;y<bottom;y++)for(int x=left;x<right;x++){
+  int dx=x-cx,dy=y-cy,q=dx*dx+dy*dy;if(q>g2)continue;
+  if(q>r2){
+   int strength=(g2-q)*58/(g2-r2);
+   sun_bloom_dot(x,y,RGB(strength,strength*2/3,strength/6),xt,yt,xb,yb);continue;
+  }
+  int sx=(dx+radius)*31/(radius*2),sy=(dy+radius)*31/(radius*2);
+  unsigned p=sheet[sy*32+sx];int grain=(((p>>10)&31)+((p>>5)&31)+(p&31))/3;
+  int core=(r2-q)*55/r2,heat=grain/3+(fam%3)*5;
+  pixel(x,y,RGB(255,165+core+heat,45+core*2+heat*2));
+ }
+ /* Short outward flares, clipped pixel by pixel so previews never bleed. */
+ for(int k=0;k<9;k++){
+  float a=k*6.2831853f/9+seed*.001f+time*.06f;
+  int reach=radius/6+1+(int)((.5f+.5f*sinf(time*1.8f+k+fam))*radius*.12f);
+  for(int n=0;n<reach;n++){
+   int x=cx+(int)(cosf(a)*(radius+n)),y=cy+(int)(sinf(a)*(radius+n));
+   int fade=(reach-n)*90/reach;sun_bloom_dot(x,y,RGB(fade,fade*2/3,fade/5),xt,yt,xb,yb);
   }
  }
- /* Family-specific corona bloom — cheap rings, additive, clipped. */
- unsigned corona=RGB((tint&255)/3,((tint>>8)&255)/3,((tint>>16)&255)/3);
- float pulse=.9f+.1f*sinf(time*(1.2f+(fam&3)*.15f)+seed);
- int bloom=(int)(radius*(1.25f+.12f*(fam%3))*pulse);
- int step=bloom>40?3:2;
- for(int ring=0;ring<4;ring++){
-  int rr=bloom-ring*(bloom-radius)/4;if(rr<=radius)break;
-  unsigned glow=RGB(((corona&255)*(4-ring))/5,(((corona>>8)&255)*(4-ring))/5,(((corona>>16)&255)*(4-ring))/5);
-  int samples=32+ring*12;float spin=time*(.1f+.02f*fam)+seed*.01f;
-  for(int k=0;k<samples;k+=1){
-   float a=spin+k*6.2831853f/samples;
-   sun_bloom_dot(cx+(int)(cosf(a)*rr),cy+(int)(sinf(a)*rr*.95f),glow,xt,yt,xb,yb);
-  }
- }
- /* Hot / flare families get a few rotating ray tips outside the sheet. */
- if(fam==1||fam==2||fam==6){
-  int rays=fam==6?5:8;float spin=time*(.2f+.05f*fam);
-  for(int k=0;k<rays;k++){
-   float a=spin+k*6.2831853f/rays;float reach=radius*(1.15f+.08f*sinf(time*2+k));
-   int x1=cx+(int)(cosf(a)*reach),y1=cy+(int)(sinf(a)*reach);
-   int x2=cx+(int)(cosf(a)*(radius+1)),y2=cy+(int)(sinf(a)*(radius+1));
-   if(y1>=yt&&y1<=yb&&y2>=yt&&y2<=yb)line(x2,y2,x1,y1,RGB((tint&255)/2,((tint>>8)&255)/2,((tint>>16)&255)/2));
-  }
- }
- (void)step;
+ (void)tint;
 }
 /* The same immutable body seed selects art on charts, cards and in flight.
  * Only visible pixels are sampled, even beside a planet filling the screen.
@@ -89,11 +75,48 @@ static void draw_planet_sprite(int cx,int cy,int r,unsigned seed,int type,int xt
  if(bottom>H)bottom=H;
  const uint16_t *data=planet_sprites[planet_sprite_index(seed,type)];
  int tr=224+(int)((seed>>8)&31),tg=224+(int)((seed>>13)&31),tb=224+(int)((seed>>18)&31);
+ /* Resolve x sampling once and tint each source scanline once, not per screen pixel. */
+ int sample[W];for(int px=left;px<right;px++){int sx=2+(px-x)*60/d;sample[px]=(seed&16)?63-sx:sx;}
+ unsigned colours[64];int previous_sy=-1;
  for(int py=top;py<bottom;py++){int sy=2+(py-y)*60/d;
-  for(int px=left;px<right;px++){int sx=2+(px-x)*60/d;if(seed&16)sx=63-sx;
-   unsigned p=data[sy*64+sx];if(!(p&0x8000))continue;
+  if(sy!=previous_sy){previous_sy=sy;for(int sx=0;sx<64;sx++){
+   unsigned p=data[sy*64+sx];if(!(p&0x8000)){colours[sx]=0;continue;}
    int cr=(p>>10)&31,cg=(p>>5)&31,cb=p&31;
-   pixel(px,py,RGB(((cr<<3)|(cr>>2))*tr/255,((cg<<3)|(cg>>2))*tg/255,((cb<<3)|(cb>>2))*tb/255));
+   colours[sx]=RGB(((cr<<3)|(cr>>2))*tr/255,((cg<<3)|(cg>>2))*tg/255,((cb<<3)|(cb>>2))*tb/255)|0xff000000u;
+  }}
+  for(int px=left;px<right;px++){unsigned c=colours[sample[px]];if(c)pixel(px,py,c);}
+ }
+}
+/* Inverse-map the billboard using the same screen-space roll as camera().
+ * Cache the tiny tinted sheet; inner loop is additions and nearest sampling.
+ * Menus retain draw_planet_sprite and never inherit the flight camera. */
+static void draw_planet_sprite_rolled(int cx,int cy,int r,unsigned seed,int type,float roll,int xt,int yt,int xb,int yb){
+ if(r<1||type==SUN)return;
+ float c=cosf(roll),s=sinf(roll);
+ if(fabsf(s)<.00001f&&c>.99999f){draw_planet_sprite(cx,cy,r,seed,type,xt,yt,xb,yb);return;}
+ static unsigned palette[64*64],cached_seed;static int cached_type=-1;
+ if(cached_type!=type||cached_seed!=seed){
+  cached_type=type;cached_seed=seed;
+  const uint16_t *data=planet_sprites[planet_sprite_index(seed,type)];
+  int tr=224+((seed>>8)&31),tg=224+((seed>>13)&31),tb=224+((seed>>18)&31);
+  for(int i=0;i<64*64;i++){
+   unsigned p=data[i];int cr=(p>>10)&31,cg=(p>>5)&31,cb=p&31;
+   palette[i]=(p&0x8000)?RGB(((cr<<3)|(cr>>2))*tr/255,((cg<<3)|(cg>>2))*tg/255,((cb<<3)|(cb>>2))*tb/255)|0xff000000u:0;
+  }
+ }
+ int extent=(int)ceilf(r*(fabsf(c)+fabsf(s)));
+ int left=cx-extent,right=cx+extent+1,top=cy-extent,bottom=cy+extent+1;
+ if(left<xt)left=xt;if(left<0)left=0;if(right>xb)right=xb;if(right>W)right=W;
+ if(top<yt)top=yt;if(top<0)top=0;if(bottom>yb)bottom=yb;if(bottom>H)bottom=H;
+ float step=30.f/r,du=c*step,dv=-s*step;
+ for(int py=top;py<bottom;py++){
+  float u=32.f+((left-cx)*c+(py-cy)*s)*step;
+  float v=32.f+(-(left-cx)*s+(py-cy)*c)*step;
+  for(int px=left;px<right;px++,u+=du,v+=dv){
+   if(u<2.f||u>=62.f||v<2.f||v>=62.f)continue;
+   int sx=(int)u,sy=(int)v;if(seed&16)sx=63-sx;
+   unsigned colour=palette[sy*64+sx];if(colour)pixel(px,py,colour);
   }
  }
 }
+

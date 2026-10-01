@@ -11,75 +11,18 @@ static void sfx_add(int x,int y,unsigned c,int top,int bot){
  if(x<0||x>=W||y<top||y>bot)return;
  sun_bloom_dot(x,y,c,0,top,W,bot);
 }
-static unsigned sfx_tint(unsigned seed,int slot){
- static const unsigned pal[]={
-  RGB(28,18,48),RGB(18,32,52),RGB(42,16,28),RGB(12,36,40),
-  RGB(36,24,18),RGB(22,14,44),RGB(14,28,36),RGB(40,20,36)
- };
- return pal[(seed+slot*3)&7];
-}
-/* Soft transparent cosmic oceans — layered haze only, no streak ribbons. */
-static void space_fx_nebula(void){
- if(high_contrast||game.jump>0)return;
- int top=clipy0>=0?clipy0:view_top(),bot=clipy1>=0?clipy1-1:view_bot();
- unsigned seed=game.bodies[0].seed^((unsigned)game.system*2654435761u);
- /* Broad soft wash — horizontal atmosphere, not a vertical wiggly band. */
- {
-  unsigned band=sfx_tint(seed,0);
-  unsigned haze=RGB((band&255)/5,((band>>8)&255)/5,((band>>16)&255)/6);
-  int mid=(top+bot)/2;
-  for(int i=0;i<48;i++){
-   float t=i/47.f;
-   int x=20+(int)(t*440);
-   int y=mid+(int)(sinf(t*3.1f+(seed&7)*.2f)*10);
-   int rad=4+((i+seed)&2);
-   for(int dy=-rad;dy<=rad;dy++)for(int dx=-rad;dx<=rad;dx++){
-    if(dx*dx+dy*dy>rad*rad)continue;
-    sfx_add(x+dx,y+dy,haze,top,bot);
-   }
-  }
- }
- /* 2–4 distant nebula clouds — soft discs only (no filament streaks). */
- int clouds=2+(seed%3);
- for(int cloud=0;cloud<clouds;cloud++){
-  float angle=game.system*1.73f+cloud*1.37f+(seed&15)*.07f;
-  Vec3 direction={sinf(angle),sinf(angle*.73f+cloud)*.42f,cosf(angle)};
-  Vec3 v=camera(&game,add(game.pos,mul(direction,48000)));
-  if(v.z<2500)continue;
-  Point p=project(v);
-  float radius=fminf(280,1800000/v.z)*(1.f+((seed>>(cloud*3))&3)*.12f);
-  unsigned tint=sfx_tint(seed,cloud+1);
-  unsigned soft=RGB((tint&255)/3,((tint>>8)&255)/3,((tint>>16)&255)/4);
-  int density=28+((seed>>(cloud*4))&16);
-  for(int k=0;k<density;k++){
-   float a=k*2.39996f+cloud;
-   float rk=radius*sqrtf((k+.4f)/density);
-   float squash=.5f+.06f*(cloud&3);
-   int x=(int)(p.x+cosf(a)*rk),y=(int)(p.y+sinf(a)*rk*squash);
-   int rad=1+((k&7)==0);
-   for(int dy=-rad;dy<=rad;dy++)for(int dx=-rad;dx<=rad;dx++){
-    if(dx*dx+dy*dy>rad*rad)continue;
-    sfx_add(x+dx,y+dy,soft,top,bot);
-   }
-  }
- }
- /* Sparse local dust — few soft motes, not noisy pepper. */
- unsigned cell=(unsigned)((int)(game.pos.x/5000))*73856093u^(unsigned)((int)(game.pos.z/5000))*19349663u^seed;
- int motes=8+(cell&15);
- for(int i=0;i<motes;i++){
-  cell=cell*1664525u+1013904223u;int x=(cell>>16)%W;
-  cell=cell*1664525u+1013904223u;int y=top+((cell>>16)%(bot-top+1));
-  unsigned c=(i%5==0)?RGB(12,14,22):RGB(8,10,16);
-  sfx_add(x,y,c,top,bot);
- }
-}
+static unsigned space_sky_seed_for(int system){return field_hash((unsigned)(system+1)*0x9e3779b9u^(unsigned)(game.systems[system].x+17)*0x85ebca6bu^(unsigned)(game.systems[system].y+31)*0xc2b2ae35u);}
+static unsigned space_sky_seed(void){return space_sky_seed_for(game.system);}
+static unsigned space_sky_signature(int system){unsigned s=space_sky_seed_for(system);return s^field_hash(s+(unsigned)system*0x27d4eb2du);}
+static unsigned sky_mix(unsigned a,unsigned b,float t){if(t<0)t=0;if(t>1)t=1;return RGB((int)((a&255)*(1-t)+(b&255)*t),(int)(((a>>8)&255)*(1-t)+((b>>8)&255)*t),(int)(((a>>16)&255)*(1-t)+((b>>16)&255)*t));}
+#include "soft-space-sky.h"
 /* Shooting stars removed — Commander: no permanent meteor shower. */
 static void space_fx_meteors(void){}
-/* Gentle star twinkle only — no bright four-point sparkle subset. */
+/* Slow, low-amplitude stellar twinkle; no full-field brightness breathing. */
 static unsigned space_fx_twinkle(unsigned c,int i,float time){
- float rate=1.1f+(i&7)*.22f;
+ float rate=.35f+(i&7)*.055f;
  float wave=sinf(time*rate+i*1.7f);
- int tw=(int)(wave*12);
+ int tw=(int)(wave*6);
  int r=(int)fmaxf(20,(c&255)+tw),g=(int)fmaxf(24,((c>>8)&255)+tw),b=(int)fmaxf(30,((c>>16)&255)+tw);
  if(r>255)r=255;if(g>255)g=255;if(b>255)b=255;
  return RGB(r,g,b);
@@ -284,18 +227,9 @@ static void sfx_planet_beauty(void){
 }
 /* Cruise haze — soft additive motes only; no streak filaments. */
 static void sfx_travel_beauty(void){
- if(sfx_fx_muted()||game.dead)return;
- int top=view_top(),bot=view_bot();
- float normal=game.speed/fmaxf(1,player_ships[game.ship].speed);
- int n=game.boost?12:(normal>.7f?6:0);
- unsigned seed=game.bodies[0].seed^((unsigned)game.system*2654435761u);
- for(int i=0;i<n;i++){
-  unsigned cell=seed*1664525u+(unsigned)(i*977)+((unsigned)(game.time*20)&255)*1013904223u;
-  int x=(int)((cell>>8)%(W-8))+4;
-  int y=top+8+(int)((cell>>16)%(bot-top-16));
-  unsigned ink=(i%3==0)?RGB(40,55,75):RGB(22,30,45);
-  sfx_add(x,y,ink,top,bot);
- }
+ /* starfield() already draws nearby world-space motes and boost trails.
+  * The former extra screen-space pass reseeded at 20 Hz, creating sparkly
+  * static unrelated to flight. Let that continuous physical layer own dust. */
 }
 /* Warm canopy wash when the sun fills the view — soft bloom, not a second buffer. */
 static void sfx_sun_canopy_wash(void){
@@ -374,12 +308,12 @@ static void sfx_debris_dust(void){
 /* Approach corridor — soft cyan haze toward the hub mouth (no beacon glitter). */
 static void sfx_dock_corridor(void){
  if(sfx_fx_muted()||game.dock_stage)return;
- float dz=STATION_ENTRY_Z-game.pos.z;if(dz<200||dz>9000)return;
+ float entry=station_entry_z_for(&game,0),dz=entry-game.pos.z;if(dz<200||dz>9000)return;
  if(fabsf(game.pos.x)>900||fabsf(game.pos.y)>900)return;
  int top=view_top(),bot=view_bot();
  for(int i=0;i<10;i++){
   float t=i/9.f;
-  Vec3 w={(i&1?-1:1)*40.f*(1.f-t),((i&2)?1:-1)*28.f*(1.f-t),STATION_ENTRY_Z-t*dz*.85f};
+  Vec3 w={(i&1?-1:1)*40.f*(1.f-t),((i&2)?1:-1)*28.f*(1.f-t),entry-t*dz*.85f};
   Vec3 v=camera(&game,w);if(v.z<20)continue;Point p=project(v);
   sfx_add((int)p.x,(int)p.y,RGB(30,90,110),top,bot);
   if((i&1)==0)sfx_add((int)p.x+1,(int)p.y,RGB(24,70,88),top,bot);

@@ -8,19 +8,21 @@ static uint32_t radio_checksum(const RadioSettings *s){return s->magic^s->versio
 static int radio_read_settings(const char *path,RadioSettings *s){
  FILE *f=fopen(path,"rb");if(!f)return 0;
  int ok=fread(s,1,sizeof(*s),f)==sizeof(*s);fclose(f);
- return ok&&s->magic==0x52414449u&&s->version==2&&s->station<=RADIO_STATION_COUNT&&s->music<=10&&s->effects<=10&&s->quiet<=1&&s->check==radio_checksum(s);
+ int station_ok=(s->version==2&&s->station<=7)||(s->version==3&&s->station<=RADIO_STATION_COUNT);
+ return ok&&s->magic==0x52414449u&&station_ok&&s->music<=10&&s->effects<=10&&s->quiet<=1&&s->check==radio_checksum(s);
 }
 static int radio_load_settings(const char *path){
  RadioSettings s;char bak[256];int len=snprintf(bak,sizeof(bak),"%s.bak",path);
  if(!radio_read_settings(path,&s)&&(len<0||len>=(int)sizeof(bak)||!radio_read_settings(bak,&s)))return 0;
- if(s.station>=RADIO_STATION_COUNT){radio_off=1;radio_station=0;}else{radio_off=0;radio_station=s.station;}
+ unsigned off_marker=s.version==2?7u:(unsigned)RADIO_STATION_COUNT;
+ if(s.station>=off_marker){radio_off=1;radio_station=0;}else{radio_off=0;radio_station=s.station;}
  radio_volume=s.music;sound_volume=s.effects;quiet_comms=s.quiet;radio_dirty=0;return 1;
 }
 static int radio_save_settings(const char *path){
  char tmp[256],bak[256];int n=snprintf(tmp,sizeof(tmp),"%s.tmp",path),m=snprintf(bak,sizeof(bak),"%s.bak",path);
  if(n<0||m<0||n>=(int)sizeof(tmp)||m>=(int)sizeof(bak))return 0;
  unsigned st=radio_off?(unsigned)RADIO_STATION_COUNT:(unsigned)radio_station;
- RadioSettings s={0x52414449u,2,st,(unsigned)radio_volume,(unsigned)sound_volume,(unsigned)quiet_comms,0},old;
+ RadioSettings s={0x52414449u,3,st,(unsigned)radio_volume,(unsigned)sound_volume,(unsigned)quiet_comms,0},old;
  s.check=radio_checksum(&s);FILE *f=fopen(tmp,"wb");if(!f)return 0;
  int ok=fwrite(&s,1,sizeof(s),f)==sizeof(s);if(fflush(f))ok=0;if(fclose(f))ok=0;
  if(!ok||!radio_read_settings(tmp,&old))return 0;

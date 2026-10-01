@@ -2,6 +2,7 @@
 int route_next_hop(const Game *g,int destination,int *jumps){
  int previous[256],queue[256],head=0,tail=0;*jumps=0;
  if(destination<0||destination>255||destination==g->system)return -1;
+ if(g->debug_flags&DEBUG_UNLIMITED_RANGE){*jumps=1;return destination;}
  for(int i=0;i<256;i++)previous[i]=-1;
  previous[g->system]=g->system;queue[tail++]=g->system;
  while(head<tail&&previous[destination]<0){int from=queue[head++];

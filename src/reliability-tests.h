@@ -25,16 +25,21 @@ static void reliability_tests(FILE *f,int *failures){
  remove("test-recovery.sav.tmp");remove("test-recovery.sav.tmp.bak");
  char longpath[300];memset(longpath,'x',sizeof(longpath)-1);longpath[sizeof(longpath)-1]=0;
  CHECK(!save_game(&g,longpath),"recovery: oversized path rejected without truncation");
- game_init(&g);launch(&g);g.pos=(Vec3){0,0,3350};g.speed=100;
- world_collision(&g,(Vec3){0,0,3360});
+ game_init(&g);launch(&g);float front=station_entry_z_for(&g,0);g.pos=(Vec3){0,0,front+30};g.speed=100;
+ world_collision(&g,(Vec3){0,0,front+40});
  CHECK(g.dead&&!g.dock_stage,"docking: movement from inside cannot masquerade as entry");
- game_init(&g);launch(&g);g.pos=(Vec3){53,0,3400};g.speed=100;
- world_collision(&g,(Vec3){53,0,3300});
+ game_init(&g);launch(&g);front=station_entry_z_for(&g,0);g.pos=(Vec3){53,0,front+20};g.speed=100;
+ world_collision(&g,(Vec3){53,0,front-100});
  CHECK(g.dead,"docking: ship clearance catches entrance edge");
  game_init(&g);launch(&g);g.pos=(Vec3){0,0,3500};
  CHECK(!dock(&g)&&!g.dock_stage,"docking: guidance refuses a position inside solid hull");
  for(int side=-1;side<=1;side+=2){
-  game_init(&g);launch(&g);g.pos=(Vec3){side*500.f,200,3600};g.time=48;
+  game_init(&g);launch(&g);g.time=48;StationProfile p=station_profile_for(&g,0);
+  /* Old +/-500 m points are now inside the wheel. Start outside its actual
+     visible rim, within comms range; retain the rotating lateral approach. */
+  Vec3 local={side*(p.radius*3.2f+200),-p.radius*.2f,p.half*.5f};
+  g.pos=add(station_arch_rotate(local,station_angle(&g)),(Vec3){0,0,STATION_Z});
+  CHECK(!station_architecture_hit(&g,local,local,80,0),"docking: lateral test start clears the generated hull");
   int safe=dock(&g);for(int i=0;i<1600&&!g.docked&&!g.dead;i++)game_tick(&g,1.f/60,0,0,0,0);
   CHECK(safe&&g.docked&&!g.dead,"docking: rotated side approach crosses shared aperture safely");
  }

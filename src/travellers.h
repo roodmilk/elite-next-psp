@@ -48,12 +48,12 @@ static void travellers_advance(Game *g,int arrived_sys){
 
 static int travellers_find_slot(Game *g,int role){
  for(int i=0;i<36;i++){
-  if(i%12==8)continue;
+  if(i%12==8||g->npc[i].bounty_slot>=0)continue;
   NPC *n=&g->npc[i];
   if(!n->alive&&n->traveller<0)return i;
  }
  for(int i=0;i<36;i++){
-  if(i%12==8)continue;
+  if(i%12==8||g->npc[i].bounty_slot>=0)continue;
   NPC *n=&g->npc[i];
   if(n->alive&&n->role==role&&!n->freighter&&n->traveller<0)return i;
  }

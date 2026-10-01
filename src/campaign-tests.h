@@ -18,7 +18,7 @@ static void campaign_tests(FILE *f,int *failures){
  CHECK(!campaign_claim(&g)&&g.credits==credits+1000,"campaign: duplicate report cannot repeat payment");
  remove("test-campaign.sav");remove("test-campaign.sav.bak");
  CHECK(save_game(&g,"test-campaign.sav")&&load_game(&loaded,"test-campaign.sav")&&loaded.campaign_stage==6&&loaded.campaign_choice==2&&loaded.guild_chapter==2&&!campaign_claim(&loaded),"campaign: V8 keeps choice, badge, legacy progress and paid status");
- game_init(&g);campaign_accept(&g);launch(&g);g.pos=(Vec3){0,0,3200};g.speed=100;g.roll=station_angle(&g);
+ game_init(&g);campaign_accept(&g);launch(&g);g.pos=(Vec3){0,0,station_entry_z_for(&g,0)-20};g.speed=100;g.roll=station_angle(&g);
  for(int i=0;i<800&&!g.docked&&!g.dead;i++)game_tick(&g,1.f/60,0,0,0,0);
  CHECK(g.docked&&g.campaign_stage==5&&!(g.campaign_flags&CP_LOCKED)&&!(g.campaign_flags&CP_GUIDED),"campaign: legitimate manual return works when compass lesson is skipped");
  game_init(&g);campaign_accept(&g);g.cargo[0]=3;credits=g.credits;float fuel=g.fuel;launch(&g);g.fuel-=2;g.dead=1;
@@ -121,7 +121,7 @@ static void campaign_tests(FILE *f,int *failures){
   remove("test-v10-route.sav");remove("test-v10-route.sav.bak");
  }
  /* Mutations that V7 structural validation could miss must fail CRC checks. */
- FILE *src=fopen("test-campaign.sav","rb");unsigned char bytes[4096];size_t n=0;
+ FILE *src=fopen("test-campaign.sav","rb");unsigned char bytes[131072];size_t n=0;
  if(src){n=fread(bytes,1,sizeof(bytes),src);fclose(src);}
  int mutations_ok=n>32;
  const int offsets[]={0,4,16,300};
@@ -134,7 +134,7 @@ static void campaign_tests(FILE *f,int *failures){
  CHECK(mutations_ok,"save V8: header, valid-range payload and campaign bit flips rejected");
  /* Strip V8+ extension/checksum to produce a real legacy V7 fixture.
   * After V7: campaign(20)+saga(40)+route(4)+pax(16)+travellers(48)+fit(8)+landings(256)+tutorial(8)+CRC(4)=404. */
- if(n>404){bytes[4]=7;FILE *v7=fopen("test-cp-v7.sav","wb");if(v7){fwrite(bytes,1,n-404,v7);fclose(v7);}}
+ if(n>5813+(256*HUB_COUNT*4+1280+(SOCIAL_SAVE_BYTES+FIT_SAVE_BYTES))){bytes[4]=7;FILE *v7=fopen("test-cp-v7.sav","wb");if(v7){fwrite(bytes,1,n-5813-(256*HUB_COUNT*4+1280+(SOCIAL_SAVE_BYTES+FIT_SAVE_BYTES)),v7);fclose(v7);}}
  CHECK(load_game_file(&loaded,"test-cp-v7.sav")&&loaded.guild_chapter==2&&loaded.campaign_stage==0,"save migration: V7 commander retains old rewards and starts authored campaign fresh");
  src=fopen("test-campaign.sav","ab");if(src){fputc(0,src);fclose(src);}
  CHECK(!load_game_file(NULL,"test-campaign.sav"),"save V8: trailing data rejected");

@@ -1,28 +1,20 @@
 static unsigned sector_hash(unsigned x){x^=x>>16;x*=0x7feb352du;x^=x>>15;x*=0x846ca68bu;return x^(x>>16);}
 int prosperity(const Game *g,int system){const int wealth[8]={5,4,2,3,3,5,4,2};return wealth[g->systems[system].economy];}
 void system_bodies(Game *g){
- /* Four orbital templates so neighbouring systems do not share the same skyline. */
- const Vec3 templates[4][BODY_COUNT]={
-  {{18000,7000,42000},{-5000,2500,14000},{8500,-2000,23000},{-22000,-4000,38000},{12000,5000,-24000}},
-  {{22000,-3000,28000},{6000,4000,9000},{-14000,1000,18000},{8000,-6000,32000},{-18000,2000,-16000}},
-  {{12000,9000,36000},{-9000,-1500,11000},{16000,500,19000},{-6000,3500,44000},{4000,-4500,-28000}},
-  {{25000,2000,30000},{3000,5500,16000},{-11000,-3500,25000},{19000,1000,12000},{-8000,6000,-22000}}
- };
+ /* Wide, seeded sectors surround the inner arrival region rather than a forward skyline. */
  const float radii[BODY_COUNT]={4200,1700,1100,3600,1400};
  /* World-type permutations so each system cycles ocean/rocky/gas differently. */
  const int world_perm[6][4]={{OCEAN,ROCKY,GAS,ROCKY},{ROCKY,GAS,OCEAN,ROCKY},{GAS,OCEAN,ROCKY,ROCKY},{ROCKY,OCEAN,ROCKY,GAS},{OCEAN,GAS,ROCKY,ROCKY},{ROCKY,ROCKY,OCEAN,GAS}};
- const unsigned suns[]={0x80dfff,0x66c8ff,0x526eff,0xf4f4ff,0xffc88a,0xc88cff,0x9ee8ff,0xd8e8ff,0xffa060,0xb0ffe0};
+ const unsigned suns[]={0x80dfff,0x66c8ff,0x526eff,0xc8edff,0x80c8ff,0x609cff,0x9ee8ff,0xb8e8ff,0x60a0ff,0x90cfff};
  const unsigned worlds[]={0xc97535,0x91b45c,0x8763b5,0x7ebfc4,0xb87775,0xadc2ce,0xd4a574,0x5a8f6a,0x6b5b95,0xc45c5c,0x3d7a5a,0xd0a040,0x5a90c0,0xa05070,0x708050};
- unsigned sys=sector_hash((g->system+1)*0x9e3779b9u);float system_scale=.68f+((sys>>8)%70)*.01f;float system_tilt=((int)((sys>>20)%3200)-1600)*.00014f;
- int tmpl=(int)((sys>>2)%4),perm=(int)((sys>>6)%6);
+ unsigned sys=sector_hash((g->system+1)*0x9e3779b9u);float system_scale=.92f+((sys>>8)%20)*.01f;
+ int perm=(int)((sys>>6)%6);
  for(int i=0;i<BODY_COUNT;i++){
   Body *b=&g->bodies[i];unsigned h=sector_hash((g->system+1)*911u+i*65537u);b->seed=h;
-  b->pos=templates[tmpl][i];
-  float angle=(h%6283)*.001f+(sys%2800)*.001f+i*.27f+g->system*.11f;
-  float radial=system_scale*(.78f+((h>>12)%48)*.01f);
-  b->pos.x*=radial;b->pos.z*=radial;
-  float c=cosf(angle),s=sinf(angle);
-  b->pos=(Vec3){b->pos.x*c+b->pos.z*s,b->pos.y*radial+(int)((h>>18)%11000)-5500+system_tilt*b->pos.z,-b->pos.x*s+b->pos.z*c};
+  float angle=(sys%6283)*.001f+(i?((i-1)*1.5707963f+((int)(h%301)-150)*.001f):.7853982f);
+  float distance=(i?42000.f+(i-1)*8500.f+((h>>10)%6000):98000.f+((h>>10)%14000))*system_scale;
+  b->pos=(Vec3){sinf(angle)*distance,((int)((h>>18)%18000)-9000),STATION_Z+cosf(angle)*distance};
+  if(i==0)b->pos=(Vec3){0,0,STATION_Z-130000.f-(h%12000)};
   b->radius=radii[i]*(g->system==7?1:.62f+((h>>12)%90)*.01f);
   b->type=i==0?SUN:world_perm[perm][(i-1)&3];
   b->color=i==0?suns[h%10]:worlds[(h>>8)%15];
@@ -30,45 +22,65 @@ void system_bodies(Game *g){
   if(g->system==7&&i==1){b->type=OCEAN;b->color=0xc35f23;b->accent=0x4b9137;}
   snprintf(b->name,sizeof(b->name),"%s %s",g->systems[g->system].name,i==0?"SUN":i==1?"1":i==2?"2":i==3?"3":"4");
  }
+ /* Reserve a clear solar sightline from the primary departure aperture. */
+ for(int i=1;i<BODY_COUNT;i++){Body *b=&g->bodies[i];if(b->pos.z<STATION_Z&&sqrtf(b->pos.x*b->pos.x+b->pos.y*b->pos.y)<b->radius+1500)b->pos.x=b->radius+2000;}
  /* Lave keeps the familiar sun / ocean / rocky / gas / rocky set for the opening chapter. */
  if(g->system==7){g->bodies[1].type=OCEAN;g->bodies[1].color=0xc35f23;g->bodies[1].accent=0x4b9137;g->bodies[2].type=ROCKY;g->bodies[3].type=GAS;g->bodies[4].type=ROCKY;}
  /* Keep the hub corridor clear so traffic and station approaches stay readable. */
  {Vec3 hub={0,0,STATION_Z};for(int i=1;i<BODY_COUNT;i++){Body *b=&g->bodies[i];float d=length(sub(b->pos,hub)),need=b->radius+9000.f;if(d<1)b->pos=(Vec3){need,0,STATION_Z};else if(d<need)b->pos=add(hub,mul(norm(sub(b->pos,hub)),need));}}
 }
-int mission_destination(const Game *g,int offer){int n=0;for(int i=0;i<256;i++)if(i!=g->system&&distance_ly(g,g->system,i)<=10.0f){if(n++==offer)return i;}return -1;}
-int mission_count(const Game *g){int max=1+prosperity(g,g->system),n=0;while(n<max&&mission_offer_valid(g,n,0))n++;return n;}
+/* Enter inside the wide system, on a full-circle bearing. Heading follows a
+ * separate route seed, never an automatic look-at-station camera. */
+static void system_arrival(Game *g,int origin){
+ unsigned h=sector_hash((g->system+1)*0xc2b2ae35u+(origin+1)*7919u);
+ float a=(h%6283)*.001f,dist=15000.f+((h>>10)%5000);
+ g->pos=(Vec3){sinf(a)*dist,((int)((h>>20)%6000)-3000),STATION_Z+cosf(a)*dist};
+ unsigned heading=sector_hash(h^0x94d049bbu);g->yaw=(heading%6283)*.001f;g->pitch=((int)((heading>>16)%301)-150)*.001f;g->roll=0;g->speed=100;
+}
+static Vec3 traffic_world_point(const Game *g,int body){
+ Vec3 hub=hub_position(g,0);const Body *b=&g->bodies[body];
+ return add(b->pos,mul(norm(sub(hub,b->pos)),b->radius+5000));
+}
+
+int mission_destination(const Game *g,int offer){
+ if(!g||offer<0||offer>=MISSION_TYPES)return -1;
+ int nearby[256],n=0;float range=fminf(10.f,player_ships[g->ship].range*.1f);
+ for(int i=0;i<256;i++)if(i!=g->system&&distance_ly(g,g->system,i)<=range+.001f&&world_station_available(g,i,0))nearby[n++]=i;
+ return n?nearby[(g->system*13+offer*7)%n]:g->system;
+}
+int mission_count(const Game *g){int n=0;while(n<MISSION_TYPES&&mission_offer_valid(g,n,0))n++;return n;}
 int jobs_active(const Game *g){return g->job_n;}
 int mission_type_for_offer(const Game *g,int offer){return (g->system+offer)%MISSION_TYPES;}
 const char *mission_name(int type){static const char *names[]={"Food delivery","Pirate hunt","Exploration scan","Pilot rescue","Covert delivery"};return type>=0&&type<MISSION_TYPES?names[type]:"Unknown mission";}
 const char *mission_brief(const Game *g,int offer){
- /* Authored banks from manuscript Vol II — flavour-linked singles (Hungry Pad / Listen Twice / Boring Lies).
+ /* Authored banks from manuscript Vol II; flavour-linked singles (Hungry Pad / Listen Twice / Boring Lies).
   * Open Channel flags tint copy without spoiling chapter reveals. */
  static char out[96];
  int type=mission_type_for_offer(g,offer),risk=danger_rating(g,g->system),wealth=prosperity(g,g->system);
  int dest_id=mission_destination(g,offer);const char *dest=dest_id>=0?g->systems[dest_id].name:"nearby space";
  int pick=(g->system*7+offer*3)&3;int flags=g->campaign_stage>=6?g->saga_flags:0;
  if(type==MISSION_DELIVERY){
-  if(flags&2&&pick==0){snprintf(out,sizeof(out),"Clinic softpacks to %s — settlements still prepping loud.",dest);return out;}
+  if(flags&2&&pick==0){snprintf(out,sizeof(out),"Clinic meal packs to %s; settlements still prepping loud.",dest);return out;}
   if(pick==0)snprintf(out,sizeof(out),"Protein crates to %s; kitchen ran out of polite excuses.",dest);
   else if(pick==1)snprintf(out,sizeof(out),"School meal packs to %s dock. Quiet in the good way.",dest);
-  else if(pick==2)snprintf(out,sizeof(out),wealth>=4?"Greenhouse starters for %s — hope needs fertiliser.":"Water filters to %s; thirst makes bad navigators.",dest);
+  else if(pick==2)snprintf(out,sizeof(out),wealth>=4?"Fresh produce for %s; the harvest festival ran short.":"Ration packs to %s; hungry pilots make bad navigators.",dest);
   else snprintf(out,sizeof(out),wealth>=4?"Fresh cargo to %s; market is hungry.":"Essential cargo to %s; margins are thin.",dest);
  }else if(type==MISSION_BOUNTY){
   if(flags&1&&pick==0){snprintf(out,sizeof(out),"Clear a raider shaking quiet couriers near %s.",dest);return out;}
   if(pick==0)snprintf(out,sizeof(out),risk>=4?"Raiders active near %s; bounty is live.":"Track one wanted hull beyond %s.",dest);
   else if(pick==1)snprintf(out,sizeof(out),"Marked hull past %s. Clear it. Do not become the next bulletin.",dest);
-  else snprintf(out,sizeof(out),"Pirate taking tolls on the %s approach — remove the toll.",dest);
+  else snprintf(out,sizeof(out),"Pirate taking tolls on the %s approach; remove the toll.",dest);
  }else if(type==MISSION_EXPLORATION){
-  if(flags&4&&pick==0){snprintf(out,sizeof(out),"Listen twice near %s — markers, not ownership claims.",dest);return out;}
-  if(pick==0)snprintf(out,sizeof(out),"Untitled anomaly near %s. Scan before you invent a god.",dest);
-  else if(pick==1)snprintf(out,sizeof(out),"Migration whisper off %s. Observe; do not herd.",dest);
+  if(flags&4&&pick==0){snprintf(out,sizeof(out),"Listen twice near %s; markers, not ownership claims.",dest);return out;}
+  if(pick==0)snprintf(out,sizeof(out),"Map a world near %s. Approach its surface and request a scan.",dest);
+  else if(pick==1)snprintf(out,sizeof(out),"Planetary survey at %s. Observe the world from close orbit.",dest);
   else snprintf(out,sizeof(out),"Survey the unusual worlds around %s.",dest);
  }else if(type==MISSION_RESCUE){
   if(pick==0)snprintf(out,sizeof(out),risk>=4?"Distress beacon in hostile lanes near %s.":"A civilian beacon is waiting near %s.",dest);
-  else if(pick==1)snprintf(out,sizeof(out),"Beacon in the same sector as %s — stamp before shrug.",dest);
-  else snprintf(out,sizeof(out),"Freighter tender crew in suits near %s — air thin, time thinner.",dest);
+  else if(pick==1)snprintf(out,sizeof(out),"Beacon in the same sector as %s; stamp before shrug.",dest);
+  else snprintf(out,sizeof(out),"A tender crew near %s needs a lift back to its station.",dest);
  }else{
-  if(flags&1&&pick==0){snprintf(out,sizeof(out),"Sealed favour to %s — agricultural sensors on the label.",dest);return out;}
+  if(flags&1&&pick==0){snprintf(out,sizeof(out),"Sealed favour to %s; agricultural sensors on the label.",dest);return out;}
   if(pick==0)snprintf(out,sizeof(out),"Quiet courier to %s; boring lie if asked. Local law is watching.",dest);
   else if(pick==1)snprintf(out,sizeof(out),"Sealed crate to %s. Do not open for curiosity.",dest);
   else snprintf(out,sizeof(out),"Quiet courier run to %s; local law is watching.",dest);
@@ -81,9 +93,10 @@ static int job_marked(const Job *j,const Game *g,int id){if(j->dest!=g->system)r
 static void jobs_sync(Game *g){if(g->job_n<=0){g->job_n=0;g->job_sel=0;g->contract=-1;g->mission_target=-1;g->mission_stage=0;g->contract_time=0;g->contract_reward=0;return;}if(g->job_sel<0||g->job_sel>=g->job_n)g->job_sel=0;Job *j=&g->jobs[g->job_sel];g->contract=j->dest;g->mission_type=j->type;g->mission_stage=j->stage;g->mission_target=j->target;g->mission_item=j->item;g->mission_origin=j->origin;g->contract_reward=j->reward;g->contract_time=j->time;}
 static void jobs_from_legacy(Game *g){if(g->job_n>0||g->contract<0)return;g->jobs[0].dest=g->contract;g->jobs[0].type=g->mission_type;g->jobs[0].stage=g->mission_stage;g->jobs[0].target=g->mission_target;g->jobs[0].item=g->mission_item;g->jobs[0].origin=g->mission_origin;g->jobs[0].reward=g->contract_reward;g->jobs[0].time=g->contract_time>0?g->contract_time:300;g->job_n=1;g->job_sel=0;}
 static void job_remove(Game *g,int i){if(i<0||i>=g->job_n)return;for(int k=i;k<g->job_n-1;k++)g->jobs[k]=g->jobs[k+1];g->job_n--;if(g->job_sel>=g->job_n)g->job_sel=g->job_n-1;if(g->job_sel<0)g->job_sel=0;jobs_sync(g);}
-static void mission_finish_slot(Game *g,int i,const char *notice){if(i<0||i>=g->job_n)return;guild_event(g,g->jobs[i].type==MISSION_DELIVERY?GUILD_DELIVERY:g->jobs[i].type==MISSION_RESCUE?GUILD_RESCUE:0);g->credits+=g->jobs[i].reward;g->mission_result=1;g->last_mission_type=g->jobs[i].type;g->last_mission_system=g->jobs[i].dest;job_remove(g,i);message(g,notice);}
-void mission_timers(Game *g,float dt){if(g->docked||g->dead||g->police_stop||g->approach>=0||g->dock_stage||g->jump>0)return;jobs_from_legacy(g);for(int i=0;i<g->job_n;){g->jobs[i].time-=dt;if(g->jobs[i].time<=0){g->mission_result=-1;g->last_mission_type=g->jobs[i].type;g->last_mission_system=g->jobs[i].dest;char note[96];snprintf(note,sizeof(note),"Mission expired: %s.",mission_name(g->jobs[i].type));int crate=g->jobs[i].type==MISSION_DELIVERY?0:g->jobs[i].type==MISSION_SMUGGLING?6:-1;if(crate>=0&&g->cargo[crate]>0)g->cargo[crate]--;job_remove(g,i);message(g,note);}else i++;}jobs_sync(g);}
-const char *mission_objective_at(const Game *g,int slot){static char out[96];if(slot<0||slot>=g->job_n)return "No active mission";const Job *j=&g->jobs[slot];if(g->system!=j->dest){snprintf(out,sizeof(out),"Jump to %s",g->systems[j->dest].name);return out;}if(j->type==MISSION_BOUNTY){snprintf(out,sizeof(out),"Destroy the marked pirate");return out;}if(j->type==MISSION_EXPLORATION){snprintf(out,sizeof(out),"Approach and scan %s",g->bodies[j->item].name);return out;}if(j->type==MISSION_RESCUE){snprintf(out,sizeof(out),j->stage?"Return the rescued pilot to the station":"Lock rescue ship. Within 600 m: Triangle hail.");return out;}if(j->type==MISSION_DELIVERY){snprintf(out,sizeof(out),"Dock with the food crate still aboard");return out;}if(j->type==MISSION_SMUGGLING){snprintf(out,sizeof(out),"Dock. Keep the narcotics in the hold");return out;}snprintf(out,sizeof(out),"Dock at %s",station_name(g));return out;}
+static void mission_finish_slot(Game *g,int i,const char *notice){if(i<0||i>=g->job_n)return;guild_event(g,g->jobs[i].type==MISSION_DELIVERY?GUILD_DELIVERY:g->jobs[i].type==MISSION_RESCUE?GUILD_RESCUE:0);if(g->jobs[i].type!=MISSION_SMUGGLING)social_emit(g,SB_JOB);g->credits+=g->jobs[i].reward;g->mission_result=1;g->last_mission_type=g->jobs[i].type;g->last_mission_system=g->jobs[i].dest;job_remove(g,i);message(g,notice);}
+/* Board contracts are untimed. Keep the legacy duration field for save compatibility. */
+void mission_timers(Game *g,float dt){(void)dt;jobs_from_legacy(g);jobs_sync(g);}
+const char *mission_objective_at(const Game *g,int slot){static char out[96];if(slot<0||slot>=g->job_n)return "No active mission";const Job *j=&g->jobs[slot];if(g->system!=j->dest){snprintf(out,sizeof(out),"Jump to %s",g->systems[j->dest].name);return out;}if(j->type==MISSION_BOUNTY){snprintf(out,sizeof(out),"Destroy the marked pirate");return out;}if(j->type==MISSION_EXPLORATION){snprintf(out,sizeof(out),"Face %s; Circle within 1000 m of surface",g->bodies[j->item].name);return out;}if(j->type==MISSION_RESCUE){snprintf(out,sizeof(out),j->stage?"Return the rescued pilot to the station":"Lock rescue ship. Within 600 m: Triangle hail.");return out;}if(j->type==MISSION_DELIVERY){snprintf(out,sizeof(out),"Dock with the food crate still aboard");return out;}if(j->type==MISSION_SMUGGLING){snprintf(out,sizeof(out),"Dock. Keep the narcotics in the hold");return out;}snprintf(out,sizeof(out),"Dock at %s",station_name(g));return out;}
 const char *mission_objective(const Game *g){return mission_objective_at(g,g->job_sel);}
 int is_mission_target(const Game *g,int id){for(int i=0;i<g->job_n;i++)if(job_marked(&g->jobs[i],g,id))return 1;if(g->job_n==0&&g->contract>=0){Job tmp={g->contract,g->mission_type,g->mission_stage,g->mission_target,g->mission_item,g->mission_origin,g->contract_reward,g->contract_time};return job_marked(&tmp,g,id);}return 0;}
 int mission_interact(Game *g,int id){int n=id-BODY_COUNT-1;if(n<0||n>=NPC_COUNT)return 0;for(int i=0;i<g->job_n;i++){Job *j=&g->jobs[i];if(j->type!=MISSION_RESCUE||j->stage||!job_marked(j,g,id))continue;if(length(sub(g->pos,g->npc[n].pos))>600){message(g,"Move within 600 m of the rescue target.");return 0;}j->stage=1;g->job_sel=i;jobs_sync(g);g->cue=SFX_SCAN;message(g,"Pilot aboard. Return to the local station.");return 1;}return 0;}

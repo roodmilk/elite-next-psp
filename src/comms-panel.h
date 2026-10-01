@@ -1,6 +1,8 @@
 static int comms_return=FLIGHT,triangle_arm=0,comms_encounter_conversation=0;static float triangle_hold=0;
+#include "quiet-hails.h"
 static void comms_panel(void){
- if(comms_encounter_conversation||encounter_requires_reply(&game)){
+ if(night_open&&night_live()){night_panel();return;}
+ if(comms_encounter_conversation||incoming_reply_ready()){
   dialogue_begin(comms_encounter_conversation?"INCOMING CHANNEL":"ENCOUNTER TRANSMISSION");
   static const char *names[]={"CONTACT","KEI","VENN","DOCKHAND","LOCAL LAW","COMPUTER","CONTACT"};
   int who=game.voice_who,role=game.voice_role;
@@ -16,11 +18,17 @@ static void comms_panel(void){
   }
   footer("UP/DOWN   X CHOOSE   O RETURN");return;
  }
- header("COMMS PANEL");panel(8,32,464,156);
- const char *options[]={quiet_comms?"Text chatter: QUIET":"Text chatter: ON","Dismiss current message","Hail current target",valid_target(selected_target)?"Clear current target":"Clear current target (none)","Next radio station","Open radio page","Request station docking","Guild assignments","Change cockpit HUD","Walk station deck","Spacewalk salvage","HUD layout","Text chatter","High contrast focus","Radio and audio","Controls","Third-person view"};
- int first=(row/8)*8;
- for(int i=first;i<17&&i<first+8;i++){int y=5+(i-first)*2;if(i==row)rect(10,y*8-2,458,14,RGB(25,65,77));text(3,y,i==row?GOLD:WHITE,"%s",options[i]);}
- text(3,22,DIM,"PAGE %d / 3",row/8+1);
- text(3,29,CYAN,"Safety alerts stay visible.");
- footer("UP/DOWN   X CHOOSE   O RETURN");
+ header("COMMS PANEL");panel(8,32,464,194);
+ const char *options[]={"Dismiss current message","Hail current target",valid_target(selected_target)?"Clear current target":"Clear current target (none)","REQUEST AUTO-DOCK","Guild assignments","Walk station deck","Spacewalk salvage","HUD layout","Text chatter","High contrast focus","Radio and audio","Controls","Third-person view"};
+ int first=row/7*7;
+ text(3,5,UI_SIGNAL,first?"DISPLAY / AUDIO / CONTROLS":"CHANNEL ACTIONS");
+ text(49,5,UI_MUTED,"%d / 2",first?2:1);
+ for(int i=first;i<first+7&&i<COMMS_OPTION_COUNT;i++){
+  int y=60+(i-first)*22;if(i==row){rect(12,y-2,454,18,UI_RAISED);rect(12,y-2,3,18,UI_ACCENT);}
+  text_px(24,y,i==row?UI_ACCENT:UI_TEXT,"%s",options[i]);
+  const char *value=i==7?(hud_mode==0?"FULL":hud_mode==1?"MINIMAL":"SCENIC"):i==8?(quiet_comms?"QUIET":"ON"):i==9?(high_contrast?"ON":"OFF"):i==12?(third_person?"ON":"OFF"):i==10||i==11?"OPEN":"";
+  text_px(368,y,UI_SIGNAL,"%s",value);
+ }
+ text(3,29,UI_MUTED,"Safety alerts stay visible. Up/down continues.");
+ footer("UP/DOWN   X CHANGE / OPEN   O RETURN");
 }

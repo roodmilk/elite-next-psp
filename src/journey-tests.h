@@ -29,7 +29,7 @@ static void journey_tests(FILE *f,int *failures){
  g.police_stop=0;g.dock_stage=2;mission_timers(&g,30);
  CHECK(g.jobs[0].time==time,"journey: arrival cinematic does not consume job time");
  g.dock_stage=0;mission_timers(&g,1);
- CHECK(g.jobs[0].time==time-1,"journey: jobs count down during actual flight");
+ CHECK(g.jobs[0].time==time,"journey: board contracts remain untimed during actual flight");
  g.docked=1;g.job_n=1;g.contract=-1;g.jobs[0]=(Job){g.system,MISSION_DELIVERY,0,-1,1,g.system,1000,300};g.cargo[0]=1;
  CHECK(mission_cargo_reserved(&g,0)==1&&!trade(&g,0,0)&&g.cargo[0]==1,"journey: delivery crate cannot be accidentally sold");
  g.cargo[0]++;CHECK(trade(&g,0,0)&&g.cargo[0]==1,"journey: surplus personal cargo remains tradable");

@@ -58,7 +58,7 @@ static void tutorial_resume(void){
  }else message(&game,"No tutorial checkpoint found. Choose START TUTORIAL.");
 }
 static void tutorial_draw(void){
- if(!tutorial_active(&game))return;
+ if(!tutorial_active(&game)||game.dock_stage==4||game.rift_report)return;
  const TutorialBeat *b=tutorial_beat(&game);
  if(tutorial_modal||game.tutorial_seen!=game.tutorial_step){
   rect(0,0,W,H,BG);header("FIRST LIGHT / FLIGHT LICENCE");
@@ -82,20 +82,23 @@ static void tutorial_draw(void){
  }
 }
 static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
+ if(page==CHART&&chart_dissolve_time>0)return;
+ if(ps_open||ps_release){game_input(pressed,held,dt,ax,ay);return;}
+ if(page==FLIGHT&&game.rift_report){game_input(pressed,held,dt,ax,ay);return;}
+ if(page==FLIGHT&&(game.dock_stage==4||departure_release)&&!game.dead){int was=game.dock_stage==4;game_input(pressed,held,dt,ax,ay);if(was&&game.dock_stage!=4&&tutorial_active(&game))tutorial_emit(TU_LAUNCH,0);return;}
  if(page==INTRO){
   intro_time+=dt;
   if(pressed&PSP_CTRL_UP)intro_choice=(intro_choice+3)%4;
   if(pressed&PSP_CTRL_DOWN)intro_choice=(intro_choice+1)%4;
   if(pressed&PSP_CTRL_CROSS){
-   if(intro_choice==0)tutorial_start();
-   else if(intro_choice==1)tutorial_resume();
-   else if(intro_choice==2){game_init(&game);story_complete(&game);tutorial_reset_frontend();change_page(CAMPAIGN);}
-   else if(load_game(&game,"commander.sav")){tutorial_reset_frontend();change_page(HOME);}
-   else message(&game,"No saved commander found.");
+   if(intro_choice==0){int slot=intro_primary_slot();if(slot>=0){profile_slot=slot;profile_from_intro=1;profile_load();}else{game_init(&game);story_complete(&game);tutorial_reset_frontend();change_page(CAMPAIGN);}}
+   else if(intro_choice==1){game_init(&game);story_complete(&game);tutorial_reset_frontend();change_page(CAMPAIGN);}
+   else if(intro_choice==2)profile_open_load();
+   else if(profile_file_exists("tutorial.sav"))tutorial_resume();else tutorial_start();
   }
   return;
  }
- if(!tutorial_active(&game)){story_complete(&game);tracked_game_input(pressed,held,dt,ax,ay);return;}
+ if(!tutorial_active(&game)){story_complete(&game);if(page==STATUS)profile_input(pressed);else tracked_game_input(pressed,held,dt,ax,ay);return;}
  tutorial_prepare();
  if(game.dead){
   if(pressed&PSP_CTRL_START)tutorial_resume();
@@ -121,10 +124,11 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
   }
   return;
  }
+ if(page==STATUS){if(profile_input(pressed))tutorial_emit(TU_SAVE,0);else if(page!=STATUS&&(pressed&PSP_CTRL_CIRCLE))tutorial_emit(TU_VIEW,5);return;}
  const TutorialBeat *b=tutorial_beat(&game);
  if(page==HOME&&(pressed&PSP_CTRL_CROSS)&&!tutorial_service(&game,row)){message(&game,b->task);return;}
  if(page==HOME&&row==10&&(pressed&PSP_CTRL_CROSS)){comms_return=HOME;change_page(COMMS_PANEL);return;}
- if(page==COMMS_PANEL&&row==9&&(pressed&PSP_CTRL_CROSS)&&!tutorial_service(&game,20)){message(&game,b->task);return;}
+ if(page==COMMS_PANEL&&row==5&&(pressed&PSP_CTRL_CROSS)&&!tutorial_service(&game,20)){message(&game,b->task);return;}
  if(page==STATUS&&game.docked&&(pressed&PSP_CTRL_CROSS)){
   if(save_game(&game,"tutorial.sav"))tutorial_emit(TU_SAVE,0);
   return;
@@ -143,7 +147,7 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
  if(game.tutorial_step!=oldstep||game.dead)return;
  int event=-1,arg=0;
  switch(b->event){
- case TU_LAUNCH:if(olddock&&!game.docked)event=TU_LAUNCH;break;
+ case TU_LAUNCH:if(olddock&&!game.docked&&game.dock_stage!=4)event=TU_LAUNCH;break;
  case TU_YAW:if(page==FLIGHT&&!paused&&!(held&(PSP_CTRL_SQUARE|PSP_CTRL_LTRIGGER))&&fabsf(game.yaw-oldyaw)>.0001f)tutorial_practice+=dt;if(tutorial_practice>=1)event=TU_YAW;break;
  case TU_PITCH:if(page==FLIGHT&&!paused&&!(held&PSP_CTRL_SQUARE)&&fabsf(game.pitch-oldpitch)>.0001f)tutorial_practice+=dt;if(tutorial_practice>=1)event=TU_PITCH;break;
  case TU_ROLL:if(page==FLIGHT&&(held&PSP_CTRL_LTRIGGER)&&fabsf(game.roll-oldroll)>.0001f)tutorial_practice+=dt;if(tutorial_practice>=1)event=TU_ROLL;break;
@@ -157,14 +161,14 @@ static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
  case TU_NET:if(oldpage==GALNET&&oldtab==b->arg&&(pressed&PSP_CTRL_CIRCLE)&&page!=GALNET){event=TU_NET;arg=oldtab;}break;
  case TU_SELL:if(oldpage==MARKET&&oldfood>game.cargo[0])event=TU_SELL;break;
  case TU_BUY:if(oldpage==MARKET&&oldfood<game.cargo[0])event=TU_BUY;break;
- case TU_FIT:if(oldpage==EQUIP&&game.fit[FIT_WPN]==b->arg&&(pressed&PSP_CTRL_CROSS)){event=TU_FIT;arg=b->arg;}break;
+ case TU_FIT:if(oldpage==EQUIP&&fit_find(&game,b->arg)>=0&&(pressed&PSP_CTRL_CROSS)){event=TU_FIT;arg=b->arg;}break;
  case TU_TALK:if(oldpage==WALK&&oldroom==b->arg&&oldmenu==SC_MENU_TALK&&oldtalk==0&&oldwho==0&&(pressed&PSP_CTRL_CROSS)&&sc_menu!=SC_MENU_TALK){event=TU_TALK;arg=b->arg;}break;
  case TU_SHOP:if(page==WALK&&sc_menu==SC_MENU_SHOP)event=TU_SHOP;break;
  case TU_GUILD:if((oldpage==GUILD&&(pressed&PSP_CTRL_CIRCLE)&&page!=GUILD)||(oldpage==MISSIONLOG&&oldrow==1&&(pressed&PSP_CTRL_CROSS)&&tracked_mission==1))event=TU_GUILD;break;
  case TU_FIRE:if(game.shots>oldshots)event=TU_FIRE;break;
  case TU_SALVAGE:if(oldtractor&&game.tractor_time<=0&&!game.debris[DEBRIS_COUNT-1].alive)event=TU_SALVAGE;break;
  case TU_SCAN:if(game.scanned_anomalies>oldscan)event=TU_SCAN;break;
- case TU_FUEL:if(oldpage==EQUIP&&oldrow==0&&(pressed&PSP_CTRL_CROSS)&&game.fuel>=player_ships[game.ship].range)event=TU_FUEL;break;
+ case TU_FUEL:if(oldpage==REPAIR&&(pressed&PSP_CTRL_TRIANGLE)&&game.fuel>=player_ships[game.ship].range)event=TU_FUEL;break;
  case TU_JUMP:if(oldsystem!=game.system)event=TU_JUMP;break;
  case TU_ATMOSPHERE:if(oldplanet<0&&game.planet>=0)event=TU_ATMOSPHERE;break;
  case TU_LAND:if(oldsurface==0&&game.surface==1)event=TU_LAND;break;

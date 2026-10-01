@@ -1,0 +1,13 @@
+# Fauna animation atlas
+
+Generated with the built-in imagegen tool (imagegen skill), transparent-background mode, on 30 September 2026. AI-generated poses, not hand-drawn or skeletal animation.
+
+Reference: assets/source/field-wildlife/species-atlas.png. Saved source: poses.png. Original generated file: C:/Users/skarm/.codex/generated_images/01a0df5c-bb6e-7c81-be10-50ed226d4e55/exec-c1c8f817-373d-40ea-ac85-f7edac651f3d.png.
+
+Four columns, eight family rows: moth, strider, hopper, ray, crawler, glider, grazer, skipper. Columns: idle, stride/wing A, stride/wing B, feed/rest. Minor pose/anatomy variation remains; these are side-view billboards, not multi-directional 3D animals.
+
+Repeatable conversion: tools/bake-fauna-animation.ps1. Shared scale across each family's four frames, bottom-aligned transparent bounds, nearest-palette sampling to the existing 64-colour field palette. Output: src/generated/fauna-animation-pixels.h (98,304 indexed bytes), assets/generated/fauna-animation/poses.png (192x512 preview). No runtime PNG loading.
+
+## Exact generation prompt
+
+Use case: stylized-concept. Asset type: PRODUCTION PIXEL-ART ANIMATION SPRITE SHEET. Reference image contains plants in top half and eight animals in bottom half. Ignore the plants; preserve the exact eight animal identities, palettes and pixel-art shading. Create a FOUR COLUMN by EIGHT ROW grid of 32 isolated poses on genuine transparent alpha (NO gradient, NO scenery, NO coloured background, NO cell backgrounds, NO shadows, NO labels or text). Each row is ONE animal in FOUR animation poses, identical size, proportions, body markings and ground baseline within that row; feet fully visible and generous empty cell margins. All poses face RIGHT in side view. Row1 patterned moth; row2 long-legged strider; row3 horned green hopper; row4 floating teal manta ray; row5 armoured six-legged crawler; row6 feathered glider; row7 stocky antlered grazer; row8 rabbit-like long-eared skipper. For grounded animals rows2,3,5,7,8: Column1 standing idle alert; column2 clear walking/hopping stride A with near legs forward; column3 clear opposite stride B with near legs back; column4 stationary head lowered feeding/sniffing. Hopper and skipper stride B may have feet tucked during hop. For flying animals rows1,4,6: column1 wings half extended; column2 wings UP; column3 wings DOWN; column4 wings folded/resting low. A useful frame-by-frame animation sheet, not four copies of the same drawing. Rich but readable pixel clusters at 48x64 pixels per cell. Keep all 32 subjects fully inside their regular equal-size cells. Portrait 1:2 composition.

@@ -1,0 +1,15 @@
+THARGOID BATTLE MUSIC
+
+Put up to 24 OGG Vorbis files in this folder. MP3 files are also supported.
+
+The game scans this folder when it starts. During a Thargoid hyperspace
+interdiction it fades away from the current radio source and shuffles music
+from this folder. When the encounter ends, the selected radio station returns.
+
+Supported sample rates: 8,000-48,000 Hz. Mono and stereo are supported.
+The MUSIC level controls battle music. Radio OFF does not disable dramatic
+battle music; set MUSIC to 0 if you want all music muted.
+
+No conversion or special filename is required. Copy the .ogg files here before
+starting the game. If this folder is empty, the game uses its generated Pixel
+Comet action score.

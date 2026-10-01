@@ -9,7 +9,7 @@
   g.yaw=g.pitch=0;g.speed=200;g.energy=75;g.heat=20;
   g.missile_time=5;g.shot=0;
   game_tick(&g,.1f,0,0,0,1);
-  boundaries_ok &= g.approach==body&&g.speed==0&&!g.boost&&g.energy==75&&g.heat==20&&g.shots==0&&g.missile_time==5;
+  boundaries_ok &= g.approach==body&&g.speed==200&&!g.boost&&g.energy==75&&g.heat==20&&g.shots==0&&g.missile_time==5;
   Vec3 stopped=g.pos;
   g.incoming_missile=.01f;float clock=g.time;
   game_tick(&g,.1f,1,1,1,1);
@@ -26,7 +26,7 @@
    returns_ok &= g.planet<0&&length(sub(g.pos,orbit))<1&&dot(forward(&g),norm(sub(g.pos,world->pos)))>.99f;
   }
  }
- CHECK(boundaries_ok,"planet boundary stops weapons and pauses threats for every non-sun body");
+ CHECK(boundaries_ok,"planet boundary retains entry speed while stopping weapons and pausing threats for every non-sun body");
  CHECK(escapes_ok,"Circle recovery clears every non-sun boundary without re-prompting");
  CHECK(returns_ok,"every landable body restores its orbit position facing away");
  game_init(&g);launch(&g);g.approach=1;g.pos=g.bodies[1].pos;

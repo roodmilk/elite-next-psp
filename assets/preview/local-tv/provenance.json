@@ -1,0 +1,7 @@
+{
+  "source": "User-supplied approved Lave Local TV concept",
+  "source_sha256": "e85be4be08a0265d0391c0489feef4d1f70f22d9f13ae43cdbe6afbd511c853f",
+  "conversion": "Lanczos downsample to 480x272, RGB 5-bit quantization; opaque ARGB1555",
+  "bytes": 261120,
+  "runtime": "Original artwork; native UI overlay; bounded window and mouth animation"
+}

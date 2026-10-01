@@ -9,10 +9,10 @@
  CHECK(roundtrips,"tutorial: every V15 lesson checkpoint round-trips with acknowledgement");
  /* Produce a sealed V14 fixture, whose payload ends before tutorial state. */
  {
-  unsigned char bytes[4096];size_t n=0;FILE *src=fopen("test-tutorial.sav","rb");
+  unsigned char bytes[131072];size_t n=0;FILE *src=fopen("test-tutorial.sav","rb");
   if(src){n=fread(bytes,1,sizeof(bytes),src);fclose(src);}
-  int fixture_ok=n>12;FILE *old=fopen("test-tutorial-v14.sav","wb");
-  if(old&&fixture_ok){bytes[4]=14;fixture_ok=fwrite(bytes,1,n-12,old)==n-12;fclose(old);fixture_ok=fixture_ok&&save_seal("test-tutorial-v14.sav");}else {if(old)fclose(old);fixture_ok=0;}
+  int fixture_ok=n>5421+(256*HUB_COUNT*4+1280+(SOCIAL_SAVE_BYTES+FIT_SAVE_BYTES));FILE *old=fopen("test-tutorial-v14.sav","wb");
+  if(old&&fixture_ok){bytes[4]=14;fixture_ok=fwrite(bytes,1,n-5421-(256*HUB_COUNT*4+1280+(SOCIAL_SAVE_BYTES+FIT_SAVE_BYTES)),old)==n-5421-(256*HUB_COUNT*4+1280+(SOCIAL_SAVE_BYTES+FIT_SAVE_BYTES));fclose(old);fixture_ok=fixture_ok&&save_seal("test-tutorial-v14.sav");}else {if(old)fclose(old);fixture_ok=0;}
   CHECK(fixture_ok&&load_game(&round,"test-tutorial-v14.sav")&&!round.tutorial_step&&tutorial_service(&round,24),"tutorial: V14 commanders retain unrestricted services");
   remove("test-tutorial-v14.sav");
  }

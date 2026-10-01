@@ -67,6 +67,7 @@ static void menu_space_view(int x,int y,int w,int h){
  Point a=project(root),b=project(tail);
  line((int)a.x,(int)a.y,(int)b.x,(int)b.y,RGB(72,108,121));
  pixel((int)a.x,(int)a.y,RGB(166,204,205));
+ int detail_panels=0;
  for(int i=0;i<m->triangles;i++){
   const MeshTri *t=&m->t[i];
   Vec3 va=add((Vec3){0,0,320},mul(menu_hull_rotate(sub(m->v[t->a],centre),yaw,tilt,bank),scale));
@@ -75,9 +76,12 @@ static void menu_space_view(int x,int y,int w,int h){
   Vec3 n=menu_hull_rotate(t->normal,yaw,tilt,bank);
   if(dot(n,mul(add(add(va,vb),vc),-1.f/3))<=0)continue;
   float light=.3f+.7f*fmaxf(0,dot(n,(Vec3){-.309426f,.721995f,-.618853f}));
-  unsigned ink=RGB((int)(193*light),(int)(139*light),(int)(77*light));
+  unsigned paint=ship_paint[ship];
+  unsigned ink=RGB((int)((paint&255)*light),(int)(((paint>>8)&255)*light),(int)(((paint>>16)&255)*light));
   if(n.y>.42f)ink=livery_tint(ink,22);else if(n.y<-.35f)ink=livery_tint(ink,-20);else if((i&7)==0)ink=livery_tint(ink,12);
-  queue_triangle(va,vb,vc,ink);
+  if(detail_panels<4&&hull_detail_candidate(id,i,t)){
+   queue_hull_panel(va,vb,vc,(Vec3){0,0,320},ink,t->normal.z>.2f&&detail_panels==0);detail_panels++;
+  }else queue_triangle(va,vb,vc,ink);
  }
  flush_meshes();
  /* Restore caller render state, not generic full-screen defaults. */

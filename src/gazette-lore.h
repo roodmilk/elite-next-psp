@@ -54,6 +54,9 @@ static const char *gazette_tabloid_body(int system,int slot){
 
 /* Secondary dek under the headline on the paper layout. */
 static const char *gazette_dek(int system,int slot){
+ if(slot==5)return "A four-sector logic puzzle for long jumps.";
+ if(slot==6)return "Certified low-risk humour. Results may vary by faction.";
+ if(slot==7)return "A pilot's view from the edge of the local chart.";
  if(gazette_wants_tabloid(system,slot)){
   static const char *tab[]={
    "Sources spoke on condition of remaining slightly wrong.",
@@ -115,7 +118,7 @@ static const char *faction_lore_line(int role,int which,int rot){
  };
  static const char *pirates0[]={
   "Raid passing traders. Update prices after refusals.",
-  "Missiles lock hostiles only — manners are optional.",
+  "Missiles take any ship lock. Manners are optional.",
   "A wink on the wire is still a boarding plan.",
   "Toll booths with thrusters. Pay, flee, or argue."
  };

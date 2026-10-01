@@ -1,3 +1,609 @@
+## 2.5.250 — Planetary POIs blended into terrain, 30 September 2026
+
+User reported every planetary POI sitting on a grey stand. Root cause was one shared full-height grey plinth in surface-landmarks.h. Replaced it with a shallow sloped berm sampling actual terrain at four expanded corners and deterministic biome colours. Engineered sites retain a narrow inset footing; ruins/fossils/wrecks/crystals have natural ground only. Collision and interaction footprints unchanged; save format unchanged.
+
+Exact tested task snapshot landmark-grounding-250. Field-art review covers all1024 worlds/8192 species plus all12 POI families at two native angles and interaction/save/framebuffer checks. Game594/radio48/steering18, all-world cinematic paths, map and Rich1568 pass. Surface differential initially exposed deterministic4–8px procedural edge omissions from 249's broad box cull. Restricting that cull to its profiled Lave layout restores144/144 pixel-identical frames while retaining Lave speed (39.058->36.899ms average in review). Physical PSP remains untested.
+
+Delivery task/ELITE-NEXT-2.5.250/EBOOT.PBP,7,321,487 bytes,SHA256 4E0A37BFD64A5A3797A470B7915030345F12B3C56357217023912796E3E031DF. Canonical source/build metadata and root/dist binaries updated to exact tested snapshot after touched-file concurrency checks. Recovery: task/landmark-grounding-250/canonical-before-250. Previous249 delivery and user saves/music preserved; no Git pull/autostash/commit/push/tag/public release.
+
+## 2.5.249 — Planetary candidate merged into 248, 30 September 2026
+
+Explicit side-conversation request to integrate with the 21:17 Rich-station build and deliver EBOOT. Verified canonical src matched rich-stations-248; integrated by narrow hunks into isolated combined-249, tested, then concurrency-checked backported. Retains all 248 stations and cumulative game content. Automatic inward eligible planet entry/cloud handoff, open varied platforms, higher/farther Lave I observatory, nub-pan map, modern inertial Roamer controls and pixel-identical planetary optimisations. Saved commander fields/layout unchanged.
+
+Final exact-binary Rich1568/ordinary1500/capital293/identity3088/map71/debug47/game594/radio48/steering18 all RESULT0, plus entry/roamer/cinematic/walk and 144-frame/16-world pixel comparison. Updated one obsolete game test: entry speed200 remains200 instead of0; weapon/energy/heat/threat-clock protection unchanged. Paired Lave render38.838->36.081ms (~7% less); walk30.449ms avg/33.228 worst; cinematics still reach94.633ms. Not locked30 or physical-PSP/full-input certified. Detailed proof: docs/PLANET-INTEGRATION-249.md.
+
+Delivery task/ELITE-NEXT-2.5.249/EBOOT.PBP,7,319,495 bytes,SHA256 3E7FE026417B0FACC55D7B73D675566A345DD2520CD61ED22D9C4DAF9B514277. Canonical root/dist now contain this exact tested binary; prior binaries/touched source/docs preserved in task/combined-249/canonical-before-249. Previous248 delivery remains. Shared dirty work/saves/music untouched; no autostash/pull, Git commit/push/tag or public release.
+
+Highest-priority remaining work: hardware entry/collision/vehicle validation; optimise heavy cloud-world cinematic shots without sacrificing scenery; finish inherited input/performance suite; match miniature Almanac station art to the new templates. Do not restore the old244 candidate over main.
+
+## 2.5.248 — Rich middle-tier habitats, 30 September 2026
+
+User supplied retro station references and requested richer middle-tier architecture. All174 Rich primaries now use sixteen templates with independently seeded service pods, signs, masts and solar plates, greenhouse/deck facade patterns, slower spin and actual2.812–4.566km longest spans. Shared solids drive collision/render/guidance; Rich grid500m, standard8km/enhanced12km Comms. Poor73, Mega9, auxiliaries, target IDs/save layout and cumulative247 planetary/debug/map content retained.
+
+Final exact-binary Rich1568/ordinary1500/capital293/identity3088/map45/integration47/game594/radio48/steering18 passes, all RESULT0. Rich696 front/side/upper routes plus ordinary494 and capital108. Initial broad14 failures traced to obsolete fixed docking coordinates/ranges and downstream save failures; reanchored tests to actual hull/slit/range, retained strict collision checks. Full inherited input/performance suite not certified. 32 Rich view samples26.425–36.395ms avg/37.013ms worst excluding audio/display; not locked30/hardware-tested. Native catalogue32 views. See docs/RICH-STATIONS-248.md.
+
+Delivery task/ELITE-NEXT-2.5.248/EBOOT.PBP,7,287,023 bytes,SHA256 23F8FC2D384A50447269097C7F243A7CF3216366D2440A9877E44FF921651260. Narrow concurrency-checked backport; canonical src matches tested rich-stations-248 snapshot. Root/dist, unrelated dirty files, saves/music and recovery folders preserved; no sync/autostash/commit/push/tag/public release. Next: hardware Rich close views/old saves near changed hulls/traffic/docking, optimise expensive views, then miniature Almanac matching.
+
+## 2.5.247 — Galaxy-wide station identity fix, 30 September 2026
+
+User's tiny-capital report was on an older EBOOT, exact system unknown. Independently found and fixed current target0 nearest-hub/name-context alias. Main0 is now stable; relay/outpost have runtime IDs123/124, bounded contact capacity125. Target-aware Comms docking uses explicit dock_hub; legacy generic dock retains nearest-hub behavior. Scanner/contacts/details/HUD/radar/Almanac agree. Save layouts, class allocation and 246 architecture retained.
+
+Final exact-binary identity3088/ordinary1541/capital293/map45/integration47/game594/radio48/steering18 passes, all RESULT0. All256 systems: 73 Poor,174 Rich,9 Mega; every main class/profile/seed matches geometry. Actual Almanac/cycling/Comms inputs and maximum contacts tested; native all-nine-city and relay captures inspected. Full inherited input/performance suite and physical PSP unverified; capital performance limits remain. See docs/STATION-IDENTITY-247.md.
+
+Delivery task/ELITE-NEXT-2.5.247/EBOOT.PBP, 7,249,143 bytes, SHA256 5BA1CC827827A0ED5D9DC47CCF55ECC872EB2499B6E7975A497908751AE707AE. Canonical src matches tested station-audit-247 snapshot after concurrency-safe narrow backport. Root/dist, unrelated dirty work, saves/music and recovery folders preserved; no pull/autostash/commit/push/tag/public release. Next: physical PSP hub/port validation, optimise capitals, then matching miniature art and auxiliary berths.
+
+## 2.5.246 — Pulp-era station overhaul, 30 September 2026
+
+User requested less uniform, less satellite-like stations inspired by 1950s sci-fi covers. All 256 primaries now use eight seeded ordinary whole-hull families or four dominant capital crowns. Continuous convex ring sectors replace the initial rejected pod-bracelet design; axial docking hubs preserve the front slit. Shared render/collision/rotation transforms and obstruction-checked guidance cover ordinary stations as well as capitals. Light NPC/freight clearance updated. Save layout, existing planetary/map/debug work and controls retained; auxiliary relays and miniature almanac art are unchanged.
+
+Final exact-binary reports: ordinary1541/capital293/map45/integration47/game594/radio48/steering18 passes, all RESULT0. This includes 494 ordinary and 108 capital docking routes. The old broad station-tunnelling plane and invalid side-start test positions now use the generated hull; do not treat their replacement as proof of every inherited bug being fixed. Full input/performance suite not certified. Native ordinary samples21.2–27.6ms avg, capitals25.9–44.4ms avg/45.0ms worst excluding audio/display; physical PSP untested. See docs/PULP-STATIONS-246.md for provenance, actual captures, limits and next steps.
+
+Delivery task/ELITE-NEXT-2.5.246/EBOOT.PBP, 7,236,207 bytes, SHA256 DF2B750F2BB5C7441F5AF769071BF6359793D7115985421A5D93D7DE4A03860D. Canonical source/build matches tested isolated pulp-stations-246 snapshot. Root/dist binaries, shared dirty work, saves/music and recovery folders preserved; no sync/autostash/commit/push/tag/public release. Next: real-PSP port/fly-through checks, capital performance optimisation, then matching miniature art and auxiliary geometry/berths.
+
+## 2.5.245 — Capital architecture variants, 30 September 2026
+
+User requested domes/spheres/mega-pods and varied 3D capital structures. New mega-city-geometry.h supplies six bounded convex templates shared by collision/rendering; narrow layout/render/test/review changes retain 58 components and five docking slits. Seeded mixes and proportions now use dome/pyramid roofs, octagonal/bevelled towers, sphere modules and long pods. Canonical src matches isolated capital-variants-245 snapshot; save/input layout retained.
+
+Final city292 checks pass across nine systems/108 guidance routes; actual curved-hull corners are flyable, stable revisit and convexity checks pass, native views inspected. Map and debug/HUD regressions pass. Broad game retains the old station-tunnelling assertion; full input/performance suite not certified. Some city views remain over30FPS budget (sample25.2–40.8ms average); hardware untested. Scope/proof/next steps: docs/CAPITAL-VARIANTS-245.md.
+
+Delivery task/ELITE-NEXT-2.5.245/EBOOT.PBP, 7,202,743 bytes; SHA256 9F676AF0FB20E6EBB2145493D035A744CA2AD48B9EE0DEF6DE17CFA3D61926B5. Root/dist, other contributor work, prior recovery folders and saves/music preserved; no Git sync/autostash/commit/push/tag/public release. Next: physical PSP city fly-through/close-view profiling, then independent inherited collision repair.
+
+## 2.5.244 — Resumed mega-capitals and Field Map, 30 September 2026
+
+Recovered saved mega-city and field-map-244 tracks; both directories retained. Final combined-244 snapshot starts at canonical 243 and contains both main.c hook sets. Canonical src now matches that tested snapshot. Nine capital systems use 58-piece stationary solid cities and swept guidance; map uses actual terrain with player-centred metric chart, overview and planet Codex return. No save fields changed; visit-scoped map fog retained.
+
+Final city273/map45/integration47 checks pass; pilot/port/shadow/Lave world reports RESULT0. Broad game retains the known station-tunnelling assertion; broad input/performance groups not certified. City sample25.7–39.0ms average, some views exceed30FPS; map first cache85–135ms then ~24ms. Hardware testing remains. Full scope/proof: docs/CAPITAL-MAP-244.md. Next: hardware city/map review, expensive-view profiling and independent inherited collision repair.
+
+Delivery: task/ELITE-NEXT-2.5.244/EBOOT.PBP, 7,186,111 bytes; SHA256 5A41EA9BCCD0671C745DA497E61A9199F4B5850713ACEE5BA41F8B3D68854A3D. All assets embedded. Root/dist binaries, other checkout work, saves/music preserved; no Git sync/autostash/commit/push/tag/public release.
+
+## 2.5.243 — Larger futuristic starports, 30 September 2026
+
+User requested much larger futuristic planetary airports. Canonical source now matches isolated task/starports-243. Apron 1440m square, player pad 440m square, two 320m traffic pads, seven new architectural exteriors, larger traffic models, moved/widened garage. Shared map/collision/foundation/cloud deck and POI reservations updated; all existing saves/IDs retained. Focused native port, transfer, Lave activities, shadow and debug/map/HUD checks pass. Final broad game retains one inherited station-tunnelling failure; radio/steering pass, broad input timed out (inherited failures observed), no all-green claim. Rendering is not locked30 and physical PSP remains untested. See docs/STARPORTS-243.md for proof, performance and next steps.
+
+Delivery: task/ELITE-NEXT-2.5.243/EBOOT.PBP, 7,131,063 bytes, SHA256 097D3FBABAE480AD7E675AEF81DFB5253A84FA4A5ACBD5C8DD19D2931FE926EA. Root/dist binaries and other contributor work preserved; no Git sync, autostash, commit, push, tag or public release. All geometry embedded; no review flags in player folder.
+
+## 2.5.242 — Fauna ground shadows, 30 September 2026
+
+Small soft contact shadows now use the shared planetary fauna renderer, grounded beneath the animal and lightened by lift. Existing depth/biome colour retained, water/void rejected. No save/input/behaviour changes; cumulative 241 retained. Native four-Lave shadow checks, fauna regressions and all 47 debug/map/HUD tests pass; physical PSP and steep/close-angle profiling remain. Existing broad failures are not fixed or retested. docs/FAUNA-SHADOWS-242.md has scope/proof. Delivery: task/ELITE-NEXT-2.5.242/EBOOT.PBP, SHA256 DBB57B09D9972E92F6B5385239D7C37A64A49FAFE9A83B331EA11E2121A093F2. Shared dirty work and root/dist builds preserved; no public release.
+
+## 2.5.241 — Combined debug, planetary map and HUD, 30 September 2026
+
+User requested the three specialist tracks in the cumulative EBOOT. Integrated runtime unlimited fuel/range toggles, visit-scoped START map and simplified EVA condition meters. Corrected map close/release safety, dead contexts, boarding fog retention and negative grid edge; aligned R glyph and added START MAP prompt. Canonical source matches isolated integrated-241 source snapshot. No other contributor changes reverted; root/dist binaries remain separate from the player delivery, no public release or Git sync claim.
+
+Delivery: task/ELITE-NEXT-2.5.241/ELITE-NEXT-PSP/EBOOT.PBP. SHA256 7017267D1E5C413B65C47B69D794CE13A7EDCB4F1E950361DE480876551C4239. Focused 47 checks and cinematic/input regressions pass; native screenshots inspected. Broad radio/steering pass, game retains one station-tunnelling failure, input completes with 184 failures (same count as specialist run); no whole-game green claim. Physical PSP/performance still unverified. Detailed scope/proof/controls: docs/INTEGRATED-241.md. Expanded TV remains excluded. Next: physical PSP review and independent broad-failure repair.
+
+## 2.5.240 — Actual-world first-person transfers, 30 September 2026
+
+User requested cinematic first-person entry/landing/boarding/departure and a bigger freely navigable spaceport. The earlier attempt is in 2026-09-30/elite-space-work and still used a separate flat render set/static cockpit panel; it was inspected, not overwritten. This pass extends this newer 2.5.239 tree and preserves the Lave environmental/animal work. Other checkout's active TV work is separate.
+
+Live actual-world camera, opaque cloud handoff, smooth approach/touchdown, automatic animated airlock, ship/roamer seat hop, live parked cockpit, forward reveal then pitched departure. Seven port buildings, broad apron/lanes, clear garage exit, outward traffic pads, expanded Lave III deck and specimen relocation. Saves/IDs unchanged. Native focused transfer and existing landing/EVA input tests pass; all LaveII–IV activities/routes/scan/save checks pass. 64-world landmark path sample passes after fixing one tall-site obstruction. Reports/captures: task/cinematic-port/{final-pilot,final-worlds,final-fauna,final-smoke}. See docs/CINEMATIC-PORT-240.md.
+
+Delivery: C:/Users/skarm/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/Cinematic-Port-2.5.240/EBOOT.PBP, SHA256 A9E1D04A178F7206A096AAF308D87FE32AE25A71C68EC8A1E2D76AD6F8D25695. All assets embedded. Root/dist EBOOTs, other checkout, user saves/music untouched; no pull/autostash, commit, push, tag or public release.
+
+Next: actual PSP playback and cold/worst-frame profiling. Cinematic render averages I37.516/II33.344/III40.479/IV34.690ms; worst samples71.494/60.194/104.396/62.228ms, excluding audio/display. Do not claim locked30, hitch-free motion or high-resolution concept quality. Broad inherited station-tunnelling issue remains; complete broad input/performance suite is not certified. Always use fresh review folders and await emulator exit before launching the next check.
+
+## 2.5.239 — Other Lave planets, 30 September 2026
+
+User requested completion of Lave's other planets. Current bounded expedition areas for II (mosswood forest), III (floating cloud skyport) and IV (glacial) now use distinct environments matching the existing orbital type/art. Solid Lave worlds share the 160m terrain lattice for draw/collision. III uses a shared 40m deck/void footprint connecting every actual POI; visible parapets and collision margins prevent stepping/driving into void. Embedded pixel-art prop kit, biome-aware species palettes, regional Codex text and cloud-site descriptions; old animal behaviours, site/scan IDs and save layout retained.
+
+Delivery: C:/Users/skarm/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/Lave-System-2.5.239/EBOOT.PBP. SHA256 9C32C94540697FD63A876B1CC990F9F4010ECC5F5E383A56AD733631A81A0F76. Full notes/provenance/test limits: docs/LAVE-WORLDS-239.md. Final reports under task/lave-worlds/{final-worlds,verified-fauna,verified-lave,verified-art,verified-broad}. Native landing, all-nine-site walker/rover reachability per world, 24 scans, 21 optional activities, three port jobs/repeat protection and save/load pass. Lave I, fauna and catalogue regressions pass. Broad retains one station-tunnelling failure; radio/steering pass; input/performance groups not completed. Corrected boundary warning and diagnostic verified. Earlier reused report folders could return stale buffered contents with fresh timestamps: always use fresh directories; world runner now enforces this.
+
+Performance samples exclude audio/display/capture: II 25.418ms avg/26.246 worst; III 30.457/32.693; IV 40.131/43.265; I regression34.041/36.547. Physical PSP untested; IV is NOT a locked-30-FPS result. New trees are billboards, distant ridges/clouds backdrops; no whole-planet traversal, navmesh ecosystem or unique per-species skeletons.
+
+Next: physical PSP tests and IV renderer profiling, then remaining-system biome rollout. Only Lave uses the new environmental kit/decks. Other prepared atlas rows are not integrated elsewhere. Keep root/dist binaries and shared dirty work intact; no autostash/pull, commit/push/tag or public release this pass. Do not install review flags with the player build.
+
+## 2.5.238 — Animals first, 30 September 2026
+
+User paused the every-planet biome rollout to fix sliding wildlife on Lave I. Shared fauna now has idle/wander/feed/alert/flee/return behaviour, independent deterministic RNG, collision-checked routes, actual-distance grounded gait, family hop/wing/rest poses, and walking/running/rover proximity reactions. New 8x4 pose atlas was made with built-in imagegen and palette-baked; provenance and exact prompt are in assets/source/fauna-animation/README.md. Full notes: docs/FAUNA-LIFE-238.md. Species/save identity and player controls unchanged.
+
+Delivery: C:/Users/skarm/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/Animal-Life-2.5.238/EBOOT.PBP. SHA256 C5218D49DB0315A4CFEF94F1150988D95975BC24EFB2B44D11EF7575369895AB. Native focused fauna/art/Lave checks pass in fauna-life/{candidate,regression,lave}; 2,831 animal spawns across all 1,024 planet slots checked. Lave update+draw averages 33.883ms, worst36.304ms excluding audio/display/capture. Physical PSP untested. Broad game still has one inherited station-tunnelling failure; radio/steering pass, input/performance not completed.
+
+Next: physical PSP animal motion/performance; richer directional poses if needed; resume biome-matched every-planet scenery and floating gas-giant settlements (explicit user choice). Gas visits already work but use a flat research island, not actual finished platforms. Pending biome-props kit is NOT integrated and needs alpha cleanup/regeneration. Local avoidance is not a navmesh or ecosystem; these remain four-pose side-view sprites.
+
+Shared dirty tree preserved; no autostash/pull, commit/push/tag or public release; root/dist binaries unchanged. Keep review flags out of deliveries. Do not claim whole-game green or concept-level visuals.
+
+## 2.5.237 — Shared planetary POI/wildlife pass, 30 September 2026
+
+All twelve exterior POI families use src/surface-landmarks.h, including physical signboards and more detailed port roofs/windows. Stable site IDs, seeds, encounters, rewards, collision reservations and save format are unchanged. field-sprites.h + field-world.h share a new embedded 16-family flora/fauna atlas with the Codex; field-leaves.h adds at most 24 nearby tree leaves. Art source is AI-generated and palette-baked, not hand-drawn; prompt is in assets/source/field-wildlife/README.md. Full scope/proof: docs/POI-WILDLIFE-237.md. Other planets retain their earlier terrain/vegetation quality; this does not turn every background into lush Lave.
+
+Delivery: C:/Users/skarm/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/POI-Wildlife-2.5.237/EBOOT.PBP. SHA256 E62448EDD2CAFD2DF774582232FB0A4C0EB5368E7A263B52A1DF56E03DBF518E. Focused native art and Lave regression reports beneath that task in poi-wildlife/final-review and final-lave pass. Sampled update + draw 33.738 ms average / 36.096 ms worst, not including audio/display wait/capture IO; physical PSP untested. Native full-catalogue checks cover 8,192 existing identity slots, not 8,192 unique authored sprite assets. Review flags must never be copied into the delivery folder.
+
+Highest-priority remaining work: physical PSP close-tree/biodome/port profiling; further material/animation detail within budget; unrelated inherited broad-suite failures. POI footprints remain conservative solid interaction sites, not new 3D walk-through interiors. Shared dirty tree and root/dist EBOOTs preserved; no autostash, commit, push, tag or public release. Do not claim whole-game green or a 1:1 match to the high-resolution concept.
+
+Broad 2.5.237 check: same one inherited station-tunnelling failure, radio/steering pass; input/performance not completed in this run. Reports: poi-wildlife/final-smoke-verified. The delivery contains no review flags or test saves.
+
+## 2.5.236 — Lave I native walkabout repairs, 30 September 2026
+
+The earlier 2.5.235 concept-targeting pass was not visually verified and actually rendered mostly bare ground: draw_lave_vegetation passed world X as a screen coordinate. Corrected that plus atlas crop, upright billboard pitch/depth, shared terrain/collision, connected surface_poi observatory position, a real dome, far woodland, path/shore rendering and multiple CPU bottlenecks. All local changes are described in docs/LAVE-I-LUSH-EXPLORATION.md; do not repeat the old claim that the concept already runs 1:1.
+
+Final local delivery: C:/Users/skarm/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/Lave-I-2.5.236/EBOOT.PBP. Native proof and focused report: lave-motion/final-review/ beneath that task workspace. Focused checks pass; final sampled update + draw 31.600 ms average / 34.946 ms worst (without audio/display wait/capture writes). Physical PSP and sustained all-views 30 FPS are unverified. There remains a substantial art-quality gap from the high-resolution reference.
+
+Highest-priority remaining work: close-tree/port/rover worst-case hardware profiling; richer ground cover and less repeated vegetation; more sustained route/interaction/save checks; existing broad-suite failures. Keep distant ridge backdrops distinct from the bounded walkable island. The source image is AI-generated, not hand-drawn. No input/save-format changes. Shared dirty tree, root/dist EBOOTs, music and other contributors' work are preserved; no autostash, push, tag or public release. The opt-in review flag belongs only in disposable test directories.
+
+Broad check comparison for this pass: baseline game 2 failures / input 182; final game 1 inherited station-tunnelling failure after updating obsolete Lave assertions. Radio/steering pass. Candidate input was stopped at 145 seconds in campaign speech, with 139 recorded failures all present in baseline; it did not complete. Reports: lave-motion/{baseline-smoke,candidate-smoke,final-smoke}. Final EBOOT SHA256 55E8E50928A5B1182588ED9FCD960812EF4DACE01DEF6FEB0A02F842C7CC3046. No whole-game green status is claimed.
+
+## 2.5.234 — Scheduled Local TV, 30 September 2026
+
+CH8 is now ONE station with three five-minute programmes, driven by PSP real local clock. Top-right HH:MM and NEXT/LATER times agree; midnight wraps; page entry/resume joins the current caption, not a restarted programme. Removed Left/Right/X tuning and footer prompts; Circle exits. Mira uses caption-gated soft babble, slower Night Stories cadence and existing mouth motion. Speech shares SFX/quiet-chatter controls; radio fades out on TV and returns without retuning. Native masked ships now visibly cross the window in both directions.
+
+Focused final native QA: C:/Users/skarm/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/local-tv-scheduled/qa-tv-20260930-082047-520/, RESULT 0 failures. Actual framebuffer/animation/PCM proof is alongside in proof/. Both baseline and candidate broad smoke retain the same one collision + 138 input failures and campaign-region stall; radio/steering pass. Physical PSP and full-suite green status are not claimed. Existing scripts loop within each five-minute slot; Lave-only authorship remains. docs/LOCAL-TV-SCHEDULE.md supersedes the old selectable-channel documentation.
+
+Highest-priority remaining work: physical PSP sound-level, timezone and suspend/resume test; expand programme script variety; fix inherited broad-suite issues independently. Other contributors' shared edits are preserved. No auto-stash, GitHub push/tag or release was performed.
+
+## Giant background freighters and planet occlusion — local candidate, 30 September 2026
+
+Moved deep-traffic hull/exhaust rendering before planet discs, fixing distant freighters drawing over worlds. Replaced two enlarged fighter meshes with four approximately twice-size modular capital silhouettes, six system/lane palettes, pointed prows and long twin coloured wakes. Crossings now take 150–230 seconds. Reachable capital-freighter gameplay is unchanged. Details: docs/DEEP-FREIGHTER-POLISH.md.
+
+Tested candidate: outputs/chart-build-20260930-012536-359/EBOOT.PBP (v2.5.232), SHA256 4733A9C26DF06DCF72EB75B7FAF9FF0EC1615E61394F7E4250391D8039C776C1. Delivery: C:/Users/skarm/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/ArcElite-v2.5.232-deep-freighters/EBOOT.PBP. Native captures: outputs/deep-freighter-review-20260930-012652-671/. Clear routes and a deliberately planet-blocked route were inspected; the planet masks hull and fire correctly. Performance: outputs/soft-sky-performance-20260930-012714-920/, five passes at 29.97–37.40 FPS, worst sampled frame 39.00 ms. Physical PSP still required.
+
+The shared source picked up concurrent unfinished station-room changes that failed on missing lave_arrivals_hero_pixels. Final EBOOT therefore uses the last successful 01:19 snapshot plus final freighter geometry; current main.c/voyage.h match it exactly, while only station-crawl.h and station-room-kit.h differ. Shared source, root/dist EBOOTs, VERSION and Git state were not overwritten. Broad inherited station/outfitting failures remain unresolved.
+
+## Soft flight sky and camera comfort — local candidate, 30 September 2026
+
+Removed the screen-space hashed colour patches responsible for the blocks and rapid pattern changes on pitch. Replaced them with seeded continuous celestial cubemaps, exact camera-relative perspective/roll, soft per-pixel colour, dark dust gaps, calmer star twinkle and feathered sun flare spots. Removed the redundant 20 Hz random dust overlay. Ship controls, planetary gameplay, station work, chart changes and saves remain unchanged. Fixed cache: 101,400 bytes; warm sky rendering 7.87 ms in PPSSPP. Details: docs/SOFT-SPACE-SKY.md.
+
+Latest isolated full-game candidate: outputs/chart-build-20260930-005542-746/EBOOT.PBP (v2.5.232). Native captures/report: outputs/soft-sky-review-20260930-005658-365/. 48 focused checks plus complete-catalogue generation checks pass: all 256 maps have distinct pixel hashes and varied cloud/dark regions. Visual inspection covers the six-system gallery, selected close sun/planet views and Lave pitch frames, not every direction in every system. Full-flight tests: outputs/soft-sky-performance-20260930-005812-106/, averages 29.97–37.40 FPS; worst sampled frame 38.96 ms. Nominal 30 FPS test explicitly accepts half-refresh 29.97 with a 29.90 tolerance, not a guarantee of >30 on every frame.
+
+Delivery copy: C:/Users/skarm/Documents/Codex/2026-09-26/referenced-chatgpt-conversation-this-is-an/outputs/ArcElite-v2.5.232-soft-space/EBOOT.PBP. SHA256: 63C55846EB47913B40D83DC7A608D06069BFDDB1C40189A493D6B3D2D9A8C958. Shared root/dist binaries, VERSION and unrelated edits preserved; no Git mutations or release publication. Physical PSP comfort/frame-pacing review is still required. First sky generation costs ~0.19 s on system entry. The inherited station collision failure and campaign-input smoke stall are not fixed or claimed green.
+
+Broad verification follow-up: candidate reports outputs/soft-sky-smoke-20260930-005935-230/, pre-sky baseline outputs/soft-sky-smoke-20260930-010208-697/ using the 003414-752 EBOOT. Both have identical failure lists: one station swept-collision failure and 138 outfitting/module-bank input failures. Both pass radio/steering; input remains incomplete at the same campaign-response line and broad performance is not reached. Candidate smoke timed out at 120 seconds. Do not describe the whole suite as green; investigate these separately before a coordinated release.
+
+## Deep Chart PSP feedback — local candidate, 30 September 2026
+
+Small chart text is now exact 5x7 pixels, replacing uneven 6x9/8x12 stretching; header retains exact 2x scale. Vertical nub pan is inverted only on the chart. Chart controls use a bounded wall-clock timestep rather than the physics 50ms cap, maintaining hold-to-zoom speed on slower frames. Filter membership is evaluated once per node and packed-lane nebula interpolation preserves identical colors with less work.
+
+Latest candidate: outputs/chart-build-20260930-003414-752/EBOOT.PBP. Report/native captures: outputs/chart-review-20260930-003521-506/. 26 focused checks pass, including vertical inversion, 10/60 FPS zoom timing, native glyph pixels and interpolation equivalence. Same-camera Jobs zoom draw fell from 21.66 to 17.41 ms/frame in PPSSPP (~20% less draw time); ALL from 23.65 to 19.51. A Jobs-only slowdown was NOT reproduced in the emulator baseline; real PSP confirmation remains necessary. Full-game suite remains unverified; no shared root/dist overwrite, version bump, commit, push or tag. No planetary or flight-control changes. See docs/DEEP-CHART-VISUALS.md.
+
+## Deep Chart nine-filter rail — local candidate, 30 September 2026
+
+Square cycles ALL / VISITED / UNVISITED / RICH / POOR / MEGA / JOBS / IN RANGE / ROUTE. A 90x86 top-left panel shows five readable rows with a proportional scrollbar; same height, 13 pixels wider. JOBS excludes unaccepted offers, IN RANGE uses current fuel, ROUTE uses the plotted path. Empty-state hints and context pins are retained. No bookmarks or save-format changes; no planetary changes.
+
+Latest tested EBOOT: outputs/chart-build-20260930-002531-098/EBOOT.PBP. Captures/report: outputs/chart-review-20260930-002650-091/. All 22 focused checks pass; long-label, middle-scroll and final-scroll native captures inspected. Warm all-systems rendering 23.79 ms in PPSSPP. Physical PSP and whole-game integration verification still pending. Shared root/dist binaries, version and other contributors' work were not overwritten; no push/tag. See docs/DEEP-CHART-VISUALS.md and src/deep-chart-filter-tests.h.
+
+## Deep Chart visual pass — local candidate, 30 September 2026
+
+Replaced decorative point dust with an embedded starless blue galaxy illustration; only actual systems/route hops are sharp points. Added softer star glows, glass panels, larger chart typography, bounded labels, readable search and icon controls. L/R zoom, nub pan and plotted route-star behavior remain intact. Details and art provenance: docs/DEEP-CHART-VISUALS.md.
+
+Tested isolated candidate: outputs/chart-build-20260930-001230-933/EBOOT.PBP (built from a v2.5.231 source snapshot). Native 480x272 ALL/MEGA/zoom/search captures and nine passing focused checks: outputs/chart-review-20260930-001351-721/. Warm all-systems chart draw measured 23.71 ms in PPSSPP; physical PSP not tested. No claim that the broader inherited smoke suite is green. Shared root/dist EBOOTs were deliberately not overwritten and no version bump, commit, push or tag was made, to preserve concurrent work. Next: physical PSP legibility/frame-pacing review, then coordinated integration build/release. Build with tools/build-chart-candidate.ps1 and verify with tools/review-deep-chart.ps1.
+
+## 2.5.231 — Local TV approved-art rebuild, local development build
+
+Local TV now uses the exact full approved studio illustration at PSP resolution with live native captions, original CH8 logo and cyan/violet sibling idents. Mouth motion stays registered to Mira; window traffic is masked behind the station. Three four-passage Lave programmes loop; Left/Right tunes, X restarts, Circle backs out. Full-height glyphs replace compressed labels. Source, provenance and opt-in native tests are integrated; details in docs/LOCAL-TV-231.md.
+
+Highest-priority remaining work: physical PSP test; investigate inherited station swept-collision failure and campaign-input smoke stall independently; later author per-system TV branding/scripts. Focused TV QA is green, broad smoke is NOT green. Only Lave has authored TV content, not 256 unique stations. No remote push/tag was made because the shared checkout contains other contributors' unfinished work and broad verification is incomplete. Do not autostash or overwrite those edits. Current delivery is a local v2.5.231 test EBOOT.
+
+## 2.5.212 — Ship Tech Board shows usable slots only
+
+The Ship Tech Board no longer displays meaningless locked placeholders. Every WPN/DEF/NAV/HOLD/FUEL/UTIL row shows only the one to four slots supported by the current hull and expands those real slots across the available width. Empty usable slots remain. Navigation stays within actual capacity, installed totals ignore inaccessible storage, and Law Scanner now has a safe board abbreviation. Triangle no longer opens Outfitting from this page. The footer advertises SQUARE ARM only when a WPN category is highlighted.
+
+Verification: PSP build passed; starter/largest-hull capacity and Triangle-inactivity checks pass. All six categories were inspected in native normal and high-contrast captures. Performance remains green. The inherited baseline UI and station-collision failures remain separately documented.
+
+## 2.5.211 — Spacebook creature avatars
+
+Spacebook usernames now generate stable native-pixel profile pictures instead of repeatedly borrowing the general NPC portrait. Ten families cover humans, reptilians, insectoids, robots, aquatic beings, fungi, avians, furry creatures, crystalline life and ship/logo accounts. Username hashing also varies palettes, eyes, expressions, silhouettes, visors, cyber markings, collars and account badges. The same name always produces the same avatar, case-insensitively, with no save-format change, textures, heap allocation or background simulation cost. Only visible feed cards are drawn.
+
+Verification: PSP build passed; username stability and all ten-family coverage checks pass. An 80-account native 480x272 gallery and live two-card Spacebook capture were inspected. Performance suite remains at 0 failures. Full inherited UI suite remains at its existing 38 failures from v2.5.210; no additional failures. Physical PSP validation remains.
+
+## 2.5.210 — Purposeful traffic and Law Scanner
+
+Four deterministic station/world routes replace arbitrary civilian orbiting. Traders service ports and return; Law patrols main lanes and dispatches from the station, while pirates hunt outer routes and flee patrols. Existing freight schedules and survey formations remain. Unengaged Wanted targets survive NPC combat; recent player involvement receives the bounty for a police-assisted takedown.
+
+System Operations: Square toggles the route map. New Law Scanner (UTIL, 480 U, tech 3+) uses Circle + R shoulder to select, then a Circle tap to scan. Its 20 km radar snapshots show 650 m inspection reach, fade and expire after 12 seconds. Tractor and heat-sink assignments are unchanged. Target details and faction lore explain activities. Existing saves load; new module ID 56 needs this executable. No persistent traffic/economy simulation is claimed.
+
+Verification: PSP build and every added traffic/scanner check pass. Full emulator comparison matches 2.5.209's existing failures (1 game, 38 input/UI); steering, radio and performance pass. No new failing checks. Native screens inspected; physical PSP validation remains. See docs/TRAFFIC-ROUTES.md and docs/TRAFFIC-210-VERIFICATION.md for limits and next steps. Repository contains extensive earlier uncommitted work; no automatic commit, push or tag was made.
+
+## 2.5.209 — Select skips Thargoid encounters
+
+Validation: PSP build passed; muted emulator input checks passed all three skip phases, including simultaneous fire and an incoming lethal hit. Checks verify preserved route/fuel/credits/kills, cleared projectiles and no immediate encounter retrigger.
+
+Press Select at any time during a Thargoid encounter, including the opening countdown and reinforcement pauses, to resume the original hyperspace jump. The footer shows the existing Select button graphic with SKIP. Skip takes priority over firing and incoming damage, clears the encounter and battle music state, preserves earned rewards, and grants no additional kills or cash. Saves are unchanged.
+
+## 2.5.208 — Verified battle decoding and 3D hyperspace pursuit
+
+Reproduced the garbled battle music using the actual spacebattle.ogg file in a silent PSP executable: the installed Tremor decoder clipped about 65% of samples and had effectively zero correlation with reference Vorbis output. Replaced that decoder with libvorbisfile/libvorbis, explicitly requesting signed little-endian 16-bit PCM. Fixed the shared resampler's truncated 48 kHz phase step by accumulating exact sample-rate units.
+
+All four user tracks passed eight-second silent PSP emulator decode comparisons. Correlations with reference PCM: 1.000000, 0.999941, 0.999944, 0.999946; zero clipped samples. This validates decoding/resampling, not physical PSP audio timing. Double output buffers, failed-track quarantine and silent battle fallback remain.
+
+The encounter uses shaded 3D Thargoid meshes with bank/yaw/depth motion, perspective dust streaks, passing 3D rocks and cockpit rails. It now releases 45 attackers through staggered reinforcements, with no displayed wave labels or clear banners. Controls and 20U kill rewards are unchanged.
+
+Silent runtime tests passed encounter rewards, defeat/victory route preservation, protected countdown, visible firing, star continuity, bounded formations and 45-enemy completion. A captured encounter frame was inspected. The broader game suite reports one station-tunnelling collision failure outside the changed code; it is not a clean full-suite pass. Hardware frame rate and sustained audio playback still need verification.
+
+## 2.5.207 — Thargoid encounter stability and readability
+
+Replaced the time-reseeded starfield (18 random rearrangements per second) with persistent moving stars; removed full-screen hit flicker and overlapping HUD text. Added a four-second protected briefing, visible player lasers, solid enemy silhouettes, slower staggered bolts and stable attack formations without near-plane teleport damage.
+
+Audio now alternates two static output buffers and gives the Vorbis worker a 64 KiB stack instead of sharing a 16 KiB stack with an 8 KiB output block. Failed tracks are quarantined until restart, chained Vorbis channel/rate metadata is validated, and an empty/unreadable battle library stays silent. OGG/MP3 folder and saves are unchanged.
+
+Validation: PSP compilation and source checks; new countdown, firing, star-continuity and formation regressions compile in the input suite. Emulator remains closed by user preference; regressions and the reported hardware audio fault still need runtime verification with the user's tracks. These checks do not prove audio playback quality.
+
+## 2.5.206 — Native OGG battle music
+
+Custom music scanning accepts case-insensitive `.ogg` and `.mp3`. `audio.h` dispatches OGG tracks through Tremor (`libvorbisidec` + `libogg`) into the same cubic 44.1 kHz resampler, source shuffle, crossfade and suspend lifecycle used by MP3. OGG-only installs skip PSP MP3 utility/resource initialization. Thargoid score remains source 7, outside the visible radio station count, and still falls back to generated Pixel Comet action music when empty.
+
+`tools/check-thargoid-music.mjs` covers scanning, decoder/linker wiring, encounter routing and instructions. PSP build passes; native PSP OGG timing, corrupt-file recovery and mix balance still require hardware testing. Save/config formats unchanged.
+
+## 2.5.205 — Thargoid battle music library
+
+The audio worker has an eighth file source at `music/Thargoid Battle` without increasing `RADIO_STATION_COUNT` or exposing it on the tuner. `audio_battle` follows transient `thargoid_active`. Source transitions fade gain to zero before switching decoder/synth state, then restore the unchanged selected radio source after combat. Battle score bypasses Radio Off but obeys `radio_volume`; source 7 falls back to synth station 2 when empty. Runtime startup creates/scans the folder and accepts up to 24 mono/stereo MP3s at 8-48 kHz through the existing decoder.
+
+`tools/check-thargoid-music.mjs` passes and the PSP build succeeds. Compiled radio coverage verifies source allocation. Emulator remained closed; native PSP MP3 transition timing, decoder recovery and mix balance still require testing. Save/config formats unchanged.
+
+## 2.5.204 — System Operations and Thargoid interdictions
+
+Fly > System Details is now an operational 480x272 dashboard rather than a shorthand body list. It retains six selectable targets and existing lock/align behavior. Its station dossier reads current NPC roles, local jobs, local warrant/fine, per-system bounty completion and station manifest progress; celestial dossiers read range, access, persisted landings, per-world life/site records and local rift logs. Gas worlds correctly identify floating skyports. A 78-point progress meter is derived only from saved accomplishments, and an ordered NEXT strip recommends an existing activity.
+
+There is deliberately no invented “live system conditions” layer. Visited planets may show their already-implemented deterministic local clock, culture and sky profile; unvisited records remain locked. New helper regressions compile in the input suite and `tools/check-system-operations.mjs` checks source wiring. PSP build/static checks pass, emulator kept closed; native PSP readability and controller testing remain required. Save/assets unchanged.
+
+Hyperspace now performs one 14% encounter check after entering the corridor. A triggered Thargoid ambush exclusively owns rendering/input and pauses the underlying jump. Three waves contain 3, 4 and 5 generated raiders with three movement patterns, recurring attack passes and aimed bolts. Nub/D-pad moves the sight; held Cross fires. Each kill adds 20 units. Victory resumes at the braking phase; defeat cancels the jump, restores the origin/destination and spends no jump fuel. State is transient and not saved. `tools/check-thargoid-ambush.mjs` plus compiled input fixtures cover trigger wiring, reward and both outcomes; no runtime/emulator or hardware playtest yet.
+
+## 2.5.203 — Larger depth-correct planetary rings
+
+Ringed gas giants now use a four-line band extending roughly 1.82-2.06 planet radii. The rear half renders behind the globe and a brighter near half renders across its foreground, fixing the missing front arc. Seeded thickness/skew adds variation and the complete ring follows cockpit roll. Applied consistently in normal flight, visible hyperspace and station departure views.
+
+No save or external asset changes. PSP build and static ring-order checks pass; emulator remains closed. See docs/PLANET-RINGS.md.
+
+## 2.5.202 — Closed station tunnels and varied orbital architecture
+
+Station flight tunnels now end at an opaque, lit pressure door, so stars, planets and traffic behind a station are no longer visible through its far side. Main hubs, outer relays and frontier outposts all retain the same safe 140x64 flight slit.
+
+Every system now derives station radius, depth, spin, hull/trim/light colours, bands, pods and one of six structural families from its identity. Main hubs vary by more than 2x in width and depth; secondary hubs receive independent profiles. Rendering, docking guidance and swept collision share the generated dimensions.
+
+No save or external asset changes. PSP build and static checks covering all 768 hubs pass; runtime fixtures compile but were not executed. Emulator remains closed. See docs/STATION-EXTERIORS.md.
+
+## 2.5.201 — Sky Observatory: The Signal Between
+
+Implemented the observatory investigation at existing generated sites: telescope, console and log clues persist; a named observer explains an irreversible confirmed choice between public-beacon reset (+20U bonus) and preserved trace (+1 extra discovery), in addition to the normal site reward. Outcomes alter return dialogue, instrument display and the Codex field-site report. Existing completed sites remain legacy-complete and cannot pay again. Lave 1 has no observatory; Lave 2 POI 3 and Lave 4 POI 5 do.
+
+Refined native 340x168 observatory art, protected 14,146-pixel window mask with local planet/biome/time rendering, animated receiver display and a quiet volume-controlled receiver sound. No resized concept image. Static generator checks enumerate 581 observatories across 1,024 worlds with no duplicate per world.
+
+Save V26 uses reserved surface bits 20-24 for choice and clues, no payload growth. V25 and earlier remain loadable; older executables cannot read V26. Back up commander files before upgrading. Added core/input/save/legacy fixtures; compiled but NOT executed. PSP build and static checks pass; physical PSP and runtime visuals/controller/audio/performance remain unverified, emulator kept closed. See docs/OBSERVATORY-ENCOUNTER.md.
+
+## 2.5.200 — Planetary site scene foundation
+
+All planetary sites now open station-style single-location scenes. Added sixteen native 340x168 pixel layouts with shared hotspot anchors, planet/time palette variation, site-specific inspection and NPC conversation text. Existing objectives/rewards and save completion are preserved; entry/exit input is isolated and outdoor time pauses. This is a working foundation, not the complete art/36-encounter milestone. See docs/PLANET-SITE-SCENES.md for changes, verification and remaining work. PSP build/static checks only; runtime fixtures compiled, not executed. Emulator remains closed.
+
+## 2.5.199 — Expanded equipment catalogue
+
+Added 30 modules (54 installable total): six distinct primary weapons, six defences, five navigation tools, three cargo bays, four fuel-system modules and six utilities. Includes +10% firepower, hotter +20% overdrive, shield disruption, shield-piercing plasma, shot suppression, armour and specialised damage protection. Passive effects support existing hull slot capacities; stronger scanner/shield/scoop/repair tiers win, distinct cargo bonuses sum. Stock follows system tech/economy/prosperity. Full catalogue and stacking notes: docs/EQUIPMENT-CATALOGUE.md.
+
+V25 saves expand accepted module IDs with unchanged V24 payload size; duplicate validation now uses a byte table instead of an overflowing 32-bit mask. Existing saves remain loadable; back up before saving with this build, as older builds cannot read V25. Weapon effects remain hitscan with differentiated visual beams, not physical projectiles.
+
+Verification: PSP build and static catalogue/layout/256-system stock checks. Added compiled effect/save regressions; runtime tests, balance and native PSP visuals NOT verified. Emulator remains closed. Next: execute regression suite with permission, check specialist weapon effects and module loadouts on hardware. No new external assets or published release.
+
+## 2.5.198 — Mechanics service name
+
+Renamed SHIP > Engineers to Mechanics, including the service header, fee label and tutorial directions. Repairs/refuelling behavior is unchanged. Includes the v2.5.197 fix for duplicate Loadout feedback and HOLD/HULL overlap. PSP build checked; emulator kept closed. No save or asset changes.
+
+## 2.5.197 — Single unobstructed Loadout feedback
+
+Loadout now owns its feedback: the generic menu_notice overlay skips INVENTORY. HOLD/HULL stays at y=224; arm/sale feedback uses y=236, below the stats and above the y=248 footer. Removed both the duplicate global notice and same-baseline local overdraw. Updated selected-label fixture coordinates for the module-bank layout and added framebuffer regressions for unchanged stats and no generic duplicate after Square. PSP build checked; runtime fixtures compiled but not executed, emulator kept closed. No save/assets changes.
+
+## 2.5.196 — Refuelling separated from Outfitting
+
+Removed fuel purchases from every Outfitting stock list and blocked direct catalogue refuel transactions. Fuel scoops remain installable modules. Paid refuelling is now a separate Triangle action in SHIP > Engineers, with current/maximum fuel and a fuel-only price; X still repairs without buying fuel. Same missing-fuel pricing, dock/full-tank/funds guards. Updated menu hint, tutorial text/action and transaction fixtures. Empty low-tech stock pages now have a safe no-stock view (no zero-length indexing/division). Save format and assets unchanged. PSP build checked; runtime fixtures updated/compiled, not run; emulator remains closed.
+
+## 2.5.195 — Station exploration balance
+
+Added a right-aligned live currency balance to the top-right header of every point-and-click station room, including shop, conversation and reading views. Uses the game's tenths-of-a-unit precision, updates from current credits each frame, and fits the maximum validated balance without overlapping the room identity or option rail. No save, controls or asset changes. PSP build and width checks only; emulator remains closed.
+
+## 2.5.194 — Ship-specific module banks
+
+Ship Loadout is now a six-row tech board with up to four individual slots per category. D-pad Up/Down selects category; Left/Right selects a slot. Locked slots are visible but cannot be selected. Square arms a fitted WPN laser, including while paused in flight; the active weapon has a green underline. X sells the selected module at a station with confirmation; Triangle opens Outfitting for that exact slot. Ordinary Outfitting purchases fill a free compatible slot first, falling back to a confirmed replacement when full.
+
+Price progression gives Adder 6, Gecko 8, Moray 11, Cobra Mk1 12, Cobra Mk3 15, Fer-de-Lance 16, Krait 18, Python 19, Ophidian 21 and Anaconda 22 total slots. Shipyard lists category capacities. Different modules coexist; duplicate catalogue items cannot be bought twice. Cargo Bay, Freight Rack and exclusive clamp add +8/+16/+8 tonnes together, alongside a passenger cabin. Passive capabilities combine; strongest shield/scoop tier wins rather than stacking rates. ECM/chaff and recharge now search all slots. Station clamp gifts use free HOLD slots.
+
+Four laser choices: Pulse 24, Beam 36, Mining 18 versus ships / 54 versus rocks, and new Heavy 60 damage with 0.36s cycle and 22 heat (others 0.18s and 12 heat). Heavy costs 1,400 U, displayed tech 10+, industrial economies 0–2. Only the armed laser fires/contributes mining mode. Ship exchanges repack modules, retain the active laser and reject insufficient slot/cargo capacity before charging; occupied cabins and loaded holds remain protected.
+
+V24 appends 20 bytes (18 extra module slots, active index, reserved zero) under existing CRC/backup validation. V23 and older fits migrate to bank one. Invalid/duplicate/wrong-category/locked-slot records and invalid active indices are rejected. Back up saves before upgrading: older builds cannot read V24. No added art/audio assets.
+
+Verification: PSP builds and tools/check-module-banks.mjs static catalogue, capacity/progression, layout and wiring checks. Runtime fixtures added for extra-slot effects, four weapons, install/sell/arm controls, cargo/cabin protection, hull transfer, V24 roundtrip and V23 migration; legacy migration offsets updated. Fixtures compiled, NOT executed; emulator deliberately kept closed. Next: authorised runtime regression/visual checks and physical PSP testing. Local only, no push/release.
+
+Final package: EBOOT 3,232,479 bytes; SHA256 19A78D023514AE00A536AFA04418A3609086BF24571DC22BC20F058A75401351. Copied to dist/ELITE-NEXT-PSP and current-thread outputs/ArcElite-v2.5.194. Core changed-source whitespace check passed. Runtime checks remain unexecuted.
+
+## 2.5.193 — PIMP-MY-SHIP.NET menu branding
+
+Renamed the SHIP category's Ship decorator entry to PIMP-MY-SHIP.NET, including its detail heading. Native lettering uses cyan, pink and gold word accents with a subtle fixed one-pixel stagger. Selection highlight and cursor are unchanged; high-contrast mode uses straight, theme-readable text. No extra assets, gameplay changes or save changes. Build verification only; emulator remains closed.
+
+## 2.5.192 — Replies go straight to the contact
+
+Removed the main-story chapter 2+ commander echo state, its extra confirmation press and its upper player speech/portrait. Selecting a bottom reply now advances immediately to the next authored NPC answer. Final acceptance remains explicit and occurs only at the final beat. Prologue, guild, police, comms and station conversation paths were inspected for player-echo rendering; the remaining active echo path was in saga briefings. Shared dialogue rendering no longer has a special commander portrait branch.
+
+Updated input and visual fixtures, including every saga chapter and each question/answer beat. PSP build checked; fixtures compiled but not executed because the emulator is kept closed. Runtime and hardware verification remain outstanding. No save format or content assets changed; existing chapter progress is preserved. Local-only delivery.
+
+## 2.5.191 — Flight message spacing
+
+Moved the body text in top-of-screen flight captions down exactly two pixels. Increased the caption backing by two pixels to retain all three text rows. Speaker labels, controls, wrapping width and dialogue behavior are unchanged. Save format V23 unchanged; no new assets. PSP build validation only; emulator kept closed, visual PSP check remains outstanding.
+
+## 2.5.190 — Planet artwork follows flight roll
+
+Fixed upright planet billboards during barrel rolls: flight now inverse-samples the planet artwork using the same screen-space roll as the existing camera projection. Surface features and baked shading rotate together; planet centres already followed camera roll. Menus, chart illustrations and HUD remain unchanged. Zero/full roll uses the existing fast path; rotated rendering clips to the viewport and uses a 16 KiB static tinted-sheet cache, with no heap allocations or per-pixel trigonometry. Save format remains V23; no additional assets.
+
+Verification: PSP build succeeded. Headless mathematical/source checks in tools/check-planet-roll.mjs passed camera orientation, both roll directions, quarter/half/full turns and clipped near/far sampling (2,641,244 visible samples). These are not actual PSP render tests. Emulator deliberately left closed. Next: visual continuity and frame-rate check on PSP, especially rolling beside a large planet. Existing unrelated changes preserved; local-only delivery, no sync or release.
+
+## 2.5.189 — One simple Spacebook history
+
+One newest-first feed follows the commander across every system, retaining up to 4,096 posts with their original location, date and Like/Dislike reaction. Two full-width cards, a scrollbar, Up/Down selection and Left/Right jumps of ten posts keep navigation simple. No reply feature or extra feed menus. Profile names display naturally (BEN becomes Ben) without changing the saved name.
+
+160 unique templates across 20 event types mix genuine thanks, gossip, dry humour, complaints, sarcasm, insults and indifference. Consecutive posts of the same event type avoid identical variants. Existing event hooks remain; posts do not invent completed actions. Return gossip now requires a day away. Ambient chatter is bounded to avoid swamping recent activity.
+
+V23 merges existing V22 system histories into the global archive, preserving dates, authors, wording variants and reactions. Back up saves before upgrading: older builds cannot read V23. History is saved with manual commander checkpoints, not separately autosaved. No additional assets required.
+
+Verification: PSP compilation and static checks only for this version. The 160 templates pass 800 actual-font/name layout checks. Runtime save migration, controller handling and visual checks remain outstanding; no emulator was launched at the user's request.
+
+Final package: EBOOT.PBP 3,213,247 bytes; SHA256 C0100E5FD8717F156EB4DA591BCAEEEF6C6EA5322233D09D3B684FB326D2A984. Delivered to current-thread outputs/ArcElite-v2.5.189 and canonical dist/ELITE-NEXT-PSP. Build succeeded, static checks passed, git diff --check clean. Local only; no commit, push or release. Runtime tests remain unexecuted.
+
+## 2.5.188 — Spacebook commander names and reactions only
+
+Reactive posts now name the current commander profile (for example BEN), not the historical ship model. All 57 player-event variants use natural person-based wording; ambient posts remain unrelated local chatter. Existing V22 posts adopt the profile name immediately, and renaming the commander updates their displayed name throughout the feed. Stored dates, authors, event history and reactions are unchanged. No save migration.
+
+Removed Spacebook's Local replies text, Triangle footer prompt, reply overlay and Triangle input action. X Like / Square Dislike remain. Inbox is unchanged. Tutorial guidance now describes Like/Dislike. Regression coverage checks BEN in every player-event variant, 24-character name fit, and Triangle no-op on Spacebook.
+
+Verification: ../../work/smoke-20260927-183214-505; all five groups RESULT 0 failures. Native Spacebook capture inspected: BEN named in launch/paint posts, Like/Dislike only, no reply footer/action. All event variants pass BEN and maximum 24-character profile-name tests; Triangle no-op covered. EBOOT 3,181,559 bytes; SHA256 D5BB80FABBBD6ACEA63647FA65FD33276EF839BB9EAF70335896304C9A2E982E. Copied to dist and current-thread outputs/ArcElite-v2.5.188. Local-only, no commit/push/release. Save format unchanged (V22). Physical PSP testing remains outstanding. git diff --check clean.
+
+## 2.5.187 — Local Spacebook history
+
+Spacebook now prepends a bounded history of 16 reactive posts per system, ahead of the seven existing community/story wires. Twenty event categories have three prose variants each, with generated spacey handles. Events capture the ship model at the time; viewing a card never rerolls its author/text. Actual successful custody, fines, fleeing, player ship kills (pirates distinguished from other ships), station departures/docking, paint purchase, ship purchase, planet landing, flora/fauna/rift scans, salvage, non-smuggling contract completion and completed hyperspace travel produce local posts. Routine same-type posts throttle for 90 seconds. Ambient humour is eligible every four minutes of active simulation, capped at three retained ambient posts so idling cannot erase the entire activity history. No combat RNG is consumed.
+
+X toggles Like; Square toggles Dislike. Switching replaces the previous reaction; pressing the same button clears it. Reactions travel with posts as new cards push older ones down. Seven legacy wire reactions persist separately. Tutorial evidence remains first, and Messages retains its separate inbox.
+
+PSP RTC dates are saved as UTC and shown YYYY-MM-DD HH:MM UTC. Clock-unavailable records are explicitly labelled, never given invented calendar dates. Returning after 3+ minutes away (including loading after a real-world absence) adds a wondering-about-the-ship post followed by a welcome-back sighting, both dated when actually generated. No fabricated offline events/backdating. Changed/backward clocks do not underflow cooldown/absence arithmetic. Date accuracy depends on the PSP clock.
+
+V22 appends 34,824 bytes for 256 bounded feeds, timestamps, local reactions and metadata. Older saves load with empty reactive history, not reconstructed memories. Older builds cannot read V22: back up saves. History is part of manual commander checkpoints, not a separate unlimited/autosaved journal. Only the newest 16 reactive records per system survive rollover. Native rendering, no external art/audio/network dependencies. Main thread stack explicitly 1 MiB for bounded Game snapshots/migration/test fixtures; 8 MiB heap unchanged.
+
+Final verification: ../../work/smoke-20260927-181522-276; all five groups RESULT 0 failures. Emulator average 55.06 FPS, worst 150.15 ms, 28 frames >25 ms; planetary scenes >=24 FPS. Earlier native captures exposed a time_t ABI conversion issue (1975); replaced it with pointer-based PSP RTC tick conversion, then verified the displayed date against the actual RTC year and inspected corrected native screenshots. Updated the existing Spotters fixture to account for prepended history; Spotters now only reports local travellers. Current captures show dated feed cards, correct reaction placement, scrollbar and native controls. Save validation/migrations, history isolation, real jump/custody hooks, like/dislike/clear, fallback/backward clocks, rollover and idle cap pass. EBOOT 3,182,631 bytes; SHA256 92C41A2A00964D537E27C7237F63D5E635A18B96A4317C9C8A30270FFC811011. Copied to dist and current-thread outputs/ArcElite-v2.5.187. Local only: no commit/push/release. git diff --check clean. Next: physical PSP date/timezone, stack/memory, saved-history and control checks; previous planetary hardware shutdown remains unverified. Extension notes: docs/SPACEBOOK-HISTORY.md.
+
+## 2.5.186 — Living stellar rifts and instrument reports
+
+Replaced WORM meshes and fixed close-range circles with layered, additive cosmic fields: eight inclined filaments, bright knots, drifting dust and breathing cores. Four stable profiles (Aurora Veil, Gravity Lace, Ember Nursery and Meridian Echo) share their names, palettes, reports and lore across targeting, the flight view and Codex. Fields remain one anomaly ID each. Drawing has bounded loops, close-up size limits, view clipping, distance culling and a low-glow high-contrast mode. Existing mystery/scan mission hooks remain.
+
+Triangle analysis opens a paginated Ship Computer report with existing babble audio; Triangle/Circle closes, L/R reads. No human reply choices and no invented teleportation, mining or gravity mechanics: reports separate survey observations from folklore. Tutorial briefings wait until the report closes.
+
+V21 adds 256 bytes of per-system four-bit rift identity masks under the existing CRC and atomic save validation. Revisit/load restores scanned status; repeated scans reopen the report without another discovery/reward. Older V20 and earlier saves import with unlocated historic totals, not invented locations. Back up saves: older EBOOT versions cannot read V21. Space Signals in the new Codex now lists actual logged field identities and opens illustrated reports. No external art/audio assets required.
+
+Verification: ../../work/smoke-20260927-173730-593, all five groups RESULT 0 failures. Native captures of all four fields, both report pages and the Codex dossier inspected. Scan, repeat reward, revisit, V21 save/load, V20 migration, invalid-mask rejection, report input and Codex identity checks pass. Emulator average 55.06 FPS, worst 150.15 ms, 28 frames >25 ms; planetary scenes >=24 FPS. EBOOT 3,092,391 bytes; SHA256 A0C2E6F3018B5FF818C308645DACAB45F33CE640C30929DB1319FECDDEF39E15. Delivered in dist and current-thread outputs/ArcElite-v2.5.186. git diff --check clean. Local only: no commit/push/release. Next: physical PSP review of close-range fields, report readability and audio; original planetary shutdown report remains unverified on hardware.
+
+## 2.5.185 — First-person station departures
+
+Player-facing Launch, narrative Launch, docked wanted pursuit and docked chart departure now enter a five-second first-person sequence. The ship starts inside its own berth, accelerates through an illuminated tunnel aperture, bursts clear and eases to 100 m/s before returning control. Geometry uses a continuous analytic speed/distance curve. Relay departures retain their original hub instead of teleporting to the primary. Arrival docking is unchanged. Raw launch remains the low-level live-space initialiser used by isolated simulation fixtures; all player launch paths use launch_departure.
+
+The actual system sun now lies beyond the primary port's outward (-Z) axis, at a safe 130-142 km distance; a narrow clear sightline is reserved without clustering the other planets. Existing sun rendering/flaring is used, with a wider departure flare that respects high-contrast suppression. Tunnel masks hide external space beyond the mouth until it clears the canopy. Existing docking and boost cues accompany the launch. No external art or save-format change.
+
+Inputs cannot skip or steer the sequence; held buttons must be released before fresh actions can fire. Wanted target auto-tracking resumes after the release gate. Tutorial lessons/drawing defer until departure finishes, and the scripted tutorial now allows departure plus warp time. Departure flare strength eases back to normal over two seconds after the handoff. Docked chart jumps queue until departure completes. Launch guidance consumes no boost fuel and bypasses collisions only during the controlled corridor traversal.
+
+Final verification: ../../work/smoke-20260927-172407-335, all five groups RESULT 0 failures. 56.11 FPS average; worst 133.47 ms; 21 frames >25 ms; planetary scenes >=24 FPS. Native berth/solar captures inspected. New tests exercise actual Launch input, mash/hold immunity, cruise slowdown, collision/fuel safety, outward solar alignment, relay origins, queued warp, first fresh Circle after release and resumed wanted tracking. Full tutorial passes with its launch lesson deferred and jump test allowing the new travel time; docking, system spacing, Codex and earlier regressions remain green. EBOOT 3,073,759 bytes; SHA256 5715662EC063EDFAEE7EAA905F3344638C0A879811CC8F5AD5927F41251C1A6B. Copied to dist and current-thread outputs/ArcElite-v2.5.185. Local-only; no commit/push/release. Next: physical PSP departure timing/flare/audio review; previously reported planetary landing shutdown remains unverified on physical hardware. git diff --check clean.
+
+## 2.5.184 — Hierarchical Discovery Star Atlas
+
+Discovery Codex now opens a visited-system atlas with a star-map locator, seven-row windows, scrollbars and shoulder-button paging. System directories contain charted station/star records and only landed worlds. Illustrated planet dossiers show shared world type, settlement/weather profile, and four selectable category tiles: Flora, Fauna, Minerals and completed Field Sites. Collections enumerate actual per-world saved IDs, not commander-wide counts; individual dossiers use the same animated species sprites/names/traits as the surface. Breadcrumbs and an eight-frame bounded navigation stack restore parent selections at each Back. Empty collections explain how to fill them and cannot open invented records.
+
+Removed fabricated mineral/echo location lists and seeded discovery totals. Space Signals explicitly explains the current limitation: space scan totals have no saved per-system identity and cannot be retrospectively located. Charted station/star entries are labelled as chart knowledge, not claimed visits. Galactic Lore remains separate and unchanged.
+
+The present engine supports 256 systems x 4 landable planets = 1,024 worlds, with 8 field slots per world (8,192 records). Browser providers enumerate only the selected branch; no galaxy-sized UI allocation. New categories/levels can extend the provider and bounded navigation model. This is not unlimited engine/storage expansion and adds no new species. No save-format change (still V20), no external art dependency.
+
+Verified final build in ../../work/smoke-20260927-170300-458: all five groups RESULT 0 failures, 55.71 FPS average, worst 150.15 ms, 23 frames >25 ms; planetary scenes >=24 FPS. Native galaxy/system/world/category/record screenshots inspected; clipped list counter fixed and richer field notes added before final run. Enumeration covers all 1,024 worlds / 8,192 field IDs; empty, last-page and exact cursor/identity navigation checks pass. git diff --check clean. EBOOT 3,049,423 bytes, SHA256 7F3D49A35711D56975ED9ADC6ADCC7486C6221080C22E1B184F25E2BFF9E9985. Copied to dist and current-thread outputs/ArcElite-v2.5.184. Local-only; no commit/push/release. Design/data-extension notes: docs/DISCOVERY-ATLAS.md. Next: physical PSP readability/input review; persistent identified space-signal records; richer site-specific illustrations/filtering as collections expand; previously reported landing shutdown still unverified on hardware.
+
+## 2.5.183 — Ship tools / tractor recovery and truthful Law stops
+
+Circle+Left now equips TRACTOR in the compact Ship Tools selector. Release, then tap Circle: prefer the selected recoverable object within 500 m, otherwise find the nearest visible recoverable object in range; smoothly auto-turn before running the existing beam animation and inventory transfer. Rocks, distant/occluded/dead objects cannot be collected. Manual steering, changing target, leaving flight or a police stop cancels pending alignment. Menu-Back suppression is preserved. Missiles, flares and heat sinks retain their directions. To keep the displaced fitted ECM useful, it automatically pulses against close incoming missiles, still costing 18 shield energy with an 18-second cooldown.
+
+Law now records civilian/police assault and destruction, contraband, refusal and fleeing independently per system. Dialogue names the actual offence, includes a paginated charge list and only mentions goods aboard when present. Fine replies and receipts no longer claim an empty hold was confiscated. A clean scan cannot erase an existing warrant. Surrender removes only cargo-attributed charges, including after saving or revisiting a system; violence survives. Existing yellow reply selection is preserved; L/R shoulder buttons read longer testimony.
+
+V20 appends 1,024 bytes of offence/cargo-charge records under the existing checksum and atomic save validation. Older saves import; their unknown incident details are explicitly described as unavailable rather than invented. Back up saves before upgrading: older EBOOT versions cannot read V20 saves. Art/audio remain embedded; only EBOOT replacement needed.
+
+Verification: ../../work/smoke-20260927-164241-476, game/input/steering/radio/performance all RESULT 0 failures. Average 55.45 FPS; worst frame 150.15 ms; planetary scenes >=24 FPS. Tests cover real hit attribution, destruction, mixed/capped warrants, V19 imports, V20 persistence, cargo-only surrender, no false clean-scan release, lawful pirate hits, tractor equip/tap/turn/recovery, range/rock rejection, manual/menu/police cancellation, ECM energy/cooldown, Law reply highlighting and shoulder pagination. Native Law/Ship Tools captures inspected. git diff --check clean. Packaged EBOOT 3,036,655 bytes, SHA256 1E97CBFD2D329048329AC5FACA93178A5393F9A49213D58C8564D2FB9883F8BB; copied to dist and current thread outputs/ArcElite-v2.5.183. Source remains local-only: no commit/push/release. Physical PSP not verified. Next: hardware tractor/control/readability checks, previously reported planetary landing shutdown, and further station content variation.
+
+## 2.5.182 — Station reading and glowing focus
+
+Fixed station option highlight/text alignment by drawing both at exact pixel coordinates. Controls now occupy the bottom 16 pixels. Room entry shows persistent room prose; hovering only changes visual focus. Cross explicitly inspects or speaks. Long descriptions and conversations are word-wrapped into six-line pages, navigated with Left/Right without triggering actions. Replies use the right rail and retain yellow selection, leaving the lower panel for full-width speech. Expanded room, landmark, prop and crew writing, with authored responses for each Lave activity step. Selected people, props and doors receive a clipped, softly pulsing cyan/cream outline with bright corners, including high-contrast support. No new save format or art files.
+
+Final verification: ../../work/smoke-20260927-162447-488, all five groups RESULT 0 failures; 55.45 FPS average, station worst-room CPU draw 6.04 ms (ten draws per room). Tested room-entry prose, hover/message-expiry persistence, explicit Cross inspection, forward/back pages, reply highlight isolation, service return, complete paragraph pagination, glow clipping, Chandler stock wrapping and existing Lave/save/tutorial regressions. Native room, prop, two-page conversation, contrast and stock captures inspected. EBOOT SHA256 506DBA584C703138FABEDDEA8250C5FA9F899BCFE8ACA1FB01FCDCAB5F8E87AB; 2,932,031 bytes. Source and docs remain local-only; no commit/push/release. Physical PSP UI/audio/landing checks remain outstanding. Next: hardware review of readability/glow and broader station art/story expansion.
+
+## 2.5.181 — Lave / Berth Six station
+
+Seven native 340×168 raster rooms with a shared 32-colour kit, transparent crew/prop atlases, deterministic economy/seed variations and shared visual/hotspot anchors. Lave primary has a named cast, a cross-room missing medical-manifest activity (60 U), a Lave I survey follow-up (90 U), station service links, yellow reply selection, ambient machinery and a canteen jukebox using the existing procedural music channel. Reorte's Second Shift/Arrivals and the tutorial's original contacts remain intact.
+
+V19 adds 3,072 bytes of per-system/per-hub activity state; earlier saves import. Generic cargo progress no longer resets on visiting another hub, and survey tips require local scan records and cannot be repeatedly farmed. All artwork is embedded: replace EBOOT.PBP only, keeping saves/config/music. Back up saves before upgrading; older builds cannot read V19 saves.
+
+Verified final EBOOT in ../../work/smoke-20260927-151208-146: game/input/steering/radio/performance all RESULT 0 failures. 55.84 FPS average; worst frame 133.47 ms; 23 frames >25 ms; planetary scenes >=24 FPS. Seven room CPU draw benchmark max 5.13 ms (ten draws each). 5,376 seeded room/hub combinations validated. Native seven-room/dialogue captures visually inspected, including active-notice dialogue protection. Rebuilding all three art atlases produces identical hashes. SHA256 EC959179843B7B40211CE86683061F7345D994A18AEEC85EF7EED9355A11A267; 2,896,551 bytes. Local-only: no commit/push/release. Physical PSP remains unverified, especially previously reported landing shutdown. Source/prompt provenance in assets/source/lave-station/PROMPTS.md; scope, save layout and next steps in docs/STATION-FIRST-SLICE.md.
+
+## 2.5.180 — Combat bearings, missile launches and space effects
+
+Thin camera-relative indicators show actual recent incoming fire (double chevrons for rear sources), including freighter guns and incoming missiles. Player missiles emerge forward, coast briefly, then turn with a bounded rate and a short world-space exhaust trail; swept collision preserves fast hits. Distant ship dots gain faction-tinted rear trails. Sun-facing/nearby lens flares grow, and close solar exposure rapidly heats and damages shields/hull without a false combat alert. Enlarged planets reuse sample/tint calculations instead of repeating them per pixel. No save-format or asset changes.
+
+Verified ../../work/smoke-20260927-142958-646: all five groups RESULT 0 failures;55.45 FPS average,worst150.15ms,25 frames>25ms,planetary scenes >=24 FPS. Forward/side/rear missile paths, camera-relative/expired fire hints, solar shield/hull damage and exact enlarged-planet pixel parity pass. Native missile stages, bearing arrows, distant trails and close sun inspected. SHA256 167367168E4707BB1444E0DE1CCAC259B0D949EF20A6227D0811ED20EE15A541. Local-only; no commit/push/release. Highest priority: physical PSP close-planet performance and effect review, plus earlier unresolved landing shutdown.
+
+## 2.5.179 — Faction almanac
+
+Rebuilt Factions as four illustrated dossiers with Identity, In Play and Channel pages. Full paragraphs explain actual gameplay, with crew sayings, practical menu links and preserved story channel notes. Local living-ship totals are labelled LOCAL SNAPSHOT rather than faction strength. X cycles pages, Up/Down selects faction, Triangle preserves nearest-contact selection. No new faction mechanics or save changes.
+
+Verified ../../work/smoke-20260927-141818-299: all five groups RESULT 0 failures;55.98 FPS average,worst133.47ms,22 frames>25ms,planetary scenes >=24 FPS. All twelve paragraphs/notes fit; page cycling, identity reset and living-contact counts pass. Native dossier captures inspected, including corrected snapshot/footer spacing. SHA256 FE3ECF5D1A792863E682834F2D127A1B8343C08875DA71C7CBDF16817FB973AB. No extra assets/save changes; no commit/push/release. Highest remaining priority: physical PSP review and the earlier unresolved planetary shutdown investigation.
+
+## 2.5.178 — GalacticNet scrollbars and clearer outfitting
+
+This build also advances ordinary NPC positions/collisions every frame (AI decisions remain staggered), eases lock-on alignment near its bearing, reduces boost-only speed heat (coefficient 10 to 0.35; normal overspeed, solar heat and ENG cooling unchanged), and tightens the Weapon Computer from 352x150 to 272x120 with dark amber combat styling. Added motion-per-frame, lock easing and boost endurance regressions.
+
+Spacebook, Inbox and Jobs now show a scrollbar matched to the visible cards, including partial final pages. Galactic Lore keeps SECTOR when selected. Outfitting uses STATS: and COSTS:, removes ONE MODULE PER SLOT, and names the destination slot beside empty/replaced modules. Missiles now accept any living ship target, not just hostiles, while retaining range and existing legal consequences. The bottom Circle hint includes missile/flare stock. Prices, fitting rules and saves are unchanged.
+
+Local-only change; preserve existing dirty work. Verified ../../work/smoke-20260927-141110-131: all five groups RESULT 0 failures, 55.45 FPS average, worst150.15ms,25 frames>25ms; surface >=24 FPS. Every-row scrollbar pixel tests/wraparound, all-faction missile locks, actual-dt NPC motion, easing/no-overshoot and four-second boost heat checks pass. Native first/last feed pages, outfitting, compact weapons panel and FLARES count inspected. SHA256 EAD60F0E866B8D7F1CF59D81FE9FF222BB6E7B49A6C6753322A9BEE1E6833D27. No assets/save changes. Local-only; no commit/push/release. Highest priority remains physical PSP landing/shutdown retest from earlier builds; this UI-only change does not address that unresolved report.
+
+## 2.5.177 — Weapon selector / Back isolation / explicit auto-dock (local-only)
+
+Circle tap now activates selected tool on release; hold>=0.20s opens selector only while held; Circle+direction equips and closes immediately without activation. Selection release/long-hold release never fire. Removed both headings, footer names selected tool. All FLIGHT transitions impose release guard so Back cannot become weapon input. FLY Disembark visible only docked (stable ID20). Triangle station hail now opens canonical Comms at REQUEST AUTO-DOCK, explicit X starts guidance. Deliberate manual aperture entry remains unchanged. Relevant help/tutorial/outfitting/mission text updated. docs/UPDATE-2.5.177.md.
+
+Final green ../../work/smoke-20260927-135749-688: all five groups RESULT0 failures,55.98FPS avg,worst133.47ms,22 frames>25ms,surface>=24FPS. Full tutorial/rescue/mission/navigation regressions pass. New tests exercise held-repeat, long-hold release, selection no-fire, fresh tap activation, four selections, Controls/Comms/Radio/GalacticNet Back (including GalNet->HOME->FLIGHT), explicit station request and dock-only visibility. Native selector/footer inspected; no removed captions. Earlier final run found overly long docking module text and a test assuming GalNet returns directly to FLIGHT; shortened text and tested actual two-level Back. No thresholds weakened.
+
+Source/tested/dist/delivery SHA256 94C44F68CD12E568BCBD1A88A4CC51A3CFAF3FC78712A00FEB42379E934810BE. Delivered current-thread outputs/ArcElite-v2.5.177/EBOOT.PBP. No extra assets/save changes. Physical PSP input test still recommended; earlier planetary hardware shutdown remains unverified. Preserve existing dirty work; no pull/autostash/commit/push/release.
+
+## 2.5.176 — Secondary tools and Triangle context actions (local-only)
+
+Implemented approved provisional controls: Circle opens/holds D-pad tools; Up missile,Down rear decoy,Left fitted ECM,Right fitted heat sink. No tap discharge, held-repeat spam, ambiguous-direction firing or steering leakage. Triangle uses selected target for NPC hail,cargo tractor,anomaly scan,docking or landing clearance (X confirms/Circle cancels). Menus/ground/cutscene safety preserved. Old L+X remains compatible. New files flight-tools.h,flight-tools-ui.h and matching model/input tests. Documentation/balance in docs/UPDATE-2.5.176.md. Chaff upgrade improves rechargeable decoy bank; ECM costs shield energy; heat sink is now manual. Tool state transient, no save-format change.
+
+Final green ../../work/smoke-20260927-134021-503: all five RESULT0 failures;55.98FPS average,worst133.47ms,22 frames >25ms,surface >=24FPS. Tests cover all chords, costs/cooldowns, rear/early/timely decoys, missing modules, opposite steering retained, no repeated discharge, confirmation and existing tutorial/rescue/mission/landing chains. Native weapons-pad.bmp inspected at480x272. Previous red runs were outdated Circle-lock/tracking wording assertions; updated to intentional controls and explicitly retained notice-dismissal test. No thresholds relaxed.
+
+Tested/source/dist/delivery SHA256 D78AE30E657B753934E4E498769A0866EEB67B2165F844AD3C9688B720F9A841. Delivered current-thread outputs/ArcElite-v2.5.176/EBOOT.PBP. Includes v175 labels/missile icon. No additional assets. Next: PSP playtest new gestures and balance; prior planetary power-off remains unverified, request landing trace/save/hardware details if recurring. User explicitly considers assignments provisional. Preserve all dirty work; no pull/autostash/commit/push/release.
+
+## 2.5.166 — Power-bank visibility / sixteen themes (local-only)
+
+## 2.5.175 — Flight labels / missile indicator (local-only)
+
+Completed flight HUD changes: hold-Square footer L:NEXT/R:LOCK with shoulder glyphs, Triangle COMMS without HOLD:, missile icon/count beside WEP instead of MS in bottom controls. ENG/WEP spacing now36px; existing highlight dimensions retained. Updated theme-coordinate assertions and added native label captures/hint pixel assertion. Details docs/UPDATE-2.5.175.md.
+
+Final green ../../work/smoke-20260927-132438-237: all five groups RESULT 0 failures,55.84FPS average,worst133.47ms,23 frames >25ms. Native flight-control-labels.bmp and target-control-labels.bmp inspected; missile4 sits separately to right of WEP, footer hints fit. Tested/source/dist/delivery SHA256 FF08E3B1CB638E6FAE041CB8CFD1153440C7DC6B322C40D17ED4C07704CFFAB1. Delivered current-thread outputs/ArcElite-v2.5.175/EBOOT.PBP. No control/ammo/save changes. No pull/autostash/commit/push/release.
+
+New user request: redesign Circle as secondary-weapons D-pad overlay, Up missile, Down rear flare, explore Left/Right/tap actions, cargo collection via Triangle. Read-only inspection so far: Circle currently also handles planet approach, docking, anomaly scanning, NPC selection; ECM/chaff and heat sink exist but trigger automatically. Need agree remaining mapping and keep context actions/landing safeguards. No Circle redesign implemented in v175.
+
+## 2.5.174 — NPC overlap / close combat (local-only)
+
+Confirmed code defects: combat slows to 40 m/s below 200 m while steering at the enemy centre; no light-NPC separation; normalized linear steering fails for exactly antiparallel directions. Added npc-steering.h with rate-bounded turning, predictive nearby traffic avoidance and three bounded overlap recovery passes. game.c uses a <450m breakaway and 300m/s combat cruise; firing alignment uses original attack vector, not avoidance. No save/model layout changes. Capital berth solver untouched. See docs/UPDATE-2.5.174.md.
+
+Final green ../../work/smoke-20260927-131810-501: game/input/steering/radio/performance all RESULT 0 failures. Average55.45FPS, worst150.15ms,25 frames >25ms; surface >=24FPS. New npc-steering-tests.h reproduces coincident/overlapping/head-on patrol-pirate pairs, verifies clearance/continued movement/finite direction at60/20Hz, exact180-degree turn and reward/legal/health/berth neutrality. Independent NPC kills, police and freight suites also pass. git diff --check clean.
+
+Tested/source/dist/delivery SHA256 8B41508854B53D67279184587645E73F52D1F69B1D5B9827564D6D4597BC7445. Delivered current-thread outputs/ArcElite-v2.5.174/EBOOT.PBP. No extra assets. Next: physical PSP close-combat/traffic soak, especially dense encounters; prior planetary power-off remains unverified and needs landing-trace/save/hardware details if recurring. No pull/autostash/commit/push/release; preserve existing dirty changes.
+
+## 2.5.173 — Restored cinematics / planetary polish (local-only)
+
+Restored unskippable arrival/touchdown/departure visuals using independent PlanetShot camera (no writes to live Game pose/surface). Retains v172 automatic disembark, input consumption, release gates and parked Triangle-board/R-launch/X-exit flow. World-plane garage/POI signs, five varied sky traffic lanes, eased shortest-bearing Square+R turn, arrows beside target name, compact icon HUD and green Triangle over compass ship. Shared Triangle/Cross colours corrected. Details: docs/UPDATE-2.5.173.md.
+
+Final green: ../../work/smoke-20260927-111131-724 (-SurfaceCapture). All five groups RESULT 0 failures; avg55.45 FPS, worst150.15ms, 25 frames >25ms; surface >=24FPS. Full tutorial and real-input landing flow pass. Guarded 10-hull x 4-body intermediate touchdown rendering passes; smooth-turn and moving/distant traffic assertions pass. Native cinematic/compass/tracking/garage captures inspected. First closeup showed mirrored wall signs; wall tangents corrected and final capture GARAGE reads normally. No thresholds relaxed.
+
+Highest priority remains actual PSP retest for reported power-off: NOT reproduced or proven fixed. Retain bounded landing-trace.txt; ask for it plus commander save, PSP model/firmware and hull/body if it recurs. Sky traffic is presentation-only. No extra assets/save changes. Source/tested/dist/delivery SHA256 D236DBD6EAABE132B7A28A7A8D5CDB4A9295055E2F0332A099D28C9D51183821. Delivered current-thread outputs/ArcElite-v2.5.173/EBOOT.PBP. No pull/autostash/commit/push/release; preserve dirty work.
+
+## 2.5.172 — Explicit landing/boarding/launch flow (local-only)
+
+v171 did not resolve user's physical PSP disembark shutdown. User requested automatic exit after landing, Triangle to board, R to launch and explicit screens. Implemented guided approach -> timed touchdown -> automatic disembark; buttons cannot skip/chain actions. Surface Triangle beside ship boards; parked screen requires release before R launch or X exit. Circle no longer toggles EVA. Separate model actions validate state/exit before commit. Transfer screens use only 2D UI: no temporary camera/surface mutation. Details and limitations: docs/UPDATE-2.5.172.md.
+
+Final green run ../../work/smoke-20260927-104637-599 (-SurfaceCapture): all five groups RESULT 0 failures. Average 57.47 FPS, worst 133.47ms, 11 frames >25ms. Full tutorial completes. Real input and guarded 10-hull x 4 Lave-body rendering/transition sweeps pass. Inspected native landing and parked control screens. Earlier old test loop used 16 ships while only 10 exist; changed it to player_ship_count and added runtime index guards. This test bug is not evidence for the user's hardware fault.
+
+Bounded landing-trace.txt now records airlock/first-EVA-render/first-EVA-tick/board/launch stages with remaining stack, resets at arrival or 64 entries. Disabled during smoke. Highest priority: physical PSP retest. If it powers off again, obtain landing-trace.txt and commander save plus PSP model/firmware and exact ship/body. Do not claim the shutdown cause identified or verified fixed. Never equate new button flow with proven crash repair.
+
+Tested/source/dist/delivery SHA256 88176FBB4629FAA30AB71E073237966BA84F27DF085927AE9BD251A48CA6A265. Delivered current-thread outputs/ArcElite-v2.5.172/EBOOT.PBP. No new assets or save-format changes. git diff --check clean. No pull/autostash/commit/push/release; preserve all dirty work.
+
+## 2.5.171 — Landing controls / reported PSP shutdown (local-only)
+
+User confirmed Lave and Circle during the landing animation. Confirmed defects: planetary Triangle bypassed message dismissal; animation skip returned 0, letting the same press run through flight controls. Corrected close/skip ownership, explicit landing-to-EVA transition, sequence-state validation and cinematic mesh bounds. Boarded notice explicitly says LAUNCH, preserving single-Triangle departure. See docs/UPDATE-2.5.171.md.
+
+Final green run ../../work/smoke-20260927-102640-018 (-SurfaceCapture), all five groups RESULT 0 failures. Average 56.51 FPS; worst 150.15 ms, 17 frames >25ms. New real-input tests cover natural entry, close/held buttons, arrival Circle skip without relanding, pad skip/disembark and stale state. Guarded rendering sweep covers every player hull and all four Lave bodies; no observed invalid positions/framebuffer boundary writes. Native pad-alignment capture inspected. Tutorial test originally relied on skip+land in one press; now completes arrival before the separate landing action and entire tutorial passes. No relaxed thresholds/deadlines.
+
+Physical PSP shutdown NOT reproduced or proven fixed. Highest priority is user hardware retest; if persistent, obtain commander save, ship/body, PSP model/firmware and a hardware fault trace or reduced-rendering reproduction. Do not claim hardware crash eliminated based on emulator smoke alone.
+
+Source/tested/dist/delivery SHA256 8743AB145E4673085D42178B166E8C1F5065FCC7659FD65BA9247BBF2C93FE62. Delivered current-thread outputs/ArcElite-v2.5.171/EBOOT.PBP. No new assets or save-format changes. git diff --check clean. Preserve dirty work; no pull/autostash/commit/push/release.
+
+## 2.5.170 — Radio label (local-only)
+
+src/radio-ui.h: tuned-in LOCKED becomes NOW PLAYING: (11 characters, fits the existing 162px dial). STATIC branch, duration, RADIO OFF and channel naming unchanged. Build and all five smoke groups passed in ../../work/smoke-20260927-101116-750. Tested/source/delivery SHA256 D3DFE820E2A0C544619AC3FFB2724F8AA3CC56DBE104A872822B809585D4AF95. Updated dist and current-thread outputs/ArcElite-v2.5.170/EBOOT.PBP. git diff --check clean. No new assets or save changes; no push/release. Existing physical PSP QA priorities below remain.
+
+## 2.5.169 — Outfitting and mission integration (local-only)
+
+Final green run: ../../work/smoke-20260927-100754-706 (-SurfaceCapture). Game/input/steering/radio/performance all RESULT 0 failures. Average 57.06 FPS; worst 133.47 ms, 14 frames >25 ms. Inspected native Outfitting, Loadout and mission card captures; removed an overlapping Loadout label and unsupported punctuation in briefs. Source/tested/dist/delivery EBOOT SHA256 DCB6CCF28C2525C30C81A163DDAF90E22380B620CCED476C86E03E181DE819A6.
+
+See docs/UPDATE-2.5.169.md for file-level behavior, coverage and limitations. New tests cover 1280 real contract completions across all 256 systems, all-system station stocks, every module transaction/save/load/sale, protective capacity/passenger guards and actual simulation effects. Integration caught stale Guild lookup; guild.h now matches five offers everywhere. Removed actual board expiry, not just countdown labels. Legacy duration fields remain for V18 compatibility.
+
+Earlier failures: old prosperity/expiry assertions replaced with new-rule assertions; Chandler test needed enough credits for its advertised military shield; Guild input assertions depended on old missing-food-board logic. Final suites passed without relaxing frame-rate thresholds or smoke deadlines. Delivered current-thread outputs/ArcElite-v2.5.169/EBOOT.PBP and updated dist. No extra assets required; no pull/autostash/commit/push/release. Preserve all existing dirty work.
+
+Highest-priority remaining work: physical PSP soak test, especially saved Heat Buffer/loadout, long flight and input/audio; manual full-flight mission journeys beyond deterministic handler coverage; broader mission archetypes and persistent board progression remain future scope. Do not downgrade saves containing Heat Buffer to old builds.
+
+Final green run smoke-20260927-090613-119 (-SurfaceCapture): all five reports pass; 57.06 FPS average, worst 133.47 ms, 14 frames over 25 ms. Earlier run smoke-20260927-090433-126 caught purchase/reload failures from paint_read's old i<8 whitelist; corrected to DECORATOR_COUNT. Inspected highlight captures and both finish pages. Delivered current-thread outputs/ArcElite-v2.5.166/EBOOT.PBP and updated dist; source/tested/output SHA256 2C3DCC6E8C27C8B1D8F50EFC283D5E746770514416A25D52ABB7A6B4721AEF6B. git diff --check clean; physical PSP QA still needed.
+
+Root causes: active bank used only UI_ACCENT vs UI_MUTED (weak distinction on some themes); scenic cockpit returned immediately and minimal/scenic space dispatch omitted cockpit; grid text rounded bank x positions away from their pip bars. voyage.h now draws a fixed pale selection rectangle, dark label and pips at exact pixel coordinates and a footer with the selected bank name. paused bypasses hidden-HUD early return; space dispatch includes cockpit while paused. Release leaves hud_mode/hud_hidden unchanged. Power allocation logic unchanged.
+
+DECORATOR_COUNT=16 and DECORATOR_PAGE=8 centralise finishes/names/fees in main.c. Original eight colours/fees retained; eight added palettes in ship-theme.h meet existing contrast checks. Settings validation accepts all sixteen; current 72-byte paint preferences format unchanged. Older builds will not accept newly added colours, so avoid downgrade after using them. deck-ui.h pages list and swatches together and shows FINISH nn/16, keeping v165 text positions.
+
+power-theme-tests.h checks one visible readable selected bank across 16 themes x 3 HUD modes x 2 contrast settings x 3 banks; real Start/right/release scenic dispatch; page crossings/wrap; purchase fee/free reselection for each new finish; persistence of all sixteen colours. Existing ship-preview contrast/uniqueness checks expanded to sixteen. Captures power-selection-theme-00..15 plus both decorator pages. Preserve dirty work; no push/release.
+
+## 2.5.165 — Decorator alignment (local-only)
+
+Verified smoke-20260927-085835-803: all five report groups pass. Inspected native decorator-label-alignment.bmp; labels fit their boxes. Delivered current-thread outputs/ArcElite-v2.5.165/EBOOT.PBP and updated dist EBOOT. Tested/source/output SHA256 E1431335516ACE6608687113D77666F6E6F31D509C153ACB9EFC9E298B901734.
+
+deck-ui.h: URL (108,26) -> (118,29); PAINT FINISHES grid (14,11), equivalent to (112,88), -> pixel (115,93); units grid (40,30), equivalent to (320,240), -> pixel (330,243). All use text_px, not rounded text-grid coordinates. Main smoke captures decorator-label-alignment.bmp. Paint fees/actions unchanged. No push/release; preserve previous dirty work.
+
+## 2.5.164 — Wider systems / hot suns (local-only)
+
+Final all-green run ../../work/smoke-20260927-085519-640 (-SurfaceCapture): 56.51 average FPS; planetary 59.94/42.81/31.55/54.49. Worst frame 150.15 ms, 17 over 25 ms; real PSP QA outstanding. Galaxy sweep minimum body clearance 53,934 m; 749 long freight routes, maximum leg 105,027 m. Added actual trader-return and explorer-waypoint progression checks. Inspected four warp bearings, all eight warm stars, Lave close-up and capital trail capture. Source/tested/output/dist SHA256 BEE69D39CE0F7189C4D7DCB362E802D33B893F4A50C96EE2D9D4D4C7C65B28B8. Delivered current-thread outputs/ArcElite-v2.5.164/EBOOT.PBP, README.txt and TEST-RESULTS.txt. No extra assets or save reset required. git diff --check clean.
+
+Preserve dirty work; no pull/autostash/push/release. sectors.h keeps all body seeds, types, radii and surface identities but replaces clustered templates with four quarter-sector planet bearings (seed jitter, 42–73 km base radii, 0.92–1.11 scale); star in a more distant offset sector. Main station stays at STATION_Z for established docking/campaign logic; secondary hub_position offsets enlarged. system_arrival uses origin+destination hash, 15–20 km full-circle inner-system positions and separately hashed headings; frontend already clears autoaim after warp.
+
+freight_route now selects planetary transfer gates (traffic_world_point plus bounded offsets), checks entire segments against bodies/hubs/other capitals, and retains physical inbound/service/outbound scheduling. Long-route completion regression uses actual route distance/cruise + bounded service allowance. Civilian traders use 1–4 outward world waypoints and 0 return-to-hub; explorers seek fixed reachable transfer points, not moving orbital targets. Capital LOD limit 55 km, small ships 7 km; aft trails visible to 55/18 km with existing bounded segment counts.
+
+art-runtime.h reuses the eight existing animated 32px sheets for granulation, but maps the disc to bright warm emissive colours, replacing dark centres/transparency. Corona and short flares are clipped additive pixels. Sun tint palette warmed for consistent lens/atmosphere effects. No new raster assets, allocations, populations or save fields.
+
+Tests: system-spread-tests.h sweeps 256 systems for >30 km body clearance, safe deterministic entry, front/rear planet bearings, non-forced station view and long freight routes. system-spread-visual-tests.h checks eight luminous animated centres, clipped corona, real warp input, four arrival headings, Lave sun close-up and capital route captures. Final verification and delivery details follow below.
+
+## 2.5.163 — Planet transition/compass follow-up (local-only)
+
+Final all-green run: ../../work/smoke-20260927-084354-443 (-SurfaceCapture). Average 54.68 FPS; planetary 42.81/37.46/29.97/42.81. Worst frame 133.47 ms; physical PSP QA still needed. Inspected external lift/tilt/star phases, pad descent, compass/garage and control-help captures. Source/tested/delivered/dist EBOOT SHA256 A8F3377D8CE99989FC81A18DC7B7E3C0601311C9B24A4723D9C6B368679F7785. Current-thread outputs/ArcElite-v2.5.163 includes EBOOT, install notes and test report. git diff --check clean. New camera follows the ship before pulling back, preserving visible lift/tilt/burn. Contract text uses displayed site 4 for internal id 3.
+
+Preserve the existing dirty worktree; no pull, autostash, commit, push or release. New planet-sequence.h uses transient Game phase/time/anchor: 1 arrival, 2 pad descent, 3 departure. Only real flight input starts presentation; model takeoff remains usable for simulations. The renderer temporarily positions a chase camera and restores all physical camera/model fields. Departure input is consumed until auto-orbit or Circle skip; boarding and disembarking clear old phases. No serialized state added.
+
+Valid landings snap to pad centre with yaw zero; rover parks at (-110,-10) in the shared field_garage_walls open-front structure. Shared wall footprints prevent walk/rover penetration. Garage jump ceiling leaves near-clip clearance. Surface near clip reduced from 15 to 4 (allowed wall clearance is 8); inverse-depth coefficient 262140 distinguishes nearby surfaces. Buildings use bounding-sphere culling and render undersides where relevant.
+
+R gestures are transient Game fields, reset on init, menus, cinematic entry and targeting. Release before 0.20 seconds requests one grounded impulse; hold runs at 100 vs walking 62. Ground/air latch stays in model. Ship/rover compass icons replace letter markers, field_nav_number maps nine non-rover sites to 1–9; selected bearing wins overlap. Cardinal letters use a separate row. Computer/guide/building labels share mapping.
+
+Regression files: planet-sequence-tests.h (three real arrival/land/EVA/board/one-press-launch cycles, active speech, automatic orbit, pad/garage positions, run gesture, nav labels); planet-sequence-visual-tests.h (camera-state restoration plus arrival/landing/departure, compass/garage captures); surface-closeup-tests.h (24 wall/corner/pitch views and near-depth ordering). Pre-fix close-up tests failed twice; first corrected full suite passed in smoke-20260927-083744-548. Final verification follows below when packaged.
+
+## 2.5.162 — Planetary controls/field sites (local-only)
+
+Final all-green run: ../../work/smoke-20260927-082240-402 (-SurfaceCapture). Average 54.30 FPS; planetary 42.81/39.96/29.97/41.93. Inspected final left panel, persistent tracking and readable wall-mounted RELAY sign. Tested/output EBOOT SHA256 726F7E29BD238DB0E31272EBC8A1D1643F8BAF49581FF253200747831AFD8FC6. Delivered to current thread outputs/ArcElite-v2.5.162 and dist/ELITE-NEXT-PSP. No push/release; physical PSP QA remains the highest-priority validation.
+
+surface-targeting.h now uses a 192px left panel. R sets yaw/pitch toward the actual contact without translating the player; four-corner marker, persistent name/distance and off-screen bearing supplement the compass. R held while closing the panel remains consumed until release (input dispatch preserves the jump latch). FieldBuilding from field_site_building is shared by renderer/collision; widths 44–64m, depths 40–48m, heights 38–72m. Buildings gain visible glass bands, doors and depth-tested nearby wall signs. Per-frame site caches bound work and keep decorative props out of footprints; collision uses the same exclusions. Added direction, retained-lock, right-view-clear and R-carryover regressions plus captures.
+
+Cause: planet_tick applied +220*dt acceleration every frame while boost/R was held, clamping at 120m and restarting thrust at the cap. Now a transient Game.eva_jump_held latch accepts only a new grounded R press; it sets vertical velocity to 62, then gravity 140 applies regardless of hold. Approximate flat-ground arc is <1 second and <18m at tested timesteps. Air presses are consumed, not queued; holding across landing cannot retrigger. Spacecraft boost and rover suppression are unchanged. Save V18 uses an explicit payload and does not serialize the latch.
+
+Regression coverage: planet-eva-tests.h checks six-second hold, height bound, landing without release, mid-air double tap, boarding and fuel preservation. planet-eva-input-tests.h reproduces double-tap/hold through the PSP input dispatcher and verifies release/grounded repress. Baseline is the tested v2.5.161 build from smoke-20260927-000524-073. Preserve existing dirty changes; no pull/autostash/commit/push of unrelated work.
+
+## 2.5.161 — Surface expansion (local-only)
+
+New planet-profile.h is the stable seed/type/species/site model. field-sprites.h keeps 8x4x20x20 palette indices (12.5 KiB), generated on world change. field-guide.h owns Start-on-foot. surface-targeting.h owns held-Square categories, selected-species scan, tracked marker; no spacecraft controls fire here. Tap scanning happens on release. Codex planet records use actual per-world survey bits.
+
+planet.h uses surface-only 16-bit depth (255 KiB), scanline 2px triangle spans, upright sprite plane depth and back-face culled boxes. Other scenes retain their renderer. Fixed bounds, no per-frame allocation. Rover support height is shared across chassis/wheels. field_port_buildings supplies common visible/collision dimensions. Traffic is cosmetic, deterministic 150s cycles, two staggered pads; reserved pads block walkers. Large port grounds shelter hazard within 280m. Physics movement uses <=4m substeps. Safe ship/rover exits choose clear positions.
+
+Save V18 appends float world_clock bits after V17 flags, before CRC; validates finite [0,86400). V1–V17 default clock 0. Historical V7/V14 fixture truncation updated. Activities 7–9 use bits16–18; old flags retain meanings. Surface position, rover and traffic are not saved (docked checkpoints).
+
+Limitations: 1,400m rocky patches/420m island-platform shore; shared activity templates and procedural artwork, no bespoke full planets, weather simulation, building interiors or persistent traffic NPCs. Terrain stays flat through the port foundation. Decorative scenery is separate from eight survey species. Remaining hardware QA: steep camera angles, all ship sizes, forest density, long sessions and PSP-1000 memory/performance.
+
+Final v2.5.161 all-green run: ../../work/smoke-20260927-000524-073 (-SurfaceCapture). 55.19 average FPS, planetary scenes 46.11/39.96/29.97/46.11. Final reciprocal-depth scanline renderer avoids per-block division; palette shading is per species, sprite depth encoded once per row. Collision checks are skipped when stationary. Inspected final rover/port/forest/targeting captures. All 1024 seed/site checks and all 16 hull exits pass. Delivered EBOOT SHA256 136889C3E2F9D0D00B9AF32B979A8C4100E3129BAE916CE07C0A5589DED4E272. Output: current thread outputs/ArcElite-v2.5.161. Preserve the existing dirty tree; no push/release performed. Physical PSP QA remains outstanding.
+
+## 2.5.160 — Save slots/profile + bounded surface exploration
+
+commander-ui.h owns the STATUS input/screen, cached slot metadata, name keyboard and confirmations. tutorial-runtime.h dispatches it while preserving tutorial modal priority and TU_VIEW/TU_SAVE events. Main menu has commander and tutorial panels; LOAD opens three cards. Manual paths are commander.sav / commander-2.sav / commander-3.sav; tutorial.sav remains separate. Delete removes only selected primary/bak/tmp after explicit confirmation. load resets frontend targeting and rare-hail state. UI renames are in-memory until saved. Profile is also visible in player dialogue and Spacebook.
+
+game.c appends V16 name[25]/portrait u32/bounty[256] and V17 256*BODY_COUNT little-endian u32 activity flags. V1–V15 default to JAMESON/portrait 0, later fields zero. CRC, validate-before-commit, backup recovery and failed-load nonmutation remain. Historical fixture lengths updated, buffers enlarged to 16384. Current save version is 17. Docked checkpoints restore at station, not arbitrary mid-flight coordinates.
+
+surface-activities.h provides deterministic port/relay/cache/ruins/observatory/rescue positions and finite rewards. Flags 0 job accepted, 1 relay, 2–5 sites, 6 job paid, 8–15 life scans. Rover state is transient (docked save policy), persistent completion is per system/body. X enters/parks, Square interacts, L+Triangle cycles target, Triangle faces ship. Existing L+X weapon chord cannot board the rover. Surface==2 is retained in rover mode so existing landing/boarding guards remain; dismount before boarding ship. Ground-following movement is capped, with 1400m field boundary, dry ocean shore and site/hut footprints. Cabin shelters exposure, outside exposure slowed to permit exploration. Port job lives in this local interaction flow, not the station mission log.
+
+planet.h replaces house skyline with seeded ridges, adds world-bearing clouds, near-camera terrain coverage, player-local seeded flora/decorative fauna, bounded site/rover geometry and compass. Uses existing biome sprite-family mapping; no new bitmap assets or streaming. Limits: bounded patches, small exterior port, no town interiors/full planet traversal; procedural scenery is simpler than authored station art. Save flags are compact; geometry/prop counts stay bounded.
+
+Regression run ../../work/smoke-20260926-232113-027 passed game/input/steering/radio/performance; 55.19 average emulator FPS, planetary scenes >=24 FPS. Final versioned build/capture results recorded below before delivery. New tests: commander-input-tests.h and surface-activity-tests.h. smoke-test.ps1 now accepts -SurfaceCapture and allows 120 seconds for growing migration/checksum coverage; FPS thresholds unchanged.
+
+Final v2.5.160 EBOOT passed all five groups in ../../work/smoke-20260926-232554-639 with -SurfaceCapture. Inspected title/three-save-cards/name/status screens, on-foot boarding, looking up/down and forest/ice ground views. Parked player hull now renders solid with fitted paint. Output EBOOT hash matched the tested source build. git diff --check passes. Deliverable is in the current thread outputs/ArcElite-v2.5.160.
+
+Highest priority: physical PSP check of save/backup/rename/portrait/card/delete flows, all planetary look angles, rover/shore/POI navigation and Wanted crash regression. Validate long controller sessions before calling surface glitches resolved on hardware. Preserve the unrelated dirty-tree work. Local build only; no remote tag/push in this turn.
+
+## 2.5.159 — Quiet watch and non-conversational computer notices
+
+incoming_reply_ready() in flight-extras.h gates encounter replies on active human speech and absence of a computer notice. main.c, comms-panel.h and voyage.h use this instead of stale encounter state. Triangle dismisses range/fuel/landing notices; it cannot start a conversation with them.
+
+quiet-hails.h adds three frontend session-only civilian conversations, using the standard paginated dialogue layout. An actual idle nearby non-freighter trader calls after at least 480 eligible peaceful seconds; subsequent cooldown is 600–900 seconds, with a 20-second invitation. Tutorials, quiet chatter, combat, approach, docking and jumps suppress calls. Caller loss/system change/interruption cancels safely; an unrelated replacement transmission is not erased. Stories cycle before repeats. Optional cargo quote/consent reuses trader_offer_hail with 2500m range and identity validation. No mission generator or save-format change.
+
+quiet-hails-tests.h covers stale encounter notices, Triangle dismissal, cooldown/combat suppression, all three story paths and explicit cargo exchange/no duplicate rewards. Native quiet-watch story captures are generated alongside existing graphics tests. Initial build passed all five smoke groups in ../../work/smoke-20260926-225901-088; versioned build verification recorded below before delivery.
+
+Final v2.5.159 build passed all five groups in ../../work/smoke-20260926-230058-710 (game, input, steering, radio, performance: RESULT 0 failures). Native quiet-watch-0-1 and quiet-watch-2-2 captures inspected: full story/answer and three replies fit the shared layout. git diff --check passes.
+
+Highest priority: physical PSP check of notice dismissal, invitation timing, long-text L/R paging and trade roundtrip; preserve outstanding Wanted crash hardware retest from v157. Session-only cooldown resets on application restart. Existing unrelated dirty-tree work is preserved; this update is local, not pushed or tagged remotely.
+
+## 2.5.158 — Painted menu hull and interface palettes
+
+ship-theme.h provides eight fixed palette sets keyed by the current hull's fitted colour. Shared GUI colour roles are used by menu chrome, deck, standard UI, conversations and voyage HUD. menu-ship-preview.h lights the actual paint colour; no frame-wide tint of planets, portraits or paper. paint_save/load uses a separate validated cosmetic file with backup and transaction rollback before charging. Cosmetic preferences are per hull type within this installation, shared by commander/tutorial as the previous frontend paint array was.
+
+Tests capture every finish in home and flight, check readable palette brightness separation, distinct regular preview pixels and colour/theme reload. Physical PSP visual check remains outstanding; preserve v157 Wanted crash fixes and its pending hardware retest. New artifact v158 includes them. Earlier uncommitted work remains preserved; no remote publication in this turn.
+
+## 2.5.157 — Wanted pursuit corrections and Gazette redesign
+
+Fixed unsigned pirate spawn Z offset (could wrap to billions of metres), protected bounty NPC slots from traveller promotion and mission fallback replacement, validated bounty identity after launch, restored cockpit view and matching poster names. Target health meters now use risk-scaled maxima. Raster line rejection uses direct bounds rather than abs(INT_MIN). Hardware crash was reported by user; emulator does not reproduce a physical PSP shutdown, so do not claim hardware verification.
+
+Added checks for all 1280 system/poster identities and local positions; five poster input/flight-render sequences including docked and in-flight selection, six seconds of simulation, firing and boost. Prior short assertion was insufficient to verify rendering. Gazette now has sixteen full-width article stops and a left scroll rail; puzzle uses 16px cells and pixel-aligned text. Posters have real edge cutouts, folds, paper texture and readable target status within each card.
+
+Highest priority: test this uniquely versioned EBOOT on physical PSP. Existing working tree contains earlier uncommitted changes; preserved. No remote publication performed in this repair turn.
+
 ## 2.5.156 — SPACE TALK radio polish
 
 radio-ui.h separates tuner number row 14, status 16, name 18 and genre 20; glass extends to y178. Station 6 labels are SPACE TALK / TALK RADIO; station ID, folder mapping and save format stay intact.
@@ -869,4 +1475,35 @@ The SHIP tab now shows `Cargo` while flying and keeps `Cargo & market` while doc
 
 ## 2.5.124 follow-up
 - Ship Decorator now includes native C64 sticker marks, finish/pattern navigation cue, live preview/equipped state, and fee/status card.
+## 2.5.219 — In-world Outfitting shop signs
 
+Outfitting now opens beneath a slim station storefront sign instead of exposing the local economy, technology and trade values. Every station receives a stable, seeded shop identity—such as Major Lazor's Armaments, Aegis Defence Works or The Module Exchange—with a concise speciality caption. Lave remains a dedicated arms house; general and specialised stock keep a matching, readable identity whenever the player returns.
+
+Verification: PSP build passed. Native Outfitting captures confirm the new arms and general headers at PSP resolution; input suite passes with 0 failures.
+
+## 2.5.230 — Authored System Almanac
+
+- System Details now uses the approved illustrated Almanac composition at native 480x272.
+- Authored source art lives in `assets/source/system-almanac`; `tools/bake-system-almanac.ps1` compiles bounded ARGB1555 arrays and native previews.
+- The scene composes real system body seeds/types with Poor, Rich and Mega Capital station art. The right dossier remains fixed while selection moves.
+- X targets and returns to flight with auto-turn. Square intentionally remains on the illustrated Almanac instead of opening the superseded route dashboard.
+- Feature checks pass. Broad suite still has the inherited station swept-collision failure plus unrelated existing input/outfitting/dialogue/tutorial/UI failures.
+
+## 2.5.230 — Build 1 main menu
+
+- Replaced the old 2x2 title choices with a single four-row vertical list over an authored Lave cinematic backdrop.
+- Choice 0 is a real quick-continue route for the active/first valid commander; without a save it becomes Begin New Commander.
+- Choice 1 starts a new commander, choice 2 opens the existing three save cards, and choice 3 starts or resumes First Flight Tutorial.
+- The right card reads real save metadata and title-cases the commander name for display only. It uses the existing portrait identity and a tiny hull-varied pixel ship.
+- Intro art is baked to `src/intro-art.h` by `tools/bake-intro-art.ps1`; source and preview live under `assets/source/intro` and `assets/preview/intro`.
+- Native PPSSPP comparison and rationale are recorded in `design-qa.md`; final visual QA passed.
+- PSP build passes. Current broad smoke still carries the known station swept-collision failure and unrelated pre-existing input/outfitting/dialogue/tutorial/UI failures; steering and radio report zero failures.
+
+## 2.5.231 — Rear-view flight mirror
+
+- Removed the full/minimal HUD system-name readout and the decorative cycling activity strip.
+- Their 252x22 upper-left area is now a live 117-degree aft camera using real world positions.
+- Mirror contents include stable rear stars, celestial bodies, all hubs and live NPC traffic. Faction colours, projected trails, selection brackets and red incoming-fire brackets make it useful during combat.
+- The view follows ship yaw/pitch/roll and writes no gameplay or save state. Work is bounded and allocation-free.
+- `rear-demo.flag` creates the reviewed three-contact capture fixture; `rear-test.flag` writes the focused direction report.
+- Native capture: `design/rear-mirror-build/rear-mirror-native.png` in the task workspace. Focused emulator check passes. Broad suite still carries the inherited station swept-collision failure; steering/radio stay green.

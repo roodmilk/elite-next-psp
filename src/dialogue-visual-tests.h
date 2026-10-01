@@ -6,7 +6,7 @@
   game.system=7;game.docked=1;game.campaign_stage=0;comms_encounter_conversation=0;
   int replies=1;
   if(scene>=1&&scene<=5){game.campaign_stage=6;game.saga_chapter=0;game.saga_step=0;saga_brief_reset(0);}
-  if(scene==2)saga_brief_echo=1;
+  if(scene==2)saga_brief_beat=1;
   if(scene==3){game.saga_step=1;game.saga_flags|=SAGA_TIMESTAMP_FOUND;for(int ch=0;ch<SAGA_COUNT;ch++)if(saga_beats[ch].kind==SAGA_CHOICE){game.saga_chapter=ch;break;}row=2;replies=3;}
   if(scene==4){saga_coda_pending=0;}
   if(scene==5){game.saga_chapter=SAGA_COUNT;replies=0;}
@@ -17,7 +17,7 @@
   memset(pixels,0,STRIDE*H*sizeof(unsigned));
   if(page==GUILD)guild_screen();else if(page==COMMS_PANEL)comms_panel();else campaign_screen();
   if(scene==0)INPUT_CHECK(pixels[257*STRIDE+90]!=RGB(21,28,39),"dialogue: Cross footer icon remains visible after a clipped flight preview");
-  unsigned edge=scene==2?RGB(245,157,62):RGB(76,181,190);
+  unsigned edge=RGB(76,181,190);
   if(pixels[56*STRIDE+100]!=edge||pixels[134*STRIDE+100]!=edge||pixels[144*STRIDE+17]!=RGB(13,36,43))layout_ok=0;
   for(int i=0;i<replies;i++)if(pixels[(182+i*24)*STRIDE+20]!=(row==i?RGB(245,157,62):RGB(119,71,38)))replies_ok=0;
   message(&game,"Feedback must stay above all reply choices.");dialogue_notice();

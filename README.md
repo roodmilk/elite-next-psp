@@ -1,3 +1,421 @@
+## 2.5.252 — Development snapshot
+
+Latest packaged EBOOT and cumulative project snapshot, including Elite Exploration radio and all preceding station/planetary work. See CHANGELOG.md. Known inherited input/outfitting failures and physical PSP performance validation remain outstanding; this is not an all-green certification. Active, unfinished work after this snapshot is not included. User saves, personal music and build logs are excluded.
+
+## 2.5.250 — Planetary POIs grounded into their biomes
+
+Planetary landmarks no longer sit on identical grey display plinths. Each POI is graded into four real terrain samples with a shallow sloped earth/rock berm coloured for its planet's biome. Engineered locations retain only a narrow inset footing; ruins, fossil beds, wrecks and crystal grottos emerge directly from natural ground. Collision, interaction ranges, identities and saves are unchanged. All twelve POI families, planetary paths, gameplay/radio/steering and Rich-station regressions pass. See docs/POI-GROUNDING-250.md.
+
+## 2.5.249 — Seamless planetary entry and modern Roamer controls
+
+Retains all cumulative 2.5.248 work, including sixteen Rich-station layouts, station identities and Mega Capital architecture. Moving inward near an eligible planet automatically starts cloud-covered first-person arrival and automatic disembark. Open landing platforms vary by world; Lave I has a smaller port and higher/farther observatory. Field Map supports nub panning. Roamer now has R throttle, L brake/reverse, Circle drift and R+X boost. Pixel-identical planetary rendering optimisations reduce sampled Lave render time about 7%. Focused and game/radio/steering checks pass; full inherited input/performance certification and physical PSP validation remain outstanding. See docs/PLANET-INTEGRATION-249.md.
+
+## 2.5.248 — Rich habitat stations
+
+All 174 Rich main stations now occupy a distinct 2.8–4.6km middle tier with sixteen seeded retro-future layouts: wheels, garden domes, linked globes, stacked saucers, towers and cruise ports. Procedural service pods, mounted animated signs and solar plates share render/collision geometry. Slower spin, larger guidance grid and 8km/12km comms fit the new scale. Poor ports and nine capitals retained; focused and gameplay/map/radio/steering checks pass. Hardware performance and full inherited input suite remain unverified. See docs/RICH-STATIONS-248.md.
+
+## 2.5.247 — Correct main-station and relay targeting
+
+Audited all 256 systems: 73 Poor, 174 Rich and 9 Mega Capital main stations match their listed class and physical hull. Main stations, relays and outposts now have separate stable targets and correct names; Almanac locks and Comms docking no longer silently substitute a smaller nearest hub. Retains cumulative 246 station designs and planetary work. Focused and gameplay/map/radio/steering checks pass; hardware and full inherited input/performance validation remain outstanding. Delivery and proof: docs/STATION-IDENTITY-247.md.
+
+## 2.5.246 — Pulp-era orbital stations
+
+The 256 main stations now use eight connected ordinary hull families or four large capital crown silhouettes: wheels, saucers, globes, tapered palaces and asymmetric liners. Continuous rings have real flyable gaps; shared collision, rotated guidance and freight clearance match the geometry. Station/game/map/radio/steering checks pass. Physical PSP performance, expensive capital views and the full inherited input suite remain unverified. See docs/PULP-STATIONS-246.md for the cumulative EBOOT, actual captures and limits.
+
+## 2.5.245 — Mega-capital architectural variations
+
+Capital skylines now mix seeded domes, spherical modules, habitat pods, octagonal/bevelled towers and pyramid crowns. Shared faceted hulls supply both rendering and collision; docking routes retain their clearance. All nine capitals and 108 guidance routes pass focused checks, along with map/HUD controls. Hardware performance and the inherited broad station collision issue remain; see docs/CAPITAL-VARIANTS-245.md.
+
+## 2.5.244 — Mega-capital cities and planetary Field Map
+
+Resumed and combined both saved development tracks with the cumulative 243 game. Nine mega-capitals now have solid tower districts, animated facade ads and collision-checked docking routes. START opens a player-centred terrain map; Triangle links to the current planet's Codex and Back returns to the map. Focused emulator checks pass; physical PSP performance and the inherited broad station collision issue remain. See docs/CAPITAL-MAP-244.md for the tested EBOOT and limits.
+
+## 2.5.243 — Large futuristic planetary starports
+
+Airport grounds are now 3.24 times larger, with 440m player pads, heavy traffic berths, vaulted hangars, glazed terminals and tall control towers. Shared collision, garage, foundation and local map updated together. Focused emulator tests pass; physical PSP performance and existing broad issues remain. See docs/STARPORTS-243.md for the cumulative EBOOT and verification limits.
+
+## 2.5.242 — Small ground shadows for planetary animals
+
+Fauna now have softly edged pixel contact shadows that follow the ground, blend with the terrain and lighten when airborne. Native shadow/animal and debug/map/HUD checks pass; physical PSP and existing broad issues remain. See docs/FAUNA-SHADOWS-242.md for the cumulative EBOOT and proof.
+
+## 2.5.241 — Debug toggles, planetary map and EVA HUD (local candidate)
+
+Debug Tools now offers independent unlimited fuel and jump range. START on the surface opens the local explored-area map; START/Circle closes, Triangle opens Field Guide. Map progress lasts for the landing and survives boarding. Compact suit/health meters and fewer prompts preserve existing controls. This cumulative build retains the 2.5.240 environments and cinematics. Focused emulator checks pass, broader existing failures and physical PSP validation remain; see docs/INTEGRATED-241.md for the exact EBOOT and verification limits.
+
+## 2.5.240 — First-person planetary transfers and larger ports (local candidate)
+
+Arrival, touchdown, ship/roamer boarding and departure now show the actual explorable landscape through a live pilot view. Cloud cover masks the orbit/surface handoff; no static cockpit panel or separate flat cinematic set. Larger collision-backed ports provide clear rover circulation, relocated traffic pads and more buildings. Focused native transfer/input, camera clearance and expedition checks pass. Physical PSP and sustained frame pacing remain unverified; see docs/CINEMATIC-PORT-240.md for actual captures, performance limits and the isolated EBOOT.
+
+## 2.5.239 — Lave II, III and IV expedition worlds (local candidate)
+
+Lave II now has mosswood hills and pixel-art forest props; III has connected floating skyport decks, safety edges and a cloud sea; IV has snowy hills, conifers, ice boulders and low frost scrub. Their current sites, discoveries, rover routes and port jobs are linked and tested; Lave I is preserved. These remain bounded expedition areas, not whole-planet traversal. Physical PSP testing and IV performance work remain. See docs/LAVE-WORLDS-239.md for actual captures, tests, delivery and limitations.
+
+## 2.5.238 — Animal animation and behaviour (local candidate)
+
+Animals now pause to feed, wander, notice approaching walkers/runners/rovers, flee and settle again. Eight fauna families have real separate idle/stride/wing/feed poses, with grounded gait driven by actual travel and collision-aware local routes. Lave I native captures and focused behaviour, scan/save and movement checks pass; physical PSP testing remains. See docs/FAUNA-LIFE-238.md for delivery, proof and limitations. The wider biome/cloud-platform rollout is still pending.
+
+## 2.5.237 — Planetary landmarks, wildlife and falling leaves (local candidate)
+
+All 12 planetary POI families now use a more detailed shared 3D kit, with additional port details. Discoverable flora/fauna use 16 pixel-art families shared with the Codex, subtle animation and depth-tested world projection. Nearby trees shed a bounded set of falling leaves. Focused native checks cover catalogue identity, all POI families, scanning, save/load and leaf occlusion; physical PSP profiling and further visual polish remain. See docs/POI-WILDLIFE-237.md for actual captures, delivery and limitations.
+
+## 2.5.236 — Verified Lave I rendering improvements (local candidate)
+
+Lave I now renders seeded pixel trees, flowers, rocks and ground detail in actual walking views, with a collision-matched path to the domed Sky Observatory. Corrected projection, atlas cropping, terrain seams and the landmark's real navigation position. Native daytime/dusk/night captures and focused movement checks pass. The sampled emulator route averages 31.6 ms for update + rendering; physical PSP testing and further visual polish remain. This is not yet the supplied concept's visual quality. See docs/LAVE-I-LUSH-EXPLORATION.md for proof, limitations and next steps.
+
+## 2.5.235 — Lave I lush planetary exploration
+
+Lave I now reads as a walkable temperate island world: rolling green ground, layered mountain ridges, denser grass, authored pixel-art trees and undergrowth, and an ochre trail leading to a guaranteed Sky Observatory. Other planets keep their existing procedural profiles. See `docs/LAVE-I-LUSH-EXPLORATION.md` for scope, build notes and the remaining visual/performance checks.
+
+## 2.5.234 — Scheduled Local TV
+
+Local TV is now one CH8 broadcast: a real PSP local clock at top right, timed NEXT/LATER listings and automatic five-minute programme changes. Left/Right and X no longer tune/restart it; Circle returns. Mira has gentle caption-linked babble (SFX volume/quiet-chatter respected), slower Night Stories delivery, and visible masked window traffic. The radio fades out while watching. See docs/LOCAL-TV-SCHEDULE.md for controls, scope and test limits.
+
+## Local development — Galaxy filters
+
+Deep Chart now has nine filters: ALL, VISITED, UNVISITED, RICH, POOR, MEGA, JOBS, IN RANGE and ROUTE. Square cycles a compact five-row scrolling list. L/R still zoom, the analog nub pans, and Triangle searches. Jobs means accepted work; range uses current fuel. See CLAUDE-HANDOFF.md for the separate tested candidate and docs/DEEP-CHART-VISUALS.md for verification limits.
+
+## 2.5.231 — Lave Local TV
+
+Discover's Local TV screen now preserves the approved illustrated studio at native PSP resolution, with Mira's animated mouth, moving window traffic, original orbital channel art and clean live caption/schedule boxes. Left/Right tunes three Lave programmes; X restarts; Circle returns. See docs/LOCAL-TV-231.md for tests and current scope. This is a locally tested development build: focused TV tests pass, but inherited broad-suite failures/stall and physical PSP verification remain outstanding.
+
+## 2.5.212 — Ship Tech Board shows usable slots only
+
+The Ship Tech Board no longer displays meaningless locked placeholders. Every WPN/DEF/NAV/HOLD/FUEL/UTIL row shows only the one to four slots supported by the current hull and expands those real slots across the available width. Empty usable slots remain. Navigation stays within actual capacity, installed totals ignore inaccessible storage, and Law Scanner now has a safe board abbreviation. Triangle no longer opens Outfitting from this page. The footer advertises SQUARE ARM only when a WPN category is highlighted.
+
+Verification: PSP build passed; starter/largest-hull capacity and Triangle-inactivity checks pass. All six categories were inspected in native normal and high-contrast captures. Performance remains green. The inherited baseline UI and station-collision failures remain separately documented.
+
+## 2.5.211 — Spacebook creature avatars
+
+Spacebook usernames now generate stable native-pixel profile pictures instead of repeatedly borrowing the general NPC portrait. Ten families cover humans, reptilians, insectoids, robots, aquatic beings, fungi, avians, furry creatures, crystalline life and ship/logo accounts. Username hashing also varies palettes, eyes, expressions, silhouettes, visors, cyber markings, collars and account badges. The same name always produces the same avatar, case-insensitively, with no save-format change, textures, heap allocation or background simulation cost. Only visible feed cards are drawn.
+
+Verification: PSP build passed; username stability and all ten-family coverage checks pass. An 80-account native 480x272 gallery and live two-card Spacebook capture were inspected. Performance suite remains at 0 failures. Full inherited UI suite remains at its existing 38 failures from v2.5.210; no additional failures. Physical PSP validation remains.
+
+## 2.5.210 — Purposeful traffic and Law Scanner
+
+Four deterministic station/world routes replace arbitrary civilian orbiting. Traders service ports and return; Law patrols main lanes and dispatches from the station, while pirates hunt outer routes and flee patrols. Existing freight schedules and survey formations remain. Unengaged Wanted targets survive NPC combat; recent player involvement receives the bounty for a police-assisted takedown.
+
+System Operations: Square toggles the route map. New Law Scanner (UTIL, 480 U, tech 3+) uses Circle + R shoulder to select, then a Circle tap to scan. Its 20 km radar snapshots show 650 m inspection reach, fade and expire after 12 seconds. Tractor and heat-sink assignments are unchanged. Target details and faction lore explain activities. Existing saves load; new module ID 56 needs this executable. No persistent traffic/economy simulation is claimed.
+
+Verification: PSP build and every added traffic/scanner check pass. Full emulator comparison matches 2.5.209's existing failures (1 game, 38 input/UI); steering, radio and performance pass. No new failing checks. Native screens inspected; physical PSP validation remains. See docs/TRAFFIC-ROUTES.md and docs/TRAFFIC-210-VERIFICATION.md for limits and next steps. Repository contains extensive earlier uncommitted work; no automatic commit, push or tag was made.
+
+## 2.5.209 — Select skips Thargoid encounters
+
+Press Select at any time during a Thargoid encounter, including the opening countdown and reinforcement pauses, to resume the original hyperspace jump. The footer shows the existing Select button graphic with SKIP. Skip takes priority over firing and incoming damage, clears the encounter and battle music state, preserves earned rewards, and grants no additional kills or cash. Saves are unchanged.
+
+## 2.5.208 — Verified battle decoding and 3D hyperspace pursuit
+
+Reproduced the garbled battle music using the actual spacebattle.ogg file in a silent PSP executable: the installed Tremor decoder clipped about 65% of samples and had effectively zero correlation with reference Vorbis output. Replaced that decoder with libvorbisfile/libvorbis, explicitly requesting signed little-endian 16-bit PCM. Fixed the shared resampler's truncated 48 kHz phase step by accumulating exact sample-rate units.
+
+All four user tracks passed eight-second silent PSP emulator decode comparisons. Correlations with reference PCM: 1.000000, 0.999941, 0.999944, 0.999946; zero clipped samples. This validates decoding/resampling, not physical PSP audio timing. Double output buffers, failed-track quarantine and silent battle fallback remain.
+
+The encounter uses shaded 3D Thargoid meshes with bank/yaw/depth motion, perspective dust streaks, passing 3D rocks and cockpit rails. It now releases 45 attackers through staggered reinforcements, with no displayed wave labels or clear banners. Controls and 20U kill rewards are unchanged.
+
+Silent runtime tests passed encounter rewards, defeat/victory route preservation, protected countdown, visible firing, star continuity, bounded formations and 45-enemy completion. A captured encounter frame was inspected. The broader game suite reports one station-tunnelling collision failure outside the changed code; it is not a clean full-suite pass. Hardware frame rate and sustained audio playback still need verification.
+
+## 2.5.207 — Thargoid encounter stability and readability
+
+Replaced the time-reseeded starfield (18 random rearrangements per second) with persistent moving stars; removed full-screen hit flicker and overlapping HUD text. Added a four-second protected briefing, visible player lasers, solid enemy silhouettes, slower staggered bolts and stable attack formations without near-plane teleport damage.
+
+Audio now alternates two static output buffers and gives the Vorbis worker a 64 KiB stack instead of sharing a 16 KiB stack with an 8 KiB output block. Failed tracks are quarantined until restart, chained Vorbis channel/rate metadata is validated, and an empty/unreadable battle library stays silent. OGG/MP3 folder and saves are unchanged.
+
+Validation: PSP compilation and source checks; new countdown, firing, star-continuity and formation regressions compile in the input suite. Emulator remains closed by user preference; regressions and the reported hardware audio fault still need runtime verification with the user's tracks. These checks do not prove audio playback quality.
+
+## 2.5.206 — Native OGG battle music
+
+The dedicated `music/Thargoid Battle` folder now accepts the user's OGG Vorbis tracks directly, as well as MP3. OGG playback uses the PSP-friendly fixed-point Tremor decoder and shares the existing bounded shuffle, resampling, crossfade, music-volume, suspend and generated-fallback path. Put up to 24 `.ogg` files in the folder before starting the game; no conversion or special filenames are required.
+
+No save changes. PSP build and static decoder checks pass; emulator remains closed. See `music/Thargoid Battle/PUT_OGG_FILES_HERE.txt`.
+
+## 2.5.205 — Thargoid battle music library
+
+Thargoid hyperspace interdictions now own a dedicated `music/Thargoid Battle` source. Entering an encounter smoothly fades away from the selected radio station, shuffles up to 24 MP3 files from that folder and restores the selected station afterward. Battle score is dramatic music rather than radio, so Radio Off does not silence it; the existing MUSIC level still controls volume and MUSIC 0 remains fully silent. An empty folder uses the generated Pixel Comet action arrangement.
+
+Folder scanning happens at startup and supports mono/stereo MP3 at 8-48 kHz through the existing bounded PSP decoder. No save changes. PSP build and static source/mixer checks pass; emulator remains closed. See `music/Thargoid Battle/PUT_BATTLE_MP3_FILES_HERE.txt`.
+
+## 2.5.204 — System Operations and Thargoid interdictions
+
+Rebuilt Fly > System Details as a full operational dashboard. A compact local map keeps the station, star and all four worlds selectable; the dossier side now shows station architecture, economy and tech, current faction traffic, local missions, wanted targets, warrant status and cargo-manifest activity, or world access, range and persisted field progress. Landed worlds expose their real local clock, generated settlement/environment profile, life log and completed-site totals. The star page reports the existing heat hazard and logged stellar rifts. Gas giants correctly show floating-skyport access.
+
+A saved-progress meter combines actual landings, species, sites, rifts, bounties and manifest completion. The NEXT strip prioritises a local mission, warrant, active manifest lead, bounty work, first landing, unfinished fieldwork, rift scans or the station lead. It does not invent live weather, market events or other system-condition mechanics. Existing Cross lock and Triangle align/return-to-flight controls remain intact.
+
+No save or asset changes. PSP build and static state-wiring checks pass; compiled input regressions were added but not executed because the emulator remains closed. See docs/SYSTEM-OPERATIONS.md.
+
+Hyperspace jumps now have a rare 14% chance of a Thargoid interdiction. The jump corridor gives way to a compact three-wave rail shooter: aim with the nub or D-pad, hold Cross to fire, dodge incoming bolts and destroy patterned Thargoid craft for 20 units each. Clearing all three waves resumes the original jump. Losing the encounter returns the commander to the exact departure system with the selected route intact and without spending jump fuel. This temporary mode owns input and rendering while active and does not add save payload. See docs/THARGOID-INTERDICTIONS.md.
+
+## 2.5.203 — Larger depth-correct planetary rings
+
+Ringed gas giants now use a four-line band extending roughly 1.82-2.06 planet radii. The rear half renders behind the globe and a brighter near half renders across its foreground, fixing the missing front arc. Seeded thickness/skew adds variation and the complete ring follows cockpit roll. Applied consistently in normal flight, visible hyperspace and station departure views.
+
+No save or external asset changes. PSP build and static ring-order checks pass; emulator remains closed. See docs/PLANET-RINGS.md.
+
+## 2.5.202 — Closed station tunnels and varied orbital architecture
+
+Station flight tunnels now end at an opaque, lit pressure door, so stars, planets and traffic behind a station are no longer visible through its far side. Main hubs, outer relays and frontier outposts all retain the same safe 140x64 flight slit.
+
+Every system now derives station radius, depth, spin, hull/trim/light colours, bands, pods and one of six structural families from its identity. Main hubs vary by more than 2x in width and depth; secondary hubs receive independent profiles. Rendering, docking guidance and swept collision share the generated dimensions.
+
+No save or external asset changes. PSP build and static checks covering all 768 hubs pass; runtime fixtures compile but were not executed. Emulator remains closed. See docs/STATION-EXTERIORS.md.
+
+## 2.5.201 — Sky Observatory: The Signal Between
+
+Implemented the observatory investigation at existing generated sites: telescope, console and log clues persist; a named observer explains an irreversible confirmed choice between public-beacon reset (+20U bonus) and preserved trace (+1 extra discovery), in addition to the normal site reward. Outcomes alter return dialogue, instrument display and the Codex field-site report. Existing completed sites remain legacy-complete and cannot pay again. Lave 1 has no observatory; Lave 2 POI 3 and Lave 4 POI 5 do.
+
+Refined native 340x168 observatory art, protected 14,146-pixel window mask with local planet/biome/time rendering, animated receiver display and a quiet volume-controlled receiver sound. No resized concept image. Static generator checks enumerate 581 observatories across 1,024 worlds with no duplicate per world.
+
+Save V26 uses reserved surface bits 20-24 for choice and clues, no payload growth. V25 and earlier remain loadable; older executables cannot read V26. Back up commander files before upgrading. Added core/input/save/legacy fixtures; compiled but NOT executed. PSP build and static checks pass; physical PSP and runtime visuals/controller/audio/performance remain unverified, emulator kept closed. See docs/OBSERVATORY-ENCOUNTER.md.
+
+## 2.5.200 — Planetary site scene foundation
+
+All planetary sites now open station-style single-location scenes. Added sixteen native 340x168 pixel layouts with shared hotspot anchors, planet/time palette variation, site-specific inspection and NPC conversation text. Existing objectives/rewards and save completion are preserved; entry/exit input is isolated and outdoor time pauses. This is a working foundation, not the complete art/36-encounter milestone. See docs/PLANET-SITE-SCENES.md for changes, verification and remaining work. PSP build/static checks only; runtime fixtures compiled, not executed. Emulator remains closed.
+
+## 2.5.199 — Expanded equipment catalogue
+
+Added 30 modules (54 installable total): six distinct primary weapons, six defences, five navigation tools, three cargo bays, four fuel-system modules and six utilities. Includes +10% firepower, hotter +20% overdrive, shield disruption, shield-piercing plasma, shot suppression, armour and specialised damage protection. Passive effects support existing hull slot capacities; stronger scanner/shield/scoop/repair tiers win, distinct cargo bonuses sum. Stock follows system tech/economy/prosperity. Full catalogue and stacking notes: docs/EQUIPMENT-CATALOGUE.md.
+
+V25 saves expand accepted module IDs with unchanged V24 payload size; duplicate validation now uses a byte table instead of an overflowing 32-bit mask. Existing saves remain loadable; back up before saving with this build, as older builds cannot read V25. Weapon effects remain hitscan with differentiated visual beams, not physical projectiles.
+
+Verification: PSP build and static catalogue/layout/256-system stock checks. Added compiled effect/save regressions; runtime tests, balance and native PSP visuals NOT verified. Emulator remains closed. Next: execute regression suite with permission, check specialist weapon effects and module loadouts on hardware. No new external assets or published release.
+
+## 2.5.198 — Mechanics service name
+
+Renamed SHIP > Engineers to Mechanics, including the service header, fee label and tutorial directions. Repairs/refuelling behavior is unchanged. Includes the v2.5.197 fix for duplicate Loadout feedback and HOLD/HULL overlap. PSP build checked; emulator kept closed. No save or asset changes.
+
+## 2.5.197 — Single unobstructed Loadout feedback
+
+Loadout now owns its feedback: the generic menu_notice overlay skips INVENTORY. HOLD/HULL stays at y=224; arm/sale feedback uses y=236, below the stats and above the y=248 footer. Removed both the duplicate global notice and same-baseline local overdraw. Updated selected-label fixture coordinates for the module-bank layout and added framebuffer regressions for unchanged stats and no generic duplicate after Square. PSP build checked; runtime fixtures compiled but not executed, emulator kept closed. No save/assets changes.
+
+## 2.5.196 — Refuelling separated from Outfitting
+
+Removed fuel purchases from every Outfitting stock list and blocked direct catalogue refuel transactions. Fuel scoops remain installable modules. Paid refuelling is now a separate Triangle action in SHIP > Engineers, with current/maximum fuel and a fuel-only price; X still repairs without buying fuel. Same missing-fuel pricing, dock/full-tank/funds guards. Updated menu hint, tutorial text/action and transaction fixtures. Empty low-tech stock pages now have a safe no-stock view (no zero-length indexing/division). Save format and assets unchanged. PSP build checked; runtime fixtures updated/compiled, not run; emulator remains closed.
+
+## 2.5.195 — Station exploration balance
+
+Added a right-aligned live currency balance to the top-right header of every point-and-click station room, including shop, conversation and reading views. Uses the game's tenths-of-a-unit precision, updates from current credits each frame, and fits the maximum validated balance without overlapping the room identity or option rail. No save, controls or asset changes. PSP build and width checks only; emulator remains closed.
+
+## 2.5.194 — Ship-specific module banks
+
+Ship Loadout is now a six-row tech board with up to four individual slots per category. D-pad Up/Down selects category; Left/Right selects a slot. Locked slots are visible but cannot be selected. Square arms a fitted WPN laser, including while paused in flight; the active weapon has a green underline. X sells the selected module at a station with confirmation; Triangle opens Outfitting for that exact slot. Ordinary Outfitting purchases fill a free compatible slot first, falling back to a confirmed replacement when full.
+
+Price progression gives Adder 6, Gecko 8, Moray 11, Cobra Mk1 12, Cobra Mk3 15, Fer-de-Lance 16, Krait 18, Python 19, Ophidian 21 and Anaconda 22 total slots. Shipyard lists category capacities. Different modules coexist; duplicate catalogue items cannot be bought twice. Cargo Bay, Freight Rack and exclusive clamp add +8/+16/+8 tonnes together, alongside a passenger cabin. Passive capabilities combine; strongest shield/scoop tier wins rather than stacking rates. ECM/chaff and recharge now search all slots. Station clamp gifts use free HOLD slots.
+
+Four laser choices: Pulse 24, Beam 36, Mining 18 versus ships / 54 versus rocks, and new Heavy 60 damage with 0.36s cycle and 22 heat (others 0.18s and 12 heat). Heavy costs 1,400 U, displayed tech 10+, industrial economies 0–2. Only the armed laser fires/contributes mining mode. Ship exchanges repack modules, retain the active laser and reject insufficient slot/cargo capacity before charging; occupied cabins and loaded holds remain protected.
+
+V24 appends 20 bytes (18 extra module slots, active index, reserved zero) under existing CRC/backup validation. V23 and older fits migrate to bank one. Invalid/duplicate/wrong-category/locked-slot records and invalid active indices are rejected. Back up saves before upgrading: older builds cannot read V24. No added art/audio assets.
+
+Verification: PSP builds and tools/check-module-banks.mjs static catalogue, capacity/progression, layout and wiring checks. Runtime fixtures added for extra-slot effects, four weapons, install/sell/arm controls, cargo/cabin protection, hull transfer, V24 roundtrip and V23 migration; legacy migration offsets updated. Fixtures compiled, NOT executed; emulator deliberately kept closed. Next: authorised runtime regression/visual checks and physical PSP testing. Local only, no push/release.
+
+## 2.5.193 — PIMP-MY-SHIP.NET menu branding
+
+Renamed the SHIP category's Ship decorator entry to PIMP-MY-SHIP.NET, including its detail heading. Native lettering uses cyan, pink and gold word accents with a subtle fixed one-pixel stagger. Selection highlight and cursor are unchanged; high-contrast mode uses straight, theme-readable text. No extra assets, gameplay changes or save changes. Build verification only; emulator remains closed.
+
+## 2.5.192 — Replies go straight to the contact
+
+Removed the main-story chapter 2+ commander echo state, its extra confirmation press and its upper player speech/portrait. Selecting a bottom reply now advances immediately to the next authored NPC answer. Final acceptance remains explicit and occurs only at the final beat. Prologue, guild, police, comms and station conversation paths were inspected for player-echo rendering; the remaining active echo path was in saga briefings. Shared dialogue rendering no longer has a special commander portrait branch.
+
+Updated input and visual fixtures, including every saga chapter and each question/answer beat. PSP build checked; fixtures compiled but not executed because the emulator is kept closed. Runtime and hardware verification remain outstanding. No save format or content assets changed; existing chapter progress is preserved. Local-only delivery.
+
+## 2.5.191 — Flight message spacing
+
+Moved the body text in top-of-screen flight captions down exactly two pixels. Increased the caption backing by two pixels to retain all three text rows. Speaker labels, controls, wrapping width and dialogue behavior are unchanged. Save format V23 unchanged; no new assets. PSP build validation only; emulator kept closed, visual PSP check remains outstanding.
+
+## 2.5.190 — Planet artwork follows flight roll
+
+Fixed upright planet billboards during barrel rolls: flight now inverse-samples the planet artwork using the same screen-space roll as the existing camera projection. Surface features and baked shading rotate together; planet centres already followed camera roll. Menus, chart illustrations and HUD remain unchanged. Zero/full roll uses the existing fast path; rotated rendering clips to the viewport and uses a 16 KiB static tinted-sheet cache, with no heap allocations or per-pixel trigonometry. Save format remains V23; no additional assets.
+
+Verification: PSP build succeeded. Headless mathematical/source checks in tools/check-planet-roll.mjs passed camera orientation, both roll directions, quarter/half/full turns and clipped near/far sampling (2,641,244 visible samples). These are not actual PSP render tests. Emulator deliberately left closed. Next: visual continuity and frame-rate check on PSP, especially rolling beside a large planet. Existing unrelated changes preserved; local-only delivery, no sync or release.
+
+## 2.5.189 — One simple Spacebook history
+
+One newest-first feed follows the commander across every system, retaining up to 4,096 posts with their original location, date and Like/Dislike reaction. Two full-width cards, a scrollbar, Up/Down selection and Left/Right jumps of ten posts keep navigation simple. No reply feature or extra feed menus. Profile names display naturally (BEN becomes Ben) without changing the saved name.
+
+160 unique templates across 20 event types mix genuine thanks, gossip, dry humour, complaints, sarcasm, insults and indifference. Consecutive posts of the same event type avoid identical variants. Existing event hooks remain; posts do not invent completed actions. Return gossip now requires a day away. Ambient chatter is bounded to avoid swamping recent activity.
+
+V23 merges existing V22 system histories into the global archive, preserving dates, authors, wording variants and reactions. Back up saves before upgrading: older builds cannot read V23. History is saved with manual commander checkpoints, not separately autosaved. No additional assets required.
+
+Verification: PSP compilation and static checks only for this version. The 160 templates pass 800 actual-font/name layout checks. Runtime save migration, controller handling and visual checks remain outstanding; no emulator was launched at the user's request.
+
+## 2.5.188 — Spacebook commander names and reactions only
+
+Reactive posts now name the current commander profile (for example BEN), not the historical ship model. All 57 player-event variants use natural person-based wording; ambient posts remain unrelated local chatter. Existing V22 posts adopt the profile name immediately, and renaming the commander updates their displayed name throughout the feed. Stored dates, authors, event history and reactions are unchanged. No save migration.
+
+Removed Spacebook's Local replies text, Triangle footer prompt, reply overlay and Triangle input action. X Like / Square Dislike remain. Inbox is unchanged. Tutorial guidance now describes Like/Dislike. Regression coverage checks BEN in every player-event variant, 24-character name fit, and Triangle no-op on Spacebook.
+
+## 2.5.187 — Local Spacebook history
+
+Spacebook now prepends a bounded history of 16 reactive posts per system, ahead of the seven existing community/story wires. Twenty event categories have three prose variants each, with generated spacey handles. Events capture the ship model at the time; viewing a card never rerolls its author/text. Actual successful custody, fines, fleeing, player ship kills (pirates distinguished from other ships), station departures/docking, paint purchase, ship purchase, planet landing, flora/fauna/rift scans, salvage, non-smuggling contract completion and completed hyperspace travel produce local posts. Routine same-type posts throttle for 90 seconds. Ambient humour is eligible every four minutes of active simulation, capped at three retained ambient posts so idling cannot erase the entire activity history. No combat RNG is consumed.
+
+X toggles Like; Square toggles Dislike. Switching replaces the previous reaction; pressing the same button clears it. Reactions travel with posts as new cards push older ones down. Seven legacy wire reactions persist separately. Tutorial evidence remains first, and Messages retains its separate inbox.
+
+PSP RTC dates are saved as UTC and shown YYYY-MM-DD HH:MM UTC. Clock-unavailable records are explicitly labelled, never given invented calendar dates. Returning after 3+ minutes away (including loading after a real-world absence) adds a wondering-about-the-ship post followed by a welcome-back sighting, both dated when actually generated. No fabricated offline events/backdating. Changed/backward clocks do not underflow cooldown/absence arithmetic. Date accuracy depends on the PSP clock.
+
+V22 appends 34,824 bytes for 256 bounded feeds, timestamps, local reactions and metadata. Older saves load with empty reactive history, not reconstructed memories. Older builds cannot read V22: back up saves. History is part of manual commander checkpoints, not a separate unlimited/autosaved journal. Only the newest 16 reactive records per system survive rollover. Native rendering, no external art/audio/network dependencies. Main thread stack explicitly 1 MiB for bounded Game snapshots/migration/test fixtures; 8 MiB heap unchanged.
+
+## 2.5.186 — Living stellar rifts and instrument reports
+
+Replaced WORM meshes and fixed close-range circles with layered, additive cosmic fields: eight inclined filaments, bright knots, drifting dust and breathing cores. Four stable profiles (Aurora Veil, Gravity Lace, Ember Nursery and Meridian Echo) share their names, palettes, reports and lore across targeting, the flight view and Codex. Fields remain one anomaly ID each. Drawing has bounded loops, close-up size limits, view clipping, distance culling and a low-glow high-contrast mode. Existing mystery/scan mission hooks remain.
+
+Triangle analysis opens a paginated Ship Computer report with existing babble audio; Triangle/Circle closes, L/R reads. No human reply choices and no invented teleportation, mining or gravity mechanics: reports separate survey observations from folklore. Tutorial briefings wait until the report closes.
+
+V21 adds 256 bytes of per-system four-bit rift identity masks under the existing CRC and atomic save validation. Revisit/load restores scanned status; repeated scans reopen the report without another discovery/reward. Older V20 and earlier saves import with unlocated historic totals, not invented locations. Back up saves: older EBOOT versions cannot read V21. Space Signals in the new Codex now lists actual logged field identities and opens illustrated reports. No external art/audio assets required.
+
+## 2.5.185 — First-person station departures
+
+Player-facing Launch, narrative Launch, docked wanted pursuit and docked chart departure now enter a five-second first-person sequence. The ship starts inside its own berth, accelerates through an illuminated tunnel aperture, bursts clear and eases to 100 m/s before returning control. Geometry uses a continuous analytic speed/distance curve. Relay departures retain their original hub instead of teleporting to the primary. Arrival docking is unchanged. Raw launch remains the low-level live-space initialiser used by isolated simulation fixtures; all player launch paths use launch_departure.
+
+The actual system sun now lies beyond the primary port's outward (-Z) axis, at a safe 130-142 km distance; a narrow clear sightline is reserved without clustering the other planets. Existing sun rendering/flaring is used, with a wider departure flare that respects high-contrast suppression. Tunnel masks hide external space beyond the mouth until it clears the canopy. Existing docking and boost cues accompany the launch. No external art or save-format change.
+
+Inputs cannot skip or steer the sequence; held buttons must be released before fresh actions can fire. Docked chart jumps queue until departure completes. Launch guidance consumes no boost fuel and bypasses collisions only during the controlled corridor traversal.
+
+## 2.5.184 — Hierarchical Discovery Star Atlas
+
+Discovery Codex now opens a visited-system atlas with a star-map locator, seven-row windows, scrollbars and shoulder-button paging. System directories contain charted station/star records and only landed worlds. Illustrated planet dossiers show shared world type, settlement/weather profile, and four selectable category tiles: Flora, Fauna, Minerals and completed Field Sites. Collections enumerate actual per-world saved IDs, not commander-wide counts; individual dossiers use the same animated species sprites/names/traits as the surface. Breadcrumbs and an eight-frame bounded navigation stack restore parent selections at each Back. Empty collections explain how to fill them and cannot open invented records.
+
+Removed fabricated mineral/echo location lists and seeded discovery totals. Space Signals explicitly explains the current limitation: space scan totals have no saved per-system identity and cannot be retrospectively located. Charted station/star entries are labelled as chart knowledge, not claimed visits. Galactic Lore remains separate and unchanged.
+
+The present engine supports 256 systems x 4 landable planets = 1,024 worlds, with 8 field slots per world (8,192 records). Browser providers enumerate only the selected branch; no galaxy-sized UI allocation. New categories/levels can extend the provider and bounded navigation model. This is not unlimited engine/storage expansion and adds no new species. No save-format change (still V20), no external art dependency.
+
+## 2.5.183 — Ship tools / tractor recovery and truthful Law stops
+
+Circle+Left now equips TRACTOR in the compact Ship Tools selector. Release, then tap Circle: prefer the selected recoverable object within 500 m, otherwise find the nearest visible recoverable object in range; smoothly auto-turn before running the existing beam animation and inventory transfer. Rocks, distant/occluded/dead objects cannot be collected. Manual steering, changing target, leaving flight or a police stop cancels pending alignment. Menu-Back suppression is preserved. Missiles, flares and heat sinks retain their directions. To keep the displaced fitted ECM useful, it automatically pulses against close incoming missiles, still costing 18 shield energy with an 18-second cooldown.
+
+Law now records civilian/police assault and destruction, contraband, refusal and fleeing independently per system. Dialogue names the actual offence, includes a paginated charge list and only mentions goods aboard when present. Fine replies and receipts no longer claim an empty hold was confiscated. A clean scan cannot erase an existing warrant. Surrender removes only cargo-attributed charges, including after saving or revisiting a system; violence survives. Existing yellow reply selection is preserved; L/R shoulder buttons read longer testimony.
+
+V20 appends 1,024 bytes of offence/cargo-charge records under the existing checksum and atomic save validation. Older saves import; their unknown incident details are explicitly described as unavailable rather than invented. Back up saves before upgrading: older EBOOT versions cannot read V20 saves. Art/audio remain embedded; only EBOOT replacement needed.
+
+## 2.5.182 — Station reading and glowing focus
+
+Fixed station option highlight/text alignment by drawing both at exact pixel coordinates. Controls now occupy the bottom 16 pixels. Room entry shows persistent room prose; hovering only changes visual focus. Cross explicitly inspects or speaks. Long descriptions and conversations are word-wrapped into six-line pages, navigated with Left/Right without triggering actions. Replies use the right rail and retain yellow selection, leaving the lower panel for full-width speech. Expanded room, landmark, prop and crew writing, with authored responses for each Lave activity step. Selected people, props and doors receive a clipped, softly pulsing cyan/cream outline with bright corners, including high-contrast support. No new save format or art files.
+
+## 2.5.181 — Lave / Berth Six station
+
+Seven native 340×168 raster rooms with a shared 32-colour kit, transparent crew/prop atlases, deterministic economy/seed variations and shared visual/hotspot anchors. Lave primary has a named cast, a cross-room missing medical-manifest activity (60 U), a Lave I survey follow-up (90 U), station service links, yellow reply selection, ambient machinery and a canteen jukebox using the existing procedural music channel. Reorte's Second Shift/Arrivals and the tutorial's original contacts remain intact.
+
+V19 adds 3,072 bytes of per-system/per-hub activity state; earlier saves import. Generic cargo progress no longer resets on visiting another hub, and survey tips require local scan records and cannot be repeatedly farmed. All artwork is embedded: replace EBOOT.PBP only, keeping saves/config/music. Back up saves before upgrading; older builds cannot read V19 saves.
+
+## 2.5.180 — Combat bearings, missile launches and space effects
+
+Thin camera-relative indicators show actual recent incoming fire (double chevrons for rear sources), including freighter guns and incoming missiles. Player missiles emerge forward, coast briefly, then turn with a bounded rate and a short world-space exhaust trail; swept collision preserves fast hits. Distant ship dots gain faction-tinted rear trails. Sun-facing/nearby lens flares grow, and close solar exposure rapidly heats and damages shields/hull without a false combat alert. Enlarged planets reuse sample/tint calculations instead of repeating them per pixel. No save-format or asset changes.
+
+## 2.5.179 — Faction almanac
+
+Rebuilt Factions as four illustrated dossiers with Identity, In Play and Channel pages. Full paragraphs explain actual gameplay, with crew sayings, practical menu links and preserved story channel notes. Local living-ship totals are labelled LOCAL SNAPSHOT rather than faction strength. X cycles pages, Up/Down selects faction, Triangle preserves nearest-contact selection. No new faction mechanics or save changes.
+
+## 2.5.178 — GalacticNet scrollbars and clearer outfitting
+
+This build also advances ordinary NPC positions/collisions every frame (AI decisions remain staggered), eases lock-on alignment near its bearing, reduces boost-only speed heat (coefficient 10 to 0.35; normal overspeed, solar heat and ENG cooling unchanged), and tightens the Weapon Computer from 352x150 to 272x120 with dark amber combat styling. Added motion-per-frame, lock easing and boost endurance regressions.
+
+Spacebook, Inbox and Jobs now show a scrollbar matched to the visible cards, including partial final pages. Galactic Lore keeps SECTOR when selected. Outfitting uses STATS: and COSTS:, removes ONE MODULE PER SLOT, and names the destination slot beside empty/replaced modules. Missiles now accept any living ship target, not just hostiles, while retaining range and existing legal consequences. The bottom Circle hint includes missile/flare stock. Prices, fitting rules and saves are unchanged.
+
+## 2.5.177 — Select weapons, then tap to fire
+
+Hold Circle for the Weapon Computer; a direction equips and closes it. Release safely, then tap Circle to activate the selected weapon/tool. The bottom hint names the selection. Menu Back cannot leak into the weapon gesture. Triangle on a station opens Comms with REQUEST AUTO-DOCK; confirm that option to begin guidance. FLY Disembark is hidden when undocked. Updated all relevant control instructions; see docs/UPDATE-2.5.177.md.
+
+## 2.5.176 — Circle tools / Triangle interactions
+
+Hold Circle for the secondary-tools D-pad: Up missile, Down rear decoy, Left fitted ECM, Right fitted heat sink. Circle alone is a harmless status preview. Manual tools have resources/cooldowns; automatic ECM/heat-sink triggers removed. Triangle now handles selected cargo, anomalies, station docking and planetary landing requests as well as NPC hails. Landing still requires confirmation and cutscenes remain input-locked. Mapping is easy to revise. See docs/UPDATE-2.5.176.md for balance and verification.
+
+## Power selection and 16 paint themes — 2.5.166
+
+## 2.5.175 — Flight control labels
+
+Hold-Square target computer footer now shows shoulder-button icons with : NEXT and : LOCK. Normal flight Triangle label is COMMS, without HOLD:. Missile count moves from the bottom control pane to a missile silhouette and number beside WEP, with tighter ENG/WEP spacing. Ammunition and controls are unchanged.
+
+## 2.5.174 — Ship traffic and combat steering
+
+Light ships now anticipate nearby traffic, separate overlapping hulls and fly close-range breakaway legs instead of slowing into one another. Exact-opposite steering works reliably, and weapons remain aimed at the actual opponent during avoidance. No extra assets or save changes. See docs/UPDATE-2.5.174.md.
+
+## 2.5.173 — Restored planet cutscenes and exploration polish
+
+Unskippable 3D landing/departure cutscenes are back, with a separate camera that never changes live player state. Landing automatically disembarks; Triangle beside the ship boards, and a fresh R press on the parked screen launches. Wall-mounted GARAGE/POI lettering, distant sky traffic, smooth Square + R tracking and a compact icon-based HUD complete the update. See docs/UPDATE-2.5.173.md. No new assets or save changes; the reported physical PSP shutdown still needs hardware verification.
+
+## 2.5.172 — Explicit planetary transfers
+
+Confirm landing with X at planetary approach, then wait: guidance lands at the pad and automatically puts you on foot. Landing/departure screens do not accept skip buttons. Triangle boards only beside the ship; the parked-ship screen then offers R to launch or X to step outside. Release all buttons before either action. Circle no longer toggles boarding/disembarking. Atmospheric Circle opens a separate landing confirmation.
+
+The transfer renderer no longer temporarily changes the live camera/surface mode. Boarding and disembarking have separate validated model functions; exit coordinates are checked before committing on-foot state. Landing diagnostics are written to landing-trace.txt in the game folder (bounded, no per-frame writes after first-frame/tick checkpoints). Save layout and assets are unchanged. Physical PSP crash resolution still requires hardware verification.
+
+## 2.5.171 — Landing message and cutscene input safety
+
+Triangle CLOSE on atmosphere/pad messages only dismisses the notice; it cannot also return to orbit or take off. Circle/Triangle skipping arrival now consumes that press. Circle during pad alignment finishes the landing and disembarks directly, without running flight controls again. Invalid/stale cinematic states are discarded, and cinematic mesh indices are bounded. Boarding still supports one Triangle launch; its message now explicitly says LAUNCH, not CLOSE.
+
+Regression checks cover natural/skipped arrivals, held buttons, pad messages, disembarking, repeated boarding/departure, tutorial landing and guarded rendering across every purchasable hull and all four Lave bodies. Physical PSP shutdown reproduction remains unverified.
+
+## 2.5.170 — Radio now-playing label
+
+Deep Space FM now displays NOW PLAYING: when tuned to a channel. STATIC during station switching, its duration, station names and RADIO OFF behavior are unchanged.
+
+## 2.5.169 — Outfitting and connected mission boards (local build)
+
+- Station stock varies by technology, economy, prosperity and primary/secondary hub. All 25 catalogue entries have accurate instructions, slot labels and effects; exclusive Chandler stock is purchasable.
+- Two-column Outfitting shows actual replacement stats, trade-in, net cost/refund and confirmation. Triangle links Outfitting with Ship Loadout. Cargo capacity and occupied passenger cabins are protected.
+- Heat Buffer now fits and survives save/load; Auto Repair repairs hull, the escape pod catches fatal damage, the mining cutter is stronger against rocks, and scanner identification respects its advertised range. Nav Beacon marks the selected jump destination.
+- Mission boards offer five varied contract types in every system, with hull-reachable destinations, illustrated client cards, pay, risk, brief and exact objectives.
+- Board jobs no longer expire. Old duration fields remain only for save compatibility; no countdown is displayed. Accepting a job tracks it; selecting an accepted card opens Tracked Mission. The Log retains navigation and abandonment.
+- Added all-system contract acceptance/completion/payment checks, station-stock sweeps, module transaction/persistence/effect tests and native-size UI captures.
+- Save layout remains V18. Back up saves before upgrading; older builds cannot safely read a saved Heat Buffer fitting. Physical PSP verification remains required.
+
+## Police encounters and release — 2.5.168
+
+Up/Down now visibly selects the actual yellow police reply; X performs that selection. If restricted cargo is aboard, Up from the first reply (or Down through the list) reveals a fourth reply: surrender illegal cargo. Only the cargo charge from this inspection is waived. Other offences and warrants in other systems remain. Legal cargo is preserved.
+
+Accepting custody shows a short shuttle transfer and detention scene. If funds are available, the existing affordable release-fee rule applies and legal property is retained. With no funds, the existing ship/cargo/equipment seizure applies and an Adder with fuel is assigned at the station. The consequence is stated before choosing custody. Release papers explain the outcome and wait for X before returning to station services. Cargo-only stand-down also waits for a receipt acknowledgement.
+
+## Shared Comms, Shipyard and newspaper — 2.5.167
+
+Display & chatter is no longer a Commander entry. FLY > Comms panel and holding Triangle in ordinary flight reach the same panel. Continue down past the seven channel actions for HUD layout, text chatter, contrast, Radio and audio, Controls and third-person view. Existing incoming conversations retain their reply choices.
+
+Every purchasable hull has its own Shipyard description beneath the list and preview. Close spacecraft gain a bounded recessed-panel detail pass; distant ships retain the cheaper original mesh. The Gazette retains all sixteen articles and its Sudoku, with illustrated commercials and small notices filling the lower section. Wanted has a left-side position thumb; selecting posters still uses normal target-lock/flight flow.
+
+Hold Start: the active SYS/ENG/WEP bank now has a solid pale highlight with dark lettering and pips, plus its name in the footer. This selection treatment is independent of ship paint. Controls temporarily appear in minimal/scenic HUD modes while Start is held; releasing Start preserves the chosen HUD setting.
+
+The decorator now offers 16 finishes. New options: Ice White, Cobalt Blue, Ion Teal, Copper Glow, Lime Circuit, Crimson Red, Tangerine and Ultraviolet. Up/Down moves through two eight-finish pages; the finish counter shows your position. Every finish includes matching ship paint and a readable interface palette. Original finishes/settings remain supported; new finishes save in the existing paint preferences. Do not downgrade after using new colours, since older builds do not recognise them. Commander save format remains V18. The v2.5.165 decorator-label pixel adjustments are retained.
+
+## Wider systems and hot stars — 2.5.164
+
+Planets now occupy widely separated bearings around the inner system. Warp entry uses a full-circle route-specific position and independent heading, rather than turning toward the hub. Hold Square to find contacts around you; Square+R turns toward the selected target. Main-station launch/docking remains familiar, while secondary hubs sit farther out.
+
+Capital freighters now travel between outer station berths and planetary transfer areas over tens of kilometres. Trader shuttles run planet-to-hub legs; explorer groups use fixed interplanetary waypoints so they can actually reach the next destination. Large-hull visibility extends to 55 km, with longer aft-anchored engine trails. Existing bounded traffic counts, combat, cargo-transfer schedules and saved bounty identities remain intact.
+
+All eight sun families now have bright warm surfaces, animated mottling, a soft additive corona and short flares, rather than dark-centred silhouettes. Save format remains V18. These remain stylised, static system layouts with local active-system traffic, not physically scaled orbital mechanics or unloaded-system simulation.
+
+## Planetary landing, departure and navigation — 2.5.163
+
+A valid slow approach now settles at the centre of the landing pad. The rover starts in the nearby signed, open-front garage. Circle disembarks/boards; after boarding, one Triangle press starts a fresh external departure animation and automatically returns to orbit. Arrival, final pad descent and departure have separate transient sequences; boarding clears stale landing state. Circle skips departure.
+
+On foot: tap R for the short grounded jump; hold R to run without jumping. Releasing a run does not jump. Square+R still faces/tracks the selected contact without moving or jumping. Ship and rover have compass icons; numbered POIs match the exploration computer, field guide and nearby building signs. Selected compass markers take priority when bearings overlap.
+
+Close-up walls use a surface-specific four-unit near clip with matching depth precision and full building bounds, keeping reachable walls/corners opaque. This is a targeted rendering fix, not a claim that every possible graphical defect is eliminated. Save format remains V18; physical PSP visual/performance validation is still needed.
+
+## Planetary controls and field buildings — 2.5.162
+
+The hold-Square exploration computer is now a narrow left-side panel. R faces the highlighted POI/species and retains a named distance tracker after closing; off-screen contacts show direction guidance. Field sites are larger solid buildings, with glazed windows, entrance panels and nearby wall-mounted identity signs. The renderer and collisions share building dimensions; surrounding decorative props are excluded from their footprints.
+
+On foot, press R for one short jump/boost (about a second). Holding R cannot sustain flight or automatically jump again on landing. Double-tapping in mid-air adds no lift. Land and release R before pressing again. Rover, spacecraft boost and hold-Square targeting controls are unchanged. Save format remains V18.
+
+## Planetary exploration — 2.5.161
+
+Hold Square on foot or in the rover for the exploration computer. Left/Right selects sites, flora, fauna or minerals; Up/Down selects a contact; R tracks it; X scans the selected species within survey range. Release Square to close without scanning. A short tap still scans nearby unrecorded life. Start opens the local field guide; X uses a nearby site or rover. Existing spacecraft targeting is unchanged.
+
+Spaceports now have large terminal/hangar blocks, a 160m tower and two reserved traffic pads. Ambient ships continuously descend, wait and depart on staggered cycles. You can watch safely from the port grounds. These are exterior landmarks with cosmetic traffic, not enterable terminals or persistent NPC flight schedules.
+
+Local clocks, sky-positioned suns, sunset/night colours, stars and drifting clouds follow a saved world clock. Large forest trees and local animated species share the surface depth buffer with terrain, vehicles, structures and ships. Rover wheels now sit on a shared support height; walking/rover movement is subdivided to prevent tunnelling through obstacles.
+
+All 1,024 planets have deterministic identities and activities; gas giants use bounded floating platforms. Wildlife designs are procedural pixel sprites, not 1,024 hand-authored asset sets. Rocky exploration remains a 1,400m field; islands/platforms are bounded. Field sites reuse twelve activity templates, eight species slots and three port job patterns. Geological/weather labels describe identity; there is no full weather simulation. Save V18 retains earlier profiles/progress and adds the world clock; saves still restore docked, not at an arbitrary surface coordinate.
+
+## Commander files and planetary exploration — 2.5.160
+
+The main menu separates commanders from First Light training. LOAD / DELETE SAVES opens three cards with saved identity, money, system and ship. Left/Right chooses a card; X loads after confirmation; Square permanently deletes only that slot and its backup after confirmation. Tutorial continues from its separate file.
+
+COMMANDER → SAVE/STATUS: Up/Down selects save, load, rename, portrait or fine payment. On Save/Load, Left/Right chooses a slot. Dock before saving. Name editing uses a D-pad keyboard (Square deletes a character; Start applies; Circle cancels). Portrait has four male and four female variants. Save after editing. Slot 1 retains commander.sav; slots 2/3 use commander-2.sav and commander-3.sav. Keep the .bak recovery files. Existing saves import; do not downgrade the EBOOT after writing new-format saves.
+
+On a solid planet: reach the landing pad, slow/descend and Circle to land; Circle again leaves the ship. D-pad moves, nub or L+D-pad looks, R jets on foot. X boards the nearby port rover or parks it; rover travel is faster and sheltered, with no jetpack. Square interacts with a nearby site or surveys life/minerals. L+Triangle cycles and faces points of interest; Triangle faces the ship. Circle boards your ship on the ground; Triangle takes off and then returns to orbit.
+
+Visit SPACEPORT for a relay-repair job, repair RELAY, and return for payment. Other sites offer mineral cargo, ruins mapping, observatory data and a rescue-beacon reward. Activities and surveys are one-time per world and persist when you next save docked. Exploration is a bounded 1400m field on rocky worlds; ocean worlds retain their dry island shoreline. Port facilities are small exterior structures, not enterable towns. Cosmetic ship paint/radio preferences remain installation-wide.
+
+## Quiet watch — 2.5.159
+
+Computer range, fuel and landing notices are dismiss-only; Triangle cannot answer them as conversations. During long peaceful flights a nearby trader may rarely hail you for company. Press Triangle to listen, Up/Down and X to reply, L/R to page longer speech, or Circle to sign off. Ignore an invitation and it expires. Three stories have contextual replies and optional cargo-trade offers; asking for a quote does not exchange cargo. Agree explicitly within 2500m, with the requested cargo aboard. These are optional social/trade encounters, not new missions. Quiet chatter settings suppress unsolicited social hails.
+
 ## SPACE TALK — 2.5.156
 
 Station 6 is now **SPACE TALK**, category **TALK RADIO**. Its generated babble has varied speakers, syllable lengths, pitch contours and phrase pauses, without the old noisy shuffle underneath. Radio status now has its own row below the channel numbers, including LOCKED, STATIC and RADIO OFF. Existing radio preferences and music folders are unchanged.
@@ -735,3 +1153,8 @@ src/game.c implements a partial native gameplay adaptation. Galaxy/economy and m
 ## Remaining work
 
 Richer EVA (slopes, sites, pickups), surface audio, additional Elite-A systems, and physical PSP performance and save/suspend testing.
+## 2.5.219 — In-world Outfitting shop signs
+
+Outfitting now opens beneath a slim station storefront sign instead of exposing the local economy, technology and trade values. Every station receives a stable, seeded shop identity—such as Major Lazor's Armaments, Aegis Defence Works or The Module Exchange—with a concise speciality caption. Lave remains a dedicated arms house; general and specialised stock keep a matching, readable identity whenever the player returns.
+
+Verification: PSP build passed. Native Outfitting captures confirm the new arms and general headers at PSP resolution; input suite passes with 0 failures.

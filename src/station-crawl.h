@@ -5,11 +5,12 @@
 #include "station-art-kit.h"
 #include "native-art-scenes.h"
 #include "station-bar-art.h"
+#include "station-identity.h"
 enum {
  SC_R_ARRIVALS=0, SC_R_SHOP, SC_R_CANTEEN, SC_R_CARGO, SC_R_GUILD, SC_R_CLINIC, SC_R_CUSTOMS, SC_R_COUNT
 };
 enum { SC_V_LOOK=0, SC_V_SPEAK, SC_V_GO, SC_V_TAKE, SC_V_COUNT };
-enum { SC_H_NONE=0, SC_H_PERSON, SC_H_EXIT, SC_H_PROP, SC_H_FEATURE };
+enum { SC_H_NONE=0, SC_H_HERE, SC_H_PERSON, SC_H_EXIT, SC_H_PROP, SC_H_FEATURE };
 enum { SC_MENU_NONE=0, SC_MENU_SHOP, SC_MENU_TALK };
 enum { SC_W=1, SC_H=1, SC_N=0, SC_E=1, SC_S=2, SC_WDIR=3 };
 enum { SC_EXIT_SHIP=-1 };
@@ -40,12 +41,48 @@ static int sc_room=SC_R_ARRIVALS, sc_verb=SC_V_LOOK, sc_hot=0, sc_menu=0, sc_sho
 static int sc_x=0, sc_y=0, sc_face=SC_S;
 static unsigned char sc_map[1][1], sc_door_n[1][1], sc_door_e[1][1];
 static const ArtRoomStyle *sc_style(void){return art_room_style(sc_art_id(sc_room));}
+static StationIdentity sc_identity(void){return station_identity_for(&game);}
+/* Activities are keyed to the canonical system/hub, never a shared gift bit. */
+static uint32_t *sc_progress(void){return &game.station_progress[game.system][game.station_variant];}
+static int sc_lave(void){return game.system==7&&game.station_variant==0&&!tutorial_active(&game);}
+static int sc_lave_stage(void){return (game.station_progress[7][0]>>2)&15;}
+static void sc_lave_set(int stage){game.station_progress[7][0]=(game.station_progress[7][0]&~60u)|((unsigned)stage<<2);}
+static int sc_manifest_state(void){return *sc_progress()&3;}
+static unsigned sc_manifest_key(void){StationIdentity s=sc_identity();return s.seed&0xffffu;}
+static void sc_manifest_set(int state){*sc_progress()=(*sc_progress()&~3u)|(state&3);}
+static int sc_manifest_reward(void){StationIdentity s=sc_identity();return station_identity_manifest_reward(&s);}
+static void sc_manifest_prepare(void){
+ unsigned stored=(unsigned)game.gift_flags>>10&0xffffu;
+ if(stored==sc_manifest_key()&&(*sc_progress()&3)==0){
+  unsigned legacy=((unsigned)game.gift_flags>>8)&3;
+  if(legacy<=2)*sc_progress()|=legacy;
+  game.gift_flags&=0xff;
+ }
+}
+static const char *sc_lave_objective(void){
+ static const char *steps[]={
+ "Lave Hub: meet Mara, the Cargo Bay loader.",
+ "Find the loose MANIFEST in the Cargo Bay.",
+ "Ask Niko in the Canteen who moved the medical crate.",
+ "Get a replacement seal from Ada in the Chandlery.",
+ "Ask Dr Sen in the Clinic to verify the medicine list.",
+ "Ask Officer Orin in Customs to clear the corrected manifest.",
+ "Return the cleared manifest to Mara in the Cargo Bay.",
+ "Meet Iona at the Guild Desk about Lave I survey work.",
+ "Scan life or minerals on Lave I; return to Iona at Lave Hub.",
+ "Berth Six complete. Lave's medicine shipment is moving."
+ };int stage=sc_lave_stage();return steps[stage>=0&&stage<=9?stage:0];
+}
+
 typedef struct { const char *name; int role; int act; int shop_item; int gift_bit; int quest_pay; int taxi_pay; const char *line; const char *offer; } ScNpc;
 #include "station-bar-preview.h"
-enum { SC_ACT_TALK=0, SC_ACT_SHOP, SC_ACT_GIFT, SC_ACT_QUEST, SC_ACT_TAXI, SC_ACT_BOARD };
+enum { SC_ACT_TALK=0, SC_ACT_SHOP, SC_ACT_GIFT, SC_ACT_QUEST, SC_ACT_TAXI, SC_ACT_BOARD, SC_ACT_MANIFEST };
+#include "station-room-kit.h"
 typedef struct { int kind; int id; int x,y,w,h; const char *label; const char *look; } ScHot;
 static void sc_person_pos(int room,int i,int *ox,int *oy){
  if(room==SC_R_CANTEEN&&bar_preview_at()){second_shift_person_pos(i,ox,oy);return;}
+ if(sc_lave()&&room==SC_R_ARRIVALS&&i==0){*ox=145;*oy=77;return;}
+ if(sc_raster_room()&&room>=0&&room<7&&i>=0&&i<2){*ox=sc_recipes[room].people[i].x;*oy=sc_recipes[room].people[i].y;return;}
  /* Keep people inside the narrower MAIN (options list owns the right). */
  static const int pos[SC_R_COUNT][3][2]={
   {{90,88},{210,84},{0,0}},
@@ -71,21 +108,27 @@ static const char *sc_room_short(int r){
  return r>=0&&r<SC_R_COUNT?n[r]:"DECK";
 }
 static const char *sc_room_blurb(int r){
- if(r==SC_R_CANTEEN&&bar_preview_at())return "Three contacts, a world lead and free dice practice. Preview: no recorder contract or credit bets.";
+ if(r==SC_R_CANTEEN&&bar_preview_at())return "The Second Shift is warm enough that you notice yourself relaxing as the door shuts. Light from the bar catches the edges of glasses and the worn surfaces of the booths. Outside the window, traffic continues its slow procession around Reorte. Lysa Kest, Pell Sorn and Dax Neral have settled into their usual corners; none of them looks in a hurry to leave.";
  static const char *n[]={
-  "One bright berth window. A freighter slips the lane. Board waits when you look.",
-  "Cream walls, ochre counter. One ledger — deals happen here.",
-  "Warm bar top under a single practical. Rumours sit in the booth.",
-  "Three crates, one tip mark, cool hoist above. Keep the lane clear.",
-  "Tracked slate owns the room. Desk paper stays secondary.",
-  "One treatment bay, one cool lamp, one medkit locker.",
-  "Scanner gate reads first. Warrant glass keeps your heat honest."
- };
- return r>=0&&r<SC_R_COUNT?n[r]:"";
+ "Beyond the arrivals window, a freighter hangs against the light of the planet. Its bulk makes the ships passing beneath it look impossibly small. The hall smells faintly of warm machinery and the cleaning fluid used on the deck. Worn seats face the berth board, where crews pause to check their next departure. Corridors on either side lead deeper into the station. For a moment, nobody is asking anything of you.",
+ "The chandlery is packed with the things a ship needs after the glamour of flying it has worn off: seals, cables, spare fittings and tools polished by years of handling. A clear strip of counter separates the working stock from the pieces still waiting to be checked. The shelves look crowded, but the staff seem to know exactly where everything belongs. You can speak to the Chandler about deck stock or use the outfitting terminal to inspect fitted modules.",
+ "The canteen is warmer than the corridor outside. Crockery knocks softly against the counter, and the jukebox sits within reach of the booths. From here the view of the planet almost makes you forget how much machinery is between your feet and open space. This is where crews stop being callsigns for a while. Some come for a meal; others stay because there is no particular reason to go back to an empty cabin yet.",
+ "The cargo bay is full of restrained weight: stacked containers, loaded pallets and a lifting rig suspended above the work area. Scuffed paint marks the routes taken by a thousand previous deliveries. Near the rail, loose paperwork waits beside the cargo records. Every crate has somewhere it is meant to go, but a berth can come to a halt over something as small as a missing signature. The loader keeps an eye on you without abandoning the next job.",
+ "The Guild office is quieter than the public concourse. A large star chart fills the rear wall, while specimens and well-used reference books compete for space around the desk. The displays make distant places look orderly; the notes beside them suggest the people who visited had a less straightforward experience. This is a place for comparing observations, asking careful questions and turning a pilot's travels into records that someone else can use.",
+ "The clinic is clean without feeling untouched. Supplies are arranged within easy reach of the treatment couch, and a diagnostic display casts a cool light across the room. A trolley stands ready for the next patient. The doctor has left a little space between the equipment and the doorway, enough for someone to come in without feeling they are interrupting an emergency. After the noise of the cargo decks, even the ordinary hum of the ventilation seems reassuring.",
+ "The customs scanner divides the room into a before and an after. On one side sit containers still waiting to be cleared; on the other, a desk carries the records that will allow them to move. The officer works through each entry with the patience of someone who has heard every explanation twice. Through the window you can see ships that have already finished this part of their journey. Yours is not the only crew hoping the next form will be the last."
+ };return r>=0&&r<SC_R_COUNT?n[r]:"";
 }
+#include "station-reading.h"
+#include "station-lave.h"
 static int sc_fill_npcs(int room,ScNpc *out,int maxn){
  int n=0; unsigned h=(unsigned)(game.system*131u+room*41u);
  #define SC_PUSH(N,R,A,SI,GB,QP,TP,L,O) do{if(n<maxn){out[n].name=(N);out[n].role=(R);out[n].act=(A);out[n].shop_item=(SI);out[n].gift_bit=(GB);out[n].quest_pay=(QP);out[n].taxi_pay=(TP);out[n].line=(L);out[n].offer=(O);n++;}}while(0)
+ if(sc_lave()){
+  SC_PUSH(lave_names[room],room==SC_R_CUSTOMS||room==SC_R_CLINIC?LAW:room==SC_R_GUILD?EXPLORERS:TRADERS,40+room,-1,-1,0,0,lave_line(room),lave_offer(room));
+  if(room==SC_R_SHOP)SC_PUSH("CHANDLER",TRADERS,SC_ACT_SHOP,-1,-1,0,0,"Supplies, fitted modules and a fair trade-in. Keep the lanes fed.","Browse deck stock");
+  return n;
+ }
  if(room==SC_R_ARRIVALS){
   SC_PUSH("VENN",TRADERS,SC_ACT_TALK,-1,-1,0,0,"Berth six stays warm if you keep coming home.","Ask about local traffic");
   SC_PUSH("DOCKHAND",TRADERS,SC_ACT_TALK,-1,-1,0,0,"Watch the freighter lane. Pads are tight.","Ask about berths and fuel");
@@ -102,7 +145,13 @@ static int sc_fill_npcs(int room,ScNpc *out,int maxn){
   SC_PUSH("TRAVELER",EXPLORERS,SC_ACT_TAXI,-1,-1,0,1800,"Need a lift to another hub. One tonne seat.","Book taxi berth");
   }
  }else if(room==SC_R_CARGO){
-  SC_PUSH("LOADER",TRADERS,SC_ACT_QUEST,-1,-1,400,0,"Haul a crate mark to the board for me.","Take 40 U tip job");
+  sc_manifest_prepare();
+  SC_PUSH("LOADER",TRADERS,SC_ACT_MANIFEST,-1,-1,sc_manifest_reward(),0,
+   sc_manifest_state()==0?"Berth six has a crate with no manifest. Find the loose sheet, then bring it back.":
+   sc_manifest_state()==1?"You found it. Hand over the manifest before the next lift cycle.":
+   "Manifest filed. The berth can move again.",
+   sc_manifest_state()==0?"Search for the missing manifest":
+   sc_manifest_state()==1?"Return the missing manifest":"Manifest already filed");
  }else if(room==SC_R_CLINIC){
   SC_PUSH("MEDIC",LAW,SC_ACT_GIFT,-1,1,0,0,"Medkit for the next scrape. One issue only.","Take free medkit");
  }else if(room==SC_R_GUILD){
@@ -130,8 +179,9 @@ static int sc_exits(int room,int *out,int maxn){
 static void sc_build_map(void){
  int identity=game.system*HUB_COUNT+game.station_variant;
  if(sc_built_for==identity)return;
+ sc_manifest_prepare();
  sc_built_for=identity; sc_room=SC_R_ARRIVALS; sc_verb=SC_V_LOOK; sc_hot=0; sc_menu=0; sc_shop_row=0; sc_talk_row=0; sc_talk_who=0;
- sc_x=0;sc_y=0;sc_face=SC_S;sc_map[0][0]=SC_R_ARRIVALS;sc_door_n[0][0]=1;sc_door_e[0][0]=1;
+ sc_x=0;sc_y=0;sc_face=SC_S;sc_map[0][0]=SC_R_ARRIVALS;sc_door_n[0][0]=1;sc_door_e[0][0]=1;sc_read_room();
 }
 static int sc_door_dir(int dir){(void)dir;return 1;}
 static int sc_door_ahead(void){return 1;}
@@ -143,11 +193,15 @@ static int sc_hotspots(ScHot *out,int maxn){
  int n=0;
  #define SC_HOT(K,ID,X,Y,W,H,L,LOOK) do{if(n<maxn){out[n].kind=(K);out[n].id=(ID);out[n].x=(X);out[n].y=(Y);out[n].w=(W);out[n].h=(H);out[n].label=(L);out[n].look=(LOOK);n++;}}while(0)
  const int VX=SC_VX,VY=SC_VY;
+ /* HERE is always first: it restores the room's arrival prose and treats the
+  * whole illustration as the selected place rather than inventing a prop. */
+ SC_HOT(SC_H_HERE,sc_room,VX,VY,SC_VW,SC_VH,"HERE",sc_room_blurb(sc_room));
  ScNpc people[3]; int pn=sc_fill_npcs(sc_room,people,3);
  for(int i=0;i<pn;i++){
   int px,py;sc_person_pos(sc_room,i,&px,&py);
   if(px==0&&py==0)continue;
-  SC_HOT(SC_H_PERSON,i,VX+px,VY+py,52,64,people[i].name,people[i].line);
+  int pw=sc_baked_lave_arrivals()?34:(sc_raster_room()?32:52),ph=sc_baked_lave_arrivals()?76:64;
+  SC_HOT(SC_H_PERSON,i,VX+px,VY+py,pw,ph,people[i].name,people[i].line);
  }
  int ex[4],en=sc_exits(sc_room,ex,4);
  /* Side hatch layout on the illustrated MAIN (left of options list). */
@@ -155,11 +209,18 @@ static int sc_hotspots(ScHot *out,int maxn){
  for(int i=0;i<en&&i<4;i++){
   int dx=VX+door_xy[i][0],dy=VY+door_xy[i][1];
   int dw=i<2?50:42,dh=i<2?60:26;
+  if(sc_raster_room()){dx=VX+(i%2?317:2);dy=VY+45+(i/2)*36;dw=20;dh=en>2?32:65;}
   SC_HOT(SC_H_EXIT,ex[i],dx,dy,dw,dh,sc_room_short(ex[i]),"Door. GO + X walks through.");
  }
  /* Ship return — bottom-right of MAIN. */
- SC_HOT(SC_H_EXIT,SC_EXIT_SHIP,VX+SC_VW-72,VY+SC_VH-30,68,26,"YOUR SHIP","Board your ship now. TRI also boards.");
- if(sc_room==SC_R_ARRIVALS){
+ SC_HOT(SC_H_EXIT,SC_EXIT_SHIP,VX+(sc_raster_room()?317:SC_VW-72),VY+(sc_raster_room()?45:SC_VH-30),sc_raster_room()?20:68,sc_raster_room()?65:26,"YOUR SHIP","Board your ship now. TRI also boards.");
+ if(sc_raster_room()){
+  ScAnchor a=sc_recipes[sc_room].hero,b=sc_recipes[sc_room].service;
+  static const char *landmarks[]={"BERTH WINDOW","COUNTER","BAR TOP","CARGO LIFT","STAR CHART","TREATMENT BAY","SCANNER GATE"};
+  SC_HOT(SC_H_FEATURE,50+sc_room,VX+a.x,VY+a.y,a.w,a.h,landmarks[sc_room],sc_room_blurb(sc_room));
+  if(sc_room==SC_R_CARGO)SC_HOT(SC_H_PROP,17,VX+b.x,VY+b.y,b.w,b.h,"MANIFEST","A loose manifest hangs beside the cargo rail. Inspect the sheet.");
+  for(int slot=0;slot<2;slot++){int id=sc_module_id(sc_room,slot);SC_HOT(SC_H_PROP,60+slot,VX+(slot?268:36),VY+128,32,32,sc_module_names[id],sc_module_notes[id]);}
+ }else if(sc_room==SC_R_ARRIVALS){
   SC_HOT(SC_H_FEATURE,1,VX+72,VY+10,176,70,"BERTH WINDOW","Warm spill from the lane. One freighter silhouette.");
   SC_HOT(SC_H_FEATURE,0,VX+196,VY+84,90,40,"TRAFFIC BOARD","Berths and delays. Cool cyan signal only.");
   SC_HOT(SC_H_PROP,0,VX+72,VY+118,160,12,"RAIL","Handrail over the freighter lane.");
@@ -187,6 +248,12 @@ static int sc_hotspots(ScHot *out,int maxn){
   SC_HOT(SC_H_FEATURE,4,VX+140,VY+16,120,52,"WARRANT GLASS","Your legal heat on navy glass.");
   SC_HOT(SC_H_PROP,23,VX+120,VY+112,140,28,"INSPECT DESK","Stamps, forms, a tired officer.");
  }
+ if(sc_lave()){
+  static const int services[]={100,101,102,-1,103,104,105};
+  static const char *labels[]={"LOCAL JOBS","OUTFITTING","JUKEBOX",0,"BERTH SIX LOG","TREATMENT","LEGAL STATUS"};
+  ScAnchor a=sc_recipes[sc_room].service;
+  if(services[sc_room]>=0)SC_HOT(SC_H_FEATURE,services[sc_room],VX+a.x,VY+a.y,a.w,a.h,labels[sc_room],"Use this station service.");
+ }
  #undef SC_HOT
  return n;
 }
@@ -207,7 +274,7 @@ static void sc_snap_verb_hot(void){
  else if(sc_verb==SC_V_TAKE){
   int i=sc_find_hot(SC_H_PERSON,-1);
   ScNpc people[3]; int pn=sc_fill_npcs(sc_room,people,3);
-  for(int p=0;p<pn;p++)if(people[p].act==SC_ACT_GIFT||people[p].act==SC_ACT_SHOP||people[p].act==SC_ACT_QUEST||people[p].act==SC_ACT_TAXI){int j=sc_find_hot(SC_H_PERSON,p);if(j>=0){i=j;break;}}
+  for(int p=0;p<pn;p++)if(people[p].act==SC_ACT_GIFT||people[p].act==SC_ACT_SHOP||people[p].act==SC_ACT_QUEST||people[p].act==SC_ACT_MANIFEST||people[p].act==SC_ACT_TAXI){int j=sc_find_hot(SC_H_PERSON,p);if(j>=0){i=j;break;}}
   if(i>=0)sc_hot=i;
  }
 }
@@ -614,6 +681,31 @@ static void sc_illust_customs(int x,int y,int w,int h){
  if(sc_lamp_on(3,1.8f)<2)rect(x+230,y+118,20,12,mix_rgb(SC_DANGER,SC_AMBER,.35f));
  sc_warm_key(x+190,y+96,st->lamp);
 }
+/* Focus follows the selector, independent of the latched reading panel. */
+static void sc_focus_edge(int x,int y,int w,int h,unsigned ink){
+ int l=x<SC_VX?SC_VX:x,t=y<SC_VY?SC_VY:y;
+ int r=x+w-1>=SC_VX+SC_VW?SC_VX+SC_VW-1:x+w-1;
+ int b=y+h-1>=SC_VY+SC_VH?SC_VY+SC_VH-1:y+h-1;
+ if(r<l||b<t)return;
+ line(l,t,r,t,ink);line(l,b,r,b,ink);line(l,t,l,b,ink);line(r,t,r,b,ink);
+}
+static void sc_focus_glow(const ScHot *h){
+ float pulse=.5f+.5f*sinf(preview_time*3.f);
+ unsigned core=high_contrast?SC_CREAM:mix_rgb(SC_CYAN,SC_CREAM,.35f+.4f*pulse);
+ for(int spread=4;spread>=1;spread--){
+  unsigned halo=mix_rgb(SC_CHAR,SC_CYAN,(5-spread)*(.07f+.035f*pulse));
+  sc_focus_edge(h->x-spread,h->y-spread,h->w+spread*2,h->h+spread*2,halo);
+ }
+ sc_focus_edge(h->x,h->y,h->w,h->h,core);
+ /* Brighter corner ticks stay readable even when a room contains cyan lights. */
+ int l=h->x,t=h->y,r=l+h->w-1,b=t+h->h-1;
+ if(l>=SC_VX&&r<SC_VX+SC_VW&&t>=SC_VY&&b<SC_VY+SC_VH){
+  line(l,t,l+5,t,SC_CREAM);line(l,t,l,t+5,SC_CREAM);
+  line(r-5,t,r,t,SC_CREAM);line(r,t,r,t+5,SC_CREAM);
+  line(l,b,l+5,b,SC_CREAM);line(l,b-5,l,b,SC_CREAM);
+  line(r-5,b,r,b,SC_CREAM);line(r,b-5,r,b,SC_CREAM);
+ }
+}
 static void sc_draw_main_scene(void){
  const int VX=SC_VX,VY=SC_VY,VW=SC_VW,VH=SC_VH;
  int second_shift=sc_room==SC_R_CANTEEN&&bar_preview_at();
@@ -621,7 +713,8 @@ static void sc_draw_main_scene(void){
  rect(VX,VY,VW,VH,SC_VOID);
  rect(VX,VY,VW,1,SC_OCHRE);
  rect(VX,VY+VH-1,VW,1,SC_SLATE);
- if(sc_room==SC_R_ARRIVALS){
+ if(sc_raster_room())sc_raster_draw(VX,VY,sc_room);
+ else if(sc_room==SC_R_ARRIVALS){
   if(station_authored_arrivals_at())station_arrivals_authored_draw(VX,VY,VW,VH);
   else sc_illust_arrivals(VX,VY,VW,VH);
  }
@@ -636,7 +729,7 @@ static void sc_draw_main_scene(void){
  /* Hatches — silhouette only; names live in the right options list. */
  {
   int exit_ord=0;
-  for(int i=0;i<hn;i++)if(!second_shift&&hot[i].kind==SC_H_EXIT&&hot[i].id!=SC_EXIT_SHIP){
+  for(int i=0;i<hn;i++)if(!second_shift&&!sc_raster_room()&&hot[i].kind==SC_H_EXIT&&hot[i].id!=SC_EXIT_SHIP){
    int hero=exit_ord==0;
    unsigned frame=(hero||sc_hot==i)?mix_rgb(SC_CREAM,SC_OCHRE,.35f):mix_rgb(SC_SLATE,SC_CREAM,.2f);
    unsigned aperture=(hero||sc_hot==i)?mix_rgb(SC_VOID,SC_OCHRE,.2f):SC_VOID;
@@ -647,16 +740,18 @@ static void sc_draw_main_scene(void){
  for(int i=0;i<pn&&!second_shift;i++){
   int px,py;sc_person_pos(sc_room,i,&px,&py);
   if(px==0&&py==0)continue;
-  sc_draw_person_sprite(VX+px,VY+py,&people[i],sc_hot<hn&&hot[sc_hot].kind==SC_H_PERSON&&hot[sc_hot].id==i);
- }
- for(int i=0;i<hn;i++){
-  if(hot[i].kind==SC_H_PERSON||hot[i].kind==SC_H_EXIT)continue;
-  if(sc_hot==i){
-   rect(hot[i].x-2,hot[i].y-2,hot[i].w+4,1,SC_AMBER);rect(hot[i].x-2,hot[i].y+hot[i].h+1,hot[i].w+4,1,SC_AMBER);
-   rect(hot[i].x-2,hot[i].y-2,1,hot[i].h+4,SC_AMBER);rect(hot[i].x+hot[i].w+1,hot[i].y-2,1,hot[i].h+4,SC_AMBER);
+  int focus=sc_hot<hn&&hot[sc_hot].kind==SC_H_PERSON&&hot[sc_hot].id==i;
+  /* Lave's hero plate already contains Venn at this authored anchor.  Never
+   * stamp the legacy atlas card over the baked figure; only the live focus
+   * rectangle is drawn below. */
+  int baked_venn=sc_room==SC_R_ARRIVALS&&px==145&&py==77;
+  if(!baked_venn){
+   if(sc_raster_room())sc_raster_crew(VX+px,VY+py,i,focus);
+   else sc_draw_person_sprite(VX+px,VY+py,&people[i],focus);
   }
  }
- for(int i=0;i<hn;i++)if(hot[i].kind==SC_H_EXIT&&hot[i].id==SC_EXIT_SHIP){
+ if(sc_hot>=0&&sc_hot<hn)sc_focus_glow(&hot[sc_hot]);
+ for(int i=0;i<hn;i++)if(!sc_raster_room()&&hot[i].kind==SC_H_EXIT&&hot[i].id==SC_EXIT_SHIP){
   unsigned c=sc_hot==i?SC_AMBER:SC_OCHRE;
   rect(hot[i].x,hot[i].y,hot[i].w,hot[i].h,mix_rgb(SC_CHAR,SC_OCHRE,.2f));
   rect(hot[i].x,hot[i].y,hot[i].w,1,c);
@@ -664,35 +759,70 @@ static void sc_draw_main_scene(void){
   text((hot[i].x+8)/8,(hot[i].y+8)/8,c,"SHIP");
  }
 }
-/* Room title only — no verb buttons, no PACK hold cue. */
+/* Room identity and live balance; no verb buttons or PACK hold cue. */
 static void sc_draw_header(void){
  StationShellStyle shell=station_shell_style();
+ StationIdentity identity=sc_identity();
  rect(0,0,W,SC_VY-2,SC_CHAR);
  rect(0,SC_VY-3,W,1,shell.rule);
  text(1,1,shell.warm,"%.18s",sc_room_title(sc_room));
- text(24,1,shell.cyan,"%.18s",station_shell_tag(sc_room));
- text(46,1,shell.cream,"U/D X  TRI SHIP");
+ char station_name[32];snprintf(station_name,sizeof(station_name),"%s STATION",game.systems[game.system].name);
+ text(24,1,shell.cyan,"%.20s",station_name);
+ char balance[32];snprintf(balance,sizeof(balance),"%d.%d U",game.credits/10,game.credits%10);
+ int balance_x=W-8-(int)strlen(balance)*8;
+ rect(balance_x-5,4,W-balance_x+1,16,SC_VOID);
+ text_px(balance_x,8,shell.warm,"%s",balance);
+ (void)identity;
+
 }
 /* Right-side people / options list — the only selector. */
+static int sc_talk_choices(const ScNpc *p,const char **out,int maxn);
 static void sc_draw_options(void){
  StationShellStyle shell=station_shell_style();
  rect(SC_LX,SC_LY,SC_LW,SC_LH,mix_rgb(SC_CHAR,SC_VOID,.35f));
  station_shell_frame(SC_LX,SC_LY,SC_LW,SC_LH,0);
- text((SC_LX+8)/8,(SC_LY+4)/8,shell.cyan,"OPTIONS");
+ if(sc_menu==SC_MENU_SHOP){
+  text_px(SC_LX+6,SC_LY+4,shell.cyan,"DECK STOCK");
+  int list[8],n=sc_exclusive_catalog(list,8);
+  for(int i=0;i<n;i++){int y=SC_LY+16+i*12,chosen=i==(sc_shop_row%n+n)%n;
+   if(chosen)rect(SC_LX+2,y-1,SC_LW-4,11,SC_AMBER);
+   text_px(SC_LX+6,y,chosen?SC_VOID:SC_CREAM,"%.14s",equipment_list_names[list[i]]);
+  }return;
+ }
+ if(sc_menu==SC_MENU_TALK){
+  text_px(SC_LX+6,SC_LY+4,shell.cyan,"REPLIES");
+  ScNpc people[3];int n=sc_fill_npcs(sc_room,people,3);if(sc_talk_who<0||sc_talk_who>=n)return;
+  const char *choices[4];int count=sc_talk_choices(&people[sc_talk_who],choices,4),y=40;
+  for(int i=0;i<count;i++){
+   int lines=0;const char *p=choices[i];do{lines++;p=sc_read_advance(p,1,14);}while(*p&&lines<4);
+   if(i==sc_talk_row)rect(SC_LX+2,y-1,SC_LW-4,lines*8+2,SC_AMBER);
+   text_wrap(45,y/8,14,4,i==sc_talk_row?SC_VOID:SC_CREAM,choices[i],0);y+=lines*8+8;
+  }return;
+ }
+ text_px(SC_LX+6,SC_LY+4,shell.cyan,"EXPLORE");
  ScHot hot[24]; int hn=sc_hotspots(hot,24);
  if(sc_hot<0)sc_hot=0;if(hn>0&&sc_hot>=hn)sc_hot=hn-1;
- int rows=(SC_LH-20)/12;if(rows<4)rows=4;if(rows>12)rows=12;
+ int rows=6,row_h=22;
  int first=0;if(hn>rows){first=sc_hot-(rows/2);if(first<0)first=0;if(first>hn-rows)first=hn-rows;}
  for(int j=0;j<rows&&first+j<hn;j++){
-  int i=first+j,y=SC_LY+16+j*12;
-  unsigned ink=i==sc_hot?shell.warm:shell.cream;
-  if(i==sc_hot)rect(SC_LX+2,y-1,SC_LW-4,11,mix_rgb(shell.rule,shell.ink,.28f));
+  int i=first+j,y=SC_LY+25+j*row_h;
+  int chosen=i==sc_hot;unsigned ink=chosen?shell.ink:shell.cream;
+  rect(SC_LX+2,y-3,SC_LW-4,20,mix_rgb(SC_CHAR,SC_VOID,.18f));
+  rect(SC_LX+2,y-3,SC_LW-4,1,chosen?shell.cream:SC_SLATE);
+  rect(SC_LX+2,y+16,SC_LW-4,1,chosen?shell.cream:SC_SLATE);
+  rect(SC_LX+2,y-3,1,20,chosen?shell.cream:SC_SLATE);
+  rect(SC_LX+SC_LW-3,y-3,1,20,chosen?shell.cream:SC_SLATE);
+  if(chosen){
+   rect(SC_LX+3,y-2,SC_LW-6,18,shell.warm);
+   text_px(SC_LX+5,y,ink,">");
+  }
   char line[20];
-  if(hot[i].kind==SC_H_PERSON)snprintf(line,sizeof(line),"%.14s",hot[i].label);
+  if(hot[i].kind==SC_H_HERE)snprintf(line,sizeof(line),"HERE");
+  else if(hot[i].kind==SC_H_PERSON)snprintf(line,sizeof(line),"%.14s",hot[i].label);
   else if(hot[i].kind==SC_H_EXIT&&hot[i].id==SC_EXIT_SHIP)snprintf(line,sizeof(line),"YOUR SHIP");
   else if(hot[i].kind==SC_H_EXIT)snprintf(line,sizeof(line),"-> %.11s",hot[i].label);
   else snprintf(line,sizeof(line),"%.14s",hot[i].label);
-  text((SC_LX+6)/8,y/8,ink,"%s",line);
+  text_px(SC_LX+(chosen?15:6),y,ink,"%s",line);
  }
 }
 /* Verb chrome retired — options list owns LOOK/SPEAK/GO/TAKE payoffs. */
@@ -707,6 +837,7 @@ static int sc_talk_choices(const ScNpc *p,const char **out,int maxn){
  SC_CH("Hear them out");
  if(p->act==SC_ACT_SHOP)SC_CH("Browse exclusive stock");
  else if(p->act==SC_ACT_GIFT)SC_CH(p->offer);
+ else if(p->act==SC_ACT_MANIFEST)SC_CH(p->offer);
  else if(p->act==SC_ACT_QUEST)SC_CH(p->offer);
  else if(p->act==SC_ACT_TAXI)SC_CH(p->offer);
  else SC_CH(p->offer&&p->offer[0]?p->offer:"Ask for a useful tip");
@@ -740,45 +871,27 @@ static void sc_talk_tip(const ScNpc *p){
  }else message(&game,p->offer?p->offer:p->line);
 }
 static void sc_draw_text_box(void){
- /* Feedback band under MAIN + options — label + look only. */
- const int ty=SC_VY+SC_VH+2;
- StationShellStyle shell=station_shell_style();
- rect(0,ty,W,H-ty,mix_rgb(shell.panel,shell.ink,.6f));
- station_shell_rule(0,ty,W,shell.cyan);
- int row=ty/8+1;
- ScHot hot[24]; int hn=sc_hotspots(hot,24);
+ rect(0,190,W,82,SC_CHAR);station_shell_rule(0,190,W,SC_CYAN);
  if(sc_menu==SC_MENU_SHOP){
-  int list[8],ln=sc_exclusive_catalog(list,8);
-  text(1,row,SC_AMBER,"CHANDLER STOCK");
-  if(!ln)text(1,row+1,SC_LAV,"Sold out today.");
-  else {int idx=list[sc_shop_row%ln];text(1,row+1,SC_CREAM,"%.18s  %.1fU",equipment_list_names[idx],equipment_costs[idx]*.1f);
-   text(1,row+3,SC_LAV,"UP/DOWN  X buy  TRI back");}
-  return;
+  int list[8],n=sc_exclusive_catalog(list,8);text(1,24,SC_AMBER,"CHANDLER STOCK");
+  if(n){int k=list[(sc_shop_row%n+n)%n];text(1,25,SC_CREAM,"%.30s  %.1f U",equipment_list_names[k],equipment_net_cost(k)*.1f);}
+  text_wrap(1,27,58,4,SC_CREAM,game.message_time>0?game.message:"Choose a module to inspect its price. Replacement purchases need confirmation.",0);
+ }else{
+  int pages=sc_read_pages();if(sc_read_page>=pages)sc_read_page=pages-1;if(sc_read_page<0)sc_read_page=0;
+  const char *p=sc_read_text;for(int i=0;i<sc_read_page;i++)p=sc_read_advance(p,6,58);
+  text(1,24,SC_AMBER,"%.43s",sc_read_title);if(pages>1)text(52,24,SC_LAV,"%d/%d",sc_read_page+1,pages);
+  text_wrap(1,25,58,6,SC_CREAM,p,0);
  }
- if(sc_menu==SC_MENU_TALK){
-  ScNpc people[3]; int pn=sc_fill_npcs(sc_room,people,3);
-  if(sc_talk_who<0||sc_talk_who>=pn){sc_menu=SC_MENU_NONE;return;}
-  ScNpc *p=&people[sc_talk_who];
-  text(1,row,SC_AMBER,"%.12s",p->name);
-  text_wrap(14,row,42,bar_preview_action(p->act)?2:1,SC_CREAM,p->line,0);
-  const char *ch[4]; int cn=sc_talk_choices(p,ch,4);
-  if(sc_talk_row<0)sc_talk_row=0;if(sc_talk_row>=cn)sc_talk_row=cn-1;
-  for(int i=0;i<cn&&i<3;i++){
-   int y=row+2+i;
-   text(1,y,i==sc_talk_row?SC_AMBER:SC_LAV,i==sc_talk_row?">":" ");
-   text_wrap(3,y,54,1,i==sc_talk_row?SC_CREAM:SC_LAV,ch[i],0);
-  }
-  return;
- }
- if(hn<=0){text_wrap(1,row,58,3,SC_CREAM,sc_room_blurb(sc_room),0);text(1,row+4,SC_LAV,"U/D options   X do   O deck");return;}
- if(sc_hot<0)sc_hot=0;if(sc_hot>=hn)sc_hot=hn-1;
- ScHot *h=&hot[sc_hot];
- text(1,row,SC_AMBER,"%.20s",h->label);
- text_wrap(1,row+1,58,2,SC_CREAM,h->look?h->look:sc_room_blurb(sc_room),0);
- text(1,row+4,SC_LAV,"U/D options   X do   O deck   TRI ship");
+ rect(0,256,W,16,SC_VOID);rect(0,256,W,1,SC_SLATE);
+ button_icon(8,259,'U',SC_CREAM);button_icon(20,259,'D',SC_CREAM);text_px(36,260,SC_LAV,sc_menu==SC_MENU_TALK?"REPLY":"SELECT");
+ button_icon(100,259,'X',SC_CREAM);text_px(116,260,SC_LAV,sc_menu==SC_MENU_SHOP?(equip_confirm_item>=0?"CONFIRM":"BUY"):"CHOOSE");
+ if(sc_menu!=SC_MENU_SHOP){button_icon(180,259,'L',SC_CREAM);button_icon(192,259,'R',SC_CREAM);text_px(208,260,SC_LAV,"READ");}
+ button_icon(256,259,'O',SC_CREAM);text_px(272,260,SC_LAV,"BACK");
+ button_icon(320,259,'T',SC_CREAM);text_px(336,260,SC_LAV,sc_menu?"BACK":"SHIP");
+ if(sc_lave()){button_icon(396,259,'E',SC_CREAM);text_px(416,260,SC_LAV,"LOG");}
 }
 static void sc_draw_ui(void){
- sc_build_map();
+ sc_build_map();preview_reset();*sc_progress()|=1u<<(8+sc_room);
  rect(0,0,W,H,mix_rgb(SC_VOID,SC_OCHRE,.05f));
  sc_draw_header();
  sc_draw_main_scene();
@@ -793,7 +906,8 @@ static void sc_do_npc_choice(ScNpc *p,int choice){
  if(choice<0||choice>=cn)return;
  if(choice==cn-1){sc_menu=SC_MENU_NONE;message(&game,"You nod and step back.");game.cue=SFX_UI;return;}
  if(bar_preview_action(p->act)){bar_preview_choose(p->act,choice);sc_menu=SC_MENU_NONE;return;}
- speak(&game,p->role==LAW?VOICE_LAW:p->role==EXPLORERS?VOICE_KEI:!strcmp(p->name,"VENN")?VOICE_VENN:VOICE_DOCK,p->line);
+ speak(&game,lave_npc_action(p->act)?VOICE_CONTACT:p->role==LAW?VOICE_LAW:p->role==EXPLORERS?VOICE_KEI:!strcmp(p->name,"VENN")?VOICE_VENN:VOICE_DOCK,p->line);
+ if(lave_npc_action(p->act)&&choice==1){sc_menu=SC_MENU_NONE;lave_action(p->act-40);return;}
  if(choice==0){
   message(&game,p->line);sc_menu=SC_MENU_NONE;game.cue=SFX_UI;return;
  }
@@ -804,11 +918,23 @@ static void sc_do_npc_choice(ScNpc *p,int choice){
   int bit=p->gift_bit>=0?p->gift_bit:0;
   if(game.gift_flags&(1u<<bit)){message(&game,"Already took that gift.");return;}
   game.gift_flags|=1u<<bit;
-  if(bit==0){if(game.fit[FIT_HOLD]==FIT_EMPTY){game.fit[FIT_HOLD]=23;fit_rebuild(&game);message(&game,"Free cargo clamp fitted (+8t).");}else {game.credits+=200;message(&game,"Clamp spare sold for 20 U.");}}
+  if(bit==0){int clamp_slot=fit_empty_slot(&game,FIT_HOLD);if(clamp_slot>=0&&fit_find(&game,23)<0){game.fit[clamp_slot]=23;fit_rebuild(&game);message(&game,"Free cargo clamp fitted (+8t).");}else {game.credits+=200;message(&game,"Clamp spare sold for 20 U.");}}
   else {game.energy=100;message(&game,"Medkit used — energy restored.");}
   game.cue=SFX_UI;
+ }else if(p->act==SC_ACT_MANIFEST){
+  sc_manifest_prepare();
+  if(sc_manifest_state()==1){
+   sc_manifest_set(2);game.credits+=sc_manifest_reward();
+   {char note[80];snprintf(note,sizeof(note),"Manifest filed. Tip paid %.1f U.",sc_manifest_reward()*.1f);message(&game,note);}
+   game.cue=SFX_SELECT;
+  }else if(sc_manifest_state()==0){
+   message(&game,"The loose sheet is somewhere in the cargo bay. Inspect MANIFEST first.");game.cue=SFX_UI;
+  }else {message(&game,"The loader has already filed that manifest.");game.cue=SFX_UI;}
  }else if(p->act==SC_ACT_QUEST){
-  game.credits+=p->quest_pay;game.discoveries++;
+  if(*sc_progress()&(1u<<16)){message(&game,"Survey tip already paid at this hub.");return;}
+  int surveyed=0;for(int b=1;b<BODY_COUNT;b++)surveyed|=(game.surface_progress[game.system][b]&0x0fff00u)!=0;
+  if(!surveyed){message(&game,"Scan surface life or minerals in this system, then bring back the record.");return;}
+  *sc_progress()|=1u<<16;game.credits+=p->quest_pay;
   {char note[64];snprintf(note,sizeof(note),"Side tip paid %.1f U.",p->quest_pay*.1f);message(&game,note);}
   game.cue=SFX_SELECT;
  }else if(p->act==SC_ACT_TAXI){
@@ -821,12 +947,12 @@ static void sc_do_npc_choice(ScNpc *p,int choice){
   speak(&game,VOICE_CONTACT,"Thanks. I'll talk your ear off.");game.cue=SFX_UI;
  }
 }
-static void sc_apply(void){
+static void sc_apply_action(void){
  if(sc_menu==SC_MENU_SHOP){
   int list[8],ln=sc_exclusive_catalog(list,8);
   if(!ln){message(&game,"Chandler is empty.");return;}
   if(sc_shop_row<0)sc_shop_row=0;if(sc_shop_row>=ln)sc_shop_row=ln-1;
-  buy_equipment(list[sc_shop_row]);return;
+  equipment_buy_action(list[sc_shop_row],1);return;
  }
  if(sc_menu==SC_MENU_TALK){
   ScNpc people[3]; int pn=sc_fill_npcs(sc_room,people,3);
@@ -838,6 +964,7 @@ static void sc_apply(void){
  if(sc_hot<0)sc_hot=0;if(sc_hot>=hn)sc_hot=hn-1;
  ScHot *h=&hot[sc_hot];
  /* Natural action from the selected options-list entry — no verb row. */
+ if(h->kind==SC_H_HERE){message(&game,sc_room_blurb(sc_room));game.cue=SFX_UI;return;}
  if(h->kind==SC_H_EXIT){
   if(h->id==SC_EXIT_SHIP){sc_board_ship();return;}
   sc_room=h->id;sc_hot=0;message(&game,sc_room_blurb(sc_room));game.cue=SFX_SELECT;return;
@@ -850,6 +977,22 @@ static void sc_apply(void){
  }
  /* Props that own a deal open talk with that person; otherwise LOOK. */
  if(h->kind==SC_H_PROP||h->kind==SC_H_FEATURE){
+  if(sc_lave()&&h->id>=100&&h->kind==SC_H_FEATURE){
+   if(h->id==100){change_page(MISSIONS);return;}
+   if(h->id==101){change_page(EQUIP);return;}
+   if(h->id==102){audio_station_juke=!audio_station_juke;message(&game,audio_station_juke?"Canteen jukebox on. Music volume applies.":"Canteen jukebox off.");return;}
+   if(h->id==103){tracked_mission=TRACK_LAVE;change_page(CAMPAIGN);return;}
+   if(h->id==104){if(!(*sc_progress()&(1u<<17))){*sc_progress()|=1u<<17;game.energy=100;game.hazard=0;message(&game,"Dr Sen: complimentary treatment. Shields recharged and exposure cleared.");}else message(&game,"You are already cleared for duty. Ship damage needs the repair dock.");return;}
+   if(h->id==105){change_page(STATUS);return;}
+  }
+  if(sc_room==SC_R_CARGO&&!strcmp(h->label,"MANIFEST")){
+   if(sc_lave()){if(sc_lave_stage()==1){sc_lave_set(2);sc_manifest_set(1);message(&game,"Manifest recovered: medical crate, canteen shift. Ask Niko in the Canteen.");}else message(&game,sc_lave_objective());game.cue=SFX_SCAN;return;}
+   sc_manifest_prepare();
+   if(sc_manifest_state()==0){sc_manifest_set(1);message(&game,"You find the missing manifest under the rail. Take it to the LOADER.");}
+   else if(sc_manifest_state()==1)message(&game,"The missing manifest is in your hand. The LOADER can file it.");
+   else message(&game,"The cargo manifest is filed and the berth is moving again.");
+   game.cue=SFX_UI;return;
+  }
   int owner=sc_find_hot(SC_H_PERSON,-1);
   if(owner>=0&&(!strcmp(h->label,"TIP CRATE")||!strcmp(h->label,"STOCK CRATE")||!strcmp(h->label,"MEDKIT LOCKER")||!strcmp(h->label,"COUNTER")||!strcmp(h->label,"BAR TOP")||!strcmp(h->label,"GUILD DESK"))){
    ScHot hot2[24]; int hn2=sc_hotspots(hot2,24);
@@ -862,12 +1005,41 @@ static void sc_apply(void){
  }
  message(&game,h->look?h->look:sc_room_blurb(sc_room));game.cue=SFX_UI;
 }
+static void sc_apply(void){
+ int oldroom=sc_room,oldmenu=sc_menu,oldstage=sc_lave_stage(),oldpage=page;ScNpc person={0};ScHot picked={0};
+ if(oldmenu==SC_MENU_TALK){ScNpc p[3];int n=sc_fill_npcs(sc_room,p,3);if(sc_talk_who>=0&&sc_talk_who<n)person=p[sc_talk_who];}
+ else if(!oldmenu){ScHot h[24];int n=sc_hotspots(h,24);if(sc_hot>=0&&sc_hot<n)picked=h[sc_hot];}
+ int choice=sc_talk_row;sc_apply_action();
+ if(page!=oldpage)return; /* Returning from a service preserves the last paragraph. */
+ if(oldroom!=sc_room){sc_read_room();return;}
+ if(sc_menu==SC_MENU_TALK){ScNpc p[3];int n=sc_fill_npcs(sc_room,p,3);if(sc_talk_who>=0&&sc_talk_who<n)sc_read_contact(&p[sc_talk_who]);return;}
+ if(oldmenu==SC_MENU_TALK&&person.name){
+  if(choice==0&&!bar_preview_action(person.act))sc_read_set(person.name,sc_contact_detail(&person));
+  else if(lave_npc_action(person.act)&&choice==1)sc_read_pair(person.name,lave_response(person.act-40,oldstage),sc_lave_objective());
+  else sc_read_set(person.name,game.message);
+ }else if(picked.label){
+  if(picked.kind==SC_H_HERE)sc_read_room();
+  else if(picked.kind==SC_H_FEATURE&&picked.id>=50&&picked.id<57)sc_read_set(picked.label,sc_landmark_detail(sc_room));
+  else if(picked.kind==SC_H_PROP&&picked.id==17)sc_read_pair(picked.label,"The manifest records the shipment rather than the crate itself: a small, easily misplaced piece of paperwork standing between the cargo and its next destination. You check the entries carefully. A change of handler, a damaged seal or a missing clearance matters here, even when the container has never left the station.",game.message);
+  else if(picked.kind==SC_H_PROP&&picked.id>=60&&picked.id<62)sc_read_set(picked.label,picked.look);
+  else sc_read_set(picked.label,game.message);
+ }else sc_read_set("STATION",game.message);
+}
 static int sc_input(unsigned pressed){
  sc_build_map();
+ if(sc_menu!=SC_MENU_SHOP&&(pressed&PSP_CTRL_LEFT)){
+  if(sc_read_page>0)sc_read_page--;game.cue=SFX_SELECT;return 1;
+ }
+ if(sc_menu!=SC_MENU_SHOP&&(pressed&PSP_CTRL_RIGHT)){
+  int pages=sc_read_pages();if(sc_read_page+1<pages)sc_read_page++;game.cue=SFX_SELECT;return 1;
+ }
+ if((pressed&PSP_CTRL_SELECT)&&sc_lave()){tracked_mission=TRACK_LAVE;change_page(CAMPAIGN);return 1;}
  if(pressed&PSP_CTRL_TRIANGLE && sc_menu==SC_MENU_NONE){sc_board_ship();return 1;}
  if(sc_menu==SC_MENU_SHOP){
-  if(pressed&PSP_CTRL_UP){sc_shop_row--;game.cue=SFX_SELECT;}
-  if(pressed&PSP_CTRL_DOWN){sc_shop_row++;game.cue=SFX_SELECT;}
+  int list[8],n=sc_exclusive_catalog(list,8);if(n<1)n=1;
+  sc_shop_row=(sc_shop_row%n+n)%n;
+  if(pressed&PSP_CTRL_UP){sc_shop_row=(sc_shop_row+n-1)%n;game.cue=SFX_SELECT;}
+  if(pressed&PSP_CTRL_DOWN){sc_shop_row=(sc_shop_row+1)%n;game.cue=SFX_SELECT;}
   if(pressed&PSP_CTRL_TRIANGLE){sc_menu=SC_MENU_NONE;return 1;}
   if(pressed&PSP_CTRL_CROSS){sc_apply();return 1;}
   if(pressed&PSP_CTRL_CIRCLE){sc_menu=SC_MENU_NONE;return 1;}

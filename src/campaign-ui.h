@@ -1,5 +1,6 @@
 static void campaign_screen(void){
  char title[96],detail[256];
+ if(tracked_mission==TRACK_LAVE){dialogue_begin("LAVE / BERTH SIX");dialogue_named("MARA",TRADERS,"A missing manifest links the canteen shift, Chandlery, Clinic and Customs. Help the crew get their medicine shipment moving.",0);dialogue_context("CURRENT OBJECTIVE",sc_lave_objective());dialogue_reply(0,"Return to station / navigate");narrative_footer();return;}
  if(tracked_mission==TRACK_STATION_TOUR&&station_tour_active()){
   dialogue_begin(station_tour_title());
   dialogue_named("STATION GUIDE",TRADERS,"Reorte Hub has a place where visiting pilots can meet the local crew.","Meet Lysa Kest at The Second Shift, Reorte Hub.");
@@ -13,7 +14,7 @@ static void campaign_screen(void){
  if(tracked_mission>=2){
   int ji=tracked_mission-2;if(ji<0||ji>=game.job_n){tracked_mission=0;campaign_screen();return;}
   Job *j=&game.jobs[ji];snprintf(title,sizeof(title),"CONTRACT / %s",mission_name(j->type));dialogue_begin(title);
-  snprintf(detail,sizeof(detail),"Destination: %s. Time remaining: %.0f seconds. Reward: %.1f U.",game.systems[j->dest].name,j->time,j->reward*.1f);
+  snprintf(detail,sizeof(detail),"Destination: %s. Reward: %.1f U. Your next step is below.",game.systems[j->dest].name,j->reward*.1f);
   dialogue_named("MISSION DESK",TRADERS,detail,0);
   dialogue_context("CURRENT OBJECTIVE",mission_objective_at(&game,ji));
   dialogue_reply(0,"Navigate to objective");dialogue_reply(1,"Return to mission log");narrative_footer();return;
@@ -35,18 +36,18 @@ static void campaign_screen(void){
   snprintf(title,sizeof(title),"CHAPTER %02d / %.40s",game.saga_chapter+2,b->title);dialogue_begin(title);
   if(!game.saga_step){
    int beat=saga_brief_beat;if(beat<0)beat=0;if(beat>=SAGA_BRIEF_BEATS)beat=SAGA_BRIEF_BEATS-1;
-   dialogue_named(saga_brief_echo?"COMMANDER":b->speaker,saga_speaker_role(b),saga_brief_echo?saga_brief_reply(b,beat):saga_brief_line(b,beat),0);
-   snprintf(title,sizeof(title),"%s / %d OF %d",saga_brief_echo?"WAITING":beat<SAGA_BRIEF_BEATS-1?"YOUR REPLY":"ACCEPT",beat+1,SAGA_BRIEF_BEATS);
-   dialogue_context(title,saga_brief_echo?"Hear their answer when you are ready.":beat<SAGA_BRIEF_BEATS-1?"Ask, then hear the answer.":b->objective);
-   dialogue_reply(0,saga_brief_echo?"Hear the answer":saga_brief_reply(b,beat));narrative_footer();return;
+   dialogue_named(b->speaker,saga_speaker_role(b),saga_brief_line(b,beat),0);
+   snprintf(title,sizeof(title),"%s / %d OF %d",beat<SAGA_BRIEF_BEATS-1?"YOUR REPLY":"ACCEPT",beat+1,SAGA_BRIEF_BEATS);
+   dialogue_context(title,beat<SAGA_BRIEF_BEATS-1?"Ask, then hear the answer.":b->objective);
+   dialogue_reply(0,saga_brief_reply(b,beat));narrative_footer();return;
   }
   const char *next=b->objective;
   if(saga_ready(&game))next="The objective is complete. Choose Complete chapter below to report your result.";
   else if(game.system!=game.saga_dest)next="Choose Set course below. Follow the highlighted jumps on the Galaxy Map to the destination shown here.";
   else if(game.saga_chapter==1&&(game.saga_flags&SAGA_OBSERVATION_RESET))next="The observation was interrupted. Let the ship cool, jump out and return to this system before scanning the signal again.";
-  else if(b->kind==SAGA_SCAN)next=game.saga_chapter==1?"Select the first anomaly in the target list, approach it and press Circle to scan. Keep the engines cool and do not fire.":"Select an unscanned anomaly in the target list, approach it and press Circle to scan. Return here once the discovery is recorded.";
+  else if(b->kind==SAGA_SCAN)next=game.saga_chapter==1?"Select the first anomaly in the target list, approach it and press Triangle to scan. Keep the engines cool and do not fire.":"Select an unscanned anomaly in the target list, approach it and press Triangle to scan. Return here once the discovery is recorded.";
   else if(b->kind==SAGA_HUNT)next="Launch if you are docked. Find a hostile ship in this system and defeat it, then return here to report.";
-  else if(b->kind!=SAGA_CHOICE||game.saga_chapter==3)next="Approach the local hub and press Circle within 2,500 metres to dock. If you were already docked when accepting, launch and return to register the arrival.";
+  else if(b->kind!=SAGA_CHOICE||game.saga_chapter==3)next="Approach the local hub and press Triangle within 2,500 metres, then choose REQUEST AUTO-DOCK. If you were already docked when accepting, launch and return to register the arrival.";
   if(game.saga_chapter==0&&!saga_ready(&game)&&game.system==game.saga_dest)next=(game.saga_flags&SAGA_CASE_HELD)?"The sealed receiver is aboard. Dock at Lave Hub, then return here to complete the delivery.":"Dock at this system's hub to collect Mara's sealed receiver. The destination will then update to Lave for the return trip.";
   dialogue_named(b->speaker,saga_speaker_role(b),b->talk8,next);
   if(b->kind==SAGA_CHOICE&&(game.saga_chapter!=3||(game.saga_flags&SAGA_TIMESTAMP_FOUND))){
@@ -72,9 +73,9 @@ static void campaign_screen(void){
  const char *a,*b;
  if(game.system!=7){
   a="I am waiting at Lave Hub. Your first flight starts and ends here, so come back to Lave before continuing.";
-  b="Choose the route option below to open the Galaxy Map. Follow the selected jumps, then approach Lave Hub and press Circle to dock.";
+  b="Choose the route option below to open the Galaxy Map. Follow the selected jumps, then approach Lave Hub and press Triangle, then choose REQUEST AUTO-DOCK.";
  }else if(game.campaign_stage==0){
-  a="We should discuss the flight while you are safely docked. Approach Lave Hub and press Circle when you are within 2,500 metres.";
+  a="We should discuss the flight while you are safely docked. Approach Lave Hub and press Triangle when you are within 2,500 metres.";
   b="The station will bring you to a berth. Open Tracked Mission again once you are inside, and I will explain the assignment.";
  }else if(game.campaign_stage==1){
   a="Your ship is ready at the berth. Choose Launch ship below, then hold R to build speed and steer clear of the station.";
@@ -86,7 +87,7 @@ static void campaign_screen(void){
   a="Keep practising your turns and speed until the flight recorder shows 600 metres travelled. You can check your progress here.";
   b="Hold R to accelerate and L to slow down. There is no need to boost or leave the Lave system.";
  }else if(game.campaign_stage<5){
-  a="That is enough flight practice. Return to Lave Hub, slow down as you approach, and press Circle within 2,500 metres to request docking.";
+  a="That is enough flight practice. Return to Lave Hub, slow down as you approach, and press Triangle within 2,500 metres, then choose REQUEST AUTO-DOCK.";
   b="Let the arrival sequence finish. When you are inside, open Tracked Mission again to report to me and collect your reward.";
  }else{
   a="You made it back to Lave safely. Your harbour badge confirms that you can take this ship out and bring it home.";

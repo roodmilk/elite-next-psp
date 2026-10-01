@@ -3,23 +3,30 @@
 #include <stdint.h>
 #include "mesh.h"
 #define STATION_Z 3500.f
-#define STATION_HALF 160.f
 #define STATION_PORT_HALF_W 70.f
 #define STATION_PORT_HALF_H 32.f
 #define STATION_SHIP_HALF_W 18.f
 #define STATION_SHIP_HALF_H 10.f
-#define STATION_ENTRY_Z (STATION_Z-STATION_HALF)
 #define HUB_COUNT 3
-static inline Vec3 station_port_corner(int i){
- return (Vec3){(i==0||i==3)?-STATION_PORT_HALF_W:STATION_PORT_HALF_W,
-               i<2?-STATION_PORT_HALF_H:STATION_PORT_HALF_H,-STATION_HALF};
-}
+#define FIT_SAVE_BYTES 20
+#define SOCIAL_KEEP 4096
+#define SOCIAL_VARIANTS 8
+#define SOCIAL_TAIL_VARIANTS 16
+#define SOCIAL_POST_VARIANTS (SOCIAL_VARIANTS*SOCIAL_TAIL_VARIANTS)
+#define SOCIAL_SAVE_BYTES (SOCIAL_KEEP*12+1040)
+enum {SB_ARRIVE=1,SB_LEAVE,SB_DOCK,SB_LAUNCH,SB_ARREST,SB_FINE,SB_FLEE,
+ SB_BOUNTY,SB_DESTROY,SB_PAINT,SB_SHIP,SB_LAND,SB_FLORA,SB_FAUNA,SB_RIFT,
+ SB_SALVAGE,SB_JOB,SB_MISSED,SB_RETURN,SB_AMBIENT,SB_COUNT};
+typedef struct {uint32_t post[SOCIAL_KEEP],stamp[SOCIAL_KEEP],origin[SOCIAL_KEEP];
+ uint32_t seen[256],clock,serial,count,evidence_reaction;} SocialState;
+#define EQUIPMENT_COUNT 69
+#define LAW_SCANNER_ITEM 56
 #define NPC_COUNT 48
 #define DEBRIS_COUNT 64
 #define ANOMALY_COUNT 4
 #define LIFE_COUNT 8
 #define SURFACE_CELL 40
-#define EVA_FIELD_RADIUS 480.f
+#define EVA_FIELD_RADIUS 10500.f
 #define GOODS 17
 #define NPC_ID_MIN (BODY_COUNT+1)
 #define NPC_ID_MAX (BODY_COUNT+NPC_COUNT)
@@ -27,6 +34,13 @@ static inline Vec3 station_port_corner(int i){
 #define DEBRIS_ID_MAX (BODY_COUNT+NPC_COUNT+DEBRIS_COUNT)
 #define ANOMALY_ID_MIN (DEBRIS_ID_MAX+1)
 #define ANOMALY_ID_MAX (DEBRIS_ID_MAX+ANOMALY_COUNT)
+#define ROUTE_TARGET_ID (ANOMALY_ID_MAX+1)
+#define FLIGHT_TARGET_MAX (ROUTE_TARGET_ID+HUB_COUNT-1)
+#define TARGET_CAPACITY (FLIGHT_TARGET_MAX+1)
+#define STATION_TARGET_ID(hub) ((hub)==0?0:ROUTE_TARGET_ID+(hub))
+#define IS_STATION_ID(id) (station_target_hub(id)>=0)
+#define BOUNTY_POSTER_COUNT 5
+#define BOUNTY_NPC_FIRST 24
 #define IS_NPC_ID(id) ((unsigned)((id)-NPC_ID_MIN)<(unsigned)NPC_COUNT)
 #define IS_DEBRIS_ID(id) ((unsigned)((id)-DEBRIS_ID_MIN)<(unsigned)DEBRIS_COUNT)
 #define IS_ANOMALY_ID(id) ((unsigned)((id)-ANOMALY_ID_MIN)<(unsigned)ANOMALY_COUNT)
@@ -34,9 +48,10 @@ enum { TRADERS, LAW, PIRATES, EXPLORERS, FACTION_COUNT };
 enum { SUN, ROCKY, OCEAN, GAS };
 enum { MISSION_DELIVERY, MISSION_BOUNTY, MISSION_EXPLORATION, MISSION_RESCUE, MISSION_SMUGGLING, MISSION_TYPES };
 enum { LIFE_FLORA, LIFE_FAUNA, LIFE_MINERAL };
-enum { SFX_NONE, SFX_UI, SFX_LASER, SFX_HIT, SFX_WARP, SFX_SCAN, SFX_LAND, SFX_MINE, SFX_BOOST, SFX_COMM, SFX_DOCK, SFX_MISSILE, SFX_ALERT, SFX_DEATH, SFX_SELECT, SFX_TALK };
+enum { SFX_NONE, SFX_UI, SFX_LASER, SFX_HIT, SFX_WARP, SFX_SCAN, SFX_LAND, SFX_MINE, SFX_BOOST, SFX_COMM, SFX_DOCK, SFX_MISSILE, SFX_ALERT, SFX_DEATH, SFX_SELECT, SFX_TALK, SFX_OBSERVATORY, SFX_ALIEN_PLAYER, SFX_ALIEN_FIRE, SFX_ALIEN_MISSILE, SFX_ALIEN_KILL, SFX_SPEED_SURGE };
 enum { VOICE_NONE, VOICE_KEI, VOICE_VENN, VOICE_DOCK, VOICE_LAW, VOICE_COMP, VOICE_CONTACT };
 #define BODY_COUNT 5
+static inline int station_target_hub(int id){return id==0?0:id>ROUTE_TARGET_ID&&id<=FLIGHT_TARGET_MAX?id-ROUTE_TARGET_ID:-1;}
 #define MISSION_SLOTS 5
 typedef struct { int dest,type,stage,target,item,origin,reward; float time; } Job;
 typedef struct { Vec3 pos; float radius; int type; unsigned color,accent,seed; char name[24]; } Body;
@@ -44,36 +59,56 @@ typedef struct { char name[12]; int x,y,economy,government,tech; } System;
 typedef struct { const char *name; int base,factor,quantity,mask; char unit; } Good;
 typedef struct { const char *name; int capacity,price,speed,range; } PlayerShip;
 enum { FREIGHT_ABSENT, FREIGHT_ARRIVING, FREIGHT_INBOUND, FREIGHT_SERVICE, FREIGHT_OUTBOUND, FREIGHT_CHARGING };
+enum { DEBUG_MODIFIED=1u, DEBUG_UNLIMITED_FUEL=2u, DEBUG_UNLIMITED_RANGE=4u, DEBUG_FLAGS_MASK=7u };
 enum { ENCOUNTER_NONE, ENCOUNTER_TRADER, ENCOUNTER_POLICE, ENCOUNTER_PIRATE, ENCOUNTER_DISTRESS, ENCOUNTER_CARGO, ENCOUNTER_WRECKAGE, ENCOUNTER_DERELICT, ENCOUNTER_ESCAPE_POD, ENCOUNTER_SMUGGLER, ENCOUNTER_MYSTERY, ENCOUNTER_MINER, ENCOUNTER_CONVOY, ENCOUNTER_BOUNTY, ENCOUNTER_UNKNOWN };
 typedef struct {
  Vec3 pos,dir; float health,shield,cooldown,flash,scale,radius,cruise;
- int role,mesh,target,alive,waypoint,freighter;
+ int role,mesh,target,alive,waypoint,freighter,bounty_slot;
  int8_t traveller; /* >=0 indexes TravellerLive; -1 = anonymous traffic */
  uint8_t name_known; /* scanner has identified this contact in the current system */
+ int route_id,route_leg,route_step,route_task;
+ float route_wait,player_tag,escape_time;
  Vec3 freight_gate,freight_berth;
  float freight_timer;
  int freight_state,freight_style,freight_hub,freight_peer,freight_good,freight_qty,freight_trip;
 } NPC;
 typedef struct { Vec3 pos,vel; int alive,good,qty,wreck,rock; float life,health,radius,flash; } Debris;
 typedef struct { Vec3 pos; int alive,kind,scanned; } Anomaly;
-typedef struct { Vec3 pos; int alive,kind,scanned; } Lifeform;
+enum { FAUNA_IDLE,FAUNA_WANDER,FAUNA_FEED,FAUNA_ALERT,FAUNA_FLEE,FAUNA_RETURN };
+/* Behaviour is transient: saves retain the same stable species discovery bits. */
+typedef struct { Vec3 pos; int alive,kind,scanned;
+ Vec3 home,goal;float heading,speed,phase,state_time,calm_time,lift;
+ uint32_t behaviour_rng;int behaviour,behaviour_ready;
+} Lifeform;
 typedef struct {
  uint32_t rng; System systems[256]; NPC npc[NPC_COUNT]; Debris debris[DEBRIS_COUNT];
  Anomaly anomaly[ANOMALY_COUNT]; Lifeform life[LIFE_COUNT];
  Body bodies[BODY_COUNT];
- int dock_stage,dock_phase,station_variant; float dock_timer,dock_duration; Vec3 dock_from,dock_to;
+ /* Local traffic and scanner contacts are transient; commander saves keep fits. */
+ Vec3 traffic_nodes[4][3],law_echo[NPC_COUNT];
+ uint8_t law_echo_seen[NPC_COUNT];
+ float law_scan_time;int law_scan_valid;
+ int dock_stage,dock_phase,station_variant; float dock_timer,dock_duration,departure_glow; Vec3 dock_from,dock_to;
+ uint32_t crime_record[256]; /* low byte: offences; upper bits: waivable cargo charge */
+ int police_cargo_heat; /* mirror of current system cargo charge */
  int wanted[256],police_stop,police_phase,police_warned,upgrades; float police_warning,police_timer,roll,explosion;
- uint8_t fit[6]; /* WPN DEF NAV HOLD FUEL UTIL — catalog index or 0xFF empty (save V13) */
+ uint8_t fit[24],active_weapon; /* Four banks of WPN DEF NAV HOLD FUEL UTIL; V24 stores extra banks + active weapon. */
  float heat_sink_cd;
+ /* Transient rechargeable tool state; reset with a fresh flight, not save layout. */
+ int flare_charges;float flare_reload,flare_cd,flare_fx,ecm_cd;Vec3 flare_pos,flare_dir;
  float freight_next,freight_gap;
  float attacked,collision,encounter,incoming_missile,police_grace; int boost,approach,planet,surface,incoming_source;
  int encounter_kind,encounter_npc,encounter_payload;
  Vec3 orbit_pos,ship_pos; float orbit_yaw,orbit_pitch,orbit_roll,orbit_speed;
- Vec3 missile_pos; float missile_time; int missile_target;
+ Vec3 missile_pos,missile_dir,missile_trail[12]; float missile_time,missile_speed; int missile_target,missile_trail_n;
+ float fire_bearing_time[NPC_COUNT]; /* transient actual incoming-shot sources */
  int tractor_target; float tractor_time;
  Vec3 pos; float yaw,pitch,speed,energy,hull,heat,fuel,time,jump,shot,message_time,hazard,jetpack,damage_fx;
+ int eva_jump_held; /* Transient R edge latch; not part of the save format. */
+ int eva_running,eva_run_arm,planet_sequence;float eva_run_hold,planet_sequence_time;Vec3 planet_sequence_anchor;
  int damaged;
  int system,destination,route_goal,credits,kills,legal,ship,docked,dead,laser,missiles,cue;
+ unsigned debug_flags; /* Runtime-only Debug Tools state; deliberately not saved. */
  int cargo[GOODS],stock[GOODS],price[GOODS],contract,contract_reward;
  int trader_offer_active,trader_offer_system,trader_offer_npc,trader_offer_need,trader_offer_reward,trader_offer_qty;
  float contract_time; int mission_type,mission_stage,mission_target,mission_item,mission_origin,mission_result,last_mission_type,last_mission_system;
@@ -81,6 +116,14 @@ typedef struct {
  int story,story_flags,pip_sys,pip_eng,pip_wep,voice_who;
  /* Optional First Light tutorial. Zero is normal play; V15 persists progress. */
  int tutorial_step,tutorial_seen;
+ char commander_name[25]; uint32_t commander_portrait; /* V16 field: legacy card or modular portrait DNA. */
+ uint32_t station_progress[256][HUB_COUNT]; /* V19: stable per-system/hub activity flags. */
+ uint32_t surface_progress[256][BODY_COUNT]; /* V17: activities and surveyed life, per world. */
+ int rover_driving; Vec3 rover_pos; float world_clock;
+ /* Transient Roamer dynamics; commander save layout is unchanged. */
+ Vec3 rover_velocity;float rover_charge,rover_crack,rover_impact_cd,rover_reverse_wait;
+ int rover_brake,rover_drift,rover_boost;
+ unsigned rover_last_controls,rover_ticks;
  int guild_chapter,guild_flags,guild_choice;
  int voice_role,voice_seed;
  int campaign_stage,campaign_choice,campaign_flags;
@@ -89,10 +132,18 @@ typedef struct {
  int saga_trust[4];
  int passenger_dest,passenger_kind,passenger_pay,gift_flags;
  int npc_kills,shots,discoveries,scanned_flora,scanned_fauna,scanned_minerals,scanned_anomalies,ai_phase;
- uint8_t visited[32],landed_planets[256]; char message[96],voice[160],collide[40]; float voice_time;
+ uint8_t rift_logged[256]; int rift_report;
+ SocialState social; float social_fraction;
+ uint8_t visited[32],landed_planets[256],bounty_claimed[256]; char message[96],voice[160],collide[40]; float voice_time;
  /* Living-galaxy named travellers (save V12). See travellers.h */
  struct { uint8_t sys,dest; int8_t slot; uint8_t flags; } travellers[12];
 } Game;
+#include "planet-profile.h"
+#include "observatory-state.h"
+#include "station-profile.h"
+#include "mega-city-layout.h"
+#include "station-architecture.h"
+int survey_scan_target(Game *g,int slot);
 extern const Good goods[GOODS];
 extern const PlayerShip player_ships[];
 extern const int player_ship_count;
@@ -105,6 +156,7 @@ void game_init(Game *g); void game_spawn(Game *g); void market(Game *g);
 int trader_offer_hail(Game *g,int npc_id);
 void system_bodies(Game *g);
 int danger_rating(const Game *g,int system);
+int system_is_lawful(const Game *g,int system);
 void turn_back(Game *g);
 int mission_cargo_reserved(const Game *g,int item);
 int mission_target_id(const Game *g,int slot);
@@ -119,10 +171,20 @@ void route_clear(Game *g);
 void route_set_goal(Game *g,int goal);
 void route_refresh_destination(Game *g);
 int wanted_level(const Game *g);
+enum {CRIME_ASSAULT=1,CRIME_LAW_ASSAULT=2,CRIME_DESTRUCTION=4,CRIME_LAW_DESTRUCTION=8,CRIME_CARGO=16,CRIME_REFUSAL=32,CRIME_ESCAPE=64,CRIME_UNKNOWN=128};
 void add_crime(Game *g,int points);
+void record_crime(Game *g,int points,unsigned reason);
+const char *police_accusation(const Game *g);
+void police_charge_details(const Game *g,char *out,int cap);
+int bounty_target_index(const Game *g,int poster);
+int bounty_target_taken(const Game *g,int poster);
+int bounty_target_reward(const Game *g,int poster);
+void bounty_target_label(const Game *g,int poster,char *out,int cap);
 int cargo_contraband(const Game *g);
 int goods_restricted(int item);
 int police_fine(const Game *g);
+int police_surrender_cargo(Game *g);
+int police_acknowledge(Game *g);
 int police_resolve(Game *g,int jail);
 int police_escape(Game *g);
 int police_scan_submit(Game *g);
@@ -132,10 +194,29 @@ void police_begin(Game *g,int phase);
 int approach_planet(Game *g,int body);
 int enter_planet(Game *g); void leave_planet(Game *g);
 int land_planet(Game *g); int takeoff_planet(Game *g); int eva_toggle(Game *g);
+int disembark_planet(Game *g);
+int board_planet(Game *g);
 int eva_can_board(const Game *g);
 void game_eva_tick(Game *g,float dt,float turn,float pitch,int walk,float strafe,int jet);
+enum { ROAM_ACCEL=1,ROAM_BRAKE=2,ROAM_DRIFT=4,ROAM_BOOST=8 };
+void game_rover_tick(Game *g,float dt,float steer,float look,unsigned controls);
+int fauna_tests(const char *path);
+int surface_cloud_deck(const Game *g,float x,float z);
+int lave_world_tests(const char *path);
+int starport_layout_tests(const char *path);
 float terrain_height(const Game *g,float x,float z);
+Vec3 surface_poi(const Game *g,int id);
+const char *surface_poi_name(int id);
+const char *surface_site_name(const Game *g,int sys,int body,int id);
+const char *surface_site_brief(const Game *g,int sys,int body,int id);
+int surface_nearest_site(const Game *g,float range);
+void surface_ship_bounds(const Game *g,float *x,float *z);
+int surface_interact(Game *g);
+int observatory_resolve(Game *g,int id,int choice);
+int surface_rover(Game *g);
 int terrain_is_water(const Game *g,float x,float z);
+int terrain_bridge_position(const Game *g,int index,Vec3 *position,Vec3 *across);
+float terrain_relief_scale(const Game *g);
 Vec3 surface_site(const Game *g,int i);
 int analysis_scan(Game *g,int target_id);
 int survey_scan(Game *g);
@@ -147,6 +228,9 @@ const char *freight_status(const NPC *n);
 int systems_visited(const Game *g);
 float station_angle(const Game *g);
 const char *station_name(const Game *g);
+const char *station_name_for(const Game *g,int hub);
+int dock_hub(Game *g,int hub);
+int station_nearest_port(const Game *g,Vec3 world);
 Vec3 hub_position(const Game *g,int hub); int nearest_hub(const Game *g);
 int prosperity(const Game *g,int system);
 int system_rock_belt(int sys); int system_ice_belt(int sys); int system_whales(int sys); int system_comet(int sys); int traffic_budget(const Game *g);
@@ -167,8 +251,18 @@ int abandon_mission(Game *g,int slot);
 int accept_mission(Game *g,int offer);
 void mission_timers(Game *g,float dt);
 void message(Game *g,const char *s); void speak(Game *g,int who,const char *s); int encounter_requires_reply(const Game *g); void encounter_respond(Game *g); void encounter_ignore(Game *g); void game_tick(Game *g,float dt,float turn,float pitch,int throttle,int fire);
+void social_emit(Game *g,int event);
+void social_arrive(Game *g);
+void launch_departure(Game *g);
 void launch(Game *g); int dock(Game *g); int refuel_full(Game *g); int trade(Game *g,int item,int buy);
-int buy_ship(Game *g,int i); int jump_start(Game *g); int contract_accept(Game *g); int fire_missile(Game *g,int target_id);
+int buy_ship(Game *g,int i); int jump_start(Game *g); int contract_accept(Game *g); int deploy_flare(Game *g);
+int activate_ecm(Game *g);
+int dump_heat_sink(Game *g);
+ int law_scan(Game *g);
+ const char *traffic_activity(const NPC *n);
+int flare_capacity(const Game *g);
+int ecm_fitted(const Game *g);
+int fire_missile(Game *g,int target_id);
 int salvage(Game *g,int target_id);
 int save_game(Game *g,const char *path); int load_game(Game *g,const char *path);
 int ship_repair_cost(const Game *g); int repair_ship(Game *g);

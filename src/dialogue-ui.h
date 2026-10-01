@@ -21,7 +21,7 @@ static const char *dialogue_skip(const char *s,int rows,int cols){
 }
 static void dialogue_begin(const char *title){
  preview_reset();
- header("CONVERSATION");panel(8,32,464,214);text(2,5,GOLD,"%.56s",title);
+ header("CONVERSATION");panel(8,32,464,214);text(2,5,UI_GOLD,"%.56s",title);
 }
 static void dialogue_speech(const char *speaker,int role,int seed,const char *a,const char *b){
  char body[1024];snprintf(body,sizeof(body),"%s%s%s",a?a:"",a&&a[0]&&b&&b[0]?" ":"",b?b:"");
@@ -29,15 +29,15 @@ static void dialogue_speech(const char *speaker,int role,int seed,const char *a,
  if(strcmp(body,dialogue_source)){snprintf(dialogue_source,sizeof(dialogue_source),"%s",body);dialogue_page=0;}
  const char *p=body;dialogue_pages=0;do{dialogue_pages++;p=dialogue_skip(p,6,46);}while(*p);
  if(dialogue_page>=dialogue_pages)dialogue_page=dialogue_pages-1;
- unsigned edge=!strcmp(speaker,"COMMANDER")?RGB(245,157,62):RGB(76,181,190),fill=RGB(14,29,39);
+ unsigned edge=RGB(76,181,190),fill=RGB(14,29,39);
  if(!strcmp(speaker,"KEI")||!strcmp(speaker,"RYN"))draw_kei(16,64,48,!strcmp(speaker,"RYN"));
- else if(!strcmp(speaker,"COMMANDER"))draw_portrait(16,64,48,48,game.system,EXPLORERS);
+ else if(strstr(speaker,"COMPUTER"))portrait_draw(16,64,48,48,portrait_ship_computer(),EXPLORERS);
  else draw_portrait(16,64,48,48,seed,role);
  rect(76,56,388,80,fill);rect(76,56,388,2,edge);rect(76,134,388,2,edge);rect(462,56,2,80,edge);
  line(76,76,64,84,edge);line(64,84,76,92,edge);rect(73,78,4,13,fill);
  speaker_name_tag(11,8,speaker,edge);
  text_wrap(11,10,46,6,WHITE,dialogue_skip(body,dialogue_page*6,46),0);
- if(dialogue_pages>1)text(39,8,CYAN,"L/R %d/%d",dialogue_page+1,dialogue_pages);
+ if(dialogue_pages>1)text(39,8,UI_CYAN,"L/R %d/%d",dialogue_page+1,dialogue_pages);
 }
 static void dialogue_named(const char *speaker,int role,const char *a,const char *b){
  unsigned seed=0;for(const char *p=speaker;*p;p++)seed=seed*131u+(unsigned char)*p;
@@ -45,7 +45,7 @@ static void dialogue_named(const char *speaker,int role,const char *a,const char
 }
 static void dialogue_context(const char *label,const char *body){
  char copy[512];dialogue_ascii(copy,sizeof(copy),body);
- rect(16,140,448,38,RGB(13,36,43));text(3,18,GOLD,"%.54s",label);
+ rect(16,140,448,38,RGB(13,36,43));text(3,18,UI_GOLD,"%.54s",label);
  text_wrap(3,20,54,2,WHITE,copy,0);
 }
 static void dialogue_reply(int index,const char *label){
@@ -54,8 +54,8 @@ static void dialogue_reply(int index,const char *label){
  unsigned edge=active?RGB(245,157,62):RGB(119,71,38),fill=active?RGB(62,36,24):RGB(28,24,23);
  rect(16,py,448,18,fill);rect(16,py,448,1,edge);rect(16,py+17,448,1,edge);rect(16,py,2,18,edge);rect(462,py,2,18,edge);
  line(464,py+5,470,py+9,edge);line(470,py+9,464,py+13,edge);
- text(3,y,active?GOLD:AMBDIM,active?">":" ");
- text_wrap(5,y,51,2,active?GOLD:AMBDIM,copy,0);
+ text(3,y,active?UI_GOLD:AMBDIM,active?">":" ");
+ text_wrap(5,y,51,2,active?UI_GOLD:AMBDIM,copy,0);
 }
 static void dialogue_notice(void){
  /* Feedback has a reserved area; it must never paint over reply hit targets. */

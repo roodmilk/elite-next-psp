@@ -6,10 +6,10 @@ static void guild_dialogue(void){
  const char *b=guild_line(&game,1);
  if(guild_ready(&game)){
   a="You have completed this assignment. The Guild has recorded your work and your reward is ready.";
-  b=game.docked?"Choose Collect reward below. Once it is paid, this page will explain your next Guild assignment.":"Return to a station and press Circle within docking range. Open this mission again after you dock to collect your reward.";
+  b=game.docked?"Choose Collect reward below. Once it is paid, this page will explain your next Guild assignment.":"Return to a station and open Comms with Triangle and choose REQUEST AUTO-DOCK within docking range. Open this mission again after you dock to collect your reward.";
  }else if(game.guild_chapter==0&&(game.guild_flags&GUILD_LAUNCH)){
   a="Your launch has been recorded. All that remains for this assignment is a safe return to a station.";
-  b="Approach the hub and press Circle within 2,500 metres to request docking. Come back to this mission after the arrival sequence finishes.";
+  b="Approach the hub and press Triangle within 2,500 metres, then choose REQUEST AUTO-DOCK. Come back to this mission after the arrival sequence finishes.";
  }else if((game.guild_chapter==1||game.guild_chapter==3)&&assignment_job()>=0){
   a="You have already accepted the contract we need. Follow its objective rather than taking a second job.";
   b="Choose Track your active contract below to highlight it in Mission Log. Press Select there for that contract's next-step details.";

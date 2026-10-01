@@ -7,7 +7,7 @@
   INPUT_CHECK(saved!=0,"menu preview: test state allocated");
   if(saved){
    memcpy(saved,&game,sizeof(Game));
-   float old_time=preview_time;int old_page=page,old_row=row,old_hc=high_contrast;
+   float old_time=preview_time,old_chart_angle=chart_angle;int old_page=page,old_row=row,old_hc=high_contrast,old_chart_cursor=chart_cursor,old_chart_filter=chart_filter;
    FILE *report=fopen("menu-preview-check.txt","w");
    int contained=1,unchanged=1;double total=0,worst=0;int samples=0;
    for(int ship=0;ship<player_ship_count;ship++){
@@ -69,9 +69,13 @@
     memset(pixels,0,STRIDE*H*sizeof(unsigned));home();
     char path[64];snprintf(path,sizeof(path),"menu-ship-%d-frame-%d.bmp",game.ship,f);dump_native_bmp(path);
    }
+   /* Native 480x272 evidence for the Deep Chart quality bar. */
+   chart_filter=CHART_MEGA;chart_angle=.34f;chart_cursor=game.system;
+   float farthest=-1;for(int s=0;s<256;s++)if(station_class_for_system(&game,s)==STATION_MEGA){int hops=0;if(route_next_hop(&game,s,&hops)>=0&&distance_ly(&game,game.system,s)>farthest){farthest=distance_ly(&game,game.system,s);chart_cursor=s;}}
+   route_set_goal(&game,chart_cursor);memset(pixels,0,STRIDE*H*sizeof(unsigned));galaxy_overview();dump_native_bmp("deep-chart.bmp");
    if(report)fclose(report);
    memcpy(&game,saved,sizeof(Game));free(saved);
-   preview_time=old_time;page=old_page;row=old_row;high_contrast=old_hc;preview_reset();
+   preview_time=old_time;page=old_page;row=old_row;high_contrast=old_hc;chart_cursor=old_chart_cursor;chart_filter=old_chart_filter;chart_angle=old_chart_angle;preview_reset();
   }
  }
 }

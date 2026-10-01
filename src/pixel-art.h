@@ -20,6 +20,7 @@ static void fill_disc(int cx,int cy,int r,unsigned c){
  int r2=r*r;
  for(int y=-r;y<=r;y++){int yy=cy+y;if(yy<0||yy>=H)continue;int span=0;while(span*span+y*y<=r2)span++;rect(cx-span,yy,span*2+1,1,c);}
 }
+#include "modular-portrait.h"
 static const char *race_name(int system){
  static const char *names[]={"VAHRI","KELN","ORRITH","SAURAN","ITHARI","MORVAK","QUEL","DRUUN"};
  return names[art_hash((unsigned)system*9973u)%8];
@@ -46,11 +47,13 @@ static void draw_next_art_fit(const uint16_t *data,int sw,int sh,int x,int y,int
  draw_next_art(data,sw,sh,ox,oy,side,side);
 }
 static void draw_kei(int x,int y,int size,int expression){
- int i=expression>=0&&expression<8?expression:0;
- if(size<=32)draw_next_art_fit(kei_faces_small[i],32,32,x,y,size,size);
- else draw_next_art_fit(kei_faces[i],64,64,x,y,size,size);
+ unsigned dna=portrait_seeded(0x004b4549u,TRADERS,PORTRAIT_HUMAN);
+ dna=portrait_set_field(dna,9,7,2);dna=portrait_set_field(dna,12,3,1);
+ dna=portrait_set_field(dna,16,7,2);dna=portrait_set_field(dna,22,3,(unsigned)expression&3u);
+ portrait_draw(x,y,size,size,dna,TRADERS);
 }
 static void draw_portrait(int x,int y,int w,int h,int system,int role){
+ portrait_draw(x,y,w,h,portrait_seeded((unsigned)system,role,-1),role);return;
  if(w>=12&&h>=12){int race=faction_portrait_index((unsigned)system,role);rect(x,y,w,h,RGB(21,28,39));if(w<=32&&h<=32)draw_next_art_fit(faction_portraits_small[race],32,32,x,y,w,h);else draw_next_art_fit(faction_portraits[race],64,64,x,y,w,h);rect(x,y+h-1,w,1,faction_colors[role%FACTION_COUNT]);rect(x,y,w,1,RGB(193,139,77));return;}
  unsigned skin=race_skin(system),cloth=art_tint(faction_colors[role%FACTION_COUNT],-50,-40,-20),bg=RGB(21,28,39),kind=art_hash((unsigned)system*7919u)%8;
  rect(x,y,w,h,bg);rect(x,y,w,1,RGB(193,139,77));rect(x,y+h-1,w,1,RGB(41,54,70));
@@ -74,6 +77,23 @@ static void draw_portrait(int x,int y,int w,int h,int system,int role){
  if(role==PIRATES)rect(cx-hw/2,facey+hh/2,hw,2,RED);
  if(role==EXPLORERS)rect(cx-1,facey-4,3,4,GOLD);
  if(w>=24&&h>=24){int pulse=(int)(preview_time*(role==PIRATES?7:role==LAW?5:3));if((pulse&3)<2){unsigned glow=faction_colors[role%FACTION_COUNT];pixel(x+w-3,y+2,glow);pixel(x+w-2,y+2,glow);}}
+}
+/* Human commander ID portraits: explicit gender and four complexion/hair sets. */
+static void draw_commander_portrait(int x,int y,int size,unsigned choice){
+ portrait_draw(x,y,size,size,choice,EXPLORERS);return;
+ static const unsigned skin[]={RGB(218,166,124),RGB(173,112,78),RGB(110,69,49),RGB(235,192,159)};
+ static const unsigned hair[]={RGB(57,38,31),RGB(26,24,28),RGB(39,28,26),RGB(139,73,41)};
+ int s=size/32;if(s<1)s=1;int female=(choice/4)&1;unsigned face=skin[choice%4],locks=hair[choice%4];
+ rect(x,y,32*s,32*s,UI_PANEL);rect(x,y,32*s,s,UI_ACCENT);rect(x,y+31*s,32*s,s,UI_EDGE);
+ for(int i=0;i<12;i++)pixel(x+((i*17+3)%31)*s,y+((i*11+2)%30)*s,UI_MUTED);
+ rect(x+7*s,y+25*s,18*s,6*s,UI_EDGE);rect(x+10*s,y+23*s,12*s,8*s,UI_ACCENT);
+ rect(x+13*s,y+21*s,6*s,5*s,face);rect(x+9*s,y+5*s,14*s,(female?22:11)*s,locks);
+ rect(x+10*s,y+8*s,12*s,12*s,face);rect(x+12*s,y+19*s,8*s,3*s,face);
+ rect(x+10*s,y+7*s,12*s,3*s,locks);rect(x+10*s,y+9*s,3*s,2*s,locks);
+ rect(x+12*s,y+13*s,2*s,s,RGB(22,28,37));rect(x+18*s,y+13*s,2*s,s,RGB(22,28,37));
+ rect(x+16*s,y+15*s,s,2*s,art_tint(face,-30,-25,-20));rect(x+14*s,y+19*s,4*s,s,art_tint(face,-55,-50,-40));
+ if(!female)rect(x+12*s,y+21*s,8*s,s,art_tint(face,-32,-28,-24));
+ rect(x+14*s,y+27*s,4*s,4*s,UI_PANEL);rect(x+20*s,y+27*s,2*s,s,UI_GOLD);
 }
 static void draw_world_card(int x,int y,int w,int h,const Body *b,int seed){
  rect(x,y,w,h,RGB(21,28,39));
