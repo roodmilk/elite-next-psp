@@ -50,6 +50,9 @@ static void chart_galaxy_background(void){
   for(int x=2,sx=origin+step*2;x<478;x+=2,sx+=step*2){
    int ix=sx>>8,tx=sx&255;unsigned c=RGB(2,5,11);
    if(ix>=0&&ix<511&&iy>=0&&iy<255){unsigned u=chart_lerp(chart_decode(chart_nebula[iy][ix]),chart_decode(chart_nebula[iy][ix+1]),tx),v=chart_lerp(chart_decode(chart_nebula[iy+1][ix]),chart_decode(chart_nebula[iy+1][ix+1]),tx);c=chart_lerp(u,v,ty);}
+   /* The fitted PIMP-MY-SHIP.NET finish colours the navigation glass and
+    * ambient map light without obscuring the authored nebula. */
+   c=chart_lerp(c,UI_PANEL,44);
    fb[y*STRIDE+x]=fb[y*STRIDE+x+1]=c;
    if(y+1<246)fb[(y+1)*STRIDE+x]=fb[(y+1)*STRIDE+x+1]=c;
   }
@@ -74,7 +77,7 @@ static void chart_glow(int x,int y,unsigned core,int selected){
  rect(x-1,y-1,3,3,core);pixel(x,y,WHITE);
 }
 static void chart_glass(int x,int y,int w,int h,unsigned edge){
- for(int yy=1;yy<h-1;yy++)rect(x+1,y+yy,w-2,1,RGB(3,12+(h-yy)*5/h,21+(h-yy)*6/h));
+ for(int yy=1;yy<h-1;yy++)rect(x+1,y+yy,w-2,1,chart_lerp(UI_PANEL,UI_RAISED,28+(h-yy)*25/h));
  line(x+3,y,x+w-4,y,edge);line(x+3,y+h-1,x+w-4,y+h-1,edge);
  line(x,y+3,x,y+h-4,edge);line(x+w-1,y+3,x+w-1,y+h-4,edge);
  line(x,y+3,x+3,y,edge);line(x+w-4,y,x+w-1,y+3,edge);

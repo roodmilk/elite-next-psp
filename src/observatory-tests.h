@@ -26,11 +26,11 @@
  }
  game_init(&g);g.surface_progress[7][2]=field_site_bit(2);
  CHECK(save_game(&g,"test-observatory.sav"),"observatory: completed legacy site fixture saved");
- static unsigned char ob_bytes[131072];FILE *ob_file=fopen("test-observatory.sav","rb");size_t ob_size=0;
+ static unsigned char ob_bytes[262144];FILE *ob_file=fopen("test-observatory.sav","rb");size_t ob_size=0;
  if(ob_file){ob_size=fread(ob_bytes,1,sizeof(ob_bytes),ob_file);fclose(ob_file);}
  int migrated=0;if(ob_size>8&&ob_size<sizeof(ob_bytes)){
   ob_bytes[4]=25;ob_file=fopen("test-observatory-v25.sav","wb");
-  if(ob_file){migrated=fwrite(ob_bytes,1,ob_size-4,ob_file)==ob_size-4;fclose(ob_file);migrated=migrated&&save_seal("test-observatory-v25.sav");}
+  if(ob_file){migrated=fwrite(ob_bytes,1,ob_size-SAVE_V28_EXPANSION_BYTES-OPENING_SAVE_BYTES-(FIT_V29_BYTES+MODULE_STORE_BYTES+RUMOUR_SAVE_BYTES+NEWSPAPER_REWARD_SAVE_BYTES+EXPEDITION_SAVE_BYTES+(ERL_SAVE_BYTES+DB_SAVE_BYTES))-4,ob_file)==ob_size-SAVE_V28_EXPANSION_BYTES-OPENING_SAVE_BYTES-(FIT_V29_BYTES+MODULE_STORE_BYTES+RUMOUR_SAVE_BYTES+NEWSPAPER_REWARD_SAVE_BYTES+EXPEDITION_SAVE_BYTES+(ERL_SAVE_BYTES+DB_SAVE_BYTES))-4;fclose(ob_file);migrated=migrated&&save_seal("test-observatory-v25.sav");}
  }
  CHECK(migrated&&load_game_file(&loaded,"test-observatory-v25.sav")&&loaded.surface_progress[7][2]==field_site_bit(2)&&!observatory_choice(&loaded,7,2),"observatory: V25 completion migrates without inventing a branch or reopening rewards");
  remove("test-observatory.sav");remove("test-observatory.sav.bak");remove("test-observatory-v25.sav");

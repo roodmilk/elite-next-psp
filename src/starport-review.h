@@ -22,7 +22,7 @@ static int starport_review(void){
   fprintf(f,"Planet %d draw avg %.3fms worst %.3fms (no audio/display)\n",body,total/8,worst);
   for(int kind=1;kind<=3;kind++)for(int step=0;step<=100;step++){
    PlanetPilotCamera c=planet_pilot_sample(kind,step*planet_sequence_duration(kind)/100);
-   for(int j=0;j<FIELD_PORT_BUILDINGS;j++){FieldBuilding s=field_port_buildings[j];
+   for(int j=0;j<FIELD_PORT_BUILDINGS;j++){FieldBuilding s=field_port_building(&game,j);
     if(fabsf(c.eye.x-pad.x-s.x)<s.w+8&&fabsf(c.eye.z-pad.z-s.z)<s.d+8&&c.eye.y<24+s.height+10){failures++;fprintf(f,"FAIL camera intersects port building %d on world %d\n",j,body);}
    }
   }

@@ -3,6 +3,7 @@
  int boundaries_ok=1,escapes_ok=1,returns_ok=1;
  for(int body=1;body<BODY_COUNT;body++){
   game_init(&g);launch(&g);
+  if(!body_active(&g.bodies[body])||g.bodies[body].type==SUN)continue;
   for(int n=0;n<NPC_COUNT;n++)g.npc[n].alive=0;
   Body *world=&g.bodies[body];
   g.pos=add(world->pos,(Vec3){0,0,-world->radius-65});

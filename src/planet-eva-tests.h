@@ -3,7 +3,7 @@
  int terrain_ok=1,roundtrip_ok=1;
  for(int system=0;system<256;system+=17){
   game_init(&g);g.system=system;game_spawn(&g);launch(&g);g.story_flags|=STORY_EV_LANDING_TECH;
-  for(int body=1;body<BODY_COUNT;body++)if(g.bodies[body].type!=GAS){
+  for(int body=1;body<BODY_COUNT;body++)if(body_active(&g.bodies[body])&&g.bodies[body].type!=SUN&&g.bodies[body].type!=GAS){
    g.approach=body;g.pos=add(g.bodies[body].pos,(Vec3){0,0,-g.bodies[body].radius-900});
    roundtrip_ok &= enter_planet(&g);
    Vec3 pad=surface_site(&g,1);

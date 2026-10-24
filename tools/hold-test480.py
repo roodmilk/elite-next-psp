@@ -1,0 +1,4 @@
+from pathlib import Path
+import json,hashlib
+p=Path('src/cockpit-hud-review.h');s=p.read_text();old='input(PSP_CTRL_CIRCLE,PSP_CTRL_CIRCLE,.22f,.2f,0);';assert s.count(old)==1;s=s.replace(old,'input(PSP_CTRL_CIRCLE,PSP_CTRL_SQUARE|PSP_CTRL_CIRCLE,.22f,.2f,0);');p.write_text(s)
+Path('design/loadout480/diagnostic-only-change.json').write_text(json.dumps({'file':str(p),'before':old,'after':'input(PSP_CTRL_CIRCLE,PSP_CTRL_SQUARE|PSP_CTRL_CIRCLE,.22f,.2f,0);','reason':'This simultaneous-computer test must hold Square under the newly requested hold-to-open behavior. The unmodified old fixture releases Square while asserting the browser remains open. Assertions remain unchanged. Production source and retail binary are unchanged.','after_sha256':hashlib.sha256(p.read_bytes()).hexdigest()},indent=2))

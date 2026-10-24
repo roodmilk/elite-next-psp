@@ -1,0 +1,11 @@
+# ERL holographic track and compact broadcast HUD â€” 2.5.413 development
+
+Latest player decisions on 12 October supersede the old large guidance arrow and no-ribbon combat reference. All active races now draw a translucent pink floor through the real ordered checkpoints. The shared smooth curve bends and climbs, has bright edges and small world-space lane markings, and appears in the real rear camera and recorded replay. Flying above it remains free; contact below the deck gently deflects the ship without hull or shield damage. Combat retains its nearby violet boundary. Clean modes retain required checkpoint rings. Pending accepted events keep ordinary flight UI.
+
+The position denominator follows the actual visible numeral width with a three-pixel gap. The large numeral has a glyph-masked travelling highlight and restrained glow. LAP uses a compact accented instrument badge. ERL LIVE uses pink text, a circular live lamp and a timer directly below it in a nine-pixel-shorter frame; commentary moves up with it. No textures, allocations or additional save fields are used for these HUD effects.
+
+Geometry and raster work have fixed bounds. Final validation: 15 native floor/HUD checks, 44 gameplay integration checks and five exact-retail startup/MP3 checks pass. Retail populated countdown/race test: 55.26 FPS, worst 33.37ms, zero frames over 100ms, four saves completed and 261816 bytes recorded worker stack headroom. This stage does not complete the entire Arcade Items and HUD document. Physical PSP testing remains required.
+
+Development evidence: 44 production gameplay integration checks pass, including real steering/item-input completion in 137.92 simulated seconds, V35 migration and exact result reload. Initial floor/HUD review: 15 checks pass. Performance candidates at 22.22, 29.07 and 40.55 FPS are rejected; their successful countdown/save checks do not qualify them for packaging. Final optimized candidate remains under test. Rival health is now a muted one-pixel cue on damaged nearby ships; undamaged racers have no health strip.
+
+Final release validation supersedes intermediate rejected candidates: all required stage checks pass. Native bend, elevated route and clean-ring captures inspected at 480x272. Full-health rivals have no health bars. Hardware verification and full arcade-document acceptance remain outstanding.

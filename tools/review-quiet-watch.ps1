@@ -1,0 +1,5 @@
+param([string]$Eboot="$PSScriptRoot/../EBOOT.PBP",[string]$Emulator="$PSScriptRoot/../../../work/ppsspp/PPSSPPWindows64.exe")
+$ErrorActionPreference='Stop';$reviewDir=Join-Path $PSScriptRoot ('../../../work/quiet-watch-'+(Get-Date -Format 'yyyyMMdd-HHmmss-fff'));New-Item -ItemType Directory -Path $reviewDir|Out-Null;$reviewDir=(Resolve-Path $reviewDir).Path
+Copy-Item $Eboot (Join-Path $reviewDir 'EBOOT.PBP');Set-Content (Join-Path $reviewDir 'quiet-watch-review.flag') 1
+$process=Start-Process (Resolve-Path $Emulator).Path -ArgumentList ('"'+(Join-Path $reviewDir 'EBOOT.PBP')+'"') -WorkingDirectory $reviewDir -WindowStyle Hidden -PassThru
+try{$report=Join-Path $reviewDir 'quiet-watch-review.txt';$deadline=(Get-Date).AddSeconds(45);while((Get-Date)-lt$deadline){if((Test-Path $report)-and(Select-String $report -Pattern '^RESULT ' -Quiet)){break};Start-Sleep -Milliseconds 200};if(!(Test-Path $report)){throw "Missing Quiet Watch review"};Get-Content $report;if(!(Select-String $report -Pattern '^RESULT 0 failures$' -Quiet)){throw "Quiet Watch review failed: $report"};Write-Output "Review: $reviewDir"}finally{if(!$process.HasExited){Stop-Process $process.Id}}

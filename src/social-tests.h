@@ -14,15 +14,15 @@
  CHECK((g.social.post[SOCIAL_KEEP-1]&31)==SB_SALVAGE,"social: bounded newest-first history rolls over safely");
  g.docked=1;g.social.evidence_reaction=2;g.system=255;social_emit(&g,SB_FINE);g.system=7;
  CHECK(save_game(&g,"test-social.sav")&&load_game_file(&g,"test-social.sav")&&g.social.evidence_reaction==2&&(g.social.post[0]&31)==SB_FINE,"social: all-system history and reactions persist in V23");
- unsigned char bytes[131072];FILE *src=fopen("test-social.sav","rb");size_t n=0;
+ static unsigned char bytes[262144];FILE *src=fopen("test-social.sav","rb");size_t n=0;
  if(src){n=fread(bytes,1,sizeof(bytes),src);fclose(src);}
- int fixture=n>(SOCIAL_SAVE_BYTES+FIT_SAVE_BYTES)+4&&n<sizeof(bytes);
- if(fixture){bytes[4]=21;FILE *old=fopen("test-social-v21.sav","wb");if(old){size_t len=n-(SOCIAL_SAVE_BYTES+FIT_SAVE_BYTES)-4;fixture=fwrite(bytes,1,len,old)==len;fclose(old);fixture=fixture&&save_seal("test-social-v21.sav");}else fixture=0;}
+ int fixture=n>(SOCIAL_SAVE_BYTES+FIT_SAVE_BYTES+OPENING_SAVE_BYTES+(FIT_V29_BYTES+MODULE_STORE_BYTES+RUMOUR_SAVE_BYTES+NEWSPAPER_REWARD_SAVE_BYTES+EXPEDITION_SAVE_BYTES+(ERL_SAVE_BYTES+DB_SAVE_BYTES)))+4&&n<sizeof(bytes);
+ if(fixture){bytes[4]=21;FILE *old=fopen("test-social-v21.sav","wb");if(old){size_t len=n-SAVE_V28_EXPANSION_BYTES-(SOCIAL_SAVE_BYTES+FIT_SAVE_BYTES+OPENING_SAVE_BYTES+(FIT_V29_BYTES+MODULE_STORE_BYTES+RUMOUR_SAVE_BYTES+NEWSPAPER_REWARD_SAVE_BYTES+EXPEDITION_SAVE_BYTES+(ERL_SAVE_BYTES+DB_SAVE_BYTES)))-4;fixture=fwrite(bytes,1,len,old)==len;fclose(old);fixture=fixture&&save_seal("test-social-v21.sav");}else fixture=0;}
  CHECK(fixture&&load_game_file(&g,"test-social-v21.sav")&&!g.social.post[0],"social: V21 imports without inventing past actions");
  /* A real V22 payload: interleaved dates from two old local feeds. */
  int legacy=fixture;bytes[4]=22;FILE *v22=fopen("test-social-v22.sav","wb");
  if(v22&&legacy){
-  size_t core=n-(SOCIAL_SAVE_BYTES+FIT_SAVE_BYTES)-4;legacy=fwrite(bytes,1,core,v22)==core;
+  size_t core=n-SAVE_V28_EXPANSION_BYTES-(SOCIAL_SAVE_BYTES+FIT_SAVE_BYTES+OPENING_SAVE_BYTES+(FIT_V29_BYTES+MODULE_STORE_BYTES+RUMOUR_SAVE_BYTES+NEWSPAPER_REWARD_SAVE_BYTES+EXPEDITION_SAVE_BYTES+(ERL_SAVE_BYTES+DB_SAVE_BYTES)))-4;legacy=fwrite(bytes,1,core,v22)==core;
   legacy=legacy&&save_u32(v22,100)&&save_u32(v22,3);
   for(int sys=0;legacy&&sys<256;sys++){
    legacy=save_u32(v22,0)&&save_u32(v22,0);

@@ -1,0 +1,25 @@
+ELITE NEXT 2.5.262 - MULTIPLAYER PERSONAL PROGRESS
+
+Each pilot retains their own commander, purchases, equipped modules, credits,
+missions, discoveries, activity progress and social history after multiplayer.
+Friend leave/disconnect removes the contact, not the remaining commander's game.
+Current menu, position, surface vehicle berths and cinematics are preserved.
+Setup failure alone rolls back its temporary starting snapshot.
+
+Save normally from COMMANDER / SAVE/STATUS while docked, even while connected.
+Loading ends the connection before the normal loader runs. This is manual saving,
+not autosaving or saving anywhere. Existing V26 saves remain compatible.
+Both PSPs must use 2.5.262. Previously rolled-back purchases cannot be recovered.
+
+Implementation: local-wifi.h lifecycle/input/arrival, game.c save guard,
+main.c offline orbital berth cleanup, plus native protocol/live review drivers.
+Shared combat/guest loot reconciliation, host migration and physical PSP Wi-Fi
+remain unfinished; this fixes personal persistence, not those separate features.
+
+VERIFIED RELEASE: 8705615 bytes.
+SHA256: 702259ABFBEBB9420C61B4C6F800BC65C493D05CF6478851A055C873D110BF8B
+58 native fixtures (all256 systems/all1024 berth pairs); two live peers for
+planetary controls, purchases, normal STATUS saves and independent travel;
+lost-host timeout; core594/radio54/steering18; footing8192/tools/map/entry.
+All13 completed reports passed on the exact delivered EBOOT. Host report is
+intentionally incomplete in the forced host-loss test. Emulators closed.

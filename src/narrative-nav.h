@@ -1,7 +1,7 @@
 /* Labels and handlers share these action IDs, so hints cannot drift from input. */
 enum { NA_BEGIN,NA_FLY,NA_DOCK,NA_ROUTE,NA_REWARD,NA_ASSIGNMENTS,NA_BOARD,NA_LOG,NA_CONTACTS,NA_MAP,NA_DECK };
 static int assignment_job(void){int type=game.guild_chapter==3?MISSION_RESCUE:MISSION_DELIVERY;for(int i=0;i<game.job_n;i++)if(game.jobs[i].type==type)return i;return -1;}
-static int assignment_offer(void){int type=guild_required_contract(&game);for(int i=0;i<mission_count(&game);i++)if(mission_type_for_offer(&game,i)==type)return i;return -1;}
+static int assignment_offer(void){int type=guild_required_contract(&game);for(int i=0;i<mission_count(&game);i++)if(mission_type_for_offer(&game,i)==type&&mission_offer_valid(&game,i,0))return i;return -1;}
 static int narrative_action(int screen){
  if(screen==CAMPAIGN){
   if(game.campaign_stage==6)return NA_ASSIGNMENTS;
@@ -15,8 +15,9 @@ static int narrative_action(int screen){
  if(game.guild_chapter==0)return game.docked?NA_FLY:NA_DOCK;
  if(game.guild_chapter==2){for(int i=0;i<ANOMALY_COUNT;i++)if(game.anomaly[i].alive&&!game.anomaly[i].scanned)return game.docked?NA_FLY:NA_CONTACTS;return NA_MAP;}
  if(assignment_job()>=0)return NA_LOG;
+ if(guild_contract_station(&game)!=game.system)return NA_MAP;
  if(!game.docked)return NA_DOCK;
- return assignment_offer()>=0?NA_BOARD:NA_MAP;
+ return assignment_offer()>=0?NA_BOARD:NA_DECK;
 }
 static const char *narrative_label(int action){
  switch(action){
@@ -38,7 +39,7 @@ static void narrative_do(int screen){
  if(action==NA_BEGIN){campaign_accept(&game);row=0;}
  else if(action==NA_REWARD){if(screen==CAMPAIGN)campaign_claim(&game);else guild_claim(&game);row=0;}
  else if(action==NA_FLY){analog_ready=0;launch_departure(&game);selected_target=0;autoaim=0;scan_cat=0;change_page(FLIGHT);}
- else if(action==NA_DOCK){change_page(FLIGHT);message(&game,"Approach the station. Press Triangle within 2,500 m, then choose REQUEST AUTO-DOCK.");}
+ else if(action==NA_DOCK){if(screen==GUILD&&guild_required_contract(&game)>=0&&assignment_job()<0){selected_target=0;scan_cat=0;autoaim=0;}change_page(FLIGHT);message(&game,"Approach the station. Press Triangle within 2,500 m, then choose REQUEST AUTO-DOCK.");}
  else if(action==NA_ROUTE){int hops=0,hop=route_next_hop(&game,7,&hops);game.destination=hop>=0?hop:7;change_page(CHART);message(&game,"Choose a jump toward Lave. Check fuel first.");}
  else if(action==NA_ASSIGNMENTS)change_page(MISSIONLOG);
  else if(action==NA_BOARD){int offer=assignment_offer();change_page(MISSIONS);if(offer>=0)row=offer;}
@@ -53,7 +54,7 @@ static int saga_speaker_role(const SagaBeat *b){
  if(b->role==2)return TRADERS;
  return EXPLORERS;
 }
-static void narrative_footer(void){footer(page==CAMPAIGN?"UP/DOWN   X CHOOSE   O BACK   SELECT LOG":"UP/DOWN   X CHOOSE   O BACK");}
+static void narrative_footer(void){if(page==CAMPAIGN&&tracked_mission>=2&&tracked_mission<2+game.job_n&&expedition_stage(&game,tracked_mission-2)){footer("UP/DOWN  X CHOOSE  SQUARE CONTACT RECORD  O BACK");return;}footer(page==CAMPAIGN?"UP/DOWN   X CHOOSE   O BACK   SELECT LOG":"UP/DOWN   X CHOOSE   O BACK");}
 enum { PROLOGUE_BRIEF_BEATS = 6 };
 static int saga_brief_beat=0,saga_brief_chapter=-1,prologue_brief_beat=0;
 /* Player replies stay in the bottom choices; selecting one advances to the NPC. */
@@ -98,7 +99,7 @@ static const char *prologue_brief_line1(int beat){
   "There is no combat assignment and no time limit. Take the ship out, practise handling it, and return to this station.",
   "Ryn used this type of ship for survey work. It is small enough to handle easily, and Venn has checked it for your first flight.",
   "Use the D-pad or the enabled analog stick to steer. Hold R to accelerate and L to slow down; you do not need to boost.",
-  "After accepting, choose Launch ship. Fly clear of the station, then hold Square to select Lave Hub and press R to lock it.",
+  "After accepting, choose Launch ship. Fly clear of the station, then tap Square, highlight Lave Hub and hold R + X to confirm and align.",
   "That is everything for this flight: launch from Lave, practise flying, and dock here again. Nothing needs shooting, buying or collecting."};
  return a[beat>=0&&beat<PROLOGUE_BRIEF_BEATS?beat:PROLOGUE_BRIEF_BEATS-1];
 }

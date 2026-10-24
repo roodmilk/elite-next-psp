@@ -1,0 +1,15 @@
+ELITE: NEXT 2.5.261 — LOCAL WI-FI UNIVERSE EXPLORATION
+
+Use the same 2.5.261 EBOOT on both PSPs. Turn on WLAN. FLY -> HOST on one, FLY -> JOIN on the other, select the host with X.
+
+Controls are the normal single-player controls. Hold Square for Target Computer (SHIPS band: your friend's name, first entry). Hold Circle for ship tools, or handheld tools on foot. Triangle handles ordinary comms/interactions. Select opens the ordinary command deck. No permanent LOCAL WIFI name banner or multiplayer control footer.
+
+Lock your friend normally with the Target Computer. Another system: plots a normal fuel/range-aware route, not a teleport. Refuel if required. Another planet: status names their world and targets its orbital position. Land using normal planetary comms/approach. On the same planet, use SITES / SHIP in the exploration computer to track their avatar/Roamer with smooth turning. Two player berths and owned Roamers remain.
+
+Session management: FLY -> HOST or JOIN while connected reopens the session screen. X resumes; Circle ends the session. A brief quiet link shows LAST SEEN in the friend's contact. The session permits60 seconds without valid paired traffic before safely restoring the original commander. A physical WLAN switch-off or sleep still closes immediately.
+
+Important: reversible session-only co-exploration. Your original commander returns when leaving/disconnecting. Cooperative persistent saves, shared job/economy transactions, PvP, authoritative guest combat/salvage, host migration and automatic reconnection are not finished. Normal weapon/tool controls work; guest hits/loot are not reconciled into the host's snapshots. Do not rely on multiplayer rewards being saved.
+
+System and visit tags prevent old/different-system packets replacing local scenery/traffic. Compact20Hz pilot packets, bounded24 receive budget and actual monotonic deadlines reduce false timeouts. Both clients must match protocol261.
+
+Two isolated native-ad-hoc emulator peers validate controls, planetary movement and independent hyperspace; lost-host recovery is tested by deliberately stopping the owned host. Physical PSP Wi-Fi reliability and hardware FPS remain unverified. Test folders/logs and source-change history are retained in task/adhoc-universe-261.

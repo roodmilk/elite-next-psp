@@ -1,3 +1,9 @@
+/* V30 appends one byte per equipment type for the 40-place module locker.
+ * V29 appends banks five through eight (24 bytes); V1-V28 initialise them empty.
+ * V28 expands per-system celestial storage from five to ten slots. Landing
+ * masks are widened to u16 and older saves migrate their original five slots.
+ * V27 appends opening narrative state and a 132-byte safe-checkpoint extension.
+ * V1-V26 migrate with opening.stage == 0; the original core stays unchanged. */
 /* V26 reserves surface bits 20-24 for observatory outcome and three clues. */
 /* V25 expands catalogue IDs without changing the V24 payload.
  * V24 appends 18 extra module slots, active-weapon index and reserved zero byte. */
@@ -17,6 +23,7 @@
  * V19 appends 256 * HUB_COUNT u32 station progress words.
  * The older V1-V7 core layout remains unchanged for migration, not portability.
  */
+#define SAVE_V28_EXPANSION_BYTES (256+256*(BODY_COUNT-LEGACY_BODY_COUNT)*4)
 static int save_u32(FILE *f,uint32_t v){unsigned char b[4]={(unsigned char)v,(unsigned char)(v>>8),(unsigned char)(v>>16),(unsigned char)(v>>24)};return fwrite(b,1,4,f)==4;}
 static int load_u32(FILE *f,uint32_t *v){unsigned char b[4];if(fread(b,1,4,f)!=4)return 0;*v=(uint32_t)b[0]|((uint32_t)b[1]<<8)|((uint32_t)b[2]<<16)|((uint32_t)b[3]<<24);return 1;}
 static int save_crc(FILE *f,long bytes,uint32_t *out){

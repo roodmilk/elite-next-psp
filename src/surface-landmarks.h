@@ -71,12 +71,43 @@ static unsigned lm_ground_ink(int kind,unsigned seed){
  * made every POI look placed on the same display stand. This shallow earth
  * berm follows four real ground samples, with only a narrow inset footing for
  * engineered sites. Collision and interaction keep their existing footprint. */
+/* Exact maximum of the rendered piecewise-linear ground over a rectangle.
+ * Clipped corners plus diagonal endpoints cover every triangle extremum.
+ * Include the distant LOD too: it must not cover a landmark's lower walls. */
+static float lm_mesh_height(float x,float z,int cell){
+ int ix=(int)floorf(x/cell),iz=(int)floorf(z/cell);float x0=ix*(float)cell,z0=iz*(float)cell,u=(x-x0)/cell,v=(z-z0)/cell;
+ float a=terrain_mesh_height(&game,x0,z0),c=terrain_mesh_height(&game,x0+cell,z0+cell);
+ if(u>=v){float b=terrain_mesh_height(&game,x0+cell,z0);return a+(b-a)*u+(c-b)*v;}
+ float d=terrain_mesh_height(&game,x0,z0+cell);return a+(c-d)*u+(d-a)*v;
+}
+static float lm_mesh_max(Vec3 p,float w,float d,int cell){
+ float xmin=p.x-w,xmax=p.x+w,zmin=p.z-d,zmax=p.z+d,high=terrain_height(&game,p.x,p.z);
+ int ix0=(int)floorf(xmin/cell),ix1=(int)floorf(xmax/cell),iz0=(int)floorf(zmin/cell),iz1=(int)floorf(zmax/cell);
+ for(int iz=iz0;iz<=iz1;iz++)for(int ix=ix0;ix<=ix1;ix++){
+  float x0=ix*(float)cell,z0=iz*(float)cell,x1=x0+cell,z1=z0+cell;
+  float ax=fmaxf(xmin,x0),bx=fminf(xmax,x1),az=fmaxf(zmin,z0),bz=fminf(zmax,z1);
+  for(int corner=0;corner<4;corner++)high=fmaxf(high,lm_mesh_height(corner&1?bx:ax,corner&2?bz:az,cell));
+  float lo=fmaxf(ax,x0+az-z0),hi=fminf(bx,x0+bz-z0);
+  if(lo<=hi){high=fmaxf(high,lm_mesh_height(lo,z0+lo-x0,cell));high=fmaxf(high,lm_mesh_height(hi,z0+hi-x0,cell));}
+ }
+ return high;
+}
+static float lm_footing_grade(Vec3 p,float w,float d,int kind){
+ /* Sixteen exact-tagged entries bound the cache; no per-frame allocation. */
+ static struct {unsigned seed;int sys,body,type,kind,valid;float x,z,w,d,grade;} cache[16];static unsigned next;
+ unsigned seed=game.bodies[game.planet].seed;int type=game.bodies[game.planet].type;
+ for(int i=0;i<16;i++)if(cache[i].valid&&cache[i].seed==seed&&cache[i].sys==game.system&&cache[i].body==game.planet&&cache[i].type==type&&cache[i].kind==kind&&cache[i].x==p.x&&cache[i].z==p.z&&cache[i].w==w&&cache[i].d==d)return cache[i].grade;
+ float spread=lm_natural_site(kind)?1.16f:1.10f,ow=w*spread,od=d*spread;
+ float high=lm_mesh_max(p,ow,od,game.system==7?160:40);
+ high=fmaxf(high,lm_mesh_max(p,ow,od,game.system==7?960:280));
+ int at=next++&15;cache[at].seed=seed;cache[at].sys=game.system;cache[at].body=game.planet;cache[at].type=type;cache[at].kind=kind;cache[at].valid=1;cache[at].x=p.x;cache[at].z=p.z;cache[at].w=w;cache[at].d=d;cache[at].grade=high+.60f;
+ return cache[at].grade;
+}
 static float lm_ground_foundation(Vec3 p,float w,float d,int kind,unsigned ink,unsigned seed){
  int natural=lm_natural_site(kind);float spread=natural?1.16f:1.10f,ow=w*spread,od=d*spread;
  Vec3 outer[4]={{p.x-ow,0,p.z-od},{p.x+ow,0,p.z-od},{p.x+ow,0,p.z+od},{p.x-ow,0,p.z+od}};
- float high=terrain_height(&game,p.x,p.z);
- for(int i=0;i<4;i++){outer[i].y=terrain_height(&game,outer[i].x,outer[i].z)+.15f;high=fmaxf(high,outer[i].y);}
- float grade=high+.45f;
+ for(int i=0;i<4;i++)outer[i].y=terrain_height(&game,outer[i].x,outer[i].z)+.15f;
+ float grade=lm_footing_grade(p,w,d,kind);
  Vec3 inner[4]={{p.x-w,grade,p.z-d},{p.x+w,grade,p.z-d},{p.x+w,grade,p.z+d},{p.x-w,grade,p.z+d}};
  unsigned soil=lm_ground_ink(kind,seed),top=mix_rgb(soil,ink,natural?.04f:.13f);
  lm_quad(inner[0],inner[1],inner[2],inner[3],top);
@@ -93,6 +124,9 @@ static float lm_ground_foundation(Vec3 p,float w,float d,int kind,unsigned ink,u
 }
 static int surface_landmark_v2(Vec3 p,FieldBuilding s,int kind,unsigned ink,unsigned seed){
  if(kind<0||kind>FIELD_WEATHER)return 0;
+ /* Solid-world grottos have a walkable entrance; cloud decks retain spires. */
+ if(kind==FIELD_CRYSTAL&&game.bodies[game.planet].type!=GAS)return 0;
+ if(kind==FIELD_DISH&&planet_lave_i())return 0;
  Vec3 cv=camera(&game,p);landmark_detail=cv.z<650;
  float w=s.w,d=s.d,h=s.height;
  unsigned stone=mix_rgb(RGB(184,179,147),ink,.15f),steel=RGB(65,89,100),edge=RGB(109,137,138),glass=RGB(65,135,151),gold=RGB(215,161,75),moss=RGB(64,96,47);

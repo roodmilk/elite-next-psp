@@ -1,9 +1,16 @@
-/* Original, allocation-free event sounds at 44.1 kHz. No recorded assets. */
+/* Allocation-free event sounds at 44.1 kHz. Essential cockpit feedback uses
+ * the licensed resident metal transient included before this header. */
 #ifndef ELITE_AUDIO_SFX_H
 #define ELITE_AUDIO_SFX_H
 static int audio_sfx_length(int id){
  switch(id){
+ case SFX_AD_OPEN:return 6174; /* 140 ms playful rising whoop */
+ case SFX_AD_CLOSE:return 4851; /* 110 ms descending airy thwip */
+ case SFX_POWER_BUS:return 17640;
+ case SFX_POWER_RELAY:return 13230;
+ case SFX_POWER_READY:return 19845;
  case SFX_OBSERVATORY:return 10584; /* 240ms quiet receiver handshake */
+ case SFX_PAPER:return 5292; /* 120 ms paper brush */
  case SFX_SELECT:return 882;       /* 20 ms: quiet navigation tick */
  case SFX_UI:return 1764;
  case SFX_LASER:return 3528;
@@ -29,41 +36,101 @@ static int audio_sfx_length(int id){
 }
 static int audio_sfx_sample(int id,int age,unsigned *phase,unsigned *noise){
  int length=audio_sfx_length(id);if(age<0||age>=length)return 0;
- int remaining=length-1-age,freq=440,level=12,grit=0;
+ int remaining=length-1-age;
  *noise=*noise*1664525u+1013904223u;
  int n=(int)(*noise>>24)-128;
- switch(id){
- case SFX_OBSERVATORY:freq=age<length/3?420:age<length*2/3?630:470;level=5;break;
- case SFX_SELECT:freq=1100;level=8;break;
- case SFX_UI:freq=660;level=10;break;
- case SFX_LASER:freq=1400-age*1000/length;level=16;break;
- case SFX_HIT:freq=95;level=8;grit=n*20;break;
- case SFX_SCAN:freq=520+age*520/length;level=12;break;
- case SFX_COMM:freq=age<length/2?740:550;level=10;break;
- case SFX_TALK:freq=160+(age/882%4)*35;level=7;grit=n*4;break;
- case SFX_LAND:freq=105-age*45/length;level=14;grit=n*5;break;
- case SFX_DOCK:freq=age<length/2?220:330;level=14;break;
- case SFX_MINE:freq=180;level=8;grit=n*14;break;
- case SFX_BOOST:freq=90+age*100/length;level=12;grit=n*6;break;
- case SFX_MISSILE:freq=260+age*480/length;level=13;grit=n*3;break;
- case SFX_ALERT:freq=880;level=18;break;
- case SFX_WARP:freq=110+age*660/length;level=15;break;
- case SFX_DEATH:freq=100-age*65/length;level=10;grit=n*22;break;
- case SFX_ALIEN_PLAYER:freq=1750-age*750/length;level=12;break;
- case SFX_ALIEN_FIRE:freq=420+(age/220%3)*130;level=9;grit=n*3;break;
- case SFX_ALIEN_MISSILE:freq=240+age*620/length;level=11;grit=n*2;break;
- case SFX_ALIEN_KILL:freq=780-age*610/length;level=12;grit=n*9;break;
- case SFX_SPEED_SURGE:freq=95+age*260/length;level=10;grit=n*(4+age*5/length);break;
+ /* Essential feedback shares one real metal mechanism, reshaped into switch,
+  * relay, latch and warning gestures.  Quiet filtered contact noise supplies
+  * material variation; no exposed oscillator is used in this family. */
+ if(id==SFX_SELECT||id==SFX_UI||id==SFX_SCAN||id==SFX_COMM||id==SFX_DOCK||id==SFX_MISSILE||id==SFX_ALERT){
+  int state=(int)*phase,divisor=id==SFX_SELECT?4:id==SFX_UI?8:id==SFX_MISSILE?10:14;
+  state+=(n*24-state)/divisor;*phase=(unsigned)state;
+  int local=age;
+  if(id==SFX_ALERT){local=age%6615;if(local>=3528)return 0;}
+  int source_rate=id==SFX_SELECT?6200:id==SFX_UI?7000:id==SFX_DOCK?5200:id==SFX_SCAN?9000:id==SFX_COMM?7600:8000;
+  int si=local*source_rate/44100;if(si>=1760)si=1759;
+  int recorded=(int)flight_dock_clamp_pcm[si];
+  int attack=local<80?local:80,local_left=(id==SFX_ALERT?3527-local:remaining);
+  int edge=local_left<attack?local_left:attack;if(remaining<edge)edge=remaining;if(edge<0)edge=0;
+  int gain=id==SFX_SELECT?5:id==SFX_UI?7:id==SFX_SCAN?8:id==SFX_COMM?6:id==SFX_DOCK?12:id==SFX_MISSILE?10:9;
+  int body=recorded*gain+state*(id==SFX_MISSILE||id==SFX_ALERT?2:1);
+  return body*edge/80;
  }
- *phase+=(unsigned)freq*97391u; /* 2^32 / 44100, rounded */
- int x=(int)(*phase>>22),wave=x<512?x-256:768-x;
- int envelope=age<128?age:128;
- if(remaining<envelope)envelope=remaining;
- if(id==SFX_ALERT){
-  int pulse=age%6615;
-  if(pulse>=4410)envelope=0;
-  else {if(pulse<envelope)envelope=pulse;if(4409-pulse<envelope)envelope=4409-pulse;}
+ /* Cold-start cues are layers of the ship that is actually coming alive:
+  * generator mass, cockpit machinery and a recorded relay contact. */
+ if(id==SFX_POWER_BUS||id==SFX_POWER_RELAY||id==SFX_POWER_READY){
+  unsigned ei=(unsigned)age/2u%(unsigned)(sizeof(flight_engine_industrial_pcm)/sizeof(flight_engine_industrial_pcm[0]));
+  unsigned mi=(unsigned)age/2u%(unsigned)(sizeof(flight_cockpit_machinery_pcm)/sizeof(flight_cockpit_machinery_pcm[0]));
+  int source=id==SFX_POWER_BUS?flight_engine_industrial_pcm[ei]:flight_cockpit_machinery_pcm[mi];
+  int state=(int)*phase;state+=(source-state)/(id==SFX_POWER_RELAY?10:22);*phase=(unsigned)state;
+  int ci=age*(id==SFX_POWER_RELAY?7200:5200)/44100,contact=ci<1760?(int)flight_dock_clamp_pcm[ci]:0;
+  int attack=age<192?age:192,envelope=remaining<attack?remaining:attack;if(envelope<0)envelope=0;
+  int body=id==SFX_POWER_BUS?state/10+contact*2:id==SFX_POWER_RELAY?state/15+contact*8:state/18+flight_engine_industrial_pcm[ei]/22+contact*3;
+  return body*envelope/192*remaining/length;
  }
- return ((wave*level+grit)*remaining/length)*envelope/128;
+ /* Combat is heard through the player's structure. Discharge has a short
+  * contact plus turbulent energy; impact has metal and filtered hull force;
+  * destruction is one continuous machinery collapse. None is a pitched beep. */
+ if(id==SFX_LASER||id==SFX_HIT||id==SFX_MINE||id==SFX_DEATH){
+  int state=(int)*phase;state+=(n*32-state)/(id==SFX_LASER?5:id==SFX_DEATH?18:10);*phase=(unsigned)state;
+  int attack=age<96?age:96,envelope=remaining<attack?remaining:attack;if(envelope<0)envelope=0;
+  int rate=id==SFX_LASER?10500:id==SFX_HIT?7200:id==SFX_MINE?5900:4800;
+  int ci=age*rate/44100,contact=ci<1760?(int)flight_dock_clamp_pcm[ci]:0;
+  if(id==SFX_LASER){int turbulent=n*12-state/2;return (contact*5+turbulent)*envelope/96*remaining/length;}
+  if(id==SFX_HIT)return (contact*8+state/2)*envelope/96*remaining/length;
+  if(id==SFX_MINE)return (contact*6+state/2)*envelope/96*remaining/length;
+  unsigned ei=(unsigned)age/2u,cl=(unsigned)(sizeof(flight_engine_industrial_pcm)/sizeof(flight_engine_industrial_pcm[0]));if(ei>=cl)ei=cl-1;
+  unsigned mi=(unsigned)age/2u%(unsigned)(sizeof(flight_cockpit_machinery_pcm)/sizeof(flight_cockpit_machinery_pcm[0]));
+  int collapse=flight_engine_industrial_pcm[ei]/16+flight_cockpit_machinery_pcm[mi]/24+contact*3+state/2;
+  return collapse*envelope/96*remaining/length;
+ }
+ /* Atmosphere capture and touchdown are heard as compression through the
+  * hull: recorded engine mass, damped machinery and one buried contact. */
+ if(id==SFX_LAND){
+  unsigned el=(unsigned)(sizeof(flight_engine_industrial_pcm)/sizeof(flight_engine_industrial_pcm[0]));
+  unsigned ml=(unsigned)(sizeof(flight_cockpit_machinery_pcm)/sizeof(flight_cockpit_machinery_pcm[0]));
+  unsigned ei=((unsigned)age*11800u/44100u)%el,mi=((unsigned)age*8600u/44100u)%ml;
+  int body=flight_engine_industrial_pcm[ei]*3/4+flight_cockpit_machinery_pcm[mi]/4;
+  int state=(int)*phase;state+=(body-state)/18;*phase=(unsigned)state;
+  int ci=age*4800/44100,contact=ci<1760?(int)flight_dock_clamp_pcm[ci]:0;
+  int attack=age<160?age:160,envelope=remaining<attack?remaining:attack;if(envelope<0)envelope=0;
+  return (state*2+contact*16)*envelope/5/160*remaining/length;
+ }
+ /* Hostile technology uses the selected Deep Bioelectric Pressure identity:
+  * slowed recorded propulsion under living machinery movement. Short metal
+  * excitation is heard through that body rather than exposed as a tap. */
+ if(id==SFX_ALIEN_PLAYER||id==SFX_ALIEN_FIRE||id==SFX_ALIEN_MISSILE||id==SFX_ALIEN_KILL){
+  unsigned el=(unsigned)(sizeof(flight_engine_industrial_pcm)/sizeof(flight_engine_industrial_pcm[0]));
+  unsigned ml=(unsigned)(sizeof(flight_cockpit_machinery_pcm)/sizeof(flight_cockpit_machinery_pcm[0]));
+  unsigned er=id==SFX_ALIEN_PLAYER?12800:id==SFX_ALIEN_FIRE?17600:id==SFX_ALIEN_MISSILE?14200:10500;
+  unsigned mr=id==SFX_ALIEN_PLAYER?9600:id==SFX_ALIEN_FIRE?15100:id==SFX_ALIEN_MISSILE?11200:8200;
+  unsigned ei=((unsigned)age*er/44100u)%el,mi=((unsigned)age*mr/44100u)%ml;
+  int body=flight_engine_industrial_pcm[ei]*7/10+flight_cockpit_machinery_pcm[mi]*3/10;
+  int state=(int)*phase;state+=(body-state)/(id==SFX_ALIEN_FIRE?9:15);*phase=(unsigned)state;
+  int ci=age*(id==SFX_ALIEN_FIRE?7800:id==SFX_ALIEN_KILL?5200:4100)/44100;
+  int contact=ci<1760?(int)flight_dock_clamp_pcm[ci]:0;
+  int attack=age<128?age:128,envelope=remaining<attack?remaining:attack;if(envelope<0)envelope=0;
+  int gain=id==SFX_ALIEN_PLAYER?5:id==SFX_ALIEN_FIRE?9:id==SFX_ALIEN_MISSILE?7:8;
+  int excitation=(id==SFX_ALIEN_FIRE||id==SFX_ALIEN_KILL)?contact*(id==SFX_ALIEN_FIRE?4:3):0;
+  return (state*gain/8+excitation)*envelope/128*remaining/length;
+ }
+ /* Remaining world and flight gestures are shaped only from recorded ship
+  * material. Slow filtering hides individual mechanical knocks so these read
+  * as mass, pressure and motion rather than taps or retro synthesizer tones. */
+ if(id==SFX_AD_OPEN||id==SFX_AD_CLOSE||id==SFX_OBSERVATORY||id==SFX_PAPER||id==SFX_TALK||id==SFX_BOOST||id==SFX_WARP||id==SFX_SPEED_SURGE){
+  unsigned el=(unsigned)(sizeof(flight_engine_industrial_pcm)/sizeof(flight_engine_industrial_pcm[0]));
+  unsigned ml=(unsigned)(sizeof(flight_cockpit_machinery_pcm)/sizeof(flight_cockpit_machinery_pcm[0]));
+  unsigned rate=4700u+(unsigned)id*317u;
+  if(id==SFX_WARP||id==SFX_SPEED_SURGE)rate+=(unsigned)age*(id==SFX_WARP?17600u:7200u)/(unsigned)length;
+  unsigned ei=((unsigned)age*rate/44100u)%el;
+  unsigned mi=((unsigned)age*(rate*3u/4u+1700u)/44100u)%ml;
+  int physical=flight_engine_industrial_pcm[ei]*3/5+flight_cockpit_machinery_pcm[mi]*2/5;
+  int state=(int)*phase;state+=(physical-state)/20;*phase=(unsigned)state;
+  int attack=age<160?age:160,envelope=remaining<attack?remaining:attack;if(envelope<0)envelope=0;
+  int body=state/3+flight_engine_industrial_pcm[ei]/22;
+  if(id==SFX_BOOST){unsigned bi=(unsigned)age*8800u/44100u;if(bi>=4400u)bi=4399u;body=state*2/5+(int)flight_boost_warm_gravity_pcm[bi]*7;}
+  return body*envelope/160*remaining/length;
+ }
+ return 0;
 }
 #endif

@@ -29,6 +29,16 @@ static int soft_sky_review(void){
  fprintf(report,"SYSTEM %d %s; renderer=soft-celestial-v1; cache=%u bytes\n",system,game.systems[system].name,(unsigned)sizeof(soft_sky_faces));
  uint64_t a,b;sceRtcGetCurrentTick(&a);sector_background();space_fx_nebula();sceRtcGetCurrentTick(&b);
  fprintf(report,"Cold sky generation and draw %.2f ms\n",(b-a)*1000.f/sceRtcGetTickResolution());
+
+ {unsigned first[4];int energy_a=0,energy_b=0,diff=0;
+  memset(fb,0,STRIDE*H*sizeof(unsigned));space_star_dot(100.49f,100.49f,RGB(200,180,160),0,0,W-1,H-1);
+  for(int dy=0;dy<2;dy++)for(int dx=0;dx<2;dx++){unsigned c=fb[(100+dy)*STRIDE+100+dx];first[dy*2+dx]=c;energy_a+=(c&255)+((c>>8)&255)+((c>>16)&255);}
+  memset(fb,0,STRIDE*H*sizeof(unsigned));space_star_dot(100.51f,100.51f,RGB(200,180,160),0,0,W-1,H-1);
+  for(int dy=0;dy<2;dy++)for(int dx=0;dx<2;dx++){unsigned c=fb[(100+dy)*STRIDE+100+dx],b=first[dy*2+dx];energy_b+=(c&255)+((c>>8)&255)+((c>>16)&255);diff+=abs((int)(c&255)-(int)(b&255))+abs((int)((c>>8)&255)-(int)((b>>8)&255))+abs((int)((c>>16)&255)-(int)((b>>16)&255));}
+  SKY_CHECK(abs(energy_a-energy_b)<=12&&energy_b>500,"small star movement preserves brightness without popping");SKY_CHECK(diff<45,"star footprint moves smoothly through half-pixel positions");
+  memset(fb,0,STRIDE*H*sizeof(unsigned));space_star_dot(52.8f,38.8f,WHITE,53,39,316,166);int contained=1;for(int y=0;y<H;y++)for(int x=0;x<W;x++)if((x<53||x>316||y<39||y>166)&&fb[y*STRIDE+x])contained=0;SKY_CHECK(contained,"subpixel stars cannot leak outside preview edges");
+  sector_background();space_fx_nebula();
+ }
  unsigned base=soft_sky_frame_hash();memcpy(reference,fb,STRIDE*H*sizeof(unsigned));Vec3 pos=game.pos;
  game.pos=add(pos,(Vec3){120000,-48000,92000});sector_background();space_fx_nebula();SKY_CHECK(soft_sky_frame_hash()==base,"translation leaves distant clouds pixel-identical");game.pos=pos;
  game.time+=500;sector_background();space_fx_nebula();SKY_CHECK(soft_sky_frame_hash()==base,"clouds do not reseed or pulse into different patterns with time");game.time=10;

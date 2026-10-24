@@ -28,19 +28,22 @@ void route_refresh_destination(Game *g){
  if(hop>=0)g->destination=hop;else g->route_goal=-1;
 }
 int mission_cargo_reserved(const Game *g,int item){
- int n=0;
- for(int i=0;i<g->job_n;i++)if((item==0&&g->jobs[i].type==MISSION_DELIVERY)||
-                              (item==6&&g->jobs[i].type==MISSION_SMUGGLING))n++;
+ int n=expedition_reserved(g,item);
+ for(int i=0;i<g->job_n;i++)if((item==0&&mission_base_type(g->jobs[i].type)==MISSION_DELIVERY)||
+                              (item==6&&mission_base_type(g->jobs[i].type)==MISSION_SMUGGLING))n++;
  if(!g->job_n&&g->contract>=0&&((item==0&&g->mission_type==MISSION_DELIVERY)||
                               (item==6&&g->mission_type==MISSION_SMUGGLING)))n++;
  return n;
 }
 int mission_target_id(const Game *g,int slot){
  if(slot<0||slot>=g->job_n||g->jobs[slot].dest!=g->system)return -1;
- const Job *j=&g->jobs[slot];
- if(j->type==MISSION_DELIVERY||j->type==MISSION_SMUGGLING||
-    (j->type==MISSION_RESCUE&&j->stage))return 0;
- if(j->type==MISSION_EXPLORATION)return j->item+1;
+ const Job *j=&g->jobs[slot];if(expedition_stage(g,slot))return expedition_target(g,slot);
+ int base=mission_base_type(j->type);
+ if(trade_job_is(j))return j->target>=0&&j->target<NPC_COUNT&&g->npc[j->target].alive?BODY_COUNT+1+j->target:-1;
+ if(base==MISSION_RACE)return RACE_TARGET_ID;
+ if(base==MISSION_DELIVERY||base==MISSION_SMUGGLING||
+    (base==MISSION_RESCUE&&j->stage))return 0;
+ if(base==MISSION_EXPLORATION)return j->item+1;
  if(j->target>=0&&j->target<NPC_COUNT&&g->npc[j->target].alive)return BODY_COUNT+1+j->target;
  return -1;
 }
@@ -49,6 +52,7 @@ int guild_claim(Game *g){
  if(g->guild_chapter>=4){message(g,"Opening assignments complete. Thank you, Commander.");return 0;}
  if(!guild_ready(g)){message(g,guild_objective(g));return 0;}
  const int rewards[]={1000,1500,2000,3000};int reward=rewards[g->guild_chapter];
+ mission_receipt_record(g,RECEIPT_GUILD,g->guild_chapter,reward,g->system,guild_title(g),g->guild_chapter==1?"TAMSIN":g->guild_chapter==2?"ORU":"KEI");
  g->credits+=reward;g->guild_chapter++;g->guild_flags=0;g->cue=SFX_SELECT;
  char note[96];snprintf(note,sizeof(note),"Guild payment: %.1f units. Next assignment ready.",reward*.1f);message(g,note);
  return 1;

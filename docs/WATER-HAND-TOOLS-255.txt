@@ -1,0 +1,64 @@
+ELITE: NEXT 2.5.255 / WATER AND HAND TOOLS
+1 October 2026
+
+Changes
+- Water colours use world-anchored moving ripples, broken highlights and
+  shore foam. Palette follows biome water/sky lighting. This is a stylized
+  colour animation on the existing terrain, not fluid simulation or a new
+  planar/reflection mesh.
+- A bounded80KiB tagged cache samples the exact40m river/ocean cells.
+  Old coarse160/280m blue patches no longer define river shores.
+  Gas-platform geometry keeps its exact existing platform boundaries.
+- Separates raw terrain mesh/river mask from bridge-aware movement height.
+  Deck +/-240m across river, +/-26m along; ramps reach +/-280m.
+  Deck floor and feet/wheels agree, riverbed remains underneath.
+  Removes the old440m-wide invisible dry crossing reservation.
+- Under-deck wet cells no longer spawn ground vegetation collision.
+- First-person gloved handheld scanner; HAND TOOLS hold Circle >=.20s,
+  Up scanner, Down empty hands, then release and tap Circle to use.
+  A long hold/equip gesture never also scans on release.
+- Reuses existing target/range validation, discovery rewards, scan beam,
+  Triangle-to-Codex and persistent species identities; no duplicate rewards.
+  Empty hands don't scan. Hand choice is transient (no save-schema change).
+- Map/menu/site/seat/landing contexts consume held Circle before returning.
+  Rover drift remains unchanged; rover survey target-panel Circle preserved.
+  No nonfunctional weapon slots added.
+
+Verification
+Final candidate opt-in reviews in water-hand-tools-255:
+ship-tools-final: gesture, modal Back, scanner/rewards, all generated bridge
+height/width checks, raw water cache agreement across solid worlds, ripple
+animation and native framebuffer guards. RESULT0.
+ship-world-final:1024 worlds;713 river/ravine worlds; all sites dry and bridges
+reconnect to nearby water; no bridge-centre dry/nearby-water failures.
+ship-art-final:8192 species identities, eight flora/eight fauna families, twelve
+POI families, persistent scan identity and save/load, leaf budgets/depth guards.
+ship-map-final,ship-rover-final,ship-entry-final: RESULT0.
+ship-perf-final:144 reference/fast renderer frames identical, guards intact.
+ship-walk-final: scenery cache/collision/leaf limits pass.
+ship-core-final:game594/radio54/steering18 checks complete RESULT0. The runner
+stops after the completed game report; this is not certification of the
+inherited full input/outfitting suite.
+
+Measured emulator cost (not physical PSP FPS)
+River scene draw50.137ms average/50.968ms worst; Lave aggregate46.963ms.
+Walking sample56.534ms average/89.806ms worst including cache refresh, versus
+254 recorded44.905/63.145ms. Visual upgrades still have a material cost in
+some walking views. Initial255 walking sample62.286/105.457ms improved after
+cache/flat-dry-region optimization, but do not claim an overall254->255 speedup.
+Renderer timings do not include all simulation/audio/frame pacing.
+Cold map construction remains costly; real PSP memory/input/audio/FPS need QA.
+
+Packaging/recovery
+Canonical source and root/dist EBOOT verified against the final candidate.
+All touched pre255 files saved in canonical-before-255. No unrelated source,
+music or commander save files changed, and no Git mutation/public release.
+EBOOT7367871 bytes, SHA256
+9DD931353933AEE50D8F43AF6477095A305881879F13D223C4320B60003CBF43.
+
+Next
+Profile river/distant textured-ground overdraw and foliage cache refresh;
+add physical-PSP crossing/steering tests and validate handheld scan input.
+Improve bridge approach vegetation clearance if broad billboards overlap
+rail silhouettes. Add handheld weapons only with real gameplay handlers.
+Keep future fluids/reflections cheap and avoid promises of locked30 FPS.

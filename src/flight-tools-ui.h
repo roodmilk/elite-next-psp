@@ -4,6 +4,8 @@ static const char *tool_names[]={"MISSILES","FLARES","TRACTOR","HEAT SINK","LAW 
 static int tools_selected=0,tools_open=0,tools_armed=0,tools_consumed=0,tools_chosen=0;
 static int tools_wait_release=0;
 static int tools_tractor=-1;static float tools_tractor_timeout=0;
+static float tools_confirm_time=0;static int tools_confirm_action=-1,tools_weapon_result=0;
+static char tools_weapon_old[24],tools_weapon_new[24];
 static void tools_cancel_tractor(void){if(tools_tractor>=0)autoaim=0;tools_tractor=-1;tools_tractor_timeout=0;}
 static float tools_hold=0;static unsigned tools_dirs=0;
 static void tools_reset_gesture(void){tools_open=tools_armed=tools_consumed=tools_chosen=0;tools_hold=0;tools_dirs=0;}
@@ -12,19 +14,33 @@ static int tools_context(void){return page==FLIGHT&&!game.docked&&!game.dead&&ga
 static int tools_recoverable(int id){
  if(!IS_DEBRIS_ID(id))return 0;
  Debris *d=&game.debris[id-DEBRIS_ID_MIN];
- return d->alive&&!d->rock&&length(sub(d->pos,game.pos))<=500&&!occluded(d->pos);
+ return d->alive&&!d->rock&&length(sub(d->pos,game.pos))<=tech_tractor_range(&game)&&!occluded(d->pos);
+}
+static void tools_no_cargo(void){
+ static const char *line[]={
+  "Um, there's no cargo nearby! At least... I can't see any!",
+  "Nothing loose within the fitted tractor range. Fly closer and try again.",
+  "Cargo bay is ready, but I can't see anything recoverable nearby.",
+  "No salvage in reach. Move inside the fitted tractor range.",
+  "I checked twice. No loose cargo close enough to recover.",
+  "Nothing to pull in, Commander. Try again inside the fitted tractor range.",
+  "That was optimistic. There is no cargo on the local scope.",
+  "No canisters nearby. Fly closer - check the fitted tractor range."
+ };
+ unsigned pick=(unsigned)(game.time*17.f)+game.rng+(unsigned)game.system*13u;
+ message(&game,line[pick%(sizeof(line)/sizeof(line[0]))]);
 }
 static void tools_start_tractor(void){
  if(game.tractor_time>0||tools_tractor>=0){message(&game,"Tractor already engaged.");return;}
  int id=selected_target;
  if(!tools_recoverable(id)){
-  id=-1;float best=501;
+  id=-1;float best=tech_tractor_range(&game)+1;
   for(int i=0;i<DEBRIS_COUNT;i++)if(tools_recoverable(DEBRIS_ID_MIN+i)){
    float distance=length(sub(game.debris[i].pos,game.pos));
    if(distance<best){best=distance;id=DEBRIS_ID_MIN+i;}
   }
  }
- if(id<0){message(&game,"No recoverable cargo within 500 m.");return;}
+ if(id<0){tools_no_cargo();return;}
  selected_target=id;autoaim=1;tools_tractor=id;tools_tractor_timeout=5;
  game.speed=0;game.boost=0;message(&game,"Tractor aligning. Manual steering cancels.");
 }
@@ -43,67 +59,52 @@ static void tools_tractor_tick(float dt){
 static void tools_activate(int action){
  if(action==0)fire_missile(&game,selected_target);else if(action==1)deploy_flare(&game);else if(action==2)tools_start_tractor();else if(action==4)law_scan(&game);else dump_heat_sink(&game);
 }
+#include "navigation-flight.h"
+#include "cockpit-computer-controls.h"
 static int tools_input(unsigned pressed,unsigned held,float dt){
- if(!tools_context()){tools_reset_gesture();return 0;}
+ tools_confirm_time=fmaxf(0,tools_confirm_time-fmaxf(0,dt));
+ if(!tools_context()){tools_reset_gesture();tools_confirm_time=0;return 0;}
+ if(held&PSP_CTRL_START){tools_reset_gesture();tools_wait_release=1;return 0;}
  if(tools_wait_release){tools_reset_gesture();if(!(held&PSP_CTRL_CIRCLE))tools_wait_release=0;return (held&PSP_CTRL_CIRCLE)!=0;}
- unsigned directions=held&(PSP_CTRL_UP|PSP_CTRL_DOWN|PSP_CTRL_LEFT|PSP_CTRL_RIGHT);
  if(held&PSP_CTRL_CIRCLE){
   if(pressed&PSP_CTRL_CIRCLE){tools_reset_gesture();tools_armed=1;}
-  if(!tools_armed)return 1; /* A held key from a menu cannot become a fresh shot. */
-  tools_hold+=fmaxf(0,dt);
-  if(!tools_chosen&&(pressed&PSP_CTRL_RTRIGGER)){
-   tools_consumed=1;tools_chosen=1;
-   if(fit_find(&game,LAW_SCANNER_ITEM)>=0){tools_selected=4;message(&game,"Law Scanner selected. Tap Circle to scan.");}
-   else message(&game,"Fit a Law Scanner in a UTIL slot first.");
-  }
-  if(!tools_chosen&&(pressed&PSP_CTRL_TRIANGLE)){
-   tools_selected=3;tools_chosen=1;tools_consumed=1;message(&game,"HEAT SINK selected.");
-  }
-  unsigned fresh=pressed&directions&~tools_dirs;tools_dirs=directions;
-  if(directions)tools_consumed=1;
-  if(!tools_chosen&&fresh&&!(directions&(directions-1))){
-   for(int action=0;action<4;action++)if(fresh&tool_buttons[action]){
-    tools_chosen=1;tools_consumed=1;
-    if(action==3){
-     int slot=fit_cycle_weapon(&game);char note[80];
-     if(slot>=0)snprintf(note,sizeof(note),"Weapon bank %d armed: %s.",slot/6+1,fit_weapon_short_name(game.fit[slot]));
-     else if(slot==-2)snprintf(note,sizeof(note),"Only one WPN module fitted.");
-     else snprintf(note,sizeof(note),"No WPN module fitted.");
-     message(&game,note);
-    }else{
-     tools_selected=action;char note[64];snprintf(note,sizeof(note),"%s selected.",tool_names[action]);message(&game,note);
-    }
+  if(!tools_armed)return 1;
+  tools_hold+=fmaxf(0,dt);unsigned action=pressed&(PSP_CTRL_UP|PSP_CTRL_DOWN|PSP_CTRL_LEFT|PSP_CTRL_RIGHT|PSP_CTRL_LTRIGGER|PSP_CTRL_TRIANGLE);
+  if(action){
+   tools_consumed=1;tools_chosen=1;tools_open=1;tools_confirm_time=.36f;tools_weapon_result=0;
+   if(action&PSP_CTRL_RIGHT){
+    int old=fit_weapon_item(&game);snprintf(tools_weapon_old,sizeof(tools_weapon_old),"%s",fit_weapon_short_name(old));
+    int result=fit_cycle_weapon(&game);snprintf(tools_weapon_new,sizeof(tools_weapon_new),"%s",fit_weapon_short_name(fit_weapon_item(&game)));
+    tools_confirm_action=3;tools_weapon_result=result>=0?1:result==-2?2:-1;
+   }else{
+    int chosen=action&PSP_CTRL_LTRIGGER?0:action&PSP_CTRL_TRIANGLE?1:action&PSP_CTRL_LEFT?2:action&PSP_CTRL_DOWN?3:4;
+    tools_selected=chosen;tools_confirm_action=chosen;
    }
+   game.cue=SFX_SELECT;
   }
-  if(tools_hold>=.20f)tools_consumed=1;
-  tools_open=tools_hold>=.20f&&!tools_chosen;
+  if(tools_hold>=.20f){tools_consumed=1;tools_open=1;}
   return 1;
  }
- if(tools_armed){
-  int fire=!tools_consumed&&tools_hold<.20f&&!directions;
-  tools_reset_gesture();if(fire)tools_activate(tools_selected);return 1;
- }
+ if(tools_armed){int fire=!tools_consumed&&tools_hold<.20f;tools_reset_gesture();if(fire)tools_activate(tools_selected);return 1;}
  tools_open=0;return 0;
 }
-static void tools_panel(void){
- if(!tools_context()||!tools_open)return;
- /* Compact ship-tools cross: weapons and recovery share one selector. */
- unsigned edge=RGB(177,92,58),ink=RGB(245,190,123),dim=RGB(157,167,178);
- rect(104,48,272,120,RGB(12,18,25));rect(104,48,272,1,edge);rect(104,167,272,1,edge);
- line(104,48,112,48,ink);line(104,48,104,56,ink);line(375,159,375,167,ink);
- rect(227,89,26,38,UI_RAISED);rect(216,100,48,16,UI_RAISED);
- button_icon(235,102,'O',ink);
- button_icon(235,80,'U',ink);button_icon(235,132,'D',ink);
- button_icon(210,104,'L',ink);button_icon(260,104,'R',ink);
- text_px(196,58,ink,"MISSILES %d",game.missiles);
- text_px(196,150,ink,"FLARES %d/%d",game.flare_charges,flare_capacity(&game));
- text_px(116,94,ink,"TRACTOR");text_px(284,90,ink,"NEXT WPN");
- text_px(116,110,dim,game.tractor_time>0?"PULLING":tools_tractor>=0?"ALIGNING":"500 M");
- {int wc=fit_weapon_count(&game),wi=fit_weapon_item(&game);text_px(284,106,dim,"B%d/%d %.7s",game.active_weapon/6+1,wc,fit_weapon_short_name(wi));}
- if(game.flare_cd>0)text_px(112,150,dim,"%ds",(int)ceilf(game.flare_cd));
- button_icon(284,126,'T',ink);text_px(302,130,ink,"HEAT SINK");
- if(fit_find(&game,LAW_SCANNER_ITEM)>=0){button_icon(284,145,'r',ink);text_px(302,150,ink,"LAW SCAN");}
+static int tools_flash_twice(void){if(tools_confirm_time<=0)return 0;int phase=(int)((.64f-fminf(.64f,tools_confirm_time))/.16f);return phase==0||phase==2;}
+static int tools_direction_flash(void){
+ if(tools_confirm_time<=0||tools_confirm_action<0||tools_confirm_action>3)return 0;
+ float total=tools_confirm_action==3&&tools_weapon_result>0?1.20f:.64f;
+ int phase=(int)((total-fminf(total,tools_confirm_time))/.16f);
+ return phase==0||phase==2;
 }
+static void tools_direction_box(int x,int y,int w,int h,int active){
+ /* Confirm the physical direction, rather than recolouring only its caption. */
+ unsigned edge=active?RED:RGB(74,52,46),fill=active?RGB(72,18,26):RGB(17,23,31);
+ rect(x,y,w,h,edge);rect(x+2,y+2,w-4,h-4,fill);
+ if(active){line(x+4,y+3,x+w-5,y+3,RGB(255,112,104));line(x+3,y+4,x+3,y+h-5,RGB(255,112,104));}
+}
+static void tools_ticker_clipped(int x,int y,int left,int right,unsigned ink,const char *s){
+ for(int i=0;s[i];i++){int px=x+i*6;if(px>=left&&px+5<right)text_px(px,y,ink,"%c",s[i]);}
+}
+#include "cockpit-computer-art.h"
 static void tools_flare_effect(void){
  if(game.flare_fx<=0||game.planet>=0)return;
  Vec3 v=camera(&game,game.flare_pos);if(v.z<15)return;Point p=project(v);

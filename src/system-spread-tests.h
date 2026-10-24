@@ -5,20 +5,20 @@
   game_init(&g);g.system=sys;game_spawn(&g);system_arrival(&g,(sys+37)%256);
   Vec3 spawn=g.pos;float heading=g.yaw;system_arrival(&g,(sys+37)%256);
   deterministic&=length(sub(spawn,g.pos))==0&&heading==g.yaw;
-  int front=0,back=0;
-  for(int b=1;b<BODY_COUNT;b++){float dotview=dot(forward(&g),norm(sub(g.bodies[b].pos,g.pos)));front+=dotview>0;back+=dotview<0;}
-  bearings&=front>0&&back>0;
+  int front=0,back=0,worlds=0;
+  for(int b=0;b<BODY_COUNT;b++)if(body_active(&g.bodies[b])&&g.bodies[b].type!=SUN){float dotview=dot(forward(&g),norm(sub(g.bodies[b].pos,g.pos)));front+=dotview>0;back+=dotview<0;worlds++;}
+  if(worlds>1)bearings&=front>0&&back>0;
   offaxis+=dot(forward(&g),norm(sub(hub_position(&g,0),g.pos)))<.7f;
-  for(int b=0;b<BODY_COUNT;b++){
+  for(int b=0;b<BODY_COUNT;b++)if(body_active(&g.bodies[b])){
    safe&=length(sub(g.bodies[b].pos,g.pos))>g.bodies[b].radius+9000;
-   for(int j=b+1;j<BODY_COUNT;j++){float gap=length(sub(g.bodies[b].pos,g.bodies[j].pos))-g.bodies[b].radius-g.bodies[j].radius;min_gap=fminf(min_gap,gap);spacing&=gap>30000;}
+   for(int j=b+1;j<BODY_COUNT;j++)if(body_active(&g.bodies[j])){float gap=length(sub(g.bodies[b].pos,g.bodies[j].pos))-g.bodies[b].radius-g.bodies[j].radius;min_gap=fminf(min_gap,gap);spacing&=gap>800;}
    for(int h=0;h<HUB_COUNT;h++)safe&=length(sub(g.bodies[b].pos,hub_position(&g,h)))>g.bodies[b].radius+2000;
   }
   for(int h=0;h<HUB_COUNT;h++)safe&=length(sub(g.pos,hub_position(&g,h)))>2500;
   for(int slot=8;slot<36;slot+=12){NPC *n=&g.npc[slot];if(freight_begin(&g,n,slot,0)){float trip=length(sub(n->freight_gate,n->freight_berth));long_routes+=trip>15000;max_trip=fmaxf(max_trip,trip);}}
  }
- CHECK(spacing,"system space: every pair of bodies has over 30 km clear separation in all 256 systems");
- CHECK(bearings&&offaxis>180,"system arrival: planets occupy front and rear hemispheres; station is not forced ahead");
+ CHECK(spacing,"system space: every active body has safe physical clearance, including moon systems");
+ CHECK(bearings&&offaxis>180,"system arrival: multi-world systems occupy both hemispheres; station is not forced ahead");
  CHECK(safe&&deterministic,"system arrival: deterministic route bearings clear bodies and stations across all systems");
  CHECK(long_routes>600&&max_trip>50000,"system freight: most routes cross tens of kilometres to planetary transfer space");
  fprintf(f,"INFO system minimum body gap %.0f m; longest freight leg %.0f m; long routes %d\n",min_gap,max_trip,long_routes);

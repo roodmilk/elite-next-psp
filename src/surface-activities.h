@@ -86,19 +86,19 @@ int surface_interact(Game *g){
  uint32_t *flags=&g->surface_progress[g->system][g->planet];FieldProfile p=field_profile(g,g->system,g->planet);
  int logged=0,animals=0;for(int i=0;i<LIFE_COUNT;i++)if(field_species_logged(g,g->system,g->planet,i)){logged++;animals+=field_species_kind(g->system,g->planet,i)==LIFE_FAUNA;}
  if(closest==0){
-  g->hazard=0;g->energy=fminf(100,g->energy+25);
+  g->hazard=0;g->energy=fminf(100,g->energy+25);expedition_event(g,XP_SITE,0,0,1);
   if(!(*flags&1)){*flags|=1;message(g,p.job==0?"JOB: restore POWER RELAY; return to port for payment.":p.job==1?"JOB: log two species, activate BIOLOGY ARRAY, return here.":"JOB: investigate site 4, use ARCHIVE UPLINK, return here.");}
   else if((*flags&2)&&!(*flags&64)){int pay=field_job_reward(g,g->system,g->planet);*flags|=64;g->credits+=pay;char note[96];snprintf(note,96,"Expedition report accepted. %.1f units paid.",pay*.1f);message(g,note);}
   else message(g,(*flags&64)?"Suit recharged. Contract complete. Other field sites remain open.":"Suit recharged. START opens your local contract and site guide.");return 1;
  }
- unsigned bit=field_site_bit(closest);if(*flags&bit){message(g,"Site already completed. START lists other field activities.");return 0;}
- if(closest==1){if(p.job==1&&logged<2){message(g,"The biology array needs two logged species. Square scans.");return 0;}if(p.job==2&&!(*flags&8)){message(g,"Investigate site 4 before transmitting its archive.");return 0;}*flags|=bit;message(g,"Field objective complete. Return to port for payment.");return 1;}
+ unsigned bit=field_site_bit(closest);if(*flags&bit){expedition_event(g,XP_SITE,closest,0,1);message(g,"Site already completed. START lists other field activities.");return 0;}
+ if(closest==1){if(p.job==1&&logged<2){message(g,"The biology array needs two logged species. Square scans.");return 0;}if(p.job==2&&!(*flags&8)){message(g,"Investigate site 4 before transmitting its archive.");return 0;}*flags|=bit;expedition_event(g,XP_SITE,closest,0,1);message(g,"Field objective complete. Return to port for payment.");return 1;}
  int kind=field_site_kind(g,g->system,g->planet,closest),pay=150+(field_hash(p.seed+closest)%36)*10;
  if(kind==FIELD_GARDEN&&logged<2){message(g,"Garden research needs two species records. Scan wildlife first.");return 0;}
  if(kind==FIELD_MIGRATION&&!animals){message(g,"Log a local animal before submitting a migration study.");return 0;}
  if(kind==FIELD_CACHE){if(cargo_used(g)>=cargo_capacity(g)){message(g,"Hold full. Free 1t to recover the expedition cache.");return 0;}g->cargo[12]++;message(g,"Cache recovered: 1t minerals transferred to your ship.");}
  else {static const char *done[]={"Cache recovered","Ancient calendar mapped","Telescope calibrated","Rescue shuttle called","Seed archive enriched","Fossil record preserved","Shelter power stabilised","Drone records recovered","Migration study submitted","Crystal formation mapped","Settler voices preserved","Weather readings uploaded"};g->credits+=pay;g->discoveries++;char note[96];snprintf(note,96,"%s. +%.1f units.",done[kind],pay*.1f);message(g,note);}
- *flags|=bit;g->cue=SFX_SCAN;return 1;
+ *flags|=bit;expedition_event(g,XP_SITE,closest,0,1);g->cue=SFX_SCAN;return 1;
 }
 /* One atomic choice through the existing reward path, never a second claim. */
 int observatory_resolve(Game *g,int id,int choice){

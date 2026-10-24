@@ -22,7 +22,7 @@ static void social_name(char *out,int size,const char *name){
  }out[i]=0;
 }
 static int social_count(void){return (int)game.social.count;}
-static int social_offset(void){return tutorial_active(&game)?1:0;}
+static int social_offset(void){return 0;}
 static int social_event_row(int r){int i=r-social_offset();return i>=0&&i<social_count()?i:-1;}
 static int social_rows(void){int n=social_count()+social_offset();return n?n:1;}
 static unsigned social_code(int r){int i=social_event_row(r);return i>=0?game.social.post[i]:0;}
@@ -36,6 +36,7 @@ static void social_post_text(unsigned code,int legacy,char *author,int alen,char
  social_author(seed,author,alen);
  if(kind<1||kind>=SB_COUNT||ship>=(unsigned)player_ship_count){snprintf(body,blen,"Post unavailable.");return;}
  char name[25];social_name(name,sizeof(name),game.commander_name);
+ if(kind>=SB_ERL_WIN){const char *line=kind==SB_ERL_WIN?"%s took their first ERL win! That finish deserves another replay.":kind==SB_ERL_LICENCE?"A new ERL licence for %s. The next league just got more interesting.":kind==SB_ERL_TROPHY?"%s won an ERL championship! A trophy earned on the grid.":"%s reached another ERL career milestone. The paddock is paying attention.";snprintf(body,blen,line,name);return;}
  if(legacy){snprintf(body,blen,social_lines[kind-1][seed%3],name);return;}
  char event[150];snprintf(event,sizeof(event),social_lines[kind-1][seed%SOCIAL_VARIANTS],name);
  snprintf(body,blen,"%s %s",event,social_tails[social_tone(kind)][(seed/SOCIAL_VARIANTS)%SOCIAL_TAIL_VARIANTS]);

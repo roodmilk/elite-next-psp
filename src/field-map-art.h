@@ -108,7 +108,7 @@ static void eva_map_draw(void){
  fm_building(pad.x,pad.z,field_port_half(&game),field_port_half(&game),RGB(66,76,76));
  for(int i=0;i<FIELD_PORT_BUILDINGS;i++){FieldBuilding structure=field_port_building(&game,i);const FieldBuilding *b=&structure;fm_building(pad.x+b->x,pad.z+b->z,b->w,b->d,RGB(126,141,140));}
  for(int i=0;i<3;i++){const FieldBuilding *b=&field_garage_walls[i];fm_building(pad.x+b->x,pad.z+b->z,b->w,b->d,RGB(155,167,165));}
- fm_building(pad.x,pad.z,FIELD_PLAYER_PAD,FIELD_PLAYER_PAD,RGB(90,99,98));
+ fm_building(pad.x,pad.z,FIELD_PLAYER_PAD,FIELD_PLAYER_PAD_DEPTH,RGB(90,99,98));
  for(int i=0;i<2;i++)fm_building(pad.x+(i?FIELD_TRAFFIC_X:-FIELD_TRAFFIC_X),pad.z+FIELD_TRAFFIC_Z,FIELD_TRAFFIC_PAD,FIELD_TRAFFIC_PAD,RGB(87,102,106));
  /* Actual port pads get their own inset markings; roads are not invented. */
  for(int i=0;i<3;i++){

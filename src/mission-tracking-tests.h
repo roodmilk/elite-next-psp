@@ -1,21 +1,21 @@
 {
  TEST_INIT();station_tour_stage=STATION_TOUR_ROUTE;tracked_mission=0;page=CAMPAIGN;row=0;
  campaign_screen();INPUT_CHECK(strstr(dialogue_source,"Ryn Vale")!=0,"tracking: an available station tour cannot replace the selected story briefing");
- change_page(MISSIONLOG);row=1;input(PSP_CTRL_CROSS,0,.016f,0,0);input(PSP_CTRL_SELECT,0,.016f,0,0);
+ change_page(MISSIONLOG);row=1;input(PSP_CTRL_CROSS,0,.016f,0,0);input(PSP_CTRL_SQUARE,0,.016f,0,0);
  campaign_screen();INPUT_CHECK(tracked_mission==1&&page==CAMPAIGN&&strstr(dialogue_source,"survey")!=0,"tracking: Guild selected in the log opens its own next-step conversation");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(page==FLIGHT&&!game.docked,"tracking: Guild Launch reply works without a separate Guild menu");
  for(int frame=0;frame<320;frame++)input(0,0,.016f,0,0);
  input(0,0,.016f,0,0);
  INPUT_CHECK(station_tour_stage==STATION_TOUR_ROUTE&&game.route_goal!=STATION_TOUR_DEST,"tracking: untracked welcome tour cannot reroute a flight");
- change_page(MISSIONLOG);row=mission_log_count()-1;input(PSP_CTRL_SELECT,0,.016f,0,0);
+ change_page(MISSIONLOG);row=mission_log_count()-1;input(PSP_CTRL_SQUARE,0,.016f,0,0);
  INPUT_CHECK(page==CAMPAIGN&&tracked_mission==TRACK_STATION_TOUR,"tracking: welcome tour is explicitly selectable in Mission Log");
  campaign_screen();INPUT_CHECK(strstr(dialogue_source,"Reorte Hub")!=0,"tracking: selected welcome mission shows its own briefing");
- change_page(MISSIONLOG);row=0;input(PSP_CTRL_SELECT,0,.016f,0,0);
+ change_page(MISSIONLOG);row=0;input(PSP_CTRL_SQUARE,0,.016f,0,0);
  INPUT_CHECK(tracked_mission==0&&page==CAMPAIGN,"tracking: selecting the story replaces the welcome mission");
  TEST_INIT();game.job_n=2;game.jobs[0]=(Job){1,MISSION_DELIVERY,0,-1,1,7,1000,300};game.jobs[1]=(Job){2,MISSION_RESCUE,0,-1,1,7,2000,300};
- change_page(MISSIONLOG);row=3;input(PSP_CTRL_SELECT,0,.016f,0,0);
- INPUT_CHECK(tracked_mission==3&&game.job_sel==1&&page==CAMPAIGN,"tracking: Select synchronizes contract selection as well as the details page");
+ change_page(MISSIONLOG);row=3;input(PSP_CTRL_SQUARE,0,.016f,0,0);
+ INPUT_CHECK(tracked_mission==3&&game.job_sel==1&&page==CAMPAIGN,"tracking: Square synchronizes contract selection as well as the details page");
  change_page(MISSIONLOG);row=2;input(PSP_CTRL_TRIANGLE,0,.016f,0,0);input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(game.job_n==1&&tracked_mission==2&&game.jobs[0].type==MISSION_RESCUE,"tracking: abandoning an earlier contract preserves the selected job after list compaction");
  row=2;input(PSP_CTRL_TRIANGLE,0,.016f,0,0);input(PSP_CTRL_CROSS,0,.016f,0,0);

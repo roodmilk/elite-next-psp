@@ -871,7 +871,7 @@ static void sc_talk_tip(const ScNpc *p){
  }else message(&game,p->offer?p->offer:p->line);
 }
 static void sc_draw_text_box(void){
- rect(0,190,W,82,SC_CHAR);station_shell_rule(0,190,W,SC_CYAN);
+ adventure_panel(0,190,W,66,0);
  if(sc_menu==SC_MENU_SHOP){
   int list[8],n=sc_exclusive_catalog(list,8);text(1,24,SC_AMBER,"CHANDLER STOCK");
   if(n){int k=list[(sc_shop_row%n+n)%n];text(1,25,SC_CREAM,"%.30s  %.1f U",equipment_list_names[k],equipment_net_cost(k)*.1f);}
@@ -924,7 +924,7 @@ static void sc_do_npc_choice(ScNpc *p,int choice){
  }else if(p->act==SC_ACT_MANIFEST){
   sc_manifest_prepare();
   if(sc_manifest_state()==1){
-   sc_manifest_set(2);game.credits+=sc_manifest_reward();
+   sc_manifest_set(2);game.credits+=sc_manifest_reward();mission_receipt_record(&game,RECEIPT_STATION,p->role,sc_manifest_reward(),game.system,"MANIFEST RECOVERED",p->name);
    {char note[80];snprintf(note,sizeof(note),"Manifest filed. Tip paid %.1f U.",sc_manifest_reward()*.1f);message(&game,note);}
    game.cue=SFX_SELECT;
   }else if(sc_manifest_state()==0){
@@ -932,9 +932,9 @@ static void sc_do_npc_choice(ScNpc *p,int choice){
   }else {message(&game,"The loader has already filed that manifest.");game.cue=SFX_UI;}
  }else if(p->act==SC_ACT_QUEST){
   if(*sc_progress()&(1u<<16)){message(&game,"Survey tip already paid at this hub.");return;}
-  int surveyed=0;for(int b=1;b<BODY_COUNT;b++)surveyed|=(game.surface_progress[game.system][b]&0x0fff00u)!=0;
+  int surveyed=0;for(int b=1;b<BODY_COUNT;b++)if(system_body_active_slot(game.system,b)&&system_body_type_slot(game.system,b)!=SUN)surveyed|=(game.surface_progress[game.system][b]&0x0fff00u)!=0;
   if(!surveyed){message(&game,"Scan surface life or minerals in this system, then bring back the record.");return;}
-  *sc_progress()|=1u<<16;game.credits+=p->quest_pay;
+  *sc_progress()|=1u<<16;game.credits+=p->quest_pay;mission_receipt_record(&game,RECEIPT_STATION,p->role,p->quest_pay,game.system,"LOCAL FIELD REPORT",p->name);
   {char note[64];snprintf(note,sizeof(note),"Side tip paid %.1f U.",p->quest_pay*.1f);message(&game,note);}
   game.cue=SFX_SELECT;
  }else if(p->act==SC_ACT_TAXI){

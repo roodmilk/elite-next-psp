@@ -1,5 +1,6 @@
 /* Keep the selected contract attached to its job when another job is removed. */
 static void tracked_game_input(unsigned pressed,unsigned held,float dt,float ax,float ay){
+ if(page==LAW_PAGE){law_input(pressed);return;}
  int before=tracked_mission,count=game.job_n,valid=before>=2&&before<2+count;
  Job job;if(valid)job=game.jobs[before-2];
  game_input(pressed,held,dt,ax,ay);

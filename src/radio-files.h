@@ -8,7 +8,7 @@
 static const char *radio_music_dirs[RADIO_FILE_SOURCE_COUNT]={
  "music/Deep Field","music/Neon Transit","music/Pixel Comet",
  "music/Velvet Orbit","music/Far Horizons","music/Cross-Ling Chatter"
- ,"music/Void Tales","music/Elite Exploration","music/Thargoid Battle"
+ ,"music/Void Tales","music/Elite Exploration","music/Sol Rock","music/Thargoid Battle"
 };
 static char radio_tracks[RADIO_FILE_SOURCE_COUNT][RADIO_TRACKS_PER_STATION][RADIO_TRACK_PATH];
 static int radio_track_count[RADIO_FILE_SOURCE_COUNT]={0};

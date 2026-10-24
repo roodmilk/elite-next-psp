@@ -1,0 +1,13 @@
+# Menu responsiveness and paint themes — 2.5.360
+
+User priority: a playable EBOOT with quicker menus, no selection flash, and the current ship's PIMP-MY-SHIP finish reflected throughout the menu UI. Retains the 2.5.359 boot fix and planetary foundation, 2.5.358 Command Deck and 2.5.357 Multiplayer.
+
+Opening a service now displays the actual destination immediately. Removed the 340 ms full-screen snapshot replay, bright button flash and page-wide CRT scan overlay. Category slides, button glints, fixed station-light twinkles, sun shimmer and other functional animations remain. The deleted transition buffers also release 499,200 bytes of static memory. The seven-MiB heap remains bounded for PSP-1000 startup.
+
+Native-size artwork bypasses resampling. Scaled artwork computes horizontal samples once per draw using a bounded 480-entry stack map; the former implementation divided for every pixel. Sun shimmer evaluates its row-dependent sine once per row instead of once per sun pixel. The Command Deck owns the full frame, so it no longer receives an unnecessary preceding screen clear. Ship-theme lookup caches the ship/paint pair and refreshes immediately when either changes.
+
+Fixed palettes in Command Deck, Multiplayer, Cargo, Ship Loadout/Item Storage and regular/Mega Shipyards now use the active paint roles. Loadout scanlines, Shipyard catalogue/exchange/funds panels, Commander cards, Controls chrome, decorator selection and GalacticNet navigation also follow the finish. Existing shared headers, panels, footers, Comms and Galaxy.Maps retain their theme connections. Legacy menu text uses the same paint roles. Ship/world art, portraits, page-specific illustration, item-category colours, red warnings and green connection indicators retain their meaning.
+
+Verification is on the exact EBOOT described in `BUILD-2.5.360.txt`: native/scaled/partially clipped/transparent artwork must match the previous sampler pixel for pixel; actual menu dispatch and Back must be immediate and flash-free. A bounded review cycles all sixteen finishes across fourteen primary screens and captures Gold, Green and Crimson at 480×272. Menu rendering timings are measured in PPSSPP and must not be represented as hardware FPS. Normal boot is tested through audio/network initialization, rather than only through pre-startup review flags.
+
+Planetary review and broader baseline failures are recorded in `BUILD-2.5.359.txt`. No changes to world geography, mission logic, save format or network transports in this follow-up. Physical PSP startup, menu responsiveness and the selected red finish need a player test. Preserve music, preferences and saves; replace only EBOOT.PBP.

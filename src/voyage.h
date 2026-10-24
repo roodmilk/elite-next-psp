@@ -22,10 +22,16 @@ static void sector_background(void){
   * pixel art without filling it with gameplay-like points. */
  for(int i=0;i<72;i++){unsigned h=field_hash(seed+(unsigned)i*0x27d4eb2du);int x=(h>>9)%W,y=top+((h>>20)%(bot-top+1));unsigned c=fb[y*STRIDE+x];fb[y*STRIDE+x]=RGB((c&255)+((c&255)<18?2:0),((c>>8)&255)+(((c>>8)&255)<18?2:0),((c>>16)&255)+(((c>>16)&255)<28?3:0));}
 }
-static Vec3 station_vertex_at(Vec3 v,Vec3 center,float angle){return add(rotate(v,0,angle),center);}
+/* All hull vertices share one station rotation per frame. Keep the exact
+ * arithmetic while avoiding repeated sine/cosine library calls. */
+static Vec3 station_vertex_at(Vec3 v,Vec3 center,float angle){
+ static float cached_angle,c=1,s=0;
+ if(angle!=cached_angle){cached_angle=angle;c=cosf(angle);s=sinf(angle);}
+ return add((Vec3){v.x*c-v.y*s,v.x*s+v.y*c,v.z},center);
+}
 static void station_quad_at(Vec3 a,Vec3 b,Vec3 c,Vec3 d,Vec3 center,float angle,unsigned ink){
- queue_triangle(camera(&game,station_vertex_at(a,center,angle)),camera(&game,station_vertex_at(b,center,angle)),camera(&game,station_vertex_at(c,center,angle)),ink);
- queue_triangle(camera(&game,station_vertex_at(a,center,angle)),camera(&game,station_vertex_at(c,center,angle)),camera(&game,station_vertex_at(d,center,angle)),ink);
+ Vec3 av=camera(&game,station_vertex_at(a,center,angle)),bv=camera(&game,station_vertex_at(b,center,angle)),cv=camera(&game,station_vertex_at(c,center,angle)),dv=camera(&game,station_vertex_at(d,center,angle));
+ queue_triangle(av,bv,cv,ink);queue_triangle(av,cv,dv,ink);
 }
 static void station_quad(Vec3 a,Vec3 b,Vec3 c,Vec3 d,unsigned ink){
  station_quad_at(a,b,c,d,(Vec3){0,0,STATION_Z},station_angle(&game),ink);
@@ -110,14 +116,20 @@ static void mega_capital_signs(void){ /* Capital signage is now depth-tested fac
 static void secondary_hubs(void);
 #include "menu-ship-preview.h"
 static void ambient_space(void){
- if(system_whales(game.system)){Body *b=&game.bodies[3];for(int i=0;i<3;i++){float a=game.time*.028f+i*.62f;Vec3 pos=add(b->pos,(Vec3){cosf(a)*(b->radius+5600),700+sinf(a+i)*.5f*480,sinf(a)*(b->radius+5600)});if(length(sub(pos,game.pos))<14000)shipmesh(mesh_id("WORM"),pos,a+1.57f,sinf(game.time*.35f+i)*.16f,7.2f+i*1.3f,RGB(96,186,198),0);}}
+ if(system_whales(game.system)){for(int i=0;i<3;i++){float a=game.time*.028f+i*.62f;Vec3 pos=whale_position(&game,i);if(length(sub(pos,game.pos))<14000)shipmesh(mesh_id("WORM"),pos,a+1.57f,sinf(game.time*.35f+i)*.16f,7.2f+i*1.3f,RGB(96,186,198),0);}}
  if(system_comet(game.system)){float a=game.time*.018f;Vec3 pos={cosf(a)*17000,1800,sinf(a)*17000};if(length(sub(pos,game.pos))<12000){shipmesh(mesh_id("BOULDER"),pos,a,a*.3f,1.4f,RGB(210,230,240),0);Vec3 tail=add(pos,(Vec3){sinf(a)*900,-200,-cosf(a)*900});Vec3 u=camera(&game,pos),v=camera(&game,tail);if(u.z>30&&v.z>30){Point p=project(u),q=project(v);if(p.y>view_top()&&p.y<view_bot()&&q.y>view_top()&&q.y<view_bot()){line((int)p.x,(int)p.y,(int)q.x,(int)q.y,RGB(85,160,200));if(!high_contrast){int top=view_top(),bot=view_bot();for(int k=0;k<5;k++){float t=k/4.f;int x=(int)(p.x+(q.x-p.x)*t),y=(int)(p.y+(q.y-p.y)*t);sfx_add(x,y,RGB(50,90,120),top,bot);}}}}}}
 }
 /* Decorative deep-space traffic deliberately lives outside the NPC system:
  * it cannot be scanned, targeted, collided with, or consume an encounter
  * slot.  These are the enormous freighters seen crossing a sector many
  * kilometres beyond normal flight space. */
+#ifdef GRAPHICS_REVIEW
+static int deep_staged_override;static Vec3 deep_staged_pos;static float deep_staged_heading;
+#endif
 static Vec3 deep_traffic_position(int lane,float *heading,float *phase){
+#ifdef GRAPHICS_REVIEW
+ if(deep_staged_override){if(heading)*heading=deep_staged_heading;if(phase)*phase=.5f;return lane?add(game.pos,(Vec3){1e8f,1e8f,1e8f}):deep_staged_pos;}
+#endif
  unsigned seed=game.bodies[0].seed^(unsigned)(game.system*0x45d9f3bu+lane*0x9e3779b9u);
  /* These are immense ships crossing the far sky, not nearby fighters. A full
     passage takes several minutes and moves by less than a pixel most seconds. */
@@ -137,10 +149,11 @@ static Vec3 deep_traffic_position(int lane,float *heading,float *phase){
 static unsigned deep_traffic_color(unsigned seed,int lane,int accent){
  static const unsigned hulls[]={RGB(64,112,150),RGB(142,73,108),RGB(122,91,55),RGB(55,126,112),RGB(108,80,154),RGB(154,76,52)};
  static const unsigned trims[]={RGB(76,213,236),RGB(246,94,174),RGB(247,178,70),RGB(83,231,173),RGB(173,112,247),RGB(255,111,69)};
- int style=(seed/17u+(unsigned)lane*3u)%6;return accent?trims[style]:hulls[style];
+ int style=(seed/17u+(unsigned)lane*3u)%6;return accent?sky_mix(trims[style],RGB(145,158,169),.65f):sky_mix(hulls[style],RGB(110,124,139),.65f);
 }
 /* Large modular boxes remain readable at 70-85 km and let distant freighters
  * have genuinely different silhouettes without adding texture memory. */
+static Vec3 deep_art_sun,deep_art_half;
 static void deep_traffic_box(Vec3 pos,Vec3 facing,Vec3 center,Vec3 half,unsigned ink){
  Vec3 right=norm((Vec3){facing.z,0,-facing.x}),up={0,1,0},world[8];
  for(int i=0;i<8;i++){Vec3 local=mul(add(center,(Vec3){i&2?half.x:-half.x,i&4?half.y:-half.y,i&1?half.z:-half.z}),2.10f);world[i]=add(pos,add(mul(right,local.x),add(mul(up,local.y),mul(facing,local.z))));}
@@ -149,20 +162,39 @@ static void deep_traffic_box(Vec3 pos,Vec3 facing,Vec3 center,Vec3 half,unsigned
  for(int face=0;face<6;face++){
   Vec3 a=world[faces[face][0]],b=world[faces[face][1]],c=world[faces[face][2]],d=world[faces[face][3]];
   if(dot(normals[face],sub(game.pos,a))<=0)continue;
-  unsigned shade=livery_tint(ink,face==5?28:face==4?-34:face<2?-12:0);
-  queue_triangle(camera(&game,a),camera(&game,b),camera(&game,c),shade);queue_triangle(camera(&game,a),camera(&game,c),camera(&game,d),shade);
+  unsigned shade=high_contrast?ink:ship_art_light(ink,normals[face],deep_art_sun,deep_art_half,face);
+  
+  int tile=center.z< -2000?4:center.y>240?2:half.z>1500?1:half.x<40||half.y<40?3:half.x>350?5:0;
+  if(face==4)tile=1;
+  Vec3 ca=camera(&game,a),cb=camera(&game,b),cc=camera(&game,c),cd=camera(&game,d);
+  int textured=!high_contrast&&ca.z>15&&cb.z>15&&cc.z>15&&cd.z>15;
+  Point pa=project(ca),pb=project(cb),pc=project(cc),pd=project(cd);float coverage=fmaxf(fabsf(edge(pa,pb,pc.x,pc.y)),fabsf(edge(pa,pc,pd.x,pd.y)));int mip=coverage<120?2:coverage<600?1:0;
+  int start=drawcount;queue_triangle(ca,cb,cc,shade);if(textured&&drawcount==start+1)drawlist[start].material=5000+tile*6+mip*2;
+  start=drawcount;queue_triangle(ca,cc,cd,shade);if(textured&&drawcount==start+1)drawlist[start].material=5001+tile*6+mip*2;
  }
 }
 static void deep_traffic_wedge(Vec3 pos,Vec3 facing,Vec3 center,Vec3 half,unsigned ink){
  Vec3 right=norm((Vec3){facing.z,0,-facing.x}),up={0,1,0},local[6]={{0,0,half.z},{0,0,-half.z},{-half.x,0,0},{half.x,0,0},{0,half.y,0},{0,-half.y,0}},point[6];
  for(int i=0;i<6;i++){Vec3 p=mul(add(center,local[i]),2.10f);point[i]=camera(&game,add(pos,add(mul(right,p.x),add(mul(up,p.y),mul(facing,p.z)))));}
  const int face[8][3]={{0,2,4},{0,4,3},{0,3,5},{0,5,2},{1,4,2},{1,3,4},{1,5,3},{1,2,5}};
- for(int i=0;i<8;i++)queue_triangle(point[face[i][0]],point[face[i][1]],point[face[i][2]],livery_tint(ink,i<4?18:-20));
+ for(int i=0;i<8;i++){unsigned shade=livery_tint(ink,i<4?18:-20);queue_triangle(point[face[i][0]],point[face[i][1]],point[face[i][2]],shade);}
 }
 static void deep_traffic_model(Vec3 pos,float heading,int design,unsigned hull,unsigned trim){
+ if(!render_sphere_visible(pos,7000.f))return;
+ deep_art_sun=norm(sub(game.bodies[0].pos,pos));deep_art_half=norm(add(deep_art_sun,norm(sub(camera_origin(&game),pos))));
  Vec3 f={sinf(heading),0,cosf(heading)};
  /* Every design shares a long drive spine and luminous bridge, then gets a
     distinct cargo architecture: container train, tanker, wing carrier or ark. */
+ /* Layered stern drives, recessed collars and restrained bridge glazing. */
+ for(int side=-1;side<=1;side+=2){
+  deep_traffic_box(pos,f,(Vec3){side*515.f,0,-2180},(Vec3){225,225,400},livery_tint(hull,-35));
+  deep_traffic_box(pos,f,(Vec3){side*515.f,0,-2500},(Vec3){245,245,55},livery_tint(hull,22));
+ }
+ if(render_pixel_radius(pos,6000)>13){
+  for(int band=0;band<7;band++)deep_traffic_box(pos,f,(Vec3){0,218,-1750+band*520.f},(Vec3){318,14,38},livery_tint(hull,-48));
+  deep_traffic_box(pos,f,(Vec3){0,445,-1500},(Vec3){290,9,170},RGB(30,83,103));
+  for(int side=-1;side<=1;side+=2)for(int row=0;row<4;row++)deep_traffic_box(pos,f,(Vec3){side*1065.f,0,-900+row*610.f},(Vec3){12,240,16},livery_tint(hull,-45));
+ }
  deep_traffic_box(pos,f,(Vec3){0,0,0},(Vec3){310,210,2300},livery_tint(hull,-25));
  deep_traffic_box(pos,f,(Vec3){0,260,-1500},(Vec3){420,180,250},trim);
  deep_traffic_wedge(pos,f,(Vec3){0,0,2050},(Vec3){520,300,600},trim);
@@ -197,39 +229,73 @@ static void deep_traffic(void){
  * layered exhaust therefore sits behind worlds together with its parent ship. */
 static void deep_traffic_lights(void){
  if(game.jump>0||game.dock_stage||game.dead)return;
- unsigned seed=game.bodies[0].seed^(unsigned)game.system;int count=2+(seed&1),top=view_top(),bot=view_bot();
- for(int lane=0;lane<count;lane++){
+ unsigned seed=game.bodies[0].seed^(unsigned)game.system;int count=2+(seed&1);
+ int saved_depth=mega_depth_valid;mega_depth_valid=0;ship_wake_budget=6500;
+ for(int lane=0;lane<count&&ship_wake_budget>0;lane++){
   float heading,phase;Vec3 pos=deep_traffic_position(lane,&heading,&phase),cam=camera(&game,pos);
-  if(phase<.055f||phase>.945f||occluded(pos)||cam.z<80)continue;Point p=project(cam);if(p.x<4||p.x>=W-4||p.y<top+3||p.y>bot-3)continue;
-  Vec3 facing={sinf(heading),0,cosf(heading)},right=norm((Vec3){facing.z,0,-facing.x});unsigned glow=deep_traffic_color(seed,lane,1);
-  /* Twin thick fire streams: dim wide sheath, saturated body, white-hot root. */
-  for(int engine=-1;engine<=1;engine+=2){Vec3 root=add(add(pos,mul(facing,-4900.f)),mul(right,engine*1080.f));Vec3 root_cam=camera(&game,root);if(root_cam.z<=80)continue;Point last=project(root_cam);
-   for(int segment=1;segment<=8;segment++){float distance=4900.f+segment*2500.f,wave=sinf(game.time*.8f+lane*1.7f+segment*.9f);Vec3 tail=add(add(pos,mul(facing,-distance)),mul(right,engine*(1080.f+segment*38.f)+wave*segment*18.f));tail.y+=cosf(game.time*.65f+lane+segment*.75f)*segment*11.f;Vec3 tc=camera(&game,tail);if(tc.z<=80)break;Point q=project(tc);unsigned fire=segment==1?livery_tint(glow,34):segment<=3?glow:segment<=5?livery_tint(glow,-42):livery_tint(glow,-92);int width=segment<=2?2:segment<=5?1:0;
-    for(int edge=-width;edge<=width;edge++){unsigned ink=edge?livery_tint(fire,-42):fire;line((int)last.x,(int)last.y+edge,(int)q.x,(int)q.y+edge,ink);}if(!high_contrast&&segment<7)sfx_add((int)q.x,(int)q.y,livery_tint(fire,-30),top,bot);last=q;
+  if(phase<.055f||phase>.945f||occluded(pos)||cam.z<80)continue;
+  Vec3 facing={sinf(heading),0,cosf(heading)},right={facing.z,0,-facing.x};
+  unsigned glow=((seed+lane)&1)?RGB(95,184,255):RGB(255,153,76);
+  float endfade=fminf(1,fminf((phase-.055f)/.045f,(.945f-phase)/.045f));
+  float alignment=fmaxf(0,-dot(facing,norm(sub(camera_origin(&game),pos))));
+  for(int engine=-1;engine<=1;engine+=2){
+   Vec3 root=add(add(pos,mul(facing,-5400)),mul(right,engine*1080.f));Vec3 rc=camera(&game,root);if(rc.z<80)continue;Point last=project(rc);
+   for(int segment=1;segment<=7;segment++){
+    float d=segment*1250.f,t=segment/7.f,wave=sinf(game.time*2.1f+lane+segment*.8f)*t*22;
+    Vec3 tail=add(sub(root,mul(facing,d)),mul(right,wave));Vec3 tc=camera(&game,tail);if(tc.z<80)break;Point q=project(tc);
+    float width=fminf(2.4f,fmaxf(.45f,240.f*150/rc.z));float wa=width*(1-(segment-1)/8.f),wb=width*(1-segment/8.f);
+    ship_wake_stroke(last,q,wa,wb,glow,endfade*(1-t)*.72f,segment<=2);last=q;
    }
-   if(!high_contrast){sfx_add((int)last.x,(int)last.y,livery_tint(glow,-65),top,bot);}
+   if(!high_contrast&&alignment>.72f){
+    Point q=project(rc);float a=(alignment-.72f)/.28f*endfade;
+    space_star_dot(q.x,q.y,sky_mix(RGB(0,0,0),RGB(228,237,255),a),0,view_top(),W-1,view_bot());
+    for(int k=1;k<=5;k++){unsigned c=sky_mix(RGB(0,0,0),glow,a*(6-k)*.035f);space_star_dot(q.x-k,q.y,c,0,view_top(),W-1,view_bot());space_star_dot(q.x+k,q.y,c,0,view_top(),W-1,view_bot());}
+   }
   }
-  sfx_add((int)p.x-1,(int)p.y,glow,top,bot);sfx_add((int)p.x+1,(int)p.y,glow,top,bot);pixel((int)p.x,(int)p.y,WHITE);
-  if(phase<.13f||phase>.87f){
-   float k=phase<.13f?(.13f-phase)/.13f:(phase-.87f)/.13f;
-   int span=12+(int)(k*42.f);line((int)p.x-span,(int)p.y,(int)p.x+span,(int)p.y,glow);
-   line((int)p.x,(int)p.y-2,(int)p.x,(int)p.y+2,WHITE);
+ }
+ mega_depth_valid=saved_depth;
+}
+/* Engine optics sit on the visible stern, after the opaque hull but before worlds. */
+static void deep_traffic_flares(void){
+ if(high_contrast||game.jump>0||game.dock_stage||game.dead)return;
+ unsigned seed=game.bodies[0].seed^(unsigned)game.system;
+ for(int lane=0;lane<2+(int)(seed&1);lane++){
+  float heading,phase;Vec3 pos=deep_traffic_position(lane,&heading,&phase);if(phase<.10f||phase>.90f||occluded(pos))continue;
+  Vec3 f={sinf(heading),0,cosf(heading)},side={f.z,0,-f.x};float angle=-dot(f,norm(sub(camera_origin(&game),pos)));if(angle<.78f)continue;float gain=(angle-.78f)/.22f;
+  unsigned glow=((seed+lane)&1)?RGB(95,184,255):RGB(255,153,76);
+  for(int engine=-1;engine<=1;engine+=2){Vec3 root=add(sub(pos,mul(f,5400)),mul(side,engine*1080.f)),cam=camera(&game,root);if(cam.z<80)continue;Point q=project(cam);space_star_dot(q.x,q.y,sky_mix(RGB(0,0,0),RGB(240,245,255),gain),0,view_top(),W-1,view_bot());
+   for(int k=1;k<=5;k++){unsigned c=sky_mix(RGB(0,0,0),glow,gain*(6-k)*.045f);space_star_dot(q.x-k,q.y,c,0,view_top(),W-1,view_bot());space_star_dot(q.x+k,q.y,c,0,view_top(),W-1,view_bot());}
   }
  }
 }
 /* Speed lines scale with actual velocity: a quiet hint at cruise, a dense
  * tunnel of streaks during boost. */
 static void speed_lines(void){
+ /* Integrate one phase through boost/cancel; multiplying absolute game time
+  * by a switched speed made every mote teleport on the second R press. */
+ static float last=-1,travel,boost_mix;
+ float dt=game.time-last;last=game.time;
+ if(dt<0||dt>.25f){dt=0;travel=0;boost_mix=0;}
+ float target=game.boost&&!game.dead&&!game.docked?1.f:0.f;
+ float step=dt/(target>.5f?.65f:.35f);
+ boost_mix=target>boost_mix?fminf(target,boost_mix+step):fmaxf(target,boost_mix-step);
+ float boost_ease=boost_mix*boost_mix*(3-2*boost_mix);
+ travel=fmodf(travel+dt*(180+340*boost_ease),160.f);
  if(game.speed<player_ships[game.ship].speed*.18f||game.dock_stage||game.jump>0||game.dead)return;
- float normal=game.speed/fmaxf(1,player_ships[game.ship].speed),power=fminf(1,normal/(game.boost?20.f:1.15f));
+ float normal=game.speed/fmaxf(1,player_ships[game.ship].speed),power=fminf(1,normal/(1.15f+18.85f*boost_ease));
  int top=view_top(),bottom=view_bot();
- int count=12+(int)(power*36.f);
- unsigned edge=game.boost?RGB(50,130,170):RGB(48,86,112);
+ int cx=240,cy=110;
+ if(third_person){Vec3 sv=camera(&game,game.pos);if(sv.z<=20)return;Point sp=project(sv);cx=(int)sp.x;cy=(int)sp.y;if(cx<-80||cx>W+80||cy<top-80||cy>bottom+80)return;}
+ float density=12+power*36.f;int count=(int)ceilf(density);
+ unsigned edge=RGB(48+(int)(2*boost_ease),86+(int)(44*boost_ease),112+(int)(58*boost_ease));
  for(int i=0;i<count;i++){
-  float a=i*2.39996f;float r=110+fmodf(i*37+game.time*(game.boost?520.f:180.f),160);float trail=6+power*46;
-  int x=240+(int)(cosf(a)*r),y=110+(int)(sinf(a)*r*.5f);
-  int xx=240+(int)(cosf(a)*(r+trail)),yy=110+(int)(sinf(a)*(r+trail)*.5f);
-  if(y>top&&y<bottom&&yy>top&&yy<bottom){sfx_add(x,y,edge,top,bottom);sfx_add(xx,yy,game.boost?RGB(85,180,205):RGB(60,110,135),top,bottom);}
+  float a=i*2.39996f,phase=fmodf(i*37+travel,160)/160.f;
+  float r=110+phase*160+boost_ease*18,trail=6+power*46;
+  float fade=fminf(1,density-i)*fminf(1,phase/.12f)*fminf(1,(1-phase)/.15f);
+  int x=cx+(int)(cosf(a)*r),y=cy+(int)(sinf(a)*r*.5f);
+  int xx=cx+(int)(cosf(a)*(r+trail)),yy=cy+(int)(sinf(a)*(r+trail)*.5f);
+  unsigned tip=RGB(60+(int)(25*boost_ease),110+(int)(70*boost_ease),135+(int)(70*boost_ease));
+  if(y>top&&y<bottom&&yy>top&&yy<bottom){sfx_add(x,y,dim_rgb(edge,(int)(fade*256),256),top,bottom);sfx_add(xx,yy,dim_rgb(tip,(int)(fade*256),256),top,bottom);}
  }
 }
 static void engine_flare(void){
@@ -243,17 +309,8 @@ static void engine_flare(void){
 static void secondary_hubs(void){
  for(int i=1;i<HUB_COUNT;i++){
   Vec3 center=hub_position(&game,i);float d=length(sub(center,game.pos));if(d>30000||occluded(center))continue;
-  StationProfile profile=station_profile_for(&game,i);float scale=profile.radius/160.f,angle=game.time*profile.spin+i*1.7f;
-  shipmesh_stretched(mesh_id("CORIOLIS"),center,0,angle,scale,profile.half/profile.radius,profile.hull,0);
-  Vec3 outer[4]={{0,-profile.radius,-profile.half},{profile.radius,0,-profile.half},{0,profile.radius,-profile.half},{-profile.radius,0,-profile.half}};
-  Vec3 inner[4];for(int k=0;k<4;k++)inner[k]=station_port_corner_for(&game,i,k);
-  float door_z=profile.half-18.f;
-  for(int k=0;k<4;k++){int j=(k+1)%4;station_quad_at(outer[k],outer[j],inner[j],inner[k],center,angle,livery_tint(profile.hull,-8));Vec3 a=inner[k],b=inner[j];a.z=b.z=door_z;station_quad_at(inner[k],inner[j],b,a,center,angle,RGB(8,19,24));}
-  station_quad_at((Vec3){-STATION_PORT_HALF_W,-STATION_PORT_HALF_H,door_z},(Vec3){STATION_PORT_HALF_W,-STATION_PORT_HALF_H,door_z},(Vec3){STATION_PORT_HALF_W,STATION_PORT_HALF_H,door_z},(Vec3){-STATION_PORT_HALF_W,STATION_PORT_HALF_H,door_z},center,angle,RGB(20,29,36));
-  /* A compact family signature keeps relays/outposts distinct too, while
-     their common slit remains immediately readable to pilots. */
-  if(profile.family&1)for(int s=-1;s<=1;s+=2)station_box_at((Vec3){s*profile.radius*.62f,0,profile.half*.12f},(Vec3){profile.radius*.18f,profile.radius*.12f,profile.half*.30f},center,angle,profile.trim);
-  else for(int s=-1;s<=1;s+=2)station_box_at((Vec3){0,s*profile.radius*.62f,-profile.half*.08f},(Vec3){profile.radius*.28f,profile.radius*.12f,profile.half*.15f},center,angle,profile.trim);
+  StationProfile profile=station_profile_for(&game,i);if(!render_sphere_visible(center,profile.radius*2.f))continue;
+  encounter_station(center,i,profile);
  }
 }
 /* Station-local traffic glitter removed — read as hull lights, not sparkle dots. */
@@ -268,13 +325,20 @@ static void docking_view(void){
   return;
  }
  Vec3 oldpos=game.pos;float oldyaw=game.yaw,oldpitch=game.pitch,oldroll=game.roll;
- game.pos=(Vec3){260,120,2820};Vec3 aim=norm(sub((Vec3){0,0,3400},game.pos));
+ StationProfile profile=station_profile_for(&game,0);float entry=STATION_Z-profile.half;
+ /* Frame the actual hull size. The old fixed camera sat almost against a rich
+  * Citadel's facade, enlarging its slit until geometry crossed the viewport. */
+ float back=fmaxf(900.f,profile.radius*2.7f),side=fmaxf(330.f,profile.radius*1.15f);
+ game.pos=(Vec3){side,profile.radius*.42f,entry-back};Vec3 aim=norm(sub((Vec3){0,0,entry+profile.half*.28f},game.pos));
  game.yaw=atan2f(aim.x,aim.z);game.pitch=asinf(aim.y);game.roll=0;
  sector_background();space_fx_nebula();starfield();
- station_model();station_window_animation();
+ station_model();station_window_animation();flush_meshes();
  float t=fminf(1,game.dock_timer/3);
- shipmesh(mesh_id(player_ships[game.ship].name),(Vec3){0,0,3070+t*470},0,station_angle(&game),.7f,RGB(193,139,77),0);
- flush_meshes();
+ float ship_z=entry-180.f+t*(profile.half+220.f);
+ /* The opaque pressure tunnel owns the image after the hull crosses the
+  * threshold. Hiding the exterior model there prevents triangles leaking
+  * through the black aperture while retaining the visible approach. */
+ if(ship_z<entry+28.f){shipmesh(mesh_id(player_ships[game.ship].name),(Vec3){0,0,ship_z},0,station_angle(&game),.58f,ship_paint[game.ship],0);flush_meshes();}
  station_entrance();
  /* Soft approach haze only — no glitter stars in the corridor. */
  if(!high_contrast){
@@ -285,42 +349,42 @@ static void docking_view(void){
    sfx_add(x,y,RGB(40,32,22),top,bot);
   }
  }
- text(2,5,RGB(229,210,163),"ARRIVAL / %.16s",station_name(&game));
+ autopilot_annunciator(34,game.dock_timer);
  game.pos=oldpos;game.yaw=oldyaw;game.pitch=oldpitch;game.roll=oldroll;
 }
 /* Edge-band captions. Body text is word wrapped to actual 8px cell capacity. */
 static void speech_box(int x,int y,int w){
  const char *s=0;int who=VOICE_COMP;
- if(!quiet_comms&&speech_active()){s=game.voice;who=game.voice_who;}
+ if(speech_active()&&game.voice_time>0&&(comms_captions||game.voice_who==VOICE_KEI||game.voice_who==VOICE_VENN||game.voice_who==VOICE_LAW||game.attacked>0||encounter_requires_reply(&game))){s=game.voice;who=game.voice_who;}
  /* During combat, status text stays on the bottom RED ALERT banner — not here. */
  else if(game.message_time>0&&game.message[0]&&!combat_alert_active())s=game.message;
  if(!s)return;
  if(who<VOICE_KEI||who>VOICE_CONTACT)who=VOICE_COMP;
  int role=who==VOICE_LAW?LAW:who==VOICE_KEI?EXPLORERS:TRADERS;
  if(who==VOICE_CONTACT)role=game.voice_role>=0&&game.voice_role<FACTION_COUNT?game.voice_role:EXPLORERS;
- static const char *names[]={"","KEI","VENN","DOCKHAND","LOCAL LAW","COMPUTER","CONTACT"};
+ static const char *names[]={"","KEI","VENN","DOCK CONTROL","LOCAL LAW","COMPUTER","CONTACT"};
  /* Computer voice uses soft cyan; named speakers keep faction ink on charcoal plate. */
  unsigned ink=who==VOICE_COMP?RGB(85,212,212):faction_colors[role];
  int portrait=1,tx=x+40,col=tx/8,cap=(x+w-8-tx)/8;
- /* Three body rows plus two pixels of padding fit inside the caption backing. */
- int box_h=34;
+ /* Dedicated header plus three body rows; all glyphs remain inside the backing. */
+ int box_h=42;
  rect(x,y,w,box_h,RGB(21,28,39));rect(x,y,w,1,RGB(193,139,77));rect(x,y+box_h-1,w,1,RGB(41,54,70));
  rect(x,y,2,box_h,ink);
- if(portrait){if(who==VOICE_KEI)draw_kei(x+4,y,32,0);else if(who==VOICE_COMP)portrait_draw(x+4,y,32,32,portrait_ship_computer(),EXPLORERS);else draw_portrait(x+4,y,32,32,who==VOICE_CONTACT?game.voice_seed:who*37,role);}
- speaker_name_tag(col,y/8,who==VOICE_CONTACT?faction_names[role]:names[who],ink);
- button_icon(x+w-16,y,'T',ink);
- if(incoming_reply_ready()||night_ready())text((x+w-56)/8,y/8,RGB(240,180,91),"TALK");
- else text((x+w-56)/8,y/8,RGB(120,245,220),"CLOSE");
- /* Two extra pixels above the message; retain all three wrapped rows. */
+ if(portrait){if(who==VOICE_KEI)draw_kei(x+4,y,32,0);else if(who==VOICE_COMP||discovery_voice_automated())ship_computer_portrait(x+4,y,32,32);else draw_portrait(x+4,y,32,32,(who==VOICE_CONTACT||who==VOICE_DOCK)?game.voice_seed:who*37,role);}
+ speaker_name_tag_at(col*8,y+4,who==VOICE_CONTACT?(discovery_voice_label()?discovery_voice_label():faction_names[role]):names[who],ink);
+ button_icon(x+w-20,y+3,'T',ink);
+ if(incoming_reply_ready()||night_ready())text_px(x+w-72,y+4,RGB(240,180,91),"TALK");
+ else text_px(x+w-72,y+4,RGB(120,245,220),"CLOSE");
+ /* Header and body use exact pixel positions, independent of an8px grid. */
  for(int line=0;line<3&&*s;line++){
   int len=(int)strlen(s),cut=len<cap?len:cap;
   if(len>cap)for(int k=cut;k>cap/3;k--)if(s[k]==' '){cut=k;break;}
-  text_px(col*8,(y/8+1+line)*8+2,RGB(229,210,163),"%.*s",cut,s);
+  text_px(col*8,y+15+line*8,RGB(229,210,163),"%.*s",cut,s);
   s+=cut;while(*s==' ')s++;
  }
 }
 static void quick_comms_box(void){
- if(!comms_quick||game.encounter_kind==ENCOUNTER_NONE)return;
+ if(!comms_quick||(!incoming_reply_ready()&&!night_ready()))return;
  int x=96,y=78,w=288,h=30;rect(x,y,w,h,RGB(10,18,35));rect(x,y,w,2,RGB(240,180,91));rect(x,y+h-2,w,2,RGB(41,54,70));
  rect(112,y+8,104,14,comms_quick_choice==0?RGB(66,45,38):RGB(25,35,45));
  rect(264,y+8,104,14,comms_quick_choice==1?RGB(25,65,77):RGB(25,35,45));
@@ -351,7 +415,7 @@ static void target_condition(int x,int y,int id){
  text((x+54)/8,y/8,UI_MUTED,"S");target_segments(x+64,y,5,(shield+19)/20,UI_SIGNAL);
 }
 static unsigned target_overlay_color(int id){
- if(is_mission_target(&game,id))return WHITE;
+ if(is_mission_target(&game,id)&&(!IS_NPC_ID(id)||scanner_known(id)))return WHITE;
  if(IS_NPC_ID(id))return faction_colors[game.npc[id-BODY_COUNT-1].role];
  if(IS_ANOMALY_ID(id))return GOLD;
  if(IS_DEBRIS_ID(id))return DIM;
@@ -387,6 +451,7 @@ static void targeting_overlay(int x,int y,int w,int h,int detailed){
  rect(x,y,w,h,RGB(10,18,29));rect(x,y,w,1,UI_EDGE);rect(x,y+h-1,w,1,UI_RAISED);
  text(x/8+1,y/8+1,UI_TEXT,detailed?"TARGET COMPUTER":"TARGETS");
  text(x/8+1,y/8+3,UI_ACCENT,"< BAND: %.10s >",scan_cat_names[scan_cat<0?0:scan_cat>4?4:scan_cat]);
+ text_px(x+8,y+h-27,UI_MUTED,"SENSOR %.0f KM",sensor_range()/1000.f);
  int hint_y=((y+h-12)/8)*8;
  button_icon(x+8,hint_y-1,'l',UI_MUTED);text(x/8+3,hint_y/8,UI_MUTED,": NEXT");
  button_icon(x+104,hint_y-1,'r',UI_MUTED);text(x/8+15,hint_y/8,UI_MUTED,": LOCK");
@@ -466,11 +531,12 @@ static const char *radio_talk_lines[RADIO_STATION_COUNT][24]={
  {"CROSS-LING: Krru-vaa. Krru-vaa. The channel is awake.","CROSS-LING: Shaa? Tekk-takk. No, that was not a distress call.","CROSS-LING: Vrr-oo, vrr-oo, kha. Three mouths, one translator.","CROSS-LING: We asked the nest for traffic news. It answered in clicks.","CROSS-LING: Oruu-eh. A soft call from something with too many eyes.","CROSS-LING: The translator agrees this means hello, probably.","CROSS-LING: Chik-chik-raa. Please keep your antennae inside the ship.","CROSS-LING: Listener sample: mrr-ah, mrr-ah, gruu. Beautifully inconclusive.","CROSS-LING: A long-distance purr is crossing the static now.","CROSS-LING: Kha-kha-voom. The local flock has opinions about your engine.","CROSS-LING: No words today. Just beaks, throats and a little weather.","CROSS-LING: Sss-ora-ket. That phrase translates as watch the bright moon.","CROSS-LING: Two callers overlap. One is chirping. One is definitely aquatic.","CROSS-LING: The brood signal rises, folds and forgets what it meant.","CROSS-LING: Rruu-rru-rru. A lullaby from a station nobody charts.","CROSS-LING: Translator note: emotional clicking is not a navigation command.","CROSS-LING: Kett-oi, kett-oi. The reply came from inside the asteroid.","CROSS-LING: A cave-dweller has joined the broadcast. Please do not feed it.","CROSS-LING: Vaa-tek-shuu. We think that was a joke about humans.","CROSS-LING: The signal has feathers, scales or both. We remain respectful.","CROSS-LING: Soft trill, hard rattle, sudden squeak. That is the whole bulletin.","CROSS-LING: A distant pack is harmonising across three light-minutes.","CROSS-LING: Krru-vaa returns your greeting with seventeen corrections.","CROSS-LING: Stay curious. The galaxy is making sounds before it makes sense."}
  ,{"VOID TALES: The first traveller found a door in the dark and knocked for seven years.","VOID TALES: On the eighth year, the door opened inward, though there was no room behind it.","VOID TALES: A voice asked the traveller to name the star they had left.","VOID TALES: They gave three names. The door accepted all of them.","VOID TALES: Beyond the threshold, an old moon was waiting with its lights on.","VOID TALES: The moon remembered every ship that had passed, except one.","VOID TALES: That missing ship was still travelling, somewhere between two breaths.","VOID TALES: The traveller followed its wake and heard singing in the engine heat.","VOID TALES: The song had no words, but it knew the shape of home.","VOID TALES: When the traveller turned back, the door had become a window.","VOID TALES: Outside the glass, the stars were moving like patient lanterns.","VOID TALES: One lantern blinked twice. The traveller answered once.","VOID TALES: The answer returned from behind the moon, older and warmer.","VOID TALES: It said: carry a light for the ones who cannot cross.","VOID TALES: So the traveller lit the smallest lamp and kept going.","VOID TALES: Years later, another pilot found that lamp between the lanes.","VOID TALES: They called it a beacon. The dark called it a promise.","VOID TALES: The pilot followed it until the instruments forgot their numbers.","VOID TALES: There they met a creature made of weather and unfinished maps.","VOID TALES: It asked why humans keep returning to dangerous places.","VOID TALES: The pilot said: because something wonderful may be waiting.","VOID TALES: The creature considered this, then moved one star closer.","VOID TALES: The beacon still burns for anyone willing to listen.","VOID TALES: This tale is not finished. The next voice may be yours."}
  ,{"ELITE EXPLORATION: A new horizon begins where the route line ends.","ELITE EXPLORATION: Survey crews report untouched valleys beyond the western ridge.","ELITE EXPLORATION: Log the life, mark the crossing, leave the wilderness intact.","ELITE EXPLORATION: Tonight we follow a beacon nobody remembers placing.","ELITE EXPLORATION: The best discoveries rarely have docking permits.","ELITE EXPLORATION: A blue-white moon is rising over an uncharted salt plain.","ELITE EXPLORATION: Field note: the flowers close when the second sun appears.","ELITE EXPLORATION: Pack fuel, water and one unreasonable amount of curiosity.","ELITE EXPLORATION: A rover team has found warm rain beneath a frozen sky.","ELITE EXPLORATION: Scan gently. Some worlds are still learning your name.","ELITE EXPLORATION: The old trail ends at a bridge made before local history.","ELITE EXPLORATION: Clouds have cleared above the northern observatory.","ELITE EXPLORATION: A distant herd is moving between the amber trees.","ELITE EXPLORATION: Never confuse an empty map with an empty world.","ELITE EXPLORATION: Today's route crosses three rivers and one excellent mystery.","ELITE EXPLORATION: The ridge ahead offers a clear view of the ringed giant.","ELITE EXPLORATION: Leave a marker for the next pilot, not a mess.","ELITE EXPLORATION: A ruin in the highlands is reflecting signals after sunset.","ELITE EXPLORATION: The expedition pauses while something enormous crosses the mist.","ELITE EXPLORATION: Record the weather. It may be alive, or merely dramatic.","ELITE EXPLORATION: No road reaches the crater lake. That is rather the point.","ELITE EXPLORATION: New flora logged near the shadow of the western peak.","ELITE EXPLORATION: Home is behind you. The interesting part is ahead.","ELITE EXPLORATION: Keep moving, keep looking, and bring back a story."}
+ ,{"ROCK FM: Your first flight deserves a loud soundtrack.","ROCK FM: Keep the guitars loud and the engines cool.","ROCK FM: All the power chords you can carry.","ROCK FM: Incoming riff. No docking clearance required.","ROCK FM: This one goes out to the pilots heading home.","ROCK FM: Earth traffic is slow. The drums are not.","ROCK FM: A good song travels further than a bad antenna.","ROCK FM: Mind the volume. Your copilot has opinions.","ROCK FM: Rock radio from Earth orbit to the outer planets.","ROCK FM: Welcome aboard. Find your favourite frequency.","ROCK FM: Guitar maintenance costs less than ship maintenance.","ROCK FM: Fuel first. Air guitar second.","ROCK FM: Turn it up once you have checked your instruments.","ROCK FM: Our next track is cleared for takeoff.","ROCK FM: A little bass for a very big solar system.","ROCK FM: Keep your hands on the controls for this chorus.","ROCK FM: The playlist is longer than your fuel range.","ROCK FM: Tonight we salute every first-time commander.","ROCK FM: Drive safely. Fly even more safely.","ROCK FM: Your dashboard now has a proper soundtrack.","ROCK FM: No requests for quiet songs until after midnight.","ROCK FM: The next riff has excellent acceleration.","ROCK FM: Friends, family and a full tank. Good day to fly.","ROCK FM: Stay tuned. Another loud one is coming."}
 };
 static void radio_ticker_display(void){
  int x=260,w=216;rect(x,1,w,21,UI_PANEL);rect(x,1,w,1,UI_RAISED);
- if(radio_off){text(33,1,DIM,"RADIO OFF");return;}
- int station=radio_station<0?0:radio_station>=RADIO_STATION_COUNT?RADIO_STATION_COUNT-1:radio_station;
+ if((radio_off&&!radio_race_on)||quiet_comms||!comms_captions){return;}
+ int station=radio_display_station();if(station<0)station=0;if(station>=RADIO_STATION_COUNT)station=RADIO_STATION_COUNT-1;
  int segment=(int)(game.time/16.5f),line_index=(segment*5+station*3)%24;
  const char *broadcast;int len,pos;char shown[29];
  if(station==5||station==6){
@@ -480,7 +546,7 @@ static void radio_ticker_display(void){
   pos=cursor-11;if(pos<0)pos=0;if(pos>len-23)pos=len-23;if(pos<0)pos=0;
   for(int i=0;i<28;i++){int src=pos+i;shown[i]=(src>=0&&src<len)?broadcast[src]:' ';}
  }else{
-  broadcast=radio_talk_lines[station][line_index];len=(int)strlen(broadcast);
+  broadcast=radio_talk_lines[station][line_index];if(!broadcast)broadcast=radio_station_name(station);len=(int)strlen(broadcast);
   int cycle=len+28;float in=fmodf(game.time,16.5f),pause=.45f+((segment*11+station*7)%5)*.22f;
   pos=in<pause?-28:(int)((in-pause)*7.f)%cycle;
   for(int i=0;i<28;i++){int src=pos-28+i;shown[i]=(src>=0&&src<len)?broadcast[src]:' ';}
@@ -518,6 +584,7 @@ static RadarPoint radar_point(Vec3 p){
 }
 static void radar_dot(Vec3 p,unsigned ink,int kind,int focus){
  RadarPoint q=radar_point(p);line(q.x,q.y,q.x,q.y-q.lift,ink);q.y-=q.lift;
+ if(focus){int pulse=3+(int)(fabsf(sinf(game.time*7.f))*3.f);circle(q.x,q.y,pulse,dim_rgb(ink,2,3));}
  if(focus){line(q.x-3,q.y-3,q.x+3,q.y-3,WHITE);line(q.x-3,q.y+3,q.x+3,q.y+3,WHITE);}
  if(kind==1){pixel(q.x,q.y-2,ink);line(q.x-2,q.y,q.x+2,q.y,ink);pixel(q.x,q.y+2,ink);}
  else if(kind==2){rect(q.x-2,q.y-2,5,5,ink);rect(q.x-1,q.y-1,3,3,UI_PANEL);}
@@ -545,6 +612,7 @@ static void law_radar(void){
 }
 static const char *tracked_hud_cue(void){
  static char out[40];
+ if(race_is_active(&game))return "RACE: FLY THE RINGS";
  if(tracked_mission==TRACK_LAVE)return sc_lave_objective();
  if(tracked_mission==TRACK_STATION_TOUR&&station_tour_stage>=STATION_TOUR_ROUTE&&station_tour_stage<STATION_TOUR_DONE){
   if(station_tour_stage==STATION_TOUR_ROUTE||station_tour_stage==STATION_TOUR_DOCK){
@@ -555,12 +623,47 @@ static const char *tracked_hud_cue(void){
   else snprintf(out,sizeof(out),"TALK: LYSA KEST");
   return out;
  }
- if(tracked_mission==0){if(game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT){if(!game.saga_step)snprintf(out,sizeof(out),"OPEN: STORY BRIEF");else if(saga_ready(&game))snprintf(out,sizeof(out),"OPEN: TRACKED MISSION");else if(game.system!=game.saga_dest){int jumps=0,hop=saga_next_hop(&game,&jumps);snprintf(out,sizeof(out),hop>=0?"JUMP: %.18s":"OPEN: GALAXY MAP",hop>=0?game.systems[hop].name:"");}else if(saga_beats[game.saga_chapter].kind==SAGA_SCAN)snprintf(out,sizeof(out),"SCAN: LOCAL SIGNAL");else if(saga_beats[game.saga_chapter].kind==SAGA_HUNT)snprintf(out,sizeof(out),"CLEAR: HOSTILE SHIPS");else snprintf(out,sizeof(out),"DOCK: LOCAL HUB");return out;}if(game.system!=7)snprintf(out,sizeof(out),"JUMP: LAVE");else if(game.docked)snprintf(out,sizeof(out),game.campaign_stage==1?"LAUNCH: FIRST FLIGHT":"OPEN: TRACKED MISSION");else if(game.campaign_stage==2&&!(game.campaign_flags&CP_LOCKED))snprintf(out,sizeof(out),"LOCK: LAVE HUB");else if(game.campaign_stage==3&&!(game.campaign_flags&CP_FLEW))snprintf(out,sizeof(out),"FLY: %.0f/600 M",game.campaign_distance);else snprintf(out,sizeof(out),"DOCK: LAVE HUB");return out;}
+ if(tracked_mission==0){if(game.campaign_stage>=6&&game.saga_chapter<SAGA_COUNT){if(!game.saga_step)snprintf(out,sizeof(out),"OPEN: STORY BRIEF");else if(saga_ready(&game))snprintf(out,sizeof(out),"OPEN: TRACKED MISSION");else if(game.system!=game.saga_dest){int jumps=0,hop=saga_next_hop(&game,&jumps);snprintf(out,sizeof(out),hop>=0?"JUMP: %.18s":"OPEN: GALAXY.MAPS",hop>=0?game.systems[hop].name:"");}else if(saga_beats[game.saga_chapter].kind==SAGA_SCAN)snprintf(out,sizeof(out),"SCAN: LOCAL SIGNAL");else if(saga_beats[game.saga_chapter].kind==SAGA_HUNT)snprintf(out,sizeof(out),"CLEAR: HOSTILE SHIPS");else snprintf(out,sizeof(out),"DOCK: LOCAL HUB");return out;}if(game.system!=7)snprintf(out,sizeof(out),"JUMP: LAVE");else if(game.docked)snprintf(out,sizeof(out),game.campaign_stage==1?"LAUNCH: FIRST FLIGHT":"OPEN: TRACKED MISSION");else if(game.campaign_stage==2&&!(game.campaign_flags&CP_LOCKED))snprintf(out,sizeof(out),"LOCK: LAVE HUB");else if(game.campaign_stage==3&&!(game.campaign_flags&CP_FLEW))snprintf(out,sizeof(out),"FLY: %.0f/600 M",game.campaign_distance);else snprintf(out,sizeof(out),"DOCK: LAVE HUB");return out;}
  if(tracked_mission==1){int ji=-1,type=guild_required_contract(&game);for(int i=0;i<game.job_n;i++)if(game.jobs[i].type==type){ji=i;break;}if(guild_ready(&game)){snprintf(out,sizeof(out),"DOCK: %.14s HUB",game.systems[game.system].name);return out;}if(ji>=0){Job *j=&game.jobs[ji];if(game.system!=j->dest)snprintf(out,sizeof(out),"JUMP: %.18s",game.systems[j->dest].name);else snprintf(out,sizeof(out),j->type==MISSION_RESCUE&&!j->stage?"FIND: RESCUE SIGNAL":"DOCK: %.14s HUB",game.systems[game.system].name);return out;}if(game.guild_chapter==2){snprintf(out,sizeof(out),"SCAN: LOCAL SIGNAL");return out;}if(type>=0){int station=guild_contract_station(&game);if(game.system!=station)snprintf(out,sizeof(out),"JUMP: %.18s",game.systems[station].name);else if(!game.docked)snprintf(out,sizeof(out),"DOCK: %.14s HUB",game.systems[station].name);else snprintf(out,sizeof(out),"OPEN: MISSION BOARD");return out;}snprintf(out,sizeof(out),game.docked?"LAUNCH: TEST FLIGHT":"DOCK: LOCAL HUB");return out;}
- int ji=tracked_mission-2;if(ji<0||ji>=game.job_n){snprintf(out,sizeof(out),"OPEN: MISSION LOG");return out;}Job *j=&game.jobs[ji];if(game.system!=j->dest)snprintf(out,sizeof(out),"JUMP: %.18s",game.systems[j->dest].name);else if(j->type==MISSION_DELIVERY||j->type==MISSION_SMUGGLING||(j->type==MISSION_RESCUE&&j->stage))snprintf(out,sizeof(out),"DOCK: %.14s HUB",game.systems[game.system].name);else if(j->type==MISSION_EXPLORATION&&j->item>=1&&j->item<BODY_COUNT)snprintf(out,sizeof(out),"FLY TO: %.18s",game.bodies[j->item].name);else if(j->type==MISSION_BOUNTY)snprintf(out,sizeof(out),"HUNT: MISSION TARGET");else if(j->type==MISSION_RESCUE)snprintf(out,sizeof(out),"FIND: RESCUE SIGNAL");else snprintf(out,sizeof(out),"FIND: MISSION CONTACT");return out;
+ int ji=tracked_mission-2;if(ji<0||ji>=game.job_n){snprintf(out,sizeof(out),"OPEN: MISSION LOG");return out;}Job *j=&game.jobs[ji];int base=mission_base_type(j->type);if(game.system!=j->dest)snprintf(out,sizeof(out),"JUMP: %.18s",game.systems[j->dest].name);else if(base==MISSION_DELIVERY||base==MISSION_SMUGGLING||(base==MISSION_RESCUE&&j->stage))snprintf(out,sizeof(out),"DOCK: %.14s HUB",game.systems[game.system].name);else if(base==MISSION_EXPLORATION&&j->item>=1&&j->item<BODY_COUNT)snprintf(out,sizeof(out),"FLY TO: %.18s",game.bodies[j->item].name);else if(base==MISSION_RACE)snprintf(out,sizeof(out),"FLY TO: RACE START GRID");else if(base==MISSION_BOUNTY)snprintf(out,sizeof(out),"HUNT: MISSION TARGET");else if(base==MISSION_RESCUE)snprintf(out,sizeof(out),"FIND: MISSION CONTACT");else snprintf(out,sizeof(out),"FIND: MISSION CONTACT");return out;
 }
-static void cockpit(void){
+/* Small cockpit motions use display-only state. They never alter flight
+ * physics, mission state or equipment values. Fixed 60 Hz easing keeps the
+ * work cheap and deterministic on PSP hardware. */
+static float hud_smooth[5],hud_shield_flash=0,hud_hull_flash=0,hud_fuel_flash=0,hud_camera_flash=0,hud_arrival_flash=0,hud_mission_flash=0;
+static int hud_anim_ready=0,hud_last_camera=0,hud_last_jump=0,hud_last_approach=-2;
+static char hud_last_mission[52];
+static void hud_animation_tick(void){
+ float raw[5]={game.energy,game.hull,game.heat,100.f*game.fuel/fmaxf(1.f,player_ships[game.ship].range),game.speed};
+ if(!hud_anim_ready){for(int i=0;i<5;i++)hud_smooth[i]=raw[i];hud_last_camera=third_person;hud_last_jump=game.jump>0;hud_last_approach=game.approach;snprintf(hud_last_mission,sizeof(hud_last_mission),"%.51s",tracked_hud_cue());hud_anim_ready=1;}
+ if(raw[0]<hud_smooth[0]-1.2f)hud_shield_flash=.34f;if(raw[1]<hud_smooth[1]-.8f)hud_hull_flash=.42f;if(raw[3]<hud_smooth[3]-2.f)hud_fuel_flash=.32f;
+ static float speed_stamp=-1;float speed_dt=game.time-speed_stamp;if(speed_dt<=0||speed_dt>.15f)speed_dt=1.f/30;speed_stamp=game.time;
+ for(int i=0;i<5;i++){float rate=i==4?1-expf(-speed_dt*9):.18f;hud_smooth[i]+=(raw[i]-hud_smooth[i])*rate;if(fabsf(raw[i]-hud_smooth[i])<.08f)hud_smooth[i]=raw[i];}
+ if(hud_last_camera!=third_person){hud_last_camera=third_person;hud_camera_flash=.22f;}
+ if(hud_last_jump&&!game.jump){hud_arrival_flash=.72f;}hud_last_jump=game.jump>0;
+ if(hud_last_approach!=game.approach){hud_last_approach=game.approach;if(game.approach>=0)hud_arrival_flash=.34f;}
+ const char *cue=tracked_hud_cue();if(strcmp(hud_last_mission,cue)){snprintf(hud_last_mission,sizeof(hud_last_mission),"%.51s",cue);hud_mission_flash=1.f;}
+ float *timers[]={&hud_shield_flash,&hud_hull_flash,&hud_fuel_flash,&hud_camera_flash,&hud_arrival_flash,&hud_mission_flash};for(int i=0;i<6;i++)if(*timers[i]>0){*timers[i]-=.0167f;if(*timers[i]<0)*timers[i]=0;}
+}
+static void hud_canopy_feedback(void){
+ int bot=view_bot();
+ if(hud_shield_flash>0){unsigned c=((int)(hud_shield_flash*30)&1)?RGB(80,225,255):RGB(38,112,160);int side=((int)(game.time*7)&1);for(int i=0;i<3;i++){int x=side?W-3-i*3:2+i*3;line(x,34+i*5,x,bot-18-i*4,c);}}
+ if(hud_hull_flash>0){unsigned c=((int)(hud_hull_flash*40)&1)?RGB(255,112,72):RGB(116,34,30);int span=bot-52;if(span<1)span=1;for(int i=0;i<9;i++){int x=(i*67+(int)(game.time*90))%W,y=28+(i*31)%span;rect(x,y,2+(i&1),1,c);}}
+ if(hard_brake>0){int squeeze=2+(int)(hard_brake*7);unsigned c=RGB(232,166,72);line(squeeze,28,squeeze,bot-8,c);line(W-1-squeeze,28,W-1-squeeze,bot-8,c);line(220,112,260,112,c);}
+ if(hud_camera_flash>0){unsigned c=RGB(65,122,137);for(int y=24+(int)(hud_camera_flash*80);y<bot;y+=9)line(0,y,W-1,y,c);}
+ if(hud_arrival_flash>0){int stage=(int)((.72f-hud_arrival_flash)/.12f);unsigned c=stage<2?UI_CYAN:stage<4?UI_SIGNAL:UI_GOLD;for(int i=0;i<4;i++)if(i<=stage)rect(326+i*36,192,30,2,c);}
+ /* Live instrument sweep and drive vibration make normal flight feel active,
+  * without adding permanent text or obscuring the view. */
+ if(game.speed>player_ships[game.ship].speed*.45f){
+  float ratio=game.speed/fmaxf(1.f,(float)player_ships[game.ship].speed);if(ratio>3)ratio=3;
+  int sweep=194+(int)fmodf(game.time*(34.f+ratio*18.f),60.f);unsigned c=game.boost?UI_GOLD:RGB(48,117,126);
+  rect(157,sweep,164,1,c);if(game.boost&&((int)(game.time*18)&1)){rect(158,194,2,62,RGB(84,45,25));rect(319,194,2,62,RGB(84,45,25));}
+ }
+}
+static void cockpit_legacy(void){
  if((hud_hidden||hud_mode==2)&&!paused)return;
+ float saved_sensor_range=sensor_hud_range;sensor_hud_range=-1;sensor_hud_range=sensor_range();
+ hud_animation_tick();
  /* Top 24px: live aft mirror, radio and route. Bottom 80px: all instruments.
   * Charcoal + ochre instrument bands — McQuarrie chrome, not cyan debug boxes. */
  rect(0,0,W,24,UI_PANEL);rect(0,23,W,1,UI_EDGE);
@@ -573,9 +676,10 @@ static void cockpit(void){
   const char *cue=tracked_hud_cue();char route[52];snprintf(route,sizeof(route),">> %s >>",cue);
   int cols=W/8,inset=1,left=33,clen=(int)strlen(route),max=cols-inset-left;
   if(max<8)max=8;if(clen>max)clen=max;
-  text(cols-inset-clen,0,RGB(100,235,150),"%.*s",clen,route);
+  int start=(cols-inset-clen)*8;if(hud_mission_flash>0){int sweep=(int)((1.f-hud_mission_flash)*clen*8);if(sweep<1)sweep=1;rect(start,13,sweep,2,UI_GOLD);}
+  text(cols-inset-clen,0,hud_mission_flash>0?UI_GOLD:RGB(100,235,150),"%.*s",clen,route);
  }
- if(game.dock_stage==1){rect(8,24,464,16,UI_PANEL);rect(8,24,464,1,UI_EDGE);text(2,4,UI_SIGNAL,"DOCKING GUIDANCE ACTIVE");}
+ if(game.dock_stage==1){autopilot_annunciator(32,game.dock_timer);}
  else if(square_held){
   /* Hold-Square is the expanded tactical browser. Keep it pinned to the
    * left edge so the central flight view remains readable and playable. */
@@ -584,7 +688,7 @@ static void cockpit(void){
   text(2,25,RGB(120,245,220),"(R = LOCK)");
  }
  else if(game.approach<0&&!game.police_stop&&!game.dead&&!game.dock_stage&&game.jump<=0){speech_box(8,24,464);quick_comms_box();}
- combat_alert_banner();
+ combat_alert_banner();hud_canopy_feedback();
  rect(0,192,W,80,UI_PANEL);rect(0,192,W,1,UI_EDGE);
  line(155,198,155,258,UI_RAISED);line(323,198,323,258,UI_RAISED);
  int id=valid_target(selected_target)?selected_target:valid_target(look_target)?look_target:-1;
@@ -597,7 +701,7 @@ static void cockpit(void){
   text(1,27,UI_ACCENT,"%.*s",cut,name);
   const char *tail=name+cut;while(*tail==' ')tail++;
   if(*tail)text(1,28,UI_ACCENT,"%.18s",tail);
-  text(1,30,UI_TEXT,"%d M",(int)length(p));
+  if(!target_detected(id))text(1,30,UI_MUTED,"SIGNAL LOST");else text(1,30,UI_TEXT,"%d M",(int)length(p));
   if(IS_NPC_ID(id)&&scanner_known(id)){
    NPC *n=&game.npc[id-BODY_COUNT-1];
    float mh=n->bounty_slot>=0?110.f+danger_rating(&game,game.system)*35.f:n->freighter?900.f:n->role==LAW?110.f:80.f,ms=n->bounty_slot>=0?55.f+danger_rating(&game,game.system)*15.f:n->freighter?100.f:n->role==LAW?60.f:40.f;
@@ -609,15 +713,18 @@ static void cockpit(void){
   }else if(autoaim)text(1,31,UI_SIGNAL,"LOCKED / ALIGNING");
  }
  else {text(1,27,UI_MUTED,"NO TARGET");text(1,30,UI_TEXT,"SQUARE TO SELECT");}
- if(!(fit_find(&game,LAW_SCANNER_ITEM)>=0&&game.law_scan_valid&&game.time-game.law_scan_time>=0&&game.time-game.law_scan_time<12))text(28,25,UI_MUTED,"AHEAD");text(29,31,UI_MUTED,"AFT");
+ if(!(fit_find(&game,LAW_SCANNER_ITEM)>=0&&game.law_scan_valid&&game.time-game.law_scan_time>=0&&game.time-game.law_scan_time<12)){
+  const char *system=game.systems[game.system].name;int chars=(int)strlen(system);if(chars>16)chars=16;
+  text((W/8-chars)/2,25,UI_MUTED,"%.*s",chars,system);
+ }
  line(171,230,309,230,UI_RAISED);line(240,211,240,249,UI_RAISED);
  line(177,214,303,214,UI_RAISED);line(177,246,303,246,UI_RAISED);
  if(game.planet>=0){for(int i=0;i<3;i++)radar_dot(camera(&game,surface_site(&game,i)),i==1?UI_SIGNAL:UI_ACCENT,2,0);if(game.surface==2)radar_dot(camera(&game,game.ship_pos),UI_SIGNAL,0,1);}
  else {
   /* Draw faint scenery first, selected contact last. */
   law_radar();
-  for(int pass=0;pass<2;pass++)for(int tid=0;tid<=FLIGHT_TARGET_MAX;tid++)if(valid_target(tid)&&((tid==selected_target)==pass)){
-   int ship=IS_NPC_ID(tid);unsigned ink=tid==ROUTE_TARGET_ID?CYAN:ship?faction_colors[game.npc[tid-BODY_COUNT-1].role]:IS_STATION_ID(tid)?UI_SIGNAL:tid<=BODY_COUNT?RGB(125,122,91):UI_MUTED;
+  for(int pass=0;pass<2;pass++)for(int tid=0;tid<=FLIGHT_TARGET_MAX;tid++)if(((tid==selected_target)==pass)&&target_detected(tid)){
+   int ship=IS_NPC_ID(tid);unsigned ink=tid==RUMOUR_TARGET_ID?RGB(239,179,98):tid==WHALE_TARGET_ID?RGB(115,201,192):tid==ROUTE_TARGET_ID?CYAN:ship?faction_colors[game.npc[tid-BODY_COUNT-1].role]:IS_STATION_ID(tid)?UI_SIGNAL:tid<=BODY_COUNT?RGB(125,122,91):UI_MUTED;
    radar_dot(camera(&game,target_position(tid)),ink,IS_STATION_ID(tid)?2:tid<=BODY_COUNT?1:0,pass);
   }
   /* Each relay already has its own stable target/radar entry above. */
@@ -638,21 +745,21 @@ static void cockpit(void){
  rect(447,209,3,3,missile_ink);text_px(456,200,missile_ink,"%d",game.missiles);
  const char *labels[]={"SHLD","HULL","HEAT","FUEL"};
  int vmax=player_ships[game.ship].speed;if(vmax<1)vmax=1;
- int values[]={(int)game.energy,(int)game.hull,(int)game.heat,(int)(100*game.fuel/fmaxf(1,player_ships[game.ship].range))};
+ int values[]={(int)hud_smooth[0],(int)hud_smooth[1],(int)hud_smooth[2],(int)hud_smooth[3]};
  unsigned cols[]={game.energy<30?RED:UI_SIGNAL,game.hull<35?RED:UI_SIGNAL,game.heat>70?RED:RGB(139,106,72),UI_ACCENT};
  /* Compact speed readout sits above the power pips, clear of radar and bars. */
  /* Keep the speed fill pegged to the normal cruise scale. Boost is shown as
   * a state effect (colour/pulse), rather than making the bar appear to empty. */
- int speed_pct=(int)fminf(100.f,100.f*game.speed/fmaxf(1.f,(float)vmax));
- for(int i=0;i<4;i++){text(42,27+i,UI_MUTED,"%s",labels[i]);pip_bar(378,216+i*8,90,5,values[i],cols[i]);}
- text(42,31,game.boost?RGB(240,120,96):UI_MUTED,"SPD %3d",(int)game.speed);
+ int speed_pct=(int)fminf(100.f,100.f*hud_smooth[4]/fmaxf(1.f,(float)vmax));
+ for(int i=0;i<4;i++){int wobble=i==2&&game.heat>78?(int)(sinf(game.time*19.f)*1.f):0;text(42,27+i,UI_MUTED,"%s",labels[i]);pip_bar(378+wobble,216+i*8,90,5,values[i],cols[i]);if(i==3&&hud_fuel_flash>0){int spark=378+(90*values[i])/100;line(spark,237,spark+3,234,UI_CYAN);}}
+ text(42,31,game.boost?RGB(240,120,96):hard_brake>0?UI_GOLD:UI_MUTED,"SPD %3d",(int)hud_smooth[4]);
  {int sx=game.boost?400+(int)(sinf(game.time*18.f)*2.f):400;
   pip_bar(sx,248,68,5,speed_pct,game.boost?RGB(240,120,96):RGB(139,184,198));
   if(game.boost){rect(sx-2,246,72,1,UI_ACCENT);rect(sx-2,254,72,1,UI_ACCENT);}
  }
  rect(0,262,W,10,UI_PANEL);rect(0,262,W,1,UI_EDGE);
- button_icon(8,263,'T',UI_SIGNAL);text(3,33,game.damaged?RED:UI_MUTED,game.damaged?"HULL DAMAGE / ENGINEERS REQUIRED":"COMMS");
- if(game.dead)text(20,33,RED,"START: RECOVER");
+ button_icon(8,263,'T',UI_SIGNAL);text(3,33,UI_MUTED,"COMMS");
+ if(game.dead){/* Death shutdown and recovery choices are drawn above the cockpit. */}
  else if(paused)text(20,33,UI_TEXT,"POWER %s  L/R BANK  U/D +/-",pip_sel==0?"SYS":pip_sel==1?"ENG":"WEP");
  else if(game.police_stop)text(16,33,UI_ACCENT,game.police_phase?"X CONFIRM SCAN MENU":"X CONFIRM SETTLE MENU");
  else if(game.approach>=0)text(20,33,UI_ACCENT,game.bodies[game.approach].type==GAS?"O TURN BACK":"X LAND   O CANCEL");
@@ -664,4 +771,8 @@ static void cockpit(void){
   const char *verb=rock?"MINE":IS_DEBRIS_ID(action)?"COLLECT":IS_NPC_ID(action)?"LOCK":IS_ANOMALY_ID(action)?"SCAN":action==0?"DOCK":"APPROACH";
   button_icon(158,263,'S',UI_ACCENT);text(22,33,UI_MUTED,"TARGETS");button_icon(264,263,'O',UI_SIGNAL);if(tools_selected<2)text(35,33,UI_MUTED,"%s %d",tool_names[tools_selected],tools_selected==0?game.missiles:game.flare_charges);else text(35,33,UI_MUTED,"%s",tool_names[tools_selected]);(void)verb;
  }
+ sensor_hud_range=saved_sensor_range;
 }
+
+
+#include "cockpit-hud.h"

@@ -9,6 +9,7 @@ static void tutorial_checkpoint(void){
  if(game.docked&&!smoke&&!save_game(&game,"tutorial.sav"))message(&game,"Tutorial checkpoint failed. Save at the next berth.");
 }
 static void tutorial_reset_frontend(void){
+ load_arrival_time=-1;load_arrival_release=0;
  tutorial_modal=0;tutorial_confirm=0;tutorial_prepared=0;tutorial_practice=0;
  paused=0;autoaim=0;selected_target=0;look_target=-1;comms_quick=0;
  triangle_arm=0;fire_blocked=1;analog_ready=0;station_tour_stage=STATION_TOUR_OFF;
@@ -82,27 +83,66 @@ static void tutorial_draw(void){
  }
 }
 static void input(unsigned pressed,unsigned held,float dt,float ax,float ay){
+ if(erl_racer_input(pressed))return;
+ if(dockbay_input(pressed,held,dt))return;
+ if(erl_input(pressed,held,dt,ax,ay))return;
+ if(mission_card_input(pressed,held,dt))return;
+ if(race_ui_input(pressed,held,dt))return;
+ if(race_is_active(&game))autoaim=0;
+ if(load_arrival_input(pressed,held,dt))return;
+ /* A new deliberate input ends the visual handoff immediately; never queue
+  * actions or impose a hidden wait on the existing menus and Back behavior. */
+ if(pressed&&deck_open_active())deck_open_cancel();
+ if(page==MULTIPLAYER||page==NEARBY_PLAYERS){multiplayer_input(pressed,dt);return;}
+ /* NEWS owns puzzle input, including after the opening reaches free flight.
+  * Only leaving the paper itself completes an Earth newspaper story beat. */
+ if(page==GALNET&&galnet_tab==0&&opening_exists(&game)){
+  int stage=game.opening.stage;newspaper_input(pressed);
+  if(page==HOME&&(pressed&PSP_CTRL_CIRCLE)&&(stage==OP_EARTH_NET||stage==OP_DAD_INBOX))opening_advance();
+  return;
+ }
+ if(page==GALNET&&galnet_tab==5&&opening_exists(&game)){rumours_input(pressed,held,dt);return;}
+ /* Crime Watch owns its input even on completed-opening commanders. The
+  * older story network dispatcher still uses vertical list navigation. */
+ if(wanted_input(pressed,dt))return;
+ if(page!=INTRO&&opening_input(pressed,held,dt,ax,ay))return;
+ if(wifi.state||wifi_release){game_input(pressed,held,dt,ax,ay);return;}
  if(page==CHART&&chart_dissolve_time>0)return;
  if(ps_open||ps_release){game_input(pressed,held,dt,ax,ay);return;}
  if(page==FLIGHT&&game.rift_report){game_input(pressed,held,dt,ax,ay);return;}
  if(page==FLIGHT&&(game.dock_stage==4||departure_release)&&!game.dead){int was=game.dock_stage==4;game_input(pressed,held,dt,ax,ay);if(was&&game.dock_stage!=4&&tutorial_active(&game))tutorial_emit(TU_LAUNCH,0);return;}
  if(page==INTRO){
-  intro_time+=dt;
-  if(pressed&PSP_CTRL_UP)intro_choice=(intro_choice+3)%4;
-  if(pressed&PSP_CTRL_DOWN)intro_choice=(intro_choice+1)%4;
+  if(intro_extras){
+   intro_tick(dt);
+   if(pressed&PSP_CTRL_CIRCLE){intro_extras=0;return;}
+   if(pressed&PSP_CTRL_UP)intro_extras_choice=(intro_extras_choice+1)%2;
+   if(pressed&PSP_CTRL_DOWN)intro_extras_choice=(intro_extras_choice+1)%2;
+   if(pressed&PSP_CTRL_CROSS){if(intro_extras_choice==0){if(profile_file_exists("tutorial.sav"))tutorial_resume();else tutorial_start();}else erl_racer_open(1);}
+   return;
+  }
+  if(pressed&PSP_CTRL_SELECT){opening_restart_intro();return;}
+  if(pressed&PSP_CTRL_SQUARE){multiplayer_enter(INTRO);return;}
+  intro_tick(dt);
+  if(intro_gate(pressed,held))return;
+  int first=intro_first_choice();if(intro_choice<first)intro_choice=first;
+  if(pressed&PSP_CTRL_UP)intro_choice=intro_choice<=first?3:intro_choice-1;
+  if(pressed&PSP_CTRL_DOWN)intro_choice=intro_choice>=3?first:intro_choice+1;
+  if(intro_choice==2){
+   if(pressed&(PSP_CTRL_LTRIGGER|PSP_CTRL_LEFT))intro_load_slot=(intro_load_slot+2)%3;
+   if(pressed&(PSP_CTRL_RTRIGGER|PSP_CTRL_RIGHT))intro_load_slot=(intro_load_slot+1)%3;
+  }
   if(pressed&PSP_CTRL_CROSS){
-   if(intro_choice==0){int slot=intro_primary_slot();if(slot>=0){profile_slot=slot;profile_from_intro=1;profile_load();}else{game_init(&game);story_complete(&game);tutorial_reset_frontend();change_page(CAMPAIGN);}}
-   else if(intro_choice==1){game_init(&game);story_complete(&game);tutorial_reset_frontend();change_page(CAMPAIGN);}
-   else if(intro_choice==2)profile_open_load();
-   else if(profile_file_exists("tutorial.sav"))tutorial_resume();else tutorial_start();
+   if(intro_choice==0){int slot=intro_primary_slot();if(slot>=0){profile_slot=slot;profile_from_intro=1;profile_load();}else opening_new_game();}
+   else if(intro_choice==1)opening_new_game();
+   else if(intro_choice==2){int selected_slot=intro_load_slot;profile_open_load();profile_slot=selected_slot;}
+   else {intro_extras=1;intro_extras_choice=0;}
   }
   return;
  }
  if(!tutorial_active(&game)){story_complete(&game);if(page==STATUS)profile_input(pressed);else tracked_game_input(pressed,held,dt,ax,ay);return;}
  tutorial_prepare();
  if(game.dead){
-  if(pressed&PSP_CTRL_START)tutorial_resume();
-  else tracked_game_input(0,0,dt,0,0);
+  tracked_game_input(pressed,held,dt,0,0);
   return;
  }
  if(page==HOME&&!tutorial_modal&&game.tutorial_seen==game.tutorial_step&&(pressed&PSP_CTRL_TRIANGLE)){tutorial_modal=1;return;}

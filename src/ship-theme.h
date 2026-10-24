@@ -18,7 +18,13 @@ static const ShipTheme ship_themes[DECORATOR_COUNT]={
  {RGB(34,24,16),RGB(69,43,22),RGB(196,121,50),RGB(255,193,101),RGB(147,223,247),RGB(255,236,208),RGB(212,184,149)},
  {RGB(21,16,39),RGB(44,31,72),RGB(118,91,190),RGB(185,161,255),RGB(147,235,220),RGB(236,229,255),RGB(181,171,212)}
 };
-static int ship_theme_index(void){int s=game.ship;if(s<0||s>=16)return 0;for(int i=0;i<DECORATOR_COUNT;i++)if(ship_paint[s]==decorator_finishes[i])return i;return 0;}
+static int ship_theme_index(void){
+ static int last_ship=-1,index=0;static unsigned last_paint;
+ int s=game.ship;if(s<0||s>=player_ship_count)return 0;
+ unsigned paint=ship_paint[s];if(s==last_ship&&paint==last_paint)return index;
+ last_ship=s;last_paint=paint;index=0;
+ for(int i=0;i<DECORATOR_COUNT;i++)if(paint==decorator_finishes[i]){index=i;break;}return index;
+}
 #define UI_PANEL (ship_themes[ship_theme_index()].panel)
 #define UI_RAISED (ship_themes[ship_theme_index()].raised)
 #define UI_EDGE (ship_themes[ship_theme_index()].edge)
@@ -28,16 +34,43 @@ static int ship_theme_index(void){int s=game.ship;if(s<0||s>=16)return 0;for(int
 #define UI_MUTED (ship_themes[ship_theme_index()].muted)
 #define UI_GOLD (ship_theme_index()?UI_ACCENT:GOLD)
 #define UI_CYAN (ship_theme_index()?UI_SIGNAL:CYAN)
+/* Repaint console metal while retaining the original luminance/shape.
+ * Original Gold retains the authored default. Warnings, artwork, portraits,
+ * faction colours and item-category signals are not passed through here. */
+static unsigned ui_paint_surface(unsigned color){
+ int index=ship_theme_index();if(!index)return color;
+ unsigned panel=ship_themes[index].panel;
+ int lum=((color&255)*3+((color>>8)&255)*6+((color>>16)&255))/10;
+ int base=((panel&255)*3+((panel>>8)&255)*6+((panel>>16)&255))/10;
+ int r=lum+((int)(panel&255)-base)*3,g=lum+((int)((panel>>8)&255)-base)*3,b=lum+((int)((panel>>16)&255)-base)*3;
+ if(r<0)r=0;if(r>255)r=255;if(g<0)g=0;if(g>255)g=255;if(b<0)b=0;if(b>255)b=255;return RGB(r,g,b);
+}
+static unsigned ui_paint_text(unsigned color){
+ if(!ship_theme_index())return color;
+ if(color==GOLD)return UI_ACCENT;
+ if(color==CYAN)return UI_SIGNAL;if(color==WHITE)return UI_TEXT;if(color==DIM)return UI_MUTED;
+ return color;
+}
 
 /* Compact cosmetic preferences, independent of commander save versions. */
-typedef struct {unsigned magic,paint[16],check;} PaintSettings;
-static unsigned paint_check(const PaintSettings *p){unsigned c=p->magic;for(int i=0;i<16;i++)c=(c*33u)^p->paint[i];return c;}
-static int paint_read(const char *path,PaintSettings *p){FILE *f=fopen(path,"rb");if(!f)return 0;int ok=fread(p,1,sizeof(*p),f)==sizeof(*p);fclose(f);if(!ok||p->magic!=0x504e5431u||p->check!=paint_check(p))return 0;for(int s=0;s<16;s++){int found=0;for(int i=0;i<DECORATOR_COUNT;i++)found|=p->paint[s]==decorator_finishes[i];if(!found)return 0;}return 1;}
+typedef struct {unsigned magic,paint[23],check;} PaintSettings;
+typedef struct {unsigned magic,paint[22],check;} PaintSettingsV2;
+typedef struct {unsigned magic,paint[16],check;} PaintSettingsV1;
+static unsigned paint_check(const PaintSettings *p){unsigned c=p->magic;for(int i=0;i<23;i++)c=(c*33u)^p->paint[i];return c;}
+static int paint_valid(unsigned paint){for(int i=0;i<DECORATOR_COUNT;i++)if(paint==decorator_finishes[i])return 1;return 0;}
+static int paint_read(const char *path,PaintSettings *p){
+ FILE *f=fopen(path,"rb");if(!f)return 0;fseek(f,0,SEEK_END);long bytes=ftell(f);rewind(f);
+ unsigned words[25]={0};int count=bytes==(long)sizeof(PaintSettings)?23:bytes==(long)sizeof(PaintSettingsV2)?22:bytes==(long)sizeof(PaintSettingsV1)?16:0;
+ if(!count){fclose(f);return 0;}int ok=fread(words,1,bytes,f)==(size_t)bytes;fclose(f);
+ unsigned expected=count==23?0x504e5433u:count==22?0x504e5432u:0x504e5431u,c=words[0];
+ if(!ok||words[0]!=expected)return 0;for(int i=0;i<count;i++){if(!paint_valid(words[i+1]))return 0;c=(c*33u)^words[i+1];}if(c!=words[count+1])return 0;
+ memset(p,0,sizeof(*p));p->magic=0x504e5433u;for(int i=0;i<23;i++)p->paint[i]=i<count?words[i+1]:ship_paint[i];p->check=paint_check(p);return 1;
+}
 static void paint_load(void){PaintSettings p;if(paint_read("ship-paint.cfg",&p)||paint_read("ship-paint.cfg.bak",&p))memcpy(ship_paint,p.paint,sizeof(ship_paint));}
 static int paint_save(void){
- PaintSettings p={0x504e5431u,{0},0},verify;memcpy(p.paint,ship_paint,sizeof(ship_paint));p.check=paint_check(&p);
+ PaintSettings p={0x504e5433u,{0},0},verify;memcpy(p.paint,ship_paint,sizeof(ship_paint));p.check=paint_check(&p);
  FILE *f=fopen("ship-paint.cfg.tmp","wb");if(!f)return 0;int ok=fwrite(&p,1,sizeof(p),f)==sizeof(p);if(fflush(f))ok=0;if(fclose(f))ok=0;if(!ok||!paint_read("ship-paint.cfg.tmp",&verify))return 0;
  int backed=paint_read("ship-paint.cfg",&verify);
  if(backed){remove("ship-paint.cfg.bak");if(rename("ship-paint.cfg","ship-paint.cfg.bak"))return 0;}else remove("ship-paint.cfg");
- if(rename("ship-paint.cfg.tmp","ship-paint.cfg")){if(backed)rename("ship-paint.cfg.bak","ship-paint.cfg");return 0;}return 1;
+ if(rename("ship-paint.cfg.tmp","ship-paint.cfg")){if(backed)rename("ship-paint.cfg.bak","ship-paint.cfg");return 0;}if(game.erl.fleet_n&&!game.erl.event_kind){game.erl.fleet[game.erl.active_ship].paint=ship_paint[game.ship];game.erl.dirty=1;}return 1;
 }

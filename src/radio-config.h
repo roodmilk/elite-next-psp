@@ -1,20 +1,27 @@
 /* Small independent preferences file. Commander saves remain compatible. */
-static volatile int radio_station=4,radio_volume=5,sound_volume=8;
+#define RADIO_DEFAULT_STATION 7 /* Elite Exploration / music/Elite Exploration */
+static volatile int radio_station=RADIO_DEFAULT_STATION,radio_volume=5,sound_volume=8;
 static volatile int radio_off=0,radio_static_ms=0;
+/* Scene-only rock override; never written to radio preferences. */
+static volatile int radio_dream_gain=-1;
+static volatile int radio_race_on=0; /* Temporary race score; never changes saved tuning. */
+static int radio_display_station(void){return radio_race_on?8:radio_station;}
 static int radio_dirty=0;
 static int quiet_comms=0;
+static int comms_captions=1;
+static volatile int comms_quiet=0;
 typedef struct {uint32_t magic,version,station,music,effects,quiet,check;} RadioSettings;
 static uint32_t radio_checksum(const RadioSettings *s){return s->magic^s->version^(s->station*65537u)^(s->music*257u)^(s->effects*17u)^(s->quiet*8191u)^0x597214a3u;}
 static int radio_read_settings(const char *path,RadioSettings *s){
  FILE *f=fopen(path,"rb");if(!f)return 0;
  int ok=fread(s,1,sizeof(*s),f)==sizeof(*s);fclose(f);
- int station_ok=(s->version==2&&s->station<=7)||(s->version==3&&s->station<=RADIO_STATION_COUNT);
+ int station_ok=(s->version==2&&s->station<=7)||(s->version==3&&s->station<=8)||(s->version==4&&s->station<=RADIO_STATION_COUNT);
  return ok&&s->magic==0x52414449u&&station_ok&&s->music<=10&&s->effects<=10&&s->quiet<=1&&s->check==radio_checksum(s);
 }
 static int radio_load_settings(const char *path){
  RadioSettings s;char bak[256];int len=snprintf(bak,sizeof(bak),"%s.bak",path);
  if(!radio_read_settings(path,&s)&&(len<0||len>=(int)sizeof(bak)||!radio_read_settings(bak,&s)))return 0;
- unsigned off_marker=s.version==2?7u:(unsigned)RADIO_STATION_COUNT;
+ unsigned off_marker=s.version==2?7u:s.version==3?8u:(unsigned)RADIO_STATION_COUNT;
  if(s.station>=off_marker){radio_off=1;radio_station=0;}else{radio_off=0;radio_station=s.station;}
  radio_volume=s.music;sound_volume=s.effects;quiet_comms=s.quiet;radio_dirty=0;return 1;
 }
@@ -22,7 +29,7 @@ static int radio_save_settings(const char *path){
  char tmp[256],bak[256];int n=snprintf(tmp,sizeof(tmp),"%s.tmp",path),m=snprintf(bak,sizeof(bak),"%s.bak",path);
  if(n<0||m<0||n>=(int)sizeof(tmp)||m>=(int)sizeof(bak))return 0;
  unsigned st=radio_off?(unsigned)RADIO_STATION_COUNT:(unsigned)radio_station;
- RadioSettings s={0x52414449u,3,st,(unsigned)radio_volume,(unsigned)sound_volume,(unsigned)quiet_comms,0},old;
+ RadioSettings s={0x52414449u,4,st,(unsigned)radio_volume,(unsigned)sound_volume,(unsigned)quiet_comms,0},old;
  s.check=radio_checksum(&s);FILE *f=fopen(tmp,"wb");if(!f)return 0;
  int ok=fwrite(&s,1,sizeof(s),f)==sizeof(s);if(fflush(f))ok=0;if(fclose(f))ok=0;
  if(!ok||!radio_read_settings(tmp,&old))return 0;

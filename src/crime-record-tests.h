@@ -16,9 +16,9 @@
  record_crime(&g,4,CRIME_ASSAULT);int origin=g.system;g.system=8;g.legal=g.wanted[8];record_crime(&g,10,CRIME_ESCAPE);
  CHECK((g.crime_record[origin]&CRIME_ASSAULT)&&(g.crime_record[8]&CRIME_ESCAPE),"law: systems keep distinct offences");
  g.docked=1;CHECK(save_game(&g,"test-crime.sav"),"law: multisystem ledger saves");
- unsigned char bytes[131072];FILE *src=fopen("test-crime.sav","rb");size_t n=0;if(src){n=fread(bytes,1,sizeof(bytes),src);fclose(src);}
- int fixture=n>1284+(SOCIAL_SAVE_BYTES+FIT_SAVE_BYTES)&&n<sizeof(bytes);
- if(fixture){bytes[4]=19;FILE *old=fopen("test-crime-v19.sav","wb");if(old){fixture=fwrite(bytes,1,n-1284-(SOCIAL_SAVE_BYTES+FIT_SAVE_BYTES),old)==n-1284-(SOCIAL_SAVE_BYTES+FIT_SAVE_BYTES);fclose(old);fixture=fixture&&save_seal("test-crime-v19.sav");}else fixture=0;}
+ static unsigned char bytes[262144];FILE *src=fopen("test-crime.sav","rb");size_t n=0;if(src){n=fread(bytes,1,sizeof(bytes),src);fclose(src);}
+ int fixture=n>1284+(SOCIAL_SAVE_BYTES+FIT_SAVE_BYTES+OPENING_SAVE_BYTES+(FIT_V29_BYTES+MODULE_STORE_BYTES+RUMOUR_SAVE_BYTES+NEWSPAPER_REWARD_SAVE_BYTES+EXPEDITION_SAVE_BYTES+(ERL_SAVE_BYTES+DB_SAVE_BYTES)))&&n<sizeof(bytes);
+ if(fixture){bytes[4]=19;FILE *old=fopen("test-crime-v19.sav","wb");if(old){fixture=fwrite(bytes,1,n-1284-SAVE_V28_EXPANSION_BYTES-(SOCIAL_SAVE_BYTES+FIT_SAVE_BYTES+OPENING_SAVE_BYTES+(FIT_V29_BYTES+MODULE_STORE_BYTES+RUMOUR_SAVE_BYTES+NEWSPAPER_REWARD_SAVE_BYTES+EXPEDITION_SAVE_BYTES+(ERL_SAVE_BYTES+DB_SAVE_BYTES))),old)==n-1284-SAVE_V28_EXPANSION_BYTES-(SOCIAL_SAVE_BYTES+FIT_SAVE_BYTES+OPENING_SAVE_BYTES+(FIT_V29_BYTES+MODULE_STORE_BYTES+RUMOUR_SAVE_BYTES+NEWSPAPER_REWARD_SAVE_BYTES+EXPEDITION_SAVE_BYTES+(ERL_SAVE_BYTES+DB_SAVE_BYTES)));fclose(old);fixture=fixture&&save_seal("test-crime-v19.sav");}else fixture=0;}
  CHECK(fixture&&load_game_file(&g,"test-crime-v19.sav")&&g.crime_record[origin]==CRIME_UNKNOWN&&g.crime_record[8]==CRIME_UNKNOWN&&strstr(police_accusation(&g),"unavailable"),"law: V19 warrants import honestly without invented crime");
  game_init(&g);launch(&g);g.npc[0].alive=1;g.npc[0].role=PIRATES;g.npc[0].health=1000;g.npc[0].shield=0;hit(&g,0,1,1);
  CHECK(!g.legal&&!g.crime_record[g.system],"law: pirate combat remains lawful");

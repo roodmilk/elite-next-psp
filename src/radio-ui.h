@@ -37,7 +37,7 @@ static void radio_screen(void){
   text(18,16,AMBER,"STATIC");
  }else if(radio_off)text(18,16,DIM,"RADIO OFF");
  else text(18,16,CYAN,"NOW PLAYING:");
- if(radio_static_ms<=0)text(18,18,radio_off?DIM:WHITE,"%.18s",radio_off?"(silence)":radio_station_name(radio_station));
+ if(radio_static_ms<=0)text(18,18,radio_off?DIM:WHITE,"%.18s",radio_off?"(silence)":radio_station_name(radio_display_station()));
  text(18,20,CYAN,"%.18s",radio_off?"Right: station 1":radio_station_genre(radio_station));
 
  /* Volume panel */

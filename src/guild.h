@@ -4,12 +4,12 @@
  */
 enum { GUILD_LAUNCH=1,GUILD_DOCK=2,GUILD_DELIVERY=4,GUILD_SCAN=8,GUILD_RESCUE=16 };
 static inline int guild_required_contract(const Game *g){return g->guild_chapter==1?MISSION_DELIVERY:g->guild_chapter==3?MISSION_RESCUE:-1;}
-/* Reproduce the board's deterministic offer slots for any system without
- * mutating or copying the live game. This guarantees that a routed board
- * still contains the promised contract when the player arrives. */
+/* Ask the same five-offer catalogue as the displayed board. Remote guidance
+ * refers to the primary hub; local guidance uses the currently docked hub. */
 static inline int guild_offer_index_at(const Game *g,int system,int type){
- (void)g;if(system<0||system>=256||type<0||type>=MISSION_TYPES)return -1;
- for(int offer=0;offer<MISSION_TYPES;offer++)if((system+offer)%MISSION_TYPES==type)return offer;
+ if(!g||system<0||system>=256||type<0||type>=MISSION_TYPES)return -1;
+ int hub=system==g->system?g->station_variant:0;
+ for(int offer=0;offer<MISSION_OFFER_SLOTS;offer++)if(mission_type_at(g,system,hub,offer)==type)return offer;
  return -1;
 }
 static inline int guild_contract_station(const Game *g){

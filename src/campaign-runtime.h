@@ -30,6 +30,7 @@ int campaign_claim(Game *g){
  if(g->credits>99999000){message(g,"Credit limit reached. Spend 100 units first.");return 0;}
  /* One state transition commits payment and badge together. */
  g->campaign_stage=6;g->credits+=1000;g->cue=SFX_SELECT;
+ mission_receipt_record(g,RECEIPT_CAMPAIGN,0,1000,7,"FIRST FLIGHT","KEI");
  message(g,"Harbour badge earned. 100 units paid — a receipt that you left and returned.");return 1;
 }
 int campaign_retry(Game *g){

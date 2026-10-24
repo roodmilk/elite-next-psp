@@ -1,0 +1,67 @@
+2.5.258 — Observatory and shared planetary landmark footing fix
+1 October2026
+
+CAUSE
+Lave I's authored observatory explicitly bypassed surface_landmark_v2 and its
+ground foundation. Its basement started8m below only the centre terrain
+height. The hill beneath the rest of the footprint rose above its lower walls.
+Generic foundations sampled only centre/four outer corners, missing interior
+mesh vertices/diagonals and differing coarse horizon heights.
+
+FIX
+surface-landmarks.h now finds the maximum of each clipped ground triangle
+over the expanded site rectangle: clipped corners and diagonal endpoints
+cover the extrema. Checks both Lave160/960m meshes or generic40/280m meshes.
+Sixteen exact-tagged entries cache levels by system/body/type/seed/position/
+dimensions/site kind; about704 bytes, no per-frame heap allocation.
+Grade is at least0.6m above intersecting rendered terrain. The existing
+biome-coloured earth skirt/thin engineered footing remains; no universal grey
+full-height plinth restored. Lave I observatory now uses that footing, with
+its existing8m basement offset compensated so the bottom is above the grade.
+Structure visibility, mounted signs and POI target markers use the corrected
+origin rather than the old centre height. X/Z identities, interactions,
+collision reservations, caves, controls, saves and player music unchanged.
+Open solid-world crystal grotto interiors deliberately retain ground-level
+placement instead of being raised to an inaccessible platform.
+
+RENDERING PARITY
+New landmark geometry exposed unstable qsort ties on coplanar ground details.
+Two initial144-view comparisons failed for4–48 pixels; a batch separation
+alone did not completely fix it. Added deterministic submission-order ties
+only for planetary surface sorting, retaining legacy space/mega-city order.
+Landmarks also flush separately from apron/rover geometry. Final144/144
+fast/reference native images match. New artwork intentionally differs from257.
+
+PROOF
+Exact final EBOOT: current task/poi-footing-258.
+ship-footing:8192 site rectangles across1024 worlds/all12 families checked
+against25 samples at both ground LODs; exact cache hits; minimum clearance
+0.600m;12 native Lave I observatory angles and framebuffer guards pass.
+Measured Lave I centre1110.218m, grade1161.327m, basement bottom1162.527m
+instead of old1102.218m: approximately60m of old overlap removed.
+Reviewed native close/side/rear and distant captures. Nearby trees and actual
+foreground hills can still legitimately obscure parts of a structure.
+ship-perf/speed/art/walk/map/tools/world/entry and footing reports RESULT0.
+Field art checks allworld species/POI families, interactions, scan/Codex/save.
+Core game594/radio54/steering18 pass; runner stops on game report, not full
+inherited input/outfitting certification. No physical PSP certification.
+
+PERFORMANCE
+Keeps257 compiler/raster optimizations. Sample Lave aggregate31.561ms vs257
+31.372ms (~0.6% higher); walking41.520ms vs41.092 (~1% higher). Lave I
+approach43.106ms vs42.800; wilderness47.417ms vs47.011. New visible geometry
+and deterministic ties cost a little; heavy scenes still exceed30FPS budget.
+
+DELIVERY / RECOVERY
+Current task/ELITE-NEXT-2.5.258/EBOOT.PBP,8578167 bytes.
+SHA2561426926A938BC9D82FC0CDCBA5D12C06AE52CC6C5927F06F44B1B537A9CA750D.
+Canonical touched files concurrency-checked against frozen257 baseline; root
+and dist updated to exact tested binary. Backups in canonical-before-258.
+Static ELF9849372 bytes; about9KiB added BSS. MEMSIZE0 remains.
+No Git pull/autostash/commit/push/tag/public release. Dirty shared work,
+previous delivery, saves and music preserved.
+
+NEXT
+Physical PSP approach/walking/marker validation; inspect more strongly sloped
+sites in play. Continue sky/starport/terrain and cold cloud-platform profiling.
+Do not claim fully clipping-free planets, locked30 or full inherited suite green.

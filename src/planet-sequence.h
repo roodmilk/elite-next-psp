@@ -45,7 +45,7 @@ static void planet_sequence_finish(int kind){
  game.planet_sequence=0;game.planet_sequence_time=0;planet_controls_ready=0;
  if(kind==3){leave_planet(&game);planet_orbit_veil=1.3f;planet_orbit_release=1;autoaim=0;planet_trace("orbit-restored",0);return;}
  if(kind==2){planet_disembark();return;}
- game.pos=surface_site(&game,1);game.speed=0;game.yaw=game.pitch=game.roll=0;
+ game.pos=surface_landing_pad(&game);game.speed=0;game.yaw=game.pitch=game.roll=0;
  if(land_planet(&game))planet_sequence_begin(2);else {planet_landing_menu=1;planet_trace("landing-refused",0);}
 }
 static void planet_entry_begin(void){
@@ -109,7 +109,7 @@ static float pilot_curve(float a,float b,float va,float vb,float t,float seconds
  t=pilot_clamp(t);float t2=t*t,t3=t2*t;return (2*t3-3*t2+1)*a+(t3-2*t2+t)*seconds*va+(-2*t3+3*t2)*b+(t3-t2)*seconds*vb;
 }
 static PlanetPilotCamera planet_pilot_sample(int kind,float time){
- Vec3 pad=surface_site(&game,1);pad.y=terrain_height(&game,pad.x,pad.z);
+ Vec3 pad=surface_landing_pad(&game);pad.y=terrain_height(&game,pad.x,pad.z);
  PlanetPilotCamera c={pad,0,0};float t=pilot_clamp(time/planet_sequence_duration(kind)),x=0,y=23,z=0;
  if(kind==1){
   if(time<5){float q=time/5;x=pilot_curve(-170,0,35,0,q,5);z=pilot_curve(-1400,-500,210,150,q,5);y=pilot_curve(350,125,-45,-18,q,5);}
@@ -138,28 +138,58 @@ static void planet_pilot_canopy(int rover,float amount){
  unsigned edge=RGB(52,72,83),dark=RGB(12,21,30),lamp=rover?RGB(232,177,92):RGB(90,209,218);
  for(int side=0;side<2;side++){int x=side?W-1:0;for(int i=0;i<5;i++)line(x+(side?-i:i),H-1,x+(side?-35:35),base-26,edge);}
  if(base<H){rect(0,base,W,H-base,dark);line(0,base,W,base,edge);}
- if(base<264){rect(32,base+6,65,2,lamp);rect(W-97,base+6,65,2,lamp);text(25,(base+5)/8,UI_MUTED,rover?"ROAMER":"FLIGHT CONTROL");}
+ if(base<264){rect(32,base+6,65,2,lamp);rect(W-97,base+6,65,2,lamp);if(rover)text(25,(base+5)/8,UI_MUTED,"ROAMER");}
 }
 /* Coherent drifting veil, continuous opacity; one means completely covered. */
-static void planet_cloud_cover(float amount){
+static void planet_cloud_cover_flow(float amount,float reveal){
  amount=pilot_clamp(amount);if(amount<=0)return;
  unsigned ink=planet_veil_ink?planet_veil_ink:RGB(188,210,220);
- /* Separable waves: avoid thousands of software sin calls per frame. */
- static float xs[2][120],xc[2][120];static int ready;
- if(!ready){for(int x=0;x<120;x++){xs[0][x]=sinf(x*4*.026f);xc[0][x]=cosf(x*4*.026f);xs[1][x]=sinf(-x*4*.011f);xc[1][x]=cosf(-x*4*.011f);}ready=1;}
+ atmosphere_cloud_init();
+ /* Integer samples of independently drifting big/middle/near cloud banks.
+  * A complete veil is still strictly opaque at the scene-loading handoff. */
+ unsigned palette[16];
+ for(int i=0;i<16;i++)palette[i]=mix_rgb(mix_rgb(ink,RGB(44,59,80),.24f),mix_rgb(ink,RGB(246,241,218),.35f),i/15.f);
+ int drift=(int)(game.time*6),vertical=(int)(game.time*2);
+ int weights[16];for(int i=0;i<16;i++)weights[i]=(int)(256*pilot_clamp(amount*(.55f+.5f*i/15.f)+amount*amount*.45f));
+ /* Moving the sampling field towards the centre makes the actual banks
+  * enlarge and travel outward, rather than sliding sideways as one sheet.
+  * The opening widens only AFTER the fully opaque world-loading handoff. */
+ reveal=pilot_clamp(reveal);int scale=256-(int)((reveal+(1-reveal)*amount*.38f)*180),sample_x[W/4],opening[W/4];
+ float gap=reveal*260.f,soft=40.f+reveal*40.f;
+ for(int x=0;x<W;x+=4){sample_x[x/4]=W/2+((x-W/2)*scale)/256;
+  opening[x/4]=reveal>0?(int)(256*pilot_clamp((fabsf(x-W/2.f)-gap+soft)/soft)):256;}
  for(int y=0;y<H;y+=4){
-  float a=y*.015f+game.time*.8f,b=y*.045f-game.time*.45f;
-  float sa=sinf(a),ca=cosf(a),sb=sinf(b),cb=cosf(b);
   for(int x=0;x<W;x+=4){
-   int k=x/4;float wave=.5f+.25f*(xs[0][k]*ca+xc[0][k]*sa)+.25f*(xs[1][k]*cb+xc[1][k]*sb);
-   unsigned c=mix_rgb(ink,RGB(226,237,240),wave*.15f);
-   if(amount>=.999f){rect(x,y,4,4,c);continue;}
-   float alpha=pilot_clamp(amount*(.7f+.4f*wave)+amount*amount*.3f);
-   int weight=(int)(alpha*256),inv=256-weight;unsigned rb=(c&0xff00ff)*weight,g=(c&0x00ff00)*weight;
+   int sx=sample_x[x/4];
+   int far=atmosphere_cloud[0][((y+vertical)/12)&31][((sx+drift)/12)&63];
+   int mid=atmosphere_cloud[1][((y-vertical+4096)/6)&31][((sx-drift*2+8192)/6)&63];
+   int near=atmosphere_cloud[2][((y+vertical*3)/3)&31][((sx+drift*4)/3)&63];
+   int density=((far>>4)*3+(mid>>4)*5+(near>>4)*2)/10;
+   int shade=((far&15)*3+(mid&15)*5+(near&15)*2)/10;
+   unsigned c=palette[shade];int weight=amount>=.999f?256:weights[density];
+   if(amount<.999f)weight=(weight*opening[x/4])>>8;
+   if(weight>=256){rect(x,y,4,4,c);continue;}if(!weight)continue;
+   int inv=256-weight;unsigned rb=(c&0xff00ff)*weight,g=(c&0x00ff00)*weight;
    for(int yy=y;yy<y+4&&yy<H;yy++)for(int xx=x;xx<x+4&&xx<W;xx++){unsigned p=fb[yy*STRIDE+xx];fb[yy*STRIDE+xx]=0xff000000|((((p&0xff00ff)*inv+rb)>>8)&0xff00ff)|((((p&0x00ff00)*inv+g)>>8)&0x00ff00);}
   }
  }
+ /* Perspective banks advance around the canopy, with independent depth and
+  * a soft birth/retirement envelope. The opaque handoff below remains intact. */
+ int body=planet_entry_body?planet_entry_body:game.planet;
+ unsigned cloud_seed=body>=0&&body<BODY_COUNT?game.bodies[body].seed:(unsigned)game.system*7919u;
+ for(int layer=0;layer<3;layer++)for(int bank=0;bank<4;bank++){
+  unsigned seed=cloud_seed^(unsigned)(bank*971+layer*2791+17);
+  float phase=fmodf(game.time*(.10f+layer*.035f)+(seed&255)/256.f,1.f);
+  float near=phase*phase,angle=(seed%6283)*.001f;
+  float travel=35+near*(160+layer*55),fade=pilot_ease(phase/.15f)*(1-pilot_ease((phase-.76f)/.24f));
+  int width=34+(int)(near*(85+layer*20));if(width>118)width=118;
+  int height=width*(.35f+(seed%4)*.045f);if(height>44)height=44;
+  int cx=240+cosf(angle)*travel,cy=110+sinf(angle)*travel*.60f;
+  unsigned light=mix_rgb(ink,RGB(248,243,223),.20f+layer*.07f);
+  atmosphere_cloud_sprite(cx,cy,width,height,(seed>>9)&3,light,amount*fade*(.22f+layer*.07f),0,H);
+ }
 }
+static void planet_cloud_cover(float amount){planet_cloud_cover_flow(amount,0);}
 static void planet_render_pilot(PlanetPilotCamera c){
  Vec3 pos=game.pos;float yaw=game.yaw,pitch=game.pitch,roll=game.roll;
  int flag=planet_scene_camera,ox=proj_ox,oy=proj_oy,x0=clipx0,y0=clipy0,x1=clipx1,y1=clipy1;
@@ -172,8 +202,8 @@ static void planet_sequence_view(void){
  int kind=game.planet_sequence;float time=game.planet_sequence_time;
  float cloud=kind==1?1-pilot_ease(time/2.f):kind==3?pilot_ease((time-6.2f)/1.4f):0;
  if(cloud<.999f)planet_render_pilot(planet_pilot_sample(kind,time));else rect(0,0,W,H,planet_veil_ink);
- planet_cloud_cover(cloud);planet_pilot_canopy(0,1);
- text(2,1,UI_MUTED,kind==3?(time<4.5f?"DEPARTURE CORRIDOR":"ORBITAL ASCENT"):kind==2?"LANDING GEAR / TOUCHDOWN":time<2?"CLOUD LAYER":"SPACEPORT APPROACH");
+ planet_cloud_cover_flow(cloud,kind==1?pilot_ease(time/2.f):0);planet_pilot_canopy(0,1);
+ autopilot_annunciator(250,time);
 }
 static void planet_seat_view(void){
  float t=pilot_clamp(planet_seat.time/1.05f),q=pilot_ease(t);PlanetPilotCamera c;
@@ -184,6 +214,7 @@ static void planet_seat_view(void){
 }
 static void planet_boarded_view(void){
  planet_render_pilot(planet_current_eye());planet_pilot_canopy(0,1);
+ if(navigation_enabled(&game)&&game.bodies[game.planet].type==OCEAN){button_icon(155,224,'S',UI_GOLD);text_px(174,226,UI_GOLD,"LOCAL COURIER");}
  button_icon(14,224,'r',UI_GOLD);text(4,28,WHITE,"LAUNCH");button_icon(330,224,'X',UI_CYAN);text(44,28,WHITE,"STEP OUT");
 }
 static void planet_landing_prompt_view(void){

@@ -56,6 +56,7 @@ static void station_tour_tick(void){
  }else if(station_tour_stage==STATION_TOUR_TALK){
   if(page==WALK&&sc_room==SC_R_CANTEEN&&bar_preview_at()&&sc_menu==SC_MENU_NONE&&game.message_time>0){
    station_tour_stage=STATION_TOUR_DONE;
+   mission_receipt_record(&game,RECEIPT_STATION,TRADERS,0,STATION_TOUR_DEST,"STATION WELCOME","LYSA KEST");
    message(&game,"Station Welcome complete. The Second Shift is now on your map.");
    game.cue=SFX_UI;
   }

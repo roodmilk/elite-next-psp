@@ -3,7 +3,7 @@
  input(PSP_CTRL_DOWN,0,.016f,0,0);INPUT_CHECK(police_choice==1,"police: down selects custody independently of menu focus");
  input(PSP_CTRL_UP,0,.016f,0,0);INPUT_CHECK(police_choice==0,"police: up selects fine");
  input(PSP_CTRL_UP,0,.016f,0,0);INPUT_CHECK(police_choice==2,"police: clean hold has exactly three replies");
- game.cargo[6]=2;police_choice=0;input(PSP_CTRL_UP,0,.016f,0,0);
+ game.cargo[6]=2;police_choice=0;input(PSP_CTRL_RIGHT,0,.016f,0,0);input(PSP_CTRL_DOWN,0,.016f,0,0);
  INPUT_CHECK(police_choice==3,"police: dirty hold exposes fourth surrender reply");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(game.cargo[6]==0&&game.legal==10&&game.police_stop&&police_choice==0,"police: surrender action preserves unrelated warrant and resets focus");

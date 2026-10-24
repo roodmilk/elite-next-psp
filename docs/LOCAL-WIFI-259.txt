@@ -1,0 +1,73 @@
+ELITE: NEXT 2.5.259 - nearby two-PSP free flight
+
+PLAYER SETUP
+Use the same259 EBOOT on both PSPs. Turn on both WLAN switches, keep consoles
+nearby, and use the same ad-hoc channel (Auto on both is fine to try first).
+On FLY, go down to HOST on one PSP. Its friend chooses JOIN, then X on the
+discovered flight. Host presses X to fly/resume; guest enters flight on join.
+No router or external matchmaking account is used on physical PSPs.
+R/L accelerate/brake, R+Up boosts, Triangle faces friend, Select opens session.
+Circle on the session screen ends it. It is not Circle during ordinary flight.
+
+FIRST SCOPE
+Two pilots in the host's current solar system, retaining their own ship,
+commander name and paint. Planets, three hubs, rifts, debris and traffic come
+from the host. Friend ships and guest traffic interpolate between updates.
+This is reversible free flight, not full cooperative progression. Combat,
+jobs, shops, landing, hyperjumps and saves are blocked during the session.
+Both original commander states (including unsaved pre-session progress)
+return on exit, disconnection, timeout or sleep. No save schema change.
+Local ad-hoc sessions are not authenticated: use with nearby trusted friends.
+PSP models without a WLAN radio cannot use this mode.
+
+CODE / BUDGET
+src/local-wifi.h: firmware modules, scan/connect, validated protocol, nonblocking
+PDP transport, host world snapshots, smoothing, modal controls and restoration.
+src/local-wifi-ui.h: friend hull/marker, shared-flight strip, host/join screen.
+deck-nav/deck-ui: stable IDs27/28, array capacity8, bottom FLY buttons.
+game.c/game.h: expose existing cockpit-axis steering for guest movement.
+main/tutorial-runtime: early session input routing, sleep/exit teardown,
+shared friend drawing and explicit opt-in reviews.
+Protocol259/productELITENEXT/PDP25925; datagram1100bytes, no pointers/save data.
+Fixed8-room scan list; max8 receive packets and2 snapshot sends per frame.
+Pilot updates20Hz; world batches paced rather than a single-frame burst.
+Net pool256KiB plus85,016byte backup; heap8MiB/MEMSIZE0 unchanged.
+Static ELF9,931,412bytes. This is not a physical32MiB memory/FPS certification.
+
+VERIFICATION
+Isolated candidate in current task/adhoc-flight-259 copied the complete258
+source/assets. Touched canonical files checked against frozen baseline before
+narrow backport, then byte-identical against final candidate. Recovery in
+candidate/canonical-before-259. No unrelated edits discarded or Git published.
+
+wifi-fixture-final:37 checks RESULT0, including all256 generated systems,
+malformed packet lengths/version/NaN/infinite/index/unsigned-wrap rejection,
+session/MAC/stale-sequence handling, join world identity, commander restoration
+and exit-button consumption. These fixtures do NOT exercise native WLAN.
+wifi-live-final: actual PSP ad-hoc APIs in TWO isolated PPSSPP1.20.4 instances;
+host advertised, guest scanned and joined in about2.2s, both saw moving pilots,
+guest got all8 NPC and8 debris chunks, host system19, both restored; RESULT0.
+wifi-drop-final: runner stopped only its owned host mid-flight; guest detected
+quiet timeout, restored original system7 and commander; RESULT0. Host is
+intentionally killed and therefore has no completed report in that test.
+wifi-core-final:game594/radio54/steering18 RESULT0. Runner stops on game report;
+full inherited input/outfitting tests remain uncertified.
+wifi-footing-final:8192 POI footprints and native multi-angle views RESULT0.
+
+Initial live01/02 exposed pre-group sceNetGetLocalEtherAddr failure80410180;
+replaced with sceWlanGetEtherAddr. Live03 and final tests pass. Initial fixture01
+was launched with copied258 before the259 build completed; discarded, rerun.
+All emulator test processes stopped; separate test configs and memory sticks,
+localhost server only, no UPnP and no modifications to user's global settings.
+
+NEXT
+Two real PSPs still required to verify physical radio, channel interoperability,
+cold initialization, repeated leave/rejoin, sleep and performance. Friend radar,
+rear mirror and exhaust can be improved. Reliable replicated authority/events,
+ownership and persistence policy are required before shared combat/missions;
+shared jumps and surface sessions remain future work, not playable claims.
+
+DELIVERY
+EBOOT8685639bytes SHA256:
+CD12FBFF2A6829E83F12CE60A36CFF960001939718728591EA5465AC288CA4C7
+Install over the existing game's EBOOT; keep assets, music and commander saves.

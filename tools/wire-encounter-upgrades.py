@@ -1,0 +1,3 @@
+from pathlib import Path
+p=Path('src/flight-extras.h');s=p.read_text().replace('#include "discovery-detail.h"','#include "discovery-detail.h"\n#include "encounter-custom.h"');s=s.replace('else discovery_catalogue_model(c,entry,yaw);','else if(!encounter_custom(c,entry,yaw))discovery_catalogue_model(c,entry,yaw);');p.write_text(s)
+p=Path('src/voyage.h');s=p.read_text();needle='StationProfile profile=station_profile_for(&game,i);float scale=profile.radius/160.f,angle=game.time*profile.spin+i*1.7f;';s=s.replace(needle,needle+'\n  encounter_station(center,i,profile);continue; /* Dedicated textured relay/outpost replaces old hull. */');p.write_text(s)

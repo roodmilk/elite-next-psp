@@ -1,0 +1,4 @@
+from pathlib import Path
+p=Path('src/loadout-console.h');s=p.read_text().replace(' else if(preview_time<loadout_store_until)lc_copy(253,202,26,4,LC_GOLD,loadout_store_note,1);\n','');p.write_text(s)
+p=Path('src/cockpit-computer-controls.h');s=p.read_text().replace(' if(held&PSP_CTRL_START)return 0; /* Existing power management has priority. */\n','');s=s.replace(' if(!hc_browser){hc_browser=1;',' if(held&PSP_CTRL_START)return 0; /* Power controls keep priority while Square is held. */\n if(!hc_browser){hc_browser=1;');p.write_text(s)
+p=Path('src/cockpit-hud-review.h');s=p.read_text().replace('HC_CHECK(paused&&hc_browser&&game.pip_sys>=power,"existing Start power controls remain available with the browser open")','HC_CHECK(paused&&!hc_browser&&game.pip_sys>=power,"Start power controls remain available and releasing Square closes the browser")');p.write_text(s)

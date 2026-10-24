@@ -1,5 +1,5 @@
 /* Bounded local traffic: four repeatable station/world lanes. No save pointers. */
-enum {TRAFFIC_CRUISE,TRAFFIC_SERVICE,TRAFFIC_PATROL,TRAFFIC_INTERCEPT,TRAFFIC_ESCAPE};
+enum {TRAFFIC_CRUISE,TRAFFIC_SERVICE,TRAFFIC_PATROL,TRAFFIC_INTERCEPT,TRAFFIC_ESCAPE,TRAFFIC_ATTACK,TRAFFIC_BREAK};
 static void traffic_network(Game *g){
  g->law_scan_valid=0;memset(g->law_echo_seen,0,sizeof(g->law_echo_seen));
  for(int r=0;r<4;r++){
@@ -44,6 +44,8 @@ static Vec3 traffic_aim(Game *g,NPC *n,float dt){
 static float traffic_speed(const NPC *n){
  if(n->waypoint>=8)return n->cruise; /* Scripted/rescue holding patterns. */
  if(n->escape_time>0)return n->cruise*1.65f;
+ if(n->route_task==TRAFFIC_BREAK)return fmaxf(420,n->cruise*.85f);
+ if(n->route_task==TRAFFIC_ATTACK)return fmaxf(320,n->cruise*.60f);
  if(n->target!=-1)return 300;
  if(n->route_wait>0)return 0;
  return n->role==EXPLORERS?650:n->cruise;
@@ -57,6 +59,8 @@ static int traffic_in_lane(const Game *g,const NPC *n){
 const char *traffic_activity(const NPC *n){
  if(n->freighter)return "FREIGHT SCHEDULE";
  if(n->escape_time>0)return "EVADING / OUTER LANE";
+ if(n->route_task==TRAFFIC_BREAK)return "BREAKING / REPOSITIONING";
+ if(n->route_task==TRAFFIC_ATTACK)return "ATTACK RUN";
  if(n->target!=-1)return "INTERCEPTING";
  if(n->route_wait>0)return "TRANSFERRING CARGO";
  if(n->role==LAW)return "PATROLLING MAIN LANE";
@@ -71,7 +75,7 @@ int law_scan(Game *g){
  memset(g->law_echo_seen,0,sizeof(g->law_echo_seen));int count=0;
  for(int i=0;i<NPC_COUNT;i++)if(g->npc[i].alive&&g->npc[i].role==LAW&&length(sub(g->npc[i].pos,g->pos))<=20000){
   Vec3 delta=sub(g->npc[i].pos,g->pos);float distance=length(delta);Vec3 dir=norm(delta);int blocked=0;
-  for(int b=0;b<BODY_COUNT;b++){Vec3 rel=sub(g->bodies[b].pos,g->pos);float along=dot(rel,dir);if(along>0&&along<distance&&length(sub(rel,mul(dir,along)))<g->bodies[b].radius)blocked=1;}
+  for(int b=0;b<BODY_COUNT;b++)if(body_active(&g->bodies[b])){Vec3 rel=sub(g->bodies[b].pos,g->pos);float along=dot(rel,dir);if(along>0&&along<distance&&length(sub(rel,mul(dir,along)))<g->bodies[b].radius)blocked=1;}
   if(!blocked){g->law_echo_seen[i]=1;g->law_echo[i]=g->npc[i].pos;count++;}
  }
  g->law_scan_valid=1;g->law_scan_time=g->time;g->cue=SFX_SCAN;

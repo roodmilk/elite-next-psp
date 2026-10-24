@@ -6,7 +6,7 @@ static void surface_starport_building(int id,Vec3 p,FieldBuilding s,unsigned tin
  if(v.z+radius<4||v.z-radius>2200||fabsf(v.x)>v.z+radius*1.6f)return;
  landmark_detail=v.z<650;
  unsigned hull=mix_rgb(RGB(116,144,159),tint,.13f),dark=RGB(32,49,65),glass=RGB(37,112,139),glow=RGB(90,217,230),gold=RGB(221,169,75);
- surface_box(p,s.w,s.d,id>=2&&id<=4?2.f:8.f,RGB(63,80,94));
+ surface_box(p,s.w,s.d,id>=2&&id<=4?.1f:8.f,RGB(63,80,94));
  if(id==1){
   /* Faceted control spire, broad glazed observation crown, antenna fin. */
   lm_round((Vec3){p.x,p.y+8,p.z},s.w*.72f,s.d*.72f,s.height*.65f,.55f,hull);
@@ -19,6 +19,13 @@ static void surface_starport_building(int id,Vec3 p,FieldBuilding s,unsigned tin
  }else if(id==0){
   /* Terminal: low stepped concourse, broad glass ribbons and cantilever roof. */
   surface_box((Vec3){p.x,p.y+8,p.z},s.w*.96f,s.d*.96f,64,hull);
+  /* Unequal upper decks and a seeded observatory pod break the flat skyline.
+   * All additions stay inside this shared building reservation. */
+  unsigned seed=field_seed(game.system,game.planet);
+  float shoulder=(seed&1?1:-1)*s.w*.42f;
+  lm_round((Vec3){p.x+shoulder,p.y+88,p.z},s.w*.23f,s.d*.52f,s.height-110,.78f,hull);
+  lm_dome((Vec3){p.x+shoulder,p.y+s.height-22,p.z},s.w*.24f,s.d*.53f,22,glass,0);
+  lm_round((Vec3){p.x-shoulder,p.y+88,p.z},s.w*.17f,s.d*.36f,24,.8f,dark);
   for(int side=-1;side<=1;side+=2){
    if(side*(game.pos.z-p.z)<0)continue;
    surface_box((Vec3){p.x,p.y+28,p.z+side*s.d*.965f},s.w*.88f,.8f,22,glass);
@@ -31,15 +38,15 @@ static void surface_starport_building(int id,Vec3 p,FieldBuilding s,unsigned tin
   surface_box((Vec3){p.x,p.y+8,p.z+s.d*.97f},22,1,25,dark);
  }else if(id>=2&&id<=4){
   /* Low open docking terraces, no vaults or walls across the bay. */
-  lm_round(p,s.w,s.d,2.5f,.98f,dark);
-  lm_round((Vec3){p.x,p.y+2.6f,p.z},s.w*.86f,s.d*.86f,.3f,1,hull);
+  lm_round(p,s.w,s.d,.3f,.98f,dark);
+  lm_round((Vec3){p.x,p.y+.31f,p.z},s.w*.86f,s.d*.86f,.05f,1,hull);
   for(int side=-1;side<=1;side+=2){
-   surface_box((Vec3){p.x+side*s.w*.9f,p.y+3,p.z},1.3f,s.d*.72f,.5f,glow);
-   surface_box((Vec3){p.x,p.y+3,p.z+side*s.d*.9f},s.w*.72f,1.3f,.5f,id==2?gold:glow);
+   surface_box((Vec3){p.x+side*s.w*.9f,p.y+.4f,p.z},1.3f,s.d*.72f,.1f,glow);
+   surface_box((Vec3){p.x,p.y+.4f,p.z+side*s.d*.9f},s.w*.72f,1.3f,.1f,id==2?gold:glow);
   }
   if(landmark_detail)for(int i=-2;i<=2;i++){
-   surface_box((Vec3){p.x+i*s.w*.28f,p.y+3,p.z-s.d*.65f},4,10,.4f,WHITE);
-   surface_box((Vec3){p.x+i*s.w*.28f,p.y+3,p.z+s.d*.65f},4,10,.4f,WHITE);
+   surface_box((Vec3){p.x+i*s.w*.28f,p.y+.4f,p.z-s.d*.65f},4,10,.1f,WHITE);
+   surface_box((Vec3){p.x+i*s.w*.28f,p.y+.4f,p.z+s.d*.65f},4,10,.1f,WHITE);
   }
  }else{
   surface_box((Vec3){p.x,p.y+8,p.z},s.w,s.d,s.height*.58f,dark);

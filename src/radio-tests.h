@@ -30,6 +30,9 @@ static int audio_sfx_preview_wav(void){
 static void radio_tests(void){
  FILE *f=fopen("radio-check.txt","w");if(!f)return;int failures=0;
  #define RADIO_CHECK(c,n) do{int ok=(c);fprintf(f,"%s %s\n",ok?"PASS":"FAIL",n);failures+=!ok;}while(0)
+ RADIO_CHECK(!strcmp(radio_station_name(RADIO_DEFAULT_STATION),"Elite Exploration")&&!strcmp(radio_music_dirs[RADIO_DEFAULT_STATION],"music/Elite Exploration"),"default radio selects Elite Exploration and its existing player music folder");
+ RADIO_CHECK(AUDIO_INTRO_SKIP_SECONDS==23,"startup music begins twenty-three seconds into the intro track");
+ RADIO_CHECK(audio_intro_gain(0)==0&&audio_intro_gain(22050)==500&&audio_intro_gain(44100)==1000&&audio_intro_gain(88200)==1000,"startup fade rises from silence to full gain over exactly one output second");
  fprintf(f,"INFO source allocation bytes: stream %u PCM %u synth %u paths %u output %u (inside 16384-byte worker stack)\n",(unsigned)sizeof(mp3_stream_buf),(unsigned)sizeof(mp3_pcm_buf),(unsigned)sizeof(RadioSynth),(unsigned)sizeof(radio_tracks),(unsigned)(AUDIO_FRAMES*2*sizeof(short)));
  int order[RADIO_TRACKS_PER_STATION],valid_order=1;unsigned seed=0x7141u;
  for(int count=0;count<=RADIO_TRACKS_PER_STATION;count++)for(int previous=-1;previous<count;previous++)for(int trial=0;trial<32;trial++){
@@ -125,6 +128,10 @@ static void radio_tests(void){
  FILE *legacy_file=fopen("test-radio.cfg","wb");if(legacy_file){fwrite(&legacy,1,sizeof(legacy),legacy_file);fclose(legacy_file);}
  radio_off=0;radio_station=3;
  RADIO_CHECK(radio_load_settings("test-radio.cfg")&&radio_off,"version-two radio-off setting does not become Elite Exploration");
+ legacy.version=3;legacy.station=8;legacy.check=radio_checksum(&legacy);
+ {FILE *old=fopen("test-radio.cfg","wb");if(old){fwrite(&legacy,1,sizeof(legacy),old);fclose(old);}}
+ RADIO_CHECK(radio_load_settings("test-radio.cfg")&&radio_off,"version-three radio-off setting does not become Sol Rock");
+ radio_tune(8);RADIO_CHECK(radio_save_settings("test-radio.cfg")&&radio_load_settings("test-radio.cfg")&&!radio_off&&radio_station==8,"Sol Rock selection survives version-four settings reload");
  remove("test-radio.cfg");remove("test-radio.cfg.bak");remove("test-radio.cfg.tmp");
  radio_station=0;radio_volume=5;sound_volume=8;radio_dirty=0;
  /* Suspend prep must leave MP3 frozen without waiting; resume path restarts audio. */

@@ -1,9 +1,9 @@
-param([string]$Emulator="$PSScriptRoot/../../work/ppsspp/PPSSPPWindows64.exe", [switch]$MenuPreview, [switch]$SurfaceCapture)
+param([string]$Emulator="$PSScriptRoot/../../work/ppsspp/PPSSPPWindows64.exe", [switch]$MenuPreview, [switch]$SurfaceCapture, [string]$Eboot="$PSScriptRoot/EBOOT.PBP", [int]$TimeoutSeconds=120)
 $ErrorActionPreference='Stop'
 $testDir=Join-Path $PSScriptRoot ('../../work/smoke-'+(Get-Date -Format 'yyyyMMdd-HHmmss-fff'))
 New-Item -ItemType Directory -Path $testDir | Out-Null
 $testDir=(Resolve-Path -LiteralPath $testDir).Path
-Copy-Item -LiteralPath "$PSScriptRoot/EBOOT.PBP" -Destination $testDir
+Copy-Item -LiteralPath $Eboot -Destination (Join-Path $testDir 'EBOOT.PBP')
 Set-Content -LiteralPath (Join-Path $testDir 'smoke.flag') -Value '1'
 if ($MenuPreview) { Set-Content -LiteralPath (Join-Path $testDir 'menu-preview.flag') -Value '1' }
 if ($SurfaceCapture) { Set-Content -LiteralPath (Join-Path $testDir 'eva-capture.flag') -Value '1' }
@@ -11,7 +11,7 @@ $eboot=Join-Path $testDir 'EBOOT.PBP'
 $process=Start-Process -FilePath (Resolve-Path -LiteralPath $Emulator).Path -ArgumentList ('"'+$eboot+'"') -WorkingDirectory $testDir -WindowStyle Hidden -PassThru
 try {
     # Save migration/checksum coverage now includes persistent planetary progress.
-    $deadline=(Get-Date).AddSeconds(120)
+    $deadline=(Get-Date).AddSeconds($TimeoutSeconds)
     $report=Join-Path $testDir 'performance-check.txt'
     while((Get-Date) -lt $deadline) {
         if((Test-Path -LiteralPath $report) -and (Select-String -LiteralPath $report -Pattern '^RESULT ' -Quiet)){break}

@@ -223,7 +223,7 @@ static void sfx_planet_bloom_one(const Body *b,int top,int bot){
 static void sfx_planet_beauty(void){
  if(sfx_fx_muted())return;
  int top=clipy0>=0?clipy0:view_top(),bot=clipy1>=0?clipy1-1:view_bot();
- for(int i=1;i<BODY_COUNT;i++)sfx_planet_bloom_one(&game.bodies[i],top,bot);
+ for(int i=0;i<BODY_COUNT;i++)if(body_active(&game.bodies[i]))sfx_planet_bloom_one(&game.bodies[i],top,bot);
 }
 /* Cruise haze — soft additive motes only; no streak filaments. */
 static void sfx_travel_beauty(void){
@@ -283,6 +283,7 @@ static void sfx_traffic_wakes(void){
    Vec3 trail=add(n->pos,mul(facing,-(24.f+k*30.f)));
    Vec3 tv=camera(&game,trail);if(tv.z<25)break;Point q=project(tv);
    if(q.x<2||q.x>478||q.y<top+2||q.y>bot-2)break;
+   if(mega_depth_valid&&mega_encode_depth(tv.z)>surface_depth[(int)q.y*W+(int)q.x])continue;
    sfx_add((int)q.x,(int)q.y,k<2?RGB(50,70,95):RGB(28,40,55),top,bot);
   }
  }
@@ -321,18 +322,8 @@ static void sfx_dock_corridor(void){
 }
 /* Anomaly pulse rings when a rift is on-screen. */
 static void sfx_anomaly_pulse(void){
- if(sfx_fx_muted())return;
- int top=view_top(),bot=view_bot();
- for(int i=0;i<ANOMALY_COUNT;i++)if(game.anomaly[i].alive){
-  float d=length(sub(game.anomaly[i].pos,game.pos));if(d>12000)continue;
-  Vec3 v=camera(&game,game.anomaly[i].pos);if(v.z<40)continue;Point p=project(v);
-  int rad=6+(int)(sinf(game.time*3.f+i)*4)+((int)(game.time*2)+i)%5;
-  unsigned ink=game.anomaly[i].kind?CYAN:GOLD;
-  for(int s=0;s<24;s++){
-   float a=s*6.2831853f/24;
-   sfx_add((int)p.x+(int)(cosf(a)*rad),(int)p.y+(int)(sinf(a)*rad*.7f),ink,top,bot);
-  }
- }
+ /* rift_fields() owns the world-space, depth-tested luminous field. Do not
+  * add a second screen-space pulse over foreground stations and ships. */
 }
 /* Bundle denser travel pass — call after sfx_travel_beauty. */
 static void sfx_travel_fun(void){
@@ -342,4 +333,17 @@ static void sfx_travel_fun(void){
  sfx_debris_dust();
  sfx_dock_corridor();
  sfx_anomaly_pulse();
+}
+
+/* A stable subpixel star footprint: brightness moves continuously between
+ * neighbours as the camera turns. Draw only in the background pass. */
+static void space_star_dot(float x,float y,unsigned c,int left,int top,int right,int bot){
+ int ix=(int)floorf(x),iy=(int)floorf(y),fx=(int)((x-ix)*256),fy=(int)((y-iy)*256);
+ for(int dy=0;dy<2;dy++)for(int dx=0;dx<2;dx++){
+  int px=ix+dx,py=iy+dy;if(px<left||px>right||py<top||py>bot)continue;
+  int a=((dx?fx:256-fx)*(dy?fy:256-fy))>>8;if(!a)continue;
+  unsigned base=fb[py*STRIDE+px];
+  int r=(base&255)+((c&255)*a>>8),g=((base>>8)&255)+(((c>>8)&255)*a>>8),b=((base>>16)&255)+(((c>>16)&255)*a>>8);
+  pixel(px,py,RGB(r>255?255:r,g>255?255:g,b>255?255:b));
+ }
 }

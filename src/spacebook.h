@@ -1,5 +1,5 @@
 /* A deliberately separate, light social-network skin. Offline fiction only. */
-static int spacebook_comments=0;
+static int opening_net_detail=0,inbox_message_page=0,inbox_last_row=-1,inbox_pages=1;
 static int social_glyph(int x,int y,unsigned colour,unsigned char ch,int scale){
  static const unsigned char lower[26][5]={
  {32,84,84,84,120},{127,72,68,68,56},{56,68,68,68,32},{56,68,68,72,127},
@@ -31,10 +31,10 @@ static int social_char_width(unsigned char ch){
  for(int c=0;c<8;c++)for(int r=0;r<8;r++)if((glyph[r]>>(7-c))&1){if(c<lo)lo=c;if(c>hi)hi=c;}
  return lo>hi?4:hi-lo+2;
 }
-static void social_wrap(int x,int y,int width,unsigned colour,const char *s){
+static void social_wrap_count(int x,int y,int width,unsigned colour,const char *s,int lines){
  /* Break at words and keep a generous three-line limit inside each card. */
  int at=0;
- for(int line=0;line<3&&s[at];line++){
+ for(int line=0;line<lines&&s[at];line++){
   int start=at,last=-1,used=0;
   while(s[at]&&at-start<95&&used+8<=width){if(s[at]==' ')last=at;used+=social_char_width((unsigned char)s[at]);at++;}
   if(s[at]&&last>start)at=last;
@@ -42,6 +42,7 @@ static void social_wrap(int x,int y,int width,unsigned colour,const char *s){
   social_text(x,y+line*10,x+width,colour,part,1);while(s[at]==' ')at++;
  }
 }
+static void social_wrap(int x,int y,int width,unsigned colour,const char *s){social_wrap_count(x,y,width,colour,s,3);}
 static void spacebook_logo(int x,int y){
  /* Facebook-parody mark: blue tile with a white lowercase-style s. */
  const unsigned blue=RGB(49,82,145),white=RGB(255,255,255);
@@ -161,64 +162,90 @@ static void galnet_scrollbar(int x,int y,int height,int first,int visible,int to
  int top=height*first/total,bottom=height*end/total;
  rect(x,y,3,height,track);if(bottom<=top)bottom=top+1;if(bottom>height)bottom=height;rect(x,y+top,3,bottom-top,thumb);
 }
+static void spacebook_masthead(const char *section){
+ const unsigned blue=RGB(59,89,152);rect(0,42,W,26,blue);spacebook_logo(8,44);
+ social_text(36,47,160,WHITE,"spacebook",2);
+ rect(177,48,139,14,RGB(245,247,251));social_text(183,51,311,RGB(85,104,139),section,1);
+ char name[25];social_name(name,sizeof(name),game.commander_name);portrait_draw(326,46,18,18,game.commander_portrait,EXPLORERS);social_wrap_count(350,46,126,WHITE,name,2);
+}
 static void social_screen(void){
- const unsigned blue=RGB(49,82,145),ink=RGB(34,43,58),muted=RGB(91,107,127),paper=RGB(238,242,247);
- rect(0,0,W,H,paper);spacebook_logo(8,42);social_text(34,49,155,blue,"Spacebook",1);
- char name[25],label[80];social_name(name,sizeof(name),game.commander_name);
- snprintf(label,sizeof(label),"%.24s / %d posts",name,social_count());social_text(162,49,474,ink,label,1);
- int total=social_rows();if(row<0)row=0;if(row>=total)row=total-1;int first=(row/2)*2;
- galnet_scrollbar(4,68,170,first,2,total,RGB(210,219,230),blue);
- for(int j=0;j<2&&first+j<total;j++){
-  int i=first+j,y=68+j*86;char author[40],body[192],date[96];galnet_post(i,author,sizeof(author),body,sizeof(body));
-  rect(12,y,460,82,i==row?blue:RGB(210,219,230));rect(15,y+3,454,76,RGB(255,255,255));
-  unsigned code=social_code(i);spacebook_avatar(20,y+6,20,author);
-  social_text(48,y+6,462,blue,author,1);social_date(i,date,sizeof(date));social_text(48,y+18,462,muted,date,1);
-  /* Each post’s evidence strip is a reconstructed capture of that event,
-     leaving enough width for the short conversational post beside it. */
-  spacebook_snapshot(322,y+31,137,31,code);
-  social_wrap(22,y+32,287,ink,body);
-  int reaction=social_reaction(i);
-  if(code||(social_offset()&&i==0)){snprintf(label,sizeof(label),"%s     %s",reaction==1?"[Liked]":"Like",reaction==2?"[Disliked]":"Dislike");social_text(22,y+65,350,blue,label,1);}
-  snprintf(label,sizeof(label),"%d/%d",i+1,total);social_text(386,y+65,466,muted,label,1);
+ const unsigned blue=RGB(59,89,152),ink=RGB(34,43,58),muted=RGB(102,117,138),paper=RGB(233,235,238),rail=RGB(213,219,229);
+ rect(0,42,W,206,paper);spacebook_masthead("News Feed");
+ int total=social_rows();if(row<0)row=0;if(row>=total)row=total-1;
+ char name[25],label[96];social_name(name,sizeof(name),game.commander_name);
+ portrait_draw(10,79,26,26,game.commander_portrait,EXPLORERS);social_text(10,111,87,ink,"Your profile",1);
+ rect(7,130,80,21,RGB(215,224,238));rect(10,135,10,2,blue);rect(10,140,10,2,blue);rect(10,145,10,2,blue);social_text(26,137,86,blue,"News Feed",1);
+ rect(10,164,11,8,muted);line(10,164,15,168,WHITE);line(15,168,20,164,WHITE);social_text(26,164,87,blue,"Inbox",1);button_icon(10,178,'T',blue);social_text(24,180,87,muted,"Open inbox",1);
+ social_text(10,209,87,muted,"Your flights.",1);social_text(10,222,87,muted,"Their gossip.",1);
+ rect(96,75,280,20,WHITE);social_text(105,82,367,muted,"Local pilots are talking...",1);
+ char author[40],body[192],date[96];galnet_post(row,author,sizeof(author),body,sizeof(body));social_date(row,date,sizeof(date));unsigned code=social_code(row);
+ rect(96,100,280,141,rail);rect(97,101,278,139,WHITE);rect(96,100,3,141,blue);
+ spacebook_avatar(104,107,22,author);social_text(133,108,367,blue,author,1);social_text(133,121,367,muted,code?date:"Waiting for local sightings",1);
+ /* 262px x 50px accommodates every existing 170-character event body. */
+ int at=0;for(int ln=0;ln<5&&body[at];ln++){
+  int begin=at,last=-1,used=0;while(body[at]&&used+8<262){if(body[at]==' ')last=at;used+=social_char_width(body[at]);at++;}if(body[at]&&last>begin)at=last;
+  char part[192];int len=at-begin;memcpy(part,body+begin,len);part[len]=0;social_text(105,136+ln*10,368,ink,part,1);while(body[at]==' ')at++;
  }
- rect(0,244,W,28,RGB(215,225,239));button_icon(8,251,'X',blue);social_text(22,253,72,blue,"Like",1);
- button_icon(70,251,'S',blue);social_text(84,253,141,blue,"Dislike",1);
- button_icon(145,251,'L',blue);button_icon(158,251,'R',blue);social_text(172,253,254,blue,"10 posts",1);
- social_text(267,253,405,blue,"L/R tabs",1);button_icon(420,251,'O',blue);social_text(434,253,478,blue,"Back",1);
+ if(code)spacebook_snapshot(105,188,262,27,code);
+ else social_text(105,196,368,muted,"Go flying. Someone will notice.",1);
+ line(104,219,367,219,rail);int reaction=social_reaction(row);
+ social_text(105,226,197,blue,reaction==1?"Liked":"Like",1);social_text(204,226,292,blue,reaction==2?"Disliked":"Dislike",1);snprintf(label,sizeof(label),"%d/%d",row+1,total);social_text(309,226,369,muted,label,1);
+ social_text(386,80,475,muted,"On this wire",1);line(385,94,470,94,rail);
+ for(int j=0;j<3&&j<total;j++){int r=(row+j)%total;char who[40],copy[192];galnet_post(r,who,sizeof(who),copy,sizeof(copy));if(!social_code(r))break;int y=104+j*40;spacebook_avatar(386,y,18,who);social_text(386,y+22,474,blue,who,1);}
+ social_text(386,229,474,muted,"Not a vacuum.",1);galnet_scrollbar(474,100,141,row,1,total,rail,blue);
+ rect(0,248,W,24,RGB(215,225,239));button_icon(5,251,'U',blue);button_icon(17,251,'D',blue);social_text(31,253,74,blue,"Posts",1);
+ button_icon(78,251,'X',blue);social_text(92,253,127,blue,"Like",1);button_icon(135,251,'S',blue);social_text(149,253,205,blue,"Dislike",1);
+ button_icon(217,251,'T',blue);social_text(231,253,277,blue,"Inbox",1);button_icon(292,251,'l',blue);button_icon(305,251,'r',blue);social_text(319,253,359,blue,"Tabs",1);button_icon(420,251,'O',blue);social_text(434,253,478,blue,"Back",1);
+}
+/* Pixel-measured wrapping handles paragraphs and paging without truncating the
+ * archived letter, even when a chapter or speaker has a long name. */
+static int inbox_letter(const char *body,int page){
+ int at=0,line_no=0;while(body[at]){
+  if(body[at]=='\n'){at++;line_no++;continue;}
+  int begin=at,last=-1,used=0;while(body[at]&&body[at]!='\n'&&used+8<292){if(body[at]==' ')last=at;used+=social_char_width(body[at]);at++;}if(body[at]&&body[at]!='\n'&&last>begin)at=last;
+  char part[256];int len=at-begin;if(len>255)len=255;memcpy(part,body+begin,len);part[len]=0;
+  if(line_no>=page*9&&line_no<(page+1)*9)social_text(170,124+(line_no%9)*10,462,RGB(34,43,58),part,1);
+  line_no++;while(body[at]==' ')at++;if(body[at]=='\n')at++;
+ }return (line_no+8)/9;
+}
+static void inbox_avatar(int x,int y,int size,const char *name){
+ if(!strcmp(name,"TORR BELL")){portrait_draw(x,y,size,size,erl_portrait(0),TRADERS);return;}
+ int erl_sys=game.erl.ref_system>=0?game.erl.ref_system:7;
+ if(!strcmp(name,erl_organiser(&game,erl_sys))){portrait_draw(x,y,size,size,portrait_seeded(erl_sys*173u+61u,TRADERS,0),TRADERS);return;}
+ if(!strcmp(name,"KEI")||!strcmp(name,"Kei Aven")){draw_kei(x,y,size,0);return;}
+ if(!strcmp(name,"RYN")){draw_kei(x,y,size,1);return;}
+ if(!strcmp(name,"Dad")||!strcmp(name,"Mum")||!strcmp(name,"Kat Herrington")||!strcmp(name,"Scott Winters")||!strcmp(name,"Ship Computer")){opening_portrait(name,x,y,size);return;}
+ if(!strcmp(name,"Flight Journal")){portrait_draw(x,y,size,size,game.commander_portrait,EXPLORERS);return;}
+ spacebook_avatar(x,y,size,name);
 }
 static void spacebook_screen(int messages){
  if(!messages){social_screen();return;}
-
- const unsigned blue=RGB(49,82,145),ink=RGB(34,43,58),muted=RGB(91,107,127),paper=RGB(238,242,247);
- rect(0,0,W,H,paper);
- spacebook_logo(8,44);
- social_text(34,50,158,blue,"Spacebook",1);
- char context[64];snprintf(context,sizeof(context),messages?"Messages / System: %s":"Local feed / System: %s",game.systems[game.system].name);
- social_text(160,50,470,muted,context,1);
- rect(8,68,94,170,RGB(221,229,240));draw_commander_portrait(16,74,32,game.commander_portrait);
- social_text(15,108,101,ink,game.commander_name,1);
- social_text(15,122,101,blue,messages?"Inbox":"Your feed",1);
- social_text(15,137,101,muted,messages?"Unread: 3":"Local history",1);
- social_text(15,152,101,muted,messages?"Archived: 12":"16 latest posts",1);
- social_text(15,172,101,muted,"Sponsored",1);
- social_text(15,186,101,blue,"SPACE VPN",1);
- social_wrap(15,200,83,ink,"Hide from ads. Not the police.");
- int first=(row/2)*2,total=galnet_rows();
- galnet_scrollbar(105,68,168,first,2,total,RGB(210,219,230),blue);
- for(int j=0;j<2&&first+j<total;j++){
-  int i=first+j,y=68+j*86;char author[40],body[192],meta[96];galnet_post(i,author,sizeof(author),body,sizeof(body));
-  rect(111,y,361,82,i==row?RGB(166,190,223):RGB(210,219,230));rect(113,y+2,357,78,RGB(255,255,255));
-  unsigned code=messages?0:social_code(i);spacebook_avatar(121,y+6,22,author);
-  social_text(151,y+6,462,blue,author,1);
-  if(messages)snprintf(meta,sizeof(meta),"Local inbox / %s",game.systems[game.system].name);else social_date(i,meta,sizeof(meta));social_text(151,y+18,462,muted,meta,1);
-  social_wrap(121,y+32,340,ink,body);
-  int reaction=messages?0:social_reaction(i);
-  if(messages)snprintf(meta,sizeof(meta),"Reply       Archive       Mark unread");
-  else snprintf(meta,sizeof(meta),"%s     %s",reaction==1?"[Liked]":"Like",reaction==2?"[Disliked]":"Dislike");
-  social_text(121,y+64,462,blue,meta,1);
-  if(messages&&i==row&&spacebook_comments){rect(118,y+48,347,14,paper);social_text(122,y+51,461,muted,code?"OrbitMoth: Local feed never sleeps. Unlike me.":"Pip: I have concerns about your privacy settings.",1);}
- }
- rect(0,244,W,28,RGB(215,225,239));
- if(messages)social_text(10,253,474,blue,"Up/down  X open  Triangle reply  L/R tab  O back",1);
- else {button_icon(10,250,'X',blue);social_text(24,252,98,blue,"Like",1);button_icon(92,250,'S',blue);social_text(106,252,180,blue,"Dislike",1);social_text(270,252,417,blue,"L/R tab  Up/down",1);button_icon(420,250,'O',blue);social_text(434,252,477,blue,"Back",1);}
+ const unsigned blue=RGB(59,89,152),ink=RGB(34,43,58),muted=RGB(102,117,138),rail=RGB(213,219,229);
+ rect(0,42,W,206,RGB(233,235,238));spacebook_masthead("Inbox / story archive");
+ int total=story_inbox_count();if(row<0||row>=total)row=0;if(inbox_last_row!=row){inbox_message_page=0;inbox_last_row=row;}
+ if(opening_net_detail){opening_bitmap_draw(&opening_party_bitmap,96,72,288,162);footer("O CLOSE PHOTO");return;}
+ rect(8,75,146,166,RGB(224,229,236));int first=row/5*5;
+ for(int j=0;j<5&&first+j<total;j++){int i=first+j,y=79+j*32;char author[40],subject[128],body[768];story_inbox_text(i,author,sizeof(author),subject,sizeof(subject),body,sizeof(body));
+  if(i==row){rect(9,y-2,144,30,RGB(199,215,237));rect(9,y-2,3,30,blue);}inbox_avatar(16,y+1,20,author);social_text(41,y+2,151,blue,author,1);social_text(41,y+15,151,muted,subject,1);
+ }galnet_scrollbar(4,75,166,first,5,total,rail,blue);
+ rect(160,75,312,166,WHITE);char author[40],subject[128],body[768];story_inbox_text(row,author,sizeof(author),subject,sizeof(subject),body,sizeof(body));
+ inbox_avatar(167,80,22,author);social_text(196,80,463,blue,author,1);social_wrap_count(196,94,267,muted,subject,2);line(167,117,464,117,rail);
+ inbox_pages=inbox_letter(body,-1);if(inbox_pages<1)inbox_pages=1;if(inbox_message_page>=inbox_pages||inbox_message_page<0)inbox_message_page=0;inbox_letter(body,inbox_message_page);
+ int index,kind=story_inbox_record(row,&index);char status[96];
+ if(kind==INBOX_HOME){snprintf(status,sizeof(status),"%s",opening_sol(&game)?"Earth / private correspondence":"Earth cache / relay offline");if(index<4&&!opening_sol(&game)&&(game.opening.flags&(1<<(16+index))))snprintf(status,sizeof(status),"Undelivered: Earth relay offline");}
+ else snprintf(status,sizeof(status),"%s",kind==INBOX_SAGA&&index<game.saga_chapter?"Filed chapter / kept for reference":"Story correspondence / saved with progress");
+ social_text(168,221,463,muted,status,1);snprintf(status,sizeof(status),"%d/%d",inbox_message_page+1,inbox_pages);social_text(432,233,468,muted,status,1);
+ social_text(168,233,425,blue,kind==INBOX_HOME?(index==3?"Square: Friday's photo":index<4&&!opening_sol(&game)?"X: Send 'Are you there?'":"Saved personal note"):"X: Open Mission Log",1);
+ rect(0,248,W,24,RGB(215,225,239));button_icon(5,251,'U',blue);button_icon(17,251,'D',blue);social_text(31,253,90,blue,"Messages",1);
+ if(kind!=INBOX_HOME||(!opening_sol(&game)&&index<4)){button_icon(101,251,'X',blue);social_text(115,253,172,blue,kind==INBOX_HOME?"Send":"Log",1);}button_icon(181,251,'S',blue);social_text(195,253,248,blue,index==3&&kind==INBOX_HOME?"Photo":"Page",1);
+ button_icon(268,251,'l',blue);button_icon(281,251,'r',blue);social_text(295,253,336,blue,"Tabs",1);button_icon(351,251,'T',blue);social_text(365,253,404,blue,"Feed",1);button_icon(420,251,'O',blue);social_text(434,253,478,blue,"Back",1);
+}
+static void spacebook_actions(unsigned pressed){
+ if(galnet_tab==3){if(pressed&PSP_CTRL_CROSS)social_react(row,1);if(pressed&PSP_CTRL_SQUARE)social_react(row,2);if(pressed&PSP_CTRL_TRIANGLE){galnet_tab=4;row=0;inbox_message_page=0;inbox_last_row=-1;}return;}
+ if(galnet_tab!=4)return;
+ if(opening_net_detail){if(pressed&PSP_CTRL_CIRCLE)opening_net_detail=0;return;}
+ if(pressed&PSP_CTRL_TRIANGLE){galnet_tab=3;row=0;return;}
+ int index,kind=story_inbox_record(row,&index);
+ if(pressed&PSP_CTRL_SQUARE){if(kind==INBOX_HOME&&index==3)opening_net_detail=1;else{char a[40],s[128],b[768];story_inbox_text(row,a,sizeof(a),s,sizeof(s),b,sizeof(b));inbox_pages=inbox_letter(b,-1);if(inbox_pages<1)inbox_pages=1;inbox_message_page=(inbox_message_page+1)%inbox_pages;}}
+ if(pressed&PSP_CTRL_CROSS){if(kind==INBOX_HOME){if(index<4&&!opening_sol(&game))game.opening.flags|=1<<(16+index);}else{tracked_mission=kind==INBOX_ERL?TRACK_ERL:0;change_page(MISSIONLOG);row=mission_track_row();}}
 }

@@ -7,6 +7,7 @@ static float local_tv_clock=0;
 static double local_tv_now=0,local_tv_test_time=-1;
 static int local_tv_clock_valid=0;
 static void local_tv_tick(float dt);
+static void erl_tv_highlights(void);
 #define TV_GOLD RGB(255,211,116)
 #define TV_CYAN RGB(75,222,232)
 #define TV_TEXT RGB(230,237,248)
@@ -26,17 +27,24 @@ static const char *local_tv_scripts[3][4]={
   "On the fourth night he answered: I'm home. The beacon went quiet. In his hold, a sealed crate began playing a song his mother used to sing.",
   "He never opened it. Some things, he said, are worth more unopened. A little fiction for the late watch. This is Lave Local. Stay flying."}
 };
-static const char *local_tv_copy(void){return local_tv_scripts[local_tv_program][local_tv_beat];}
+static const char *local_tv_copy(void){
+ const ErlProgress *p=&game.erl_local.progress;static char copy[240];
+ /* One factual sports insert in Evening Orbit; other programmes remain intact.
+  * Text comes from a committed result, never a generated imaginary placing. */
+ if(p->records&&local_tv_program==0&&local_tv_beat==2){snprintf(copy,sizeof(copy),"ERL sports desk: Commander %.24s placed %u in %s. Time %.2f seconds, %.0f units and %u XP awarded. Another real result from the grid.",game.commander_name,p->latest_place,game.systems[p->latest_system].name,p->latest_time,p->latest_units*.1f,p->latest_xp);return copy;}
+ if(p->records&&p->latest_sponsor&&local_tv_program==0&&local_tv_beat==3)return "Paddock partners: our last featured commander completed their sponsor challenge. The bonus was awarded with the race result. Keep your eyes on the track, pilots.";
+ return local_tv_scripts[local_tv_program][local_tv_beat];
+}
 /* A continuous local-clock broadcast: opening or pressing buttons never restarts it. */
 static void local_tv_schedule(double seconds){
  seconds=fmod(seconds,86400.0);if(seconds<0)seconds+=86400.0;
  local_tv_now=seconds;
  local_tv_program=((int)seconds/LOCAL_TV_SLOT_SECONDS)%LOCAL_TV_PROGRAMS;
  double phase=fmod(seconds,LOCAL_TV_SLOT_SECONDS),cycle=0;
- for(int b=0;b<LOCAL_TV_BEATS;b++)cycle+=strlen(local_tv_scripts[local_tv_program][b])/28.0+6.0;
+ for(int b=0;b<LOCAL_TV_BEATS;b++){local_tv_beat=b;cycle+=strlen(local_tv_copy())/28.0+6.0;}
  phase=fmod(phase,cycle);
  for(int b=0;b<LOCAL_TV_BEATS;b++){
-  int n=(int)strlen(local_tv_scripts[local_tv_program][b]);double duration=n/28.0+6.0;
+  local_tv_beat=b;int n=(int)strlen(local_tv_copy());double duration=n/28.0+6.0;
   if(phase<duration||b==LOCAL_TV_BEATS-1){
    local_tv_beat=b;local_tv_reveal=(int)(phase*28.0);
    if(local_tv_reveal>n)local_tv_reveal=n;break;
@@ -152,7 +160,7 @@ static void local_tv_ident(void){
 }
 static void local_tv_screen(void){
  draw_next_art(local_tv_art,480,272,0,0,480,272);
- local_tv_window();local_tv_mouth();
+ local_tv_window();local_tv_mouth();erl_tv_highlights();
  char title[64];snprintf(title,sizeof(title),"%.16s LOCAL / CHANNEL 8",game.systems[game.system].name);
  rect(127,3,350,16,RGB(11,21,33));local_tv_text(129,7,TV_GOLD,title);
  char clock_label[12];local_tv_time_label(0,clock_label,sizeof(clock_label));local_tv_text(472-local_tv_width(clock_label),7,TV_CYAN,clock_label);

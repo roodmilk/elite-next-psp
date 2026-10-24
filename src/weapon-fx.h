@@ -1,10 +1,26 @@
 /* Primary weapon signatures. These are deliberately screen-space and use the
  * existing soft framebuffer primitives: the PSP gets animated silhouettes,
  * muzzle light and impact colour without particles, textures or allocations. */
+static float wfx_light_envelope=1;
+static void wfx_soft_light(int x,int y,unsigned ink,int radius,float gain){
+ if(high_contrast||gain<=0)return;if(radius>12)radius=12;
+ int top=view_top(),bot=view_bot(),rr=radius*radius+1,level=(int)(gain*110);
+ for(int dy=-radius;dy<=radius;dy++)for(int dx=-radius;dx<=radius;dx++){
+  int d=dx*dx+dy*dy,sx=x+dx,sy=y+dy;
+  if(d>=rr||sx<0||sx>=W||sy<top||sy>bot)continue;
+  int weight=(rr-d)*level/rr;weight=weight*weight/110;
+  sfx_add(sx,sy,dim_rgb(ink,weight,256),top,bot);
+ }
+}
 static void wfx_ray(int x0,int y0,int x1,int y1,unsigned ink,int core){
  unsigned haze=dim_rgb(ink,1,3);line(x0-1,y0,x1-1,y1,haze);line(x0+1,y0,x1+1,y1,haze);line(x0,y0,x1,y1,ink);if(core)line(x0,y0-1,x1,y1-1,WHITE);
 }
 static void wfx_muzzle(int x,int y,unsigned ink,int size){
+ wfx_soft_light(x,y,ink,size+5,wfx_light_envelope);
+ if(!high_contrast){int top=view_top(),bot=view_bot();for(int i=-size*2;i<=size*2;i++){
+  int sx=x+i;if(sx<0||sx>=W||y<top||y>bot)continue;
+  sfx_add(sx,y,dim_rgb(ink,(int)((1.f-fabsf(i)/(size*2.f+1))*wfx_light_envelope*90),256),top,bot);
+ }}
  circle(x,y,size,dim_rgb(ink,1,2));circle(x,y,size>2?size-2:1,ink);pixel(x,y,WHITE);sfx_add(x,y,ink,view_top(),view_bot());
 }
 static void wfx_segment(int x0,int y0,int x1,int y1,float t,float span,unsigned ink){
@@ -17,10 +33,12 @@ static void wfx_zigzag(int x0,int y0,int x1,int y1,float age,unsigned ink,int be
  int px=x0,py=y0;for(int i=1;i<=bends;i++){float t=i/(float)bends;int x=x0+(int)((x1-x0)*t),y=y0+(int)((y1-y0)*t);if(i<bends){float wave=sinf(age*18+i*2.31f);x+=(int)(wave*amp);y+=(i&1)?amp:-amp;}line(px,py,x,y,dim_rgb(ink,1,2));line(px+1,py,x+1,y,ink);px=x;py=y;}
 }
 static void wfx_impact(int x,int y,unsigned ink,int radius){
+ wfx_soft_light(x,y,ink,radius+3,wfx_light_envelope*.45f);
  circle(x,y,radius,ink);circle(x,y,radius+3,dim_rgb(ink,1,2));line(x-radius-3,y,x-2,y,WHITE);line(x+2,y,x+radius+3,y,WHITE);sfx_add(x,y,ink,view_top(),view_bot());
 }
-static void weapon_fx_draw(int w,float age,int shot,int bot){
- int lx=50,rx=430,tx=240,ty=110;age=fmaxf(0,fminf(1,age));
+static void weapon_fx_draw_from(int w,float age,int shot,int lx,int rx,int sy,int tx,int ty){
+ int bot=sy;age=fmaxf(0,fminf(1,age));
+ wfx_light_envelope=(1-age)*(1-age);
  unsigned red=RGB(255,68,58),green=RGB(92,255,112),blue=RGB(76,160,255),violet=RGB(194,92,255),pink=RGB(255,92,205),amber=RGB(255,164,52),cyan=RGB(65,235,235),lime=RGB(176,255,72);
  switch(w){
   case 1: /* Pulse laser: compact red packets, not a continuous beam. */
@@ -71,9 +89,27 @@ static void weapon_fx_draw(int w,float age,int shot,int bot){
   default:wfx_ray(lx,bot,tx-3,ty,red,0);wfx_ray(rx,bot,tx+3,ty,red,0);break;
  }
 }
+static void weapon_fx_draw(int w,float age,int shot,int bot){weapon_fx_draw_from(w,age,shot,50,430,bot,240,110);}
+static int weapon_fx_external(int w,float age){
+ wfx_light_envelope=(1-age)*(1-age);
+ Vec3 r,u,a;flight_camera_basis(&r,&u,&a);
+ Vec3 goal=add(game.pos,mul(a,4200.f));if(valid_target(selected_target)){Vec3 candidate=target_position(selected_target);if(dot(norm(sub(candidate,game.pos)),a)>.1f)goal=candidate;}
+ unsigned ink=w>=60?RGB(140,220,255):w==2?CYAN:RGB(255,108,66);
+ for(int side=-1;side<=1;side+=2){Vec3 root;if(!player_hardpoint(side,1,&root))continue;
+  Vec3 end=goal,dir=norm(sub(goal,root));float dist=length(sub(goal,root));
+  if(w!=2&&w!=3){float t=fmodf(age*1.6f,1.f);end=add(root,mul(dir,dist*t));root=add(root,mul(dir,fmaxf(0,dist*t-260.f)));}
+  exterior_ray(root,end,ink,1);
+  Vec3 v=camera(&game,root);if(v.z>20){Point p=project(v);int x=(int)p.x,y=(int)p.y;
+   if(x>=0&&x<W&&y>=view_top()&&y<=view_bot()&&(!mega_depth_valid||mega_encode_depth(v.z)<=surface_depth[y*W+x]))wfx_soft_light(x,y,ink,8,wfx_light_envelope);
+  }
+ }
+ return 1;
+}
+#include "twin-stack.h"
 static void weapon_fx_fire(void){
+ if(hc_presentation_context()&&!race_is_active(&game)){int encoding=mega_depth_encoding;mega_depth_encoding=1;twin_housings();twin_fire_effects();mega_depth_encoding=encoding;return;}
  if(game.shot<=0)return;
  int w=fit_weapon_item(&game);float cycle=weapon_cycle(&game),window=fminf(.18f,fmaxf(.07f,cycle*.65f));
  if(game.shot<=fmaxf(0,cycle-window))return;
- float age=(cycle-game.shot)/window;weapon_fx_draw(w,age,game.shots,view_bot());
+ float age=(cycle-game.shot)/window;if(third_person){weapon_fx_external(w,age);return;}weapon_fx_draw(w,age,game.shots,view_bot());
 }

@@ -53,7 +53,7 @@ static void draw_kei(int x,int y,int size,int expression){
  portrait_draw(x,y,size,size,dna,TRADERS);
 }
 static void draw_portrait(int x,int y,int w,int h,int system,int role){
- portrait_draw(x,y,w,h,portrait_seeded((unsigned)system,role,-1),role);return;
+ portrait_draw(x,y,w,h,((unsigned)system&PORTRAIT_DNA_MARK)?(unsigned)system:portrait_seeded((unsigned)system,role,-1),role);return;
  if(w>=12&&h>=12){int race=faction_portrait_index((unsigned)system,role);rect(x,y,w,h,RGB(21,28,39));if(w<=32&&h<=32)draw_next_art_fit(faction_portraits_small[race],32,32,x,y,w,h);else draw_next_art_fit(faction_portraits[race],64,64,x,y,w,h);rect(x,y+h-1,w,1,faction_colors[role%FACTION_COUNT]);rect(x,y,w,1,RGB(193,139,77));return;}
  unsigned skin=race_skin(system),cloth=art_tint(faction_colors[role%FACTION_COUNT],-50,-40,-20),bg=RGB(21,28,39),kind=art_hash((unsigned)system*7919u)%8;
  rect(x,y,w,h,bg);rect(x,y,w,1,RGB(193,139,77));rect(x,y+h-1,w,1,RGB(41,54,70));

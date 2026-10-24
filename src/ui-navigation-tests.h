@@ -6,11 +6,13 @@
  align_target(.016f,.5f,0);INPUT_CHECK(!autoaim,"target lock: manual steering still releases smooth alignment");
  TEST_INIT();deck_reset();change_page(HOME);int seen=0,unique=1;
  for(int g=0;g<5;g++)for(int i=0;i<deck_sizes[g];i++){int id=deck_rows[g][i];if(id<0||id>=DECK_ITEMS||(seen&(1<<id)))unique=0;else seen|=1<<id;}
-  INPUT_CHECK(unique&&seen==(((1<<DECK_ITEMS)-1)&~((1<<18)|(1<<8)|(1<<19))),"deck: every active service appears once without duplicate Guild or standalone targeting entries");
- {int fly_vis[6],fly_n=deck_fill(0,fly_vis),targeting_visible=0;for(int i=0;i<fly_n;i++)if(fly_vis[i]==8)targeting_visible=1;INPUT_CHECK(!targeting_visible,"deck: standalone Targeting computer is hidden from Fly");}
+  INPUT_CHECK(unique&&seen==(((1<<DECK_ITEMS)-1)&~((1<<18)|(1<<8)|(1<<19)|(1<<27)|(1<<28))),"deck: every active service appears once; local Host/Join live inside Multiplayer");
+ {int fly_vis[9],fly_n=deck_fill(0,fly_vis),targeting_visible=0;for(int i=0;i<fly_n;i++)if(fly_vis[i]==8)targeting_visible=1;INPUT_CHECK(!targeting_visible,"deck: standalone Targeting computer is hidden from Fly");}
  row=10;input(PSP_CTRL_CROSS,0,.016f,0,0);INPUT_CHECK(page==COMMS_PANEL,"deck: Fly Comms opens the canonical held-Triangle panel");input(PSP_CTRL_CIRCLE,0,.016f,0,0);INPUT_CHECK(page==HOME&&row==10,"deck: canonical Comms returns to the Fly menu");
  row=0;
  input(PSP_CTRL_RIGHT,0,.016f,0,0);INPUT_CHECK(row==1&&deck_group(row)==1,"deck: Right moves from Fly to Ship");
+ input(PSP_CTRL_RTRIGGER,0,.016f,0,0);INPUT_CHECK(deck_group(row)==2,"deck: R moves from Ship to Work");
+ input(PSP_CTRL_LTRIGGER,0,.016f,0,0);INPUT_CHECK(deck_group(row)==1,"deck: L returns from Work to Ship");
  input(PSP_CTRL_DOWN,0,.016f,0,0);INPUT_CHECK(row==3,"deck: Down follows the visible Ship list");
  input(PSP_CTRL_CROSS,0,.016f,0,0);input(PSP_CTRL_CIRCLE,0,.016f,0,0);
  INPUT_CHECK(page==HOME&&row==3,"deck: Back restores selected service and category");
@@ -32,7 +34,7 @@
  input(PSP_CTRL_LEFT,0,.016f,0,0);INPUT_CHECK(help_tab==4,"controls: pages wrap and remain bounded");
  input(PSP_CTRL_CIRCLE,0,.016f,0,0);INPUT_CHECK(page==COMMS_PANEL&&row==11,"controls: Back returns to Comms instead of losing location");
  TEST_INIT();launch(&game);change_page(HOME);
- {int ship_vis[6],ship_n=deck_fill(1,ship_vis),work_vis[6],work_n=deck_fill(2,work_vis),hidden=0;
+ {int ship_vis[9],ship_n=deck_fill(1,ship_vis),work_vis[9],work_n=deck_fill(2,work_vis),hidden=0;
   for(int i=0;i<ship_n;i++)if(ship_vis[i]==3||ship_vis[i]==4)hidden=1;
   for(int i=0;i<work_n;i++)if(work_vis[i]==12)hidden=1;
  INPUT_CHECK(!hidden&&ship_n==2&&work_n==3,"deck: Shipyard, Outfitting and Mission board hide while undocked");}

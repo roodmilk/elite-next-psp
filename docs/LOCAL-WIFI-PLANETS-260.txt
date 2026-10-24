@@ -1,0 +1,80 @@
+ELITE: NEXT 2.5.260 - Two-player planetary co-exploration
+
+Both PSPs need this EBOOT and their WLAN switches on. Start Host/Join from
+FLY, then Select opens the session screen. Up/Down chooses a planet; X
+starts its existing cloud-covered first-person arrival. Each pilot lands
+independently. To meet, choose the same planet. Surface/scenery seeds are
+the host system's; different planets do not display each other's entities.
+
+On foot: D-pad walks/strafes, analogue looks, hold R runs, tap R jumps.
+Tap Square cycles visible targets; hold Square opens the targeting computer.
+Circle is the existing handheld scanner/tool selector. Triangle opens a
+just-scanned Codex record or boards your own nearby ship. X enters your own
+nearby Roamer or a planetary site scene. Start opens the planetary map.
+In the Roamer, R accelerates, L brakes, Circle drifts, X boosts; Triangle
+parks/exits when stopped. Aboard your ship, X steps out and R launches.
+Arrival/seat/departure cinematics retain button blocking/release guards.
+Select -> Circle ends the session and restores the original commander.
+
+The two existing large traffic berths become PILOT 1/PILOT 2 in sessions;
+ambient descending ships are suppressed there, not drawn over player hulls.
+Host uses the left bay, guest the right. The open garage allocates separate
+Roamers forty metres apart near its front. Single-player layout/traffic is
+unchanged. Existing landing/disembark physics now use an ownership-aware
+landing pad. Remote parked ships and Roamers have matching visible collision
+bounds; no entire empty landing pad becomes an invisible obstacle.
+
+Simple code-native block suits have a helmet/visor, torso, arms, moving legs
+and ground shadow, tinted to the pilot's ship paint. Remote Roamers and parked
+ships are drawn in the same terrain depth pass, not through hills/buildings.
+Pilot/vehicle movement is interpolated. Body/surface/vehicle/transition state
+is sequenced and validated; coordinate-space changes snap the replica before
+interpolation, preventing orbit-to-ground streaks and wrong-planet ghosts.
+Host wildlife snapshots reach guests sharing its planet; guest physics does
+not independently simulate those animals. Personal scan flags are retained
+within the session rather than copied from the host. Other planets use their
+own local wildlife until the host visits them; shared persistent simulation
+across several planets is not implemented.
+
+Still a reversible exploration sandbox, NOT persistent cooperative jobs,
+combat, economy or hyperspace. Site interactions/scans are session-local and
+are discarded on exit. No save format changed. Early commanders can land in
+the session without permanently granting campaign landing technology.
+Complete original Game is restored on leave, disconnect, timeout or sleep.
+Transient ownership/replica/peer collision fields are not serialized.
+
+Protocol 260 uses 1144-byte datagrams (<1400), still bounded nonblocking PDP
+traffic: two host chunks and at most eight received packets per frame.
+One additional wildlife chunk per world burst; no assets streamed by Wi-Fi.
+Protected Game 85064 bytes; static ELF text+data+BSS 9950196 bytes.
+MEMSIZE=0, eight-MiB heap and one-MiB main stack retained. Not authenticated;
+both peers must run matching PSP builds. No public internet service.
+
+Validation/recovery: isolated current-task/adhoc-planets-260 has a frozen259
+baseline and canonical-before-260 backups. Canonical backport only touches
+eleven source files plus build/version/docs after baseline hash checks.
+Final EBOOT 8708839 bytes; SHA256
+5F50FA96CD0E87C86F28F14DCA68F411ED6805FBC9C5D55BA782F0CD0C1BDED5.
+No Git pull/autostash/commit/push/tag/public release against shared dirty tree.
+
+Final protocol/ownership fixtures: 42 checks, all256 wire worlds, both landing
+bays/dry ground/collision-validated exits and distinct Roamers on all1024
+planets. Two real native-ad-hoc PPSSPP instances: both pilots independently
+land, walk, drive, see peer surface state, board, launch and restore; guest
+receives host wildlife and all NPC/debris chunks. Lost-host test deliberately
+kills only the owned host; guest timeout restores its original commander.
+The killed host report is incomplete by design. Both tests use separate
+configs/MACs/memory-stick folders and localhost, no global emulator edits.
+The earlier live01 test advanced boarding before the release guard; fixed
+the automation, live02/final pass. Initial strict >=40 metre test exposed
+float rounding; final tolerance is 0.01 metre, still distinct actual cars.
+
+Final core game/radio/steering,8192-footing,tool,map,seamless-entry reports all
+RESULT0. Full inherited input/outfitting suite remains uncertified. First core
+runner requested game-tests.txt rather than game-check.txt; actual reports
+passed but runner timed out. Corrected fresh planets-core-verified passes.
+
+Next: two physical PSPs, hardware memory/FPS/WLAN/suspend/rejoin testing;
+exercise extended map/POI/Codex flows with both physical controllers. No
+locked-30-FPS or physical-hardware compatibility certification. Persistent
+co-op progression and host migration need a separate authority/save design.

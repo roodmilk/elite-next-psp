@@ -1,3 +1,4 @@
+#include "earth-meadow-world.h"
 /* Local surface: biome from orbit sprite family, tinted by body colour/accent. */
 static int surface_nav_poi=-1;
 #include "field-sprites.h"
@@ -13,15 +14,10 @@ static unsigned mix_rgb(unsigned a,unsigned b,float t){
 /* Match orbit sprite families: ocean, desert, ice, volcanic, forest. */
 enum { BIOME_OCEAN=0, BIOME_DESERT, BIOME_ICE, BIOME_VOLCANIC, BIOME_FOREST, BIOME_CLOUD };
 static int planet_lave_i(void){return game.system==7&&game.planet==1;}
+static int planet_earth_i(void){return opening_sol(&game)&&game.planet==1;}
 static int planet_biome(const Body *b){
- if(b&&b->type==GAS)return BIOME_CLOUD;
- if(planet_lave_i())return BIOME_FOREST;
- if(!b||b->type==OCEAN)return BIOME_OCEAN;
- int art=planet_sprite_index(b->seed,b->type);
- if(art==2)return BIOME_DESERT;
- if(art==3)return BIOME_ICE;
- if(art==4)return BIOME_VOLCANIC;
- return BIOME_FOREST;
+ if(planet_earth_i())return BIOME_FOREST;
+ return b?world_legacy_biome(world_type_seed(b->seed,b->type)):BIOME_OCEAN;
 }
 static void planet_cliprect(int x,int y,int w,int h,unsigned c){
  int top=view_top(),bot=view_bot()+1;
@@ -32,38 +28,80 @@ static void planet_cliprect(int x,int y,int w,int h,unsigned c){
  if(w>0&&h>0){if(surface_depth_on&&surface_sprite_z>0){c=surface_shade(c);for(int yy=y;yy<y+h;yy++){float den=1-surface_sprite_tan*(proj_oy-yy)/240.f;if(den<=.01f)continue;unsigned depth=surface_encode_depth(den/surface_sprite_z);for(int xx=x;xx<x+w;xx++)surface_depth_pixel(xx,yy,depth,c);}}else rect(x,y,w,h,c);}
 }
 static void planet_quad(Vec3 a,Vec3 b,Vec3 c,Vec3 d,unsigned col){
- queue_triangle(camera(&game,a),camera(&game,b),camera(&game,c),col);
- queue_triangle(camera(&game,a),camera(&game,c),camera(&game,d),col);
+ Vec3 ca=camera(&game,a),cb=camera(&game,b),cc=camera(&game,c),cd=camera(&game,d);
+ queue_triangle(ca,cb,cc,col);queue_triangle(ca,cc,cd,col);
 }
 typedef struct {float z,x,w;int kind;unsigned h;} PlanetProp;
-static PlanetProp lave_prop_cache[2600];static int lave_prop_count;static unsigned lave_prop_seed;static int lave_prop_ready;
+static PlanetProp lave_prop_cache[2600];static int lave_prop_count;static unsigned lave_prop_seed;static int lave_prop_ready,lave_cache_cx,lave_cache_cz;
 static unsigned lave_tree_inks[4][32];
 static unsigned biome_prop_inks[4][128];
 static unsigned char biome_prop_spans[24][64][2];static int biome_prop_spans_ready;
 static unsigned char lave_sprite_spans[8][64][2];static int lave_spans_ready;
+static void lave_prepare_spans(void){
+ if(lave_spans_ready)return;
+ for(int kind=0;kind<8;kind++)for(int row=0;row<64;row++){
+  int left=48,right=0;for(int x=0;x<48;x++)if(lave_vegetation_pixels[kind][row*48+x]!=255){if(x<left)left=x;right=x+1;}
+  lave_sprite_spans[kind][row][0]=left;lave_sprite_spans[kind][row][1]=right;
+ }lave_spans_ready=1;
+}
+typedef struct {short cx,cz;float x,z;unsigned h;signed char kind;unsigned char valid;} LaveCell;
+static LaveCell lave_cells[64*64];static unsigned lave_cells_seed;static float lave_cells_padx,lave_cells_padz;
 static void lave_prepare_props(Vec3 pad,const Vec3 *sites,const FieldBuilding *shapes,unsigned seed){
- if(!lave_spans_ready){
-  for(int kind=0;kind<8;kind++)for(int row=0;row<64;row++){
-   int left=48,right=0;for(int x=0;x<48;x++)if(lave_vegetation_pixels[kind][row*48+x]!=255){if(x<left)left=x;right=x+1;}
-   lave_sprite_spans[kind][row][0]=left;lave_sprite_spans[kind][row][1]=right;
-  }lave_spans_ready=1;
- }
- if(lave_prop_ready&&lave_prop_seed==seed)return;
+ lave_prepare_spans();
+ if(lave_cells_seed!=seed||lave_cells_padx!=pad.x||lave_cells_padz!=pad.z){memset(lave_cells,0,sizeof(lave_cells));lave_cells_seed=seed;lave_cells_padx=pad.x;lave_cells_padz=pad.z;}
+ int cx=(int)floorf(game.pos.x/280.f)*4,cz=(int)floorf(game.pos.z/280.f)*4;
+ if(lave_prop_ready&&lave_prop_seed==seed&&cx==lave_cache_cx&&cz==lave_cache_cz)return;
  lave_prop_ready=1;lave_prop_seed=seed;lave_prop_count=0;
- int cx=(int)floorf(pad.x/70),cz=(int)floorf(pad.z/70);
- for(int iz=-28;iz<=28;iz++)for(int ix=-28;ix<=28;ix++){
-  float x,z;unsigned h;int tree=field_lave_tree_cell(seed,cx+ix,cz+iz,&x,&z,&h);
-  if(terrain_is_water(&game,x,z)||(fabsf(x-pad.x)<field_port_clear(&game)&&fabsf(z-pad.z)<field_port_clear(&game)))continue;
-  float t=(z-pad.z)/FIELD_OBSERVATORY_DISTANCE,side=seed&1?1.f:-1.f;
-  if(t>0&&t<1&&fabsf(x-(pad.x-side*420*t*(1-t)))<38)continue;
-  int reserved=0;for(int i=1;i<10;i++){if(i==6)continue;if(fabsf(x-sites[i].x)<shapes[i].w+30&&fabsf(z-sites[i].z)<shapes[i].d+30){reserved=1;break;}}if(reserved)continue;
-  int kind=tree?(h>>16)%4:4+((h>>12)&7)/2;
-  if(lave_prop_count<2600)lave_prop_cache[lave_prop_count++]=(PlanetProp){terrain_height(&game,x,z),x,z,kind,h};
+ lave_cache_cx=cx;lave_cache_cz=cz;
+ for(int iz=-22;iz<=22;iz++)for(int ix=-22;ix<=22;ix++){
+  int gx=cx+ix,gz=cz+iz,at=(gx&63)+((gz&63)<<6);LaveCell uncached,*cached=eva_fast?&lave_cells[at]:&uncached;
+  if(!eva_fast||!cached->valid||cached->cx!=gx||cached->cz!=gz){
+   float x,z;unsigned h;int tree=field_lave_tree_cell(seed,gx,gz,&x,&z,&h),allowed=1;
+   if(terrain_water_tile(&game,x,z)||(fabsf(x-pad.x)<field_port_clear(&game)&&fabsf(z-pad.z)<field_port_clear(&game)))allowed=0;
+   float t=(z-pad.z)/FIELD_OBSERVATORY_DISTANCE,side=seed&1?1.f:-1.f;
+   if(t>0&&t<1&&fabsf(x-(pad.x-side*420*t*(1-t)))<38)allowed=0;
+   if(allowed)for(int i=1;i<10;i++){if(i==6)continue;if(fabsf(x-sites[i].x)<shapes[i].w+30&&fabsf(z-sites[i].z)<shapes[i].d+30){allowed=0;break;}}
+   cached->cx=gx;cached->cz=gz;cached->x=x;cached->z=z;cached->h=h;cached->kind=allowed?(tree?(h>>16)%4:4+((h>>12)&7)/2):-1;cached->valid=1;
+  }
+  if(cached->kind>=0&&lave_prop_count<2600)lave_prop_cache[lave_prop_count++]=(PlanetProp){0,cached->x,cached->z,cached->kind,cached->h};
  }
+ /* Flower verges follow the actual cleared observatory trail, not the camera.
+  * Only nearby tufts enter the shared depth-sorted sprite list. */
+ int start=(int)floorf((game.pos.z-pad.z)/60.f)-4;
+ for(int i=start;i<start+9;i++)for(int edge=-1;edge<=1;edge+=2){
+  float z=pad.z+i*60.f,t=(z-pad.z)/FIELD_OBSERVATORY_DISTANCE;
+  if(t<=0||t>=1)continue;
+  unsigned h=field_hash(seed+(unsigned)i*977u+(edge+1)*31u);
+  float x=pad.x-(seed&1?1.f:-1.f)*420*t*(1-t)+edge*(19+(h&7));
+  if(fabsf(z-pad.z)<field_port_clear(&game)||terrain_water_tile(&game,x,z))continue;
+  int reserved=0;for(int id=1;id<10;id++)if(id!=6&&fabsf(x-sites[id].x)<shapes[id].w+30&&fabsf(z-sites[id].z)<shapes[id].d+30)reserved=1;
+  if(!reserved&&lave_prop_count<2600)lave_prop_cache[lave_prop_count++]=(PlanetProp){0,x,z,5,h};
+ }
+}
+/* Tagged 32x32 ring: reuse overlapping cells as the ship/walker moves.
+ * Cold work is limited to the exact old visible cell range, not a huge bank. */
+static struct {short cx,cz;PlanetProp prop;signed char valid,kind;} other_prop_cells[32*32];
+static unsigned other_prop_seed;static int other_prop_system=-1,other_prop_body=-1,other_prop_type;
+static int planet_other_prop(int cx,int cz,Vec3 pad,const Vec3 *sites,const FieldBuilding *shapes,unsigned seed,int biome,PlanetProp *out){
+ if(other_prop_seed!=seed||other_prop_system!=game.system||other_prop_body!=game.planet||other_prop_type!=game.bodies[game.planet].type){
+  memset(other_prop_cells,0,sizeof(other_prop_cells));other_prop_seed=seed;other_prop_system=game.system;other_prop_body=game.planet;other_prop_type=game.bodies[game.planet].type;
+ }
+ int at=(cx&31)+((cz&31)<<5);
+ if(!other_prop_cells[at].valid||other_prop_cells[at].cx!=cx||other_prop_cells[at].cz!=cz){
+  unsigned h;float x,z;
+  int kind=field_prop_cell(game.system,game.planet,seed,cx,cz,&x,&z,&h);
+  int allowed=kind>=0;
+  if(allowed&&(terrain_water_tile(&game,x,z)||(fabsf(x-pad.x)<field_port_clear(&game)&&fabsf(z-pad.z)<field_port_clear(&game))))allowed=0;
+  if(allowed)for(int id=1;id<10;id++)if(id!=6&&fabsf(x-sites[id].x)<shapes[id].w+30&&fabsf(z-sites[id].z)<shapes[id].d+30){allowed=0;break;}
+  (void)biome;
+  other_prop_cells[at].cx=cx;other_prop_cells[at].cz=cz;other_prop_cells[at].valid=1;other_prop_cells[at].kind=allowed?kind:-1;
+  if(allowed)other_prop_cells[at].prop=(PlanetProp){terrain_height(&game,x,z),x,z,kind,h};
+ }
+ if(other_prop_cells[at].kind<0)return 0;*out=other_prop_cells[at].prop;return 1;
 }
 static int planet_prop_cmp(const void *a,const void *b){float d=((const PlanetProp*)b)->z-((const PlanetProp*)a)->z;return d>0?1:d<0?-1:0;}
 static void draw_tree_billboard(float x,float z,unsigned h,int kind){
- float ground=terrain_height(&game,x,z);if(terrain_is_water(&game,x,z))return;
+ float ground=terrain_height(&game,x,z);if(terrain_water_tile(&game,x,z))return;
  Body *b=&game.bodies[game.planet];int biome=planet_biome(b);
  float height=kind==1?12.f:kind==2?8.f:biome==BIOME_FOREST?90.f+(h%65):38.f+(h%25);
  if(biome==BIOME_DESERT&&kind==0)height=14.f+(h%9);
@@ -114,15 +152,16 @@ static void draw_tree_billboard(float x,float z,unsigned h,int kind){
  planet_cliprect(x0-s*2/3,y0-s/2,s+s/2,s,dark);
  planet_cliprect(x0-s/2,y0-s/3,s,s/2,mix_rgb(leaf,RGB(200,220,90),.2f));
 }
-static void draw_lave_vegetation(float x,float z,unsigned h,int kind){
- float ground=terrain_height(&game,x,z);
- float height=kind<4?58.f+((h>>9)%31):kind==4?18.f:kind==5?17.f:kind==6?22.f:18.f;
- int other=game.system==7&&game.planet>1,row=game.planet==2?4:game.planet==4?1:5;
+static void draw_lave_vegetation_shape(float x,float z,unsigned h,int kind,float ground,float height){
+ int other=!planet_lave_i();const WorldProfile *world=world_profile(game.bodies[game.planet].seed,game.bodies[game.planet].type);int row=world_types[world->type].kit;
+ if(kind<0||kind>=(other?4:8)||height<=0)return;
+ if(!other)lave_prepare_spans();
  if(other&&!biome_prop_spans_ready){for(int k=0;k<24;k++)for(int y=0;y<64;y++){int lo=48,hi=0;for(int x=0;x<48;x++)if(biome_prop_pixels[k][y*48+x]!=255){if(x<lo)lo=x;hi=x+1;}biome_prop_spans[k][y][0]=lo;biome_prop_spans[k][y][1]=hi;}biome_prop_spans_ready=1;}
  const unsigned char *pixels=other?biome_prop_pixels[row*4+kind]:lave_vegetation_pixels[kind];
- if(other)height=kind==0?(game.planet==3?42:88)+(h%28):kind==1?22:kind==2?30:13;
- if(other&&game.planet==4&&kind>0)height=kind==1?9:kind==2?22:5;
+ if(other){height=kind==0?(world->type==WORLD_OVERGROWN?140:world->type>=18?42:88)+(h%28):kind==1?22:kind==2?30:13;
+  if(world->type==WORLD_FROZEN||world->type==WORLD_CRYSTAL)height=kind==2?32:12;}
  float width=height*.75f;
+ float wind=(!other&&kind==7)||(other&&kind==2)?0:sinf(game.time*.85f+(h&31))*(kind<4?1.8f:.65f);
  Vec3 base=camera(&game,(Vec3){x,ground,z}),topv=camera(&game,(Vec3){x,ground+height,z});
  float plane=base.z-surface_sprite_tan*base.y;if(plane<2)return;
  int first=surface_y_min,last=surface_y_max;
@@ -131,10 +170,10 @@ static void draw_lave_vegetation(float x,float z,unsigned h,int kind){
  int fog=(int)fmaxf(0,fminf(3,(plane-200)/300));unsigned *palette=other?biome_prop_inks[fog]:lave_tree_inks[fog];
  first=(first+1)&~1;
  for(int y=first;y<=last;y+=2){
-  float ry=(proj_oy-y-.5f)/240.f,inv=(1-surface_sprite_tan*ry)/plane;if(inv<=0)continue;
+  float ry=(proj_oy-y-1.f)/240.f,inv=(1-surface_sprite_tan*ry)/plane;if(inv<=0)continue;
   float wy=game.pos.y-ground+(ry*surface_cp+surface_sp)/inv;
-  int sy=(int)((1-wy/height)*64);if(sy<0||sy>=64)continue;
-  float left=proj_ox+(base.x-width*.5f)*inv*240,sw=width*inv*240;
+  float v=(1-wy/height)*64;if(v<0||v>=64)continue;int sy=(int)v;
+  float bend=fmaxf(0,wy/height-.30f);float left=proj_ox+(base.x-width*.5f+wind*bend*bend)*inv*240,sw=width*inv*240;
   int lo=other?biome_prop_spans[row*4+kind][sy][0]:lave_sprite_spans[kind][sy][0],hi=other?biome_prop_spans[row*4+kind][sy][1]:lave_sprite_spans[kind][sy][1];if(lo>=hi||sw<.5f)continue;
   int x0=(int)fmaxf(0,ceilf(left+sw*lo/48)),x1=(int)fminf(W-1,left+sw*hi/48);
   unsigned depth=surface_encode_depth(inv);
@@ -143,13 +182,19 @@ static void draw_lave_vegetation(float x,float z,unsigned h,int kind){
   for(int px=x0;px<=x1;px+=2,u+=step*2){
    int at=y*W+px,out=y*STRIDE+px;
    if(depth>surface_depth[at]&&depth>surface_depth[at+1]&&(y+1>surface_y_max||(depth>surface_depth[at+W]&&depth>surface_depth[at+W+1])))continue;
-   int sx=(int)u;if(sx<0||sx>=48)continue;int index=pixels[sy*48+sx];
+   /* Test before truncating: -0.5 is outside the cell, not source column 0.
+    * No wrapping, even when wind or screen-edge clipping shifts a row. */
+   if(u<0||u>=48)continue;int sx=(int)u;int index=pixels[sy*48+sx];
    if(index!=255){unsigned c=palette[index];
     if(depth<=surface_depth[at]){surface_depth[at]=depth;fb[out]=c;}if(depth<=surface_depth[at+1]){surface_depth[at+1]=depth;fb[out+1]=c;}
     if(y+1<=surface_y_max){at+=W;out+=STRIDE;if(depth<=surface_depth[at]){surface_depth[at]=depth;fb[out]=c;}if(depth<=surface_depth[at+1]){surface_depth[at+1]=depth;fb[out+1]=c;}}
    }
   }
  }
+}
+static void draw_lave_vegetation(float x,float z,unsigned h,int kind){
+ float height=kind<4?field_lave_tree_height(h):kind==4?18.f:kind==5?17.f:kind==6?22.f:18.f;
+ draw_lave_vegetation_shape(x,z,h,kind,terrain_height(&game,x,z),height);
 }
 static float planet_ridge_noise(float bearing,unsigned seed,float frequency){
  int period=(int)(frequency*6.2831853f);float u=bearing*period/6.2831853f;int i=(int)floorf(u);float f=u-i;f=f*f*(3-2*f);i=(i%period+period)%period;
@@ -185,14 +230,24 @@ static void surface_box(Vec3 p,float w,float d,float height,unsigned ink){
  if(game.pos.y>y+height)planet_quad(A,B,C,E,mix_rgb(ink,WHITE,.25f));
  if(game.pos.y<y)planet_quad(a,e,c,b,mix_rgb(ink,RGB(10,20,30),.4f));
 }
+static int surface_bridge_only=-1; /* Opt-in angle review; normal play draws all. */
 static void surface_bridges(void){
- if(game.system==7&&game.planet==3)return;
+ if(game.bodies[game.planet].type==GAS)return;
  for(int i=0;i<6;i++){
+  if(surface_bridge_only>=0&&i!=surface_bridge_only)continue;
   Vec3 p,across;if(!terrain_bridge_position(&game,i,&p,&across))continue;
-  Vec3 view=camera(&game,p);if(view.z< -80||view.z>2350||fabsf(view.x)>view.z*1.5f+220)continue;
-  Vec3 along={-across.z,0,across.x},aa=mul(across,178),ww=mul(along,15);float y=p.y+.8f;
+  Vec3 view=camera(&game,p);if(view.z+300.f<4||view.z-300.f>2350||fabsf(view.x)>fmaxf(0,view.z)*1.5f+450.f)continue;
+  Vec3 along={-across.z,0,across.x},aa=mul(across,240),ww=mul(along,26);float y=p.y;
   Vec3 a=add(add(p,aa),ww),b=add(sub(p,aa),ww),c=sub(sub(p,aa),ww),d=add(sub(p,ww),aa);a.y=b.y=c.y=d.y=y;
   planet_quad(a,b,c,d,RGB(88,104,106));
+  Vec3 under[4]={a,b,c,d},topdeck[4]={a,b,c,d};for(int n=0;n<4;n++)under[n].y-=5.f;
+  planet_quad(under[3],under[2],under[1],under[0],RGB(44,58,65));
+  for(int n=0;n<4;n++){int next=(n+1)&3;planet_quad(topdeck[n],topdeck[next],under[next],under[n],RGB(65,80,87));}
+  for(int end=-1;end<=1;end+=2){Vec3 inner=add(p,mul(across,end*240.f)),outer=add(p,mul(across,end*280.f));Vec3 r0=add(inner,ww),r1=sub(inner,ww),r2=sub(outer,ww),r3=add(outer,ww);r0.y=r1.y=y;r2.y=terrain_mesh_height(&game,r2.x,r2.z);r3.y=terrain_mesh_height(&game,r3.x,r3.z);planet_quad(r0,r1,r2,r3,RGB(88,104,106));
+   Vec3 ramp[4]={r0,r1,r2,r3},low[4]={r0,r1,r2,r3};for(int n=0;n<4;n++)low[n].y-=5.f;
+   planet_quad(low[3],low[2],low[1],low[0],RGB(44,58,65));
+   for(int n=0;n<4;n++){int next=(n+1)&3;planet_quad(ramp[n],ramp[next],low[next],low[n],RGB(65,80,87));}
+  }
   for(int rail=-1;rail<=1;rail+=2){
    Vec3 side=mul(ww,(float)rail),r0=add(sub(p,aa),side),r1=add(add(p,aa),side),r2=r1,r3=r0;
    r0.y=r1.y=y+3;r2.y=r3.y=y+13;planet_quad(r0,r1,r2,r3,RGB(168,151,104));
@@ -339,10 +394,15 @@ static void surface_migration_post(Vec3 p,FieldBuilding s,unsigned ink,unsigned 
  (void)seed;
 }
 static void surface_crystal_grotto(Vec3 p,FieldBuilding s,unsigned ink,unsigned seed){
- unsigned base=mix_rgb(ink,RGB(61,54,72),.62f);surface_box(p,s.w,s.d,4,base);
- for(int shard=0;shard<9;shard++){
-  unsigned h=field_hash(seed+shard*313u);float a=shard*.698132f,rad=shard? s.w*(.26f+(h&31)*.012f):0;
-  float x=p.x+cosf(a)*rad,z=p.z+sinf(a)*rad,hh=s.height*(.32f+((h>>7)&63)*.009f),r=5+(h&7);
+ /* Open-front rock shelter. Its side/back walls use field_cave_wall;
+  * the centre aisle is genuinely traversable, not a painted cave mouth. */
+ unsigned base=mix_rgb(ink,RGB(61,54,72),.62f),rock=RGB(68,72,77);
+ for(int side=-1;side<=1;side+=2)surface_box((Vec3){p.x+side*s.w*.85f,p.y,p.z},s.w*.15f,s.d,90,rock);
+ surface_box((Vec3){p.x,p.y,p.z+s.d*.85f},s.w,s.d*.15f,90,RGB(54,61,66));
+ surface_box((Vec3){p.x,p.y+90,p.z},s.w,s.d,24,base);
+ for(int shard=0;shard<7;shard++){
+  unsigned h=field_hash(seed+shard*313u);
+  float x=p.x+(shard<3?(shard-1)*s.w*.55f:(shard&1?1:-1)*s.w*.85f),z=p.z+(shard<3?s.d*.85f:(shard-4)*s.d*.38f),hh=28+((h>>7)&31),r=5+(h&7);
   unsigned crystal=mix_rgb(ink,RGB(129+(h&63),91,215),.58f);
   surface_box((Vec3){x,p.y+4,z},r,r,hh,crystal);surface_box((Vec3){x,p.y+4+hh,z},r*.55f,r*.55f,8,RGB(190,154+(h&63),245));
  }
@@ -378,6 +438,9 @@ static void surface_field_structure(Vec3 p,FieldBuilding shape,int kind,unsigned
   * rejection intended for repeated scenery/airport structures. */
  surface_cull_suspended++;
  if(surface_landmark_v2(p,shape,kind,ink,seed)){surface_cull_suspended--;return;}
+ /* The authored Lave dome used to bypass the graded terrain footing and
+  * start its basement8m below the centre-only height, burying its walls. */
+ if(kind==FIELD_DISH&&planet_lave_i())p.y=lm_ground_foundation(p,shape.w,shape.d,kind,ink,seed)+8.f;
  switch(kind){
   case FIELD_CACHE:surface_supply_cache(p,shape,ink,seed);break;
   case FIELD_RUINS:surface_ruins(p,shape,ink,seed);break;
@@ -416,9 +479,56 @@ static Vec3 surface_sky_ship(int lane){
 }
 #include "planet-ambience.h"
 #include "cloud-render.h"
+#include "atmosphere-clouds.h"
 #include "starport-render.h"
+#include "earth-meadow-render.h"
+/* Opaque depth-tested foliage can precede ground without losing silhouettes. */
+static int planet_visible_props; /* Native review: actual culled production list. */
+static void planet_vegetation(Vec3 pad,const Vec3 *site_positions,const FieldBuilding *site_shapes,Body *b,int biome,unsigned sky_lo){
+ static PlanetProp prop[1024];int nprop=0;
+ unsigned seed=b->seed;
+ float px=pad.x,pz=pad.z;
+ if(!planet_lave_i()){const WorldType *w=&world_types[world_type_seed(seed,b->type)];for(int fog=0;fog<4;fog++)for(int i=0;i<128;i++)biome_prop_inks[fog][i]=surface_shade(mix_rgb(mix_rgb(biome_prop_palette[i],w->accent,.18f),sky_lo,fog*.16f));}
+ if(planet_lave_i()){
+  if(planet_earth_i()){
+   lave_prepare_spans();
+   for(int i=0;i<EARTH_MEADOW_TREES+88;i++){float x,z;unsigned h=planet_hash(i*977u+7381u);int kind;
+    if(i<EARTH_MEADOW_TREES){earth_meadow_tree(i,&x,&z);kind=i%4;}else{x=(int)(h%620)-310;z=(int)((h>>12)%560)-270;kind=4+i%3;if(x*x+z*z<95*95||earth_meadow_water(x,z))continue;}
+    Vec3 v=camera(&game,meadow_ground_point(pad,x,z,30));if(v.z< -60||fabsf(v.x)>v.z*1.4f+90)continue;prop[nprop++]=(PlanetProp){v.z,pad.x+x,pad.z+z,kind,h};
+   }
+  }else lave_prepare_props(pad,site_positions,site_shapes,seed);
+  for(int fog=0;fog<4;fog++)for(int i=0;i<32;i++)lave_tree_inks[fog][i]=surface_shade(mix_rgb(lave_vegetation_palette[i],RGB(117,166,139),fog*.15f));
+  for(int i=0;i<lave_prop_count&&!planet_earth_i()&&nprop<1024;i++){
+   PlanetProp p=lave_prop_cache[i];float dx=p.x-game.pos.x,dz=p.w-game.pos.z;
+   if(planet_earth_i()&&(p.kind<4||((p.h>>8)&7)!=0))continue; /* Open meadow, sparse low plants. */
+   float depth=dx*surface_sy+dz*surface_cy,side=dx*surface_cy-dz*surface_sy;
+   if(depth< -100||depth>1350||fabsf(side)>depth*1.35f+100||(p.kind>=4&&dx*dx+dz*dz>280*280))continue;
+   p.z=depth;prop[nprop++]=p;
+  }
+ }else{
+ if(b->type!=GAS){
+ int tile=game.system==7?70:90,cx0=(int)floorf(game.pos.x/tile),cz0=(int)floorf(game.pos.z/tile),range=game.system==7?14:10;
+ for(int iz=-range;iz<=range&&nprop<1024;iz++)for(int ix=-range;ix<=range&&nprop<1024;ix++){
+  PlanetProp p;if(!planet_other_prop(cx0+ix,cz0+iz,pad,site_positions,site_shapes,seed,biome,&p))continue;
+  Vec3 v=camera(&game,(Vec3){p.x,p.z,p.w});if(v.z<8||v.z>(game.system==7?1280:900)||fabsf(v.x)>v.z*1.4f+100)continue;
+  float dx=p.x-game.pos.x,dz=p.w-game.pos.z;if(game.system==7&&((p.h>>16)%4)!=0&&dx*dx+dz*dz>320*320)continue;
+  p.z=v.z;prop[nprop++]=p;
+ }
+ }
+ }
+ planet_visible_props=nprop;
+ if(nprop>1)qsort(prop,nprop,sizeof(prop[0]),planet_prop_cmp);
+ for(int index=0;index<nprop;index++){int i=game.system==7?nprop-1-index:index;
+  if(planet_lave_i()){draw_lave_vegetation(prop[i].x,prop[i].w,prop[i].h,prop[i].kind);if(prop[i].kind<4&&!planet_earth_i())field_tree_leaves(prop[i].x,prop[i].w,prop[i].h,field_lave_tree_height(prop[i].h));}
+  else {draw_lave_vegetation(prop[i].x,prop[i].w,prop[i].h,prop[i].kind);if(prop[i].kind==0&&(biome==BIOME_FOREST||biome==BIOME_OCEAN))field_tree_leaves(prop[i].x,prop[i].w,prop[i].h,biome==BIOME_FOREST?90.f+(prop[i].h%65):38.f+(prop[i].h%25));}
+  surface_sprite_z=0;
+ }
+ if(b->type==GAS)for(int i=0;i<12;i++){float x=pad.x-250+(i%6)*95,z=pad.z+(i<6?-235:235);draw_lave_vegetation(x,z,seed+i,i%4);}
+ if(planet_earth_i()){earth_meadow_distant_trees(pad);earth_meadow_life(pad);}
+}
 static void planet_view(void){
- field_leaf_count=0;
+ planet_region_material=!planet_earth_i();
+ field_leaf_count=0;if(++eva_ground_epoch>=0x1000000u){memset(eva_ground_stamp,0,sizeof(eva_ground_stamp));eva_ground_epoch=1;}
  sceRtcGetCurrentTick(&lave_render_marks[0]);
  surface_sprite_z=0;surface_depth_on=0;surface_sprite_tan=tanf(game.pitch);
  surface_material=0;surface_trail_enabled=planet_lave_i();surface_cy=cosf(game.yaw);surface_sy=sinf(game.yaw);surface_cp=cosf(game.pitch);surface_sp=sinf(game.pitch);
@@ -426,7 +536,7 @@ static void planet_view(void){
  float daylight=fmaxf(0,fminf(1,sinf(sunangle)*2+.15f));surface_light=.23f+.77f*daylight;
  Body *b=&game.bodies[game.planet];int biome=planet_biome(b);FieldProfile ambience_field=field_profile(&game,game.system,game.planet);SurfaceAmbience ambience=surface_ambience_profile(b,biome,ambience_field);
  audio_surface_ambient=(biome<<2)|(ambience_field.weather&3);
- int top=view_top(),bottom=view_bot()+1;surface_y_min=top;surface_y_max=bottom-1;
+ int top=view_top(),bottom=view_bot()+1;int horizon=110+(int)(tanf(game.pitch)*240.f);surface_y_min=top;surface_y_max=bottom-1;
  surface_top_slope=(proj_oy-top+2)/240.f;surface_bottom_slope=(bottom+2-proj_oy)/240.f;
  surface_top_norm=sqrtf(1+surface_top_slope*surface_top_slope);surface_bottom_norm=sqrtf(1+surface_bottom_slope*surface_bottom_slope);
  /* Broad, sunlit book-cover colour blocks,
@@ -438,16 +548,18 @@ static void planet_view(void){
  if(biome==BIOME_FOREST){sky_hi=mix_rgb(b->color,RGB(70,130,180),.45f);sky_lo=mix_rgb(b->accent,RGB(200,170,110),.4f);}
  if(biome==BIOME_OCEAN){sky_hi=mix_rgb(b->color,RGB(52,144,209),.55f);sky_lo=mix_rgb(b->accent,RGB(255,174,122),.55f);}
  if(planet_lave_i()){sky_hi=RGB(49,120,190);sky_lo=RGB(137,181,171);}
+ if(planet_earth_i()){sky_hi=RGB(54,133,210);sky_lo=RGB(183,211,225);}
  if(game.system==7&&game.planet==2){sky_hi=RGB(54,110,155);sky_lo=RGB(166,178,144);}
- if(game.system==7&&game.planet==3){sky_hi=RGB(65,77,131);sky_lo=RGB(204,161,162);}
+ if(game.bodies[game.planet].type==GAS){sky_hi=RGB(65,77,131);sky_lo=RGB(204,161,162);}
  if(game.system==7&&game.planet==4){sky_hi=RGB(63,110,159);sky_lo=RGB(187,208,223);}
  float sunset=fmaxf(0,1-fabsf(sinf(sunangle))*4);sky_lo=mix_rgb(sky_lo,RGB(238,92,47),sunset*.7f);
  sky_hi=mix_rgb(RGB(4,7,20),sky_hi,daylight);sky_lo=mix_rgb(RGB(16,18,34),sky_lo,fmaxf(daylight,sunset*.35f));
- for(int y=top;y<bottom;y++){
+ for(int y=top;y<bottom&&y<horizon&&!planet_earth_i();y++){
   float t=(y-top)/(float)fmaxf(1,bottom-top);
   unsigned c=mix_rgb(sky_hi,sky_lo,t);
   for(int x=0;x<W;x++)fb[y*STRIDE+x]=c;
  }
+ if(planet_earth_i())earth_meadow_sky(top,bottom);
  Vec3 sunv=camera(&game,add(game.pos,(Vec3){cosf(sunangle)*9000,sinf(sunangle)*9000,2800}));Point sunp=project((Vec3){sunv.x,sunv.y,fmaxf(1,sunv.z)});int sunx=(int)sunp.x,suny=(int)sunp.y;
  if(daylight<.4f)for(int i=0;i<90;i++){unsigned h=planet_hash(i+game.bodies[game.planet].seed);float az=(h%6283)*.001f,el=.12f+((h>>12)%1400)*.001f;Vec3 sv=camera(&game,add(game.pos,(Vec3){sinf(az)*cosf(el)*10000,sinf(el)*10000,cosf(az)*cosf(el)*10000}));if(sv.z>100){Point sp=project(sv);planet_cliprect((int)sp.x,(int)sp.y,1+(i%9==0),1,RGB(160,177,200));}}
  /* Sky disc uses the same animated system sun as orbit / charts — slightly larger warm read. */
@@ -456,13 +568,15 @@ static void planet_view(void){
  if(!high_contrast){
 
  }
- /* Clouds use distant world bearings, rotating and pitching with the camera. */
- for(int i=0;i<10;i++){
-  float a=i*.8976f+(b->seed%628)*.01f+game.world_clock*(.001f+(i%3)*.0002f);
-  Vec3 cloud=add(game.pos,(Vec3){sinf(a)*5000,1100+(i%3)*260,cosf(a)*5000});
+ /* Three world-bearing banks: high haze, middle billows, lower large clouds. */
+ for(int i=0;i<12;i++){
+  int layer=i/4;float distance=layer==0?8500:layer==1?5600:3600;
+  float a=(i%4)*1.5707963f+layer*.61f+(b->seed%628)*.01f+game.world_clock*(.00035f+layer*.00022f);
+  Vec3 cloud=add(game.pos,(Vec3){sinf(a)*distance,layer==0?2400:layer==1?1500:800,cosf(a)*distance});
   Vec3 cv=camera(&game,cloud);if(cv.z<1200)continue;Point cp=project(cv);
-  unsigned ink=mix_rgb(sky_lo,WHITE,biome==BIOME_VOLCANIC?.12f:.55f);
-  int cw=38+(i%3)*17;for(int yy=-10;yy<7;yy++)for(int xx=-cw;xx<cw;xx++){if(yy<0&&abs(xx)>cw-12-abs(yy)*2)continue;int sx=(int)cp.x+xx,sy=(int)cp.y+yy;if(sx>=0&&sx<W&&sy>=top&&sy<bottom)fb[sy*STRIDE+sx]=mix_rgb(fb[sy*STRIDE+sx],ink,(i&1)?.27f:.6f);}
+  unsigned ink=planet_earth_i()?RGB(221,228,221):mix_rgb(sky_lo,sky_hi,.3f);
+  int cw=(int)fminf(250,240*(layer==0?1300.f:1500.f)/cv.z);
+  atmosphere_cloud_sprite((int)cp.x,(int)cp.y,cw,cw*(layer==0?.24f:.43f),i,ink,layer==0?.28f:layer==1?.48f:.64f,top,bottom);
  }
  Vec3 pad=surface_site(&game,1);Vec3 site_positions[10];FieldBuilding site_shapes[10];for(int i=1;i<10;i++){if(i==6)continue;site_positions[i]=surface_poi(&game,i);site_shapes[i]=field_site_building(&game,i);}
  unsigned grass=mix_rgb(b->color,RGB(90,130,60),.55f);
@@ -473,9 +587,12 @@ static void planet_view(void){
  if(biome==BIOME_FOREST)grass=mix_rgb(b->color,RGB(50,110,55),.55f);
  if(biome==BIOME_CLOUD)grass=RGB(100,123,138);
  if(planet_lave_i())grass=RGB(98,137,60);
+ if(planet_earth_i())grass=RGB(113,153,65);
  if(game.system==7&&game.planet==4)grass=RGB(180,200,211);
+ const WorldProfile *world=world_profile(b->seed,b->type);WorldRegion here=world_sample(world,game.pos.x-pad.x,game.pos.z-pad.z);
+ if(!planet_earth_i())grass=here.ground;
  unsigned waterc=biome==BIOME_CLOUD?mix_rgb(sky_lo,WHITE,.3f):mix_rgb(b->color,RGB(52,118,168),.4f);
- int horizon=110+(int)(tanf(game.pitch)*240.f);
+ if(!planet_earth_i()&&b->type!=GAS)waterc=world_types[world->type].water;
  /* Specular glitter on water / ice near the horizon band. */
  if(!high_contrast&&(biome==BIOME_OCEAN||biome==BIOME_ICE)){
   for(int i=0;i<28;i++){
@@ -496,25 +613,26 @@ static void planet_view(void){
  }
  /* Three world-anchored ridge layers break the old evenly repeating skyline
   * into a broad Lave valley with distant blue ranges and nearer green folds. */
- for(int x=0;x<W&&!(game.system==7&&game.planet==3);x+=3){
+ for(int x=0;x<W&&!planet_earth_i()&&!(game.bodies[game.planet].type==GAS);x+=3){
   float bearing=game.yaw+atanf((x-240)/240.f);
   float far=.52f*planet_ridge_noise(bearing,b->seed,7)+.31f*planet_ridge_noise(bearing,b->seed^0x91e10da5u,17)+.17f*planet_ridge_noise(bearing,b->seed^0x63d83595u,39);
   float middle=.58f*planet_ridge_noise(bearing,b->seed^0xa511e9b3u,12)+.42f*planet_ridge_noise(bearing,b->seed^0x7f4a7c15u,31);
   float near=.56f*planet_ridge_noise(bearing,b->seed^0x4cf5ad43u,19)+.44f*planet_ridge_noise(bearing,b->seed^0x52dce729u,47);
-  int fy=horizon-(int)(19+far*32),my=horizon-(int)(8+middle*22),ny=horizon-(int)(3+near*13);
-  unsigned fc=mix_rgb(sky_lo,grass,.20f),mc=mix_rgb(sky_lo,grass,.48f),nc=mix_rgb(grass,b->accent,.35f);
+  float drama=planet_earth_i()?1.65f:biome==BIOME_ICE||biome==BIOME_VOLCANIC?1.7f:1.35f;
+  int fy=horizon-(int)((19+far*44)*drama),my=horizon-(int)(8+middle*29),ny=horizon-(int)(3+near*17);
+  unsigned fc=planet_earth_i()?RGB(130,159,180):mix_rgb(sky_lo,grass,.20f),mc=planet_earth_i()?RGB(115,145,118):mix_rgb(sky_lo,grass,.48f),nc=mix_rgb(grass,b->accent,.35f);
   planet_cliprect(x,fy,3,horizon-fy+1,surface_shade(fc));
   if(far>.82f)planet_cliprect(x,fy,2,2,surface_shade(mix_rgb(fc,RGB(206,218,207),.45f)));
   planet_cliprect(x,my,3,horizon-my+1,surface_shade(mc));
   planet_cliprect(x,ny,3,horizon-ny+1,surface_shade(nc));
  }
- for(int y=horizon>top?horizon:top;y<bottom;y++){
+ for(int y=horizon>top?horizon:top;y<bottom&&!planet_earth_i();y++){
   float t=(y-horizon)/(float)fmaxf(1,bottom-horizon);
   unsigned c=surface_shade(biome==BIOME_OCEAN&&t<.12f?waterc:mix_rgb(grass,mix_rgb(b->accent,RGB(48,78,40),.35f),t*.45f));
-  if(game.system==7&&game.planet==3)c=surface_shade(mix_rgb(waterc,RGB(83,100,146),.25f+.15f*sinf(y*.12f+game.time*.15f)));
+  if(game.bodies[game.planet].type==GAS)c=surface_shade(mix_rgb(waterc,RGB(83,100,146),.25f+.15f*sinf(y*.12f+game.time*.15f)));
   for(int x=0;x<W;x++)fb[y*STRIDE+x]=c;
  }
- if(game.system==7&&game.planet==3){
+ if(game.bodies[game.planet].type==GAS){
   /* Layered cloud sea below the decks; bearings move with the view and wind. */
   for(int layer=0;layer<5;layer++)for(int x=0;x<W;x+=4){
    float bearing=game.yaw+atanf((x-240)/240.f)+game.world_clock*.001f*(layer+1);
@@ -524,19 +642,27 @@ static void planet_view(void){
    planet_cliprect(x,y,4,26+layer*5,ink);
   }
  }
+ /* Earth uses continuous sky and actual distant terrain, no picture overlay. */
  memset(surface_depth,255,sizeof(surface_depth));surface_depth_on=1;
- if(game.system==7){
+ if(!planet_earth_i()){
   /* Draw opaque airport first so expensive textured terrain/foliage behind it
    * fail depth testing. Other worlds retain their legacy depth-reset order. */
   float y=terrain_height(&game,pad.x,pad.z)+.35f;
   planet_quad((Vec3){pad.x-field_port_half(&game),y,pad.z-field_port_half(&game)},(Vec3){pad.x+field_port_half(&game),y,pad.z-field_port_half(&game)},(Vec3){pad.x+field_port_half(&game),y,pad.z+field_port_half(&game)},(Vec3){pad.x-field_port_half(&game),y,pad.z+field_port_half(&game)},RGB(62,80,89));flush_meshes();
-  for(int i=0;i<FIELD_PORT_BUILDINGS;i++){FieldBuilding s=field_port_building(&game,i);Vec3 p={pad.x+s.x,24,pad.z+s.z};surface_starport_building(i,p,s,b->accent);}
+  if(!planet_earth_i())for(int i=0;i<FIELD_PORT_BUILDINGS;i++){FieldBuilding s=field_port_building(&game,i);Vec3 p={pad.x+s.x,24,pad.z+s.z};surface_starport_building(i,p,s,b->accent);}
  }
+ int early_vegetation=eva_fast&&b->type!=GAS&&!planet_earth_i();
+ if(early_vegetation)planet_vegetation(pad,site_positions,site_shapes,b,biome,sky_lo);
  sceRtcGetCurrentTick(&lave_render_marks[1]);
- if(game.system==7){
+ eva_raster_us=0;
   surface_padx=pad.x;surface_padz=pad.z;surface_path_side=b->seed&1?1.f:-1.f;
   surface_ocean=surface_shade(waterc);
+ surface_water_prepare();water_phase=(int)(game.time*3);
+  for(int i=0;i<28;i++)water_palette[i]=surface_shade(mix_rgb(mix_rgb(waterc,RGB(15,50,68),.18f),sky_lo,i<22?i*.014f:.35f+(i-22)*.035f));
+  for(int i=28;i<32;i++)water_palette[i]=surface_shade(mix_rgb(waterc,RGB(201,227,208),.34f+(i-28)*.09f));
   for(int x=0;x<240;x++){float ray=(x*2+1-proj_ox)/240.f;surface_rayx[x]=surface_cy*ray;surface_rayz[x]=-surface_sy*ray;}
+ if(planet_earth_i()){earth_meadow_horizon(top,bottom);earth_meadow_ground(pad);earth_meadow_water_draw(pad);earth_meadow_outcrops(pad);}
+ if(!planet_earth_i()){
   for(int i=0;i<=320;i++){float t=i/320.f;surface_trailx[i]=pad.x-surface_path_side*420*t*(1-t);}
   for(int bank=0;bank<8;bank++)for(int i=0;i<32;i++)surface_meadow[bank][i]=surface_shade(mix_rgb(mix_rgb(RGB(78,119,43),RGB(132,159,72),i/31.f),RGB(29,65,44),bank*.065f));
   for(int i=0;i<16;i++)surface_path[i]=surface_shade(mix_rgb(RGB(137,104,66),RGB(193,155,102),i/15.f));
@@ -545,26 +671,46 @@ static void planet_view(void){
    unsigned hi=game.planet==2?RGB(104,131,70):game.planet==4?RGB(218,228,233):RGB(125,151,164);
    for(int bank=0;bank<8;bank++)for(int i=0;i<32;i++)surface_meadow[bank][i]=surface_shade(mix_rgb(mix_rgb(lo,hi,i/31.f),RGB(38,65,83),bank*.045f));
   }
-  if(game.planet==3){draw_cloud_decks(pad);}
+  if(planet_earth_i()){}
+  else if(b->type==GAS){draw_cloud_decks(pad);}
   else {
   /* One world-aligned lattice shared with collision, including distant hills.
    * No overlapping terrain layers or depth reset between ground and props. */
+  /* Low-density distant terrain carries the real observatory ridge to 7km.
+   * Far tiles never replace the shared 160m collision mesh underfoot. */
   int cell=SURFACE_CELL*4,cx=(int)floorf(game.pos.x/cell),cz=(int)floorf(game.pos.z/cell);
   for(int iz=-14;iz<=14;iz++)for(int ix=-14;ix<=14;ix++){
    float x=(cx+ix)*(float)cell,z=(cz+iz)*(float)cell;
-   if(x>=pad.x-field_port_half(&game)&&x+cell<=pad.x+field_port_half(&game)&&z>=pad.z-field_port_half(&game)&&z+cell<=pad.z+field_port_half(&game))continue; /* Hidden by the port apron. */
+   if(!planet_earth_i()&&x>=pad.x-field_port_half(&game)&&x+cell<=pad.x+field_port_half(&game)&&z>=pad.z-field_port_half(&game)&&z+cell<=pad.z+field_port_half(&game))continue; /* Hidden by the port apron. */
    float dx=x+cell*.5f-game.pos.x,dz=z+cell*.5f-game.pos.z;
    float forward=dx*surface_sy+dz*surface_cy,side=dx*surface_cy-dz*surface_sy;
    if(forward< -240||forward>2240||fabsf(side)>forward*1.45f+240)continue;
    if(drawcount>1800)flush_meshes();
-   float a=terrain_height(&game,x,z),bb=terrain_height(&game,x+cell,z),c=terrain_height(&game,x+cell,z+cell),d=terrain_height(&game,x,z+cell);
+   float a=terrain_mesh_height(&game,x,z),bb=terrain_mesh_height(&game,x+cell,z),c=terrain_mesh_height(&game,x+cell,z+cell),d=terrain_mesh_height(&game,x,z+cell);
    int bank=(int)fmaxf(0,fminf(7,3+(bb-a+c-d)*.035f-(d-a+c-bb)*.02f));
-   surface_material=terrain_is_water(&game,x+cell*.5f,z+cell*.5f)?0:1+bank;
-   planet_quad((Vec3){x,a,z},(Vec3){x+cell,bb,z},(Vec3){x+cell,c,z+cell},(Vec3){x,d,z+cell},surface_material?grass:waterc);
+   surface_material=1+bank;
+   if(!surface_water_region(x,z,x+cell,z+cell))surface_material|=32;
+   /* The curved trail stays within 105 m of the pad's x coordinate. */
+   if(!surface_trail_enabled||x+cell<pad.x-120||x>pad.x+120||z+cell<=pad.z||z>=pad.z+FIELD_OBSERVATORY_DISTANCE)surface_material|=64;
+   planet_quad((Vec3){x,a,z},(Vec3){x+cell,bb,z},(Vec3){x+cell,c,z+cell},(Vec3){x,d,z+cell},world_sample(world,x+cell*.5f-pad.x,z+cell*.5f-pad.z).ground);
   }
+  flush_meshes();
+  surface_material=18;
+  int farcell=SURFACE_CELL*24,fcx=(int)floorf(game.pos.x/farcell),fcz=(int)floorf(game.pos.z/farcell);
+  for(int iz=-8;iz<=8;iz++)for(int ix=-8;ix<=8;ix++){
+   float x=(fcx+ix)*(float)farcell,z=(fcz+iz)*(float)farcell,dx=x+farcell*.5f-game.pos.x,dz=z+farcell*.5f-game.pos.z;
+   float depth=dx*surface_sy+dz*surface_cy,side=dx*surface_cy-dz*surface_sy;
+   if(depth<1900||depth>7000||fabsf(side)>depth*1.25f+600)continue;
+   float a=terrain_mesh_height(&game,x,z),bb=terrain_mesh_height(&game,x+farcell,z),c=terrain_mesh_height(&game,x+farcell,z+farcell),d=terrain_mesh_height(&game,x,z+farcell);
+   unsigned farink=mix_rgb(world_sample(world,x+farcell*.5f-pad.x,z+farcell*.5f-pad.z).ground,sky_lo,fminf(.62f,depth/12000.f));
+   surface_material=surface_water_region(x,z,x+farcell,z+farcell)?18:0;
+   planet_quad((Vec3){x,a,z},(Vec3){x+farcell,bb,z},(Vec3){x+farcell,c,z+farcell},(Vec3){x,d,z+farcell},farink);
+   if(drawcount>1800)flush_meshes();
+  }flush_meshes();
   flush_meshes();surface_material=0;
   }
- }else{
+ }else if(!planet_earth_i()){
+ surface_material=18;
  /* Coarse outer terrain carries the ground right out to remote POIs.  It is
   * deliberately low density; the old detailed grid still takes over nearby. */
  int far_cell=280,far_span=8;
@@ -572,12 +718,13 @@ static void planet_view(void){
  for(int iz=0;iz<far_span*2+1;iz++)for(int ix=0;ix<far_span*2+1;ix++){
   float x0=(fgx0+ix)*(float)far_cell,z0=(fgz0+iz)*(float)far_cell,x1=x0+far_cell,z1=z0+far_cell;
   if(x0>=pad.x-field_port_half(&game)&&x1<=pad.x+field_port_half(&game)&&z0>=pad.z-field_port_half(&game)&&z1<=pad.z+field_port_half(&game))continue;
-  float cx=x0+far_cell*.5f,cz=z0+far_cell*.5f,gy=terrain_height(&game,cx,cz);
+  float cx=x0+far_cell*.5f,cz=z0+far_cell*.5f,gy=terrain_mesh_height(&game,cx,cz);
   Vec3 mid=camera(&game,(Vec3){cx,gy,cz});if(mid.z<-180||mid.z>2450)continue;
-  int water=terrain_is_water(&game,cx,cz);unsigned far_hash=planet_hash(b->seed^(unsigned)(fgx0+ix)*73856093u^(unsigned)(fgz0+iz)*19349663u);
-  unsigned col=water?waterc:planet_lave_i()?mix_rgb(grass,RGB(53,116,48),.05f+(far_hash&15)*.006f):mix_rgb(grass,b->accent,((ix+iz)&1)?.18f:.31f);
-  planet_quad((Vec3){x0,terrain_height(&game,x0,z0),z0},(Vec3){x1,terrain_height(&game,x1,z0),z0},
-              (Vec3){x1,terrain_height(&game,x1,z1),z1},(Vec3){x0,terrain_height(&game,x0,z1),z1},col);
+  unsigned far_hash=planet_hash(b->seed^(unsigned)(fgx0+ix)*73856093u^(unsigned)(fgz0+iz)*19349663u);
+  unsigned col=planet_lave_i()?mix_rgb(grass,RGB(53,116,48),.05f+(far_hash&15)*.006f):mix_rgb(grass,b->accent,((ix+iz)&1)?.18f:.31f);
+  surface_material=surface_water_region(x0,z0,x1,z1)?18:0;
+  planet_quad((Vec3){x0,terrain_mesh_height(&game,x0,z0),z0},(Vec3){x1,terrain_mesh_height(&game,x1,z0),z0},
+              (Vec3){x1,terrain_mesh_height(&game,x1,z1),z1},(Vec3){x0,terrain_mesh_height(&game,x0,z1),z1},col);
  }
  /* Commit the coarse horizon first.  The detailed central mesh gets a fresh
   * depth buffer below, so coplanar terrain cannot flicker as the player moves. */
@@ -588,28 +735,36 @@ static void planet_view(void){
   float x0=(gx0+ix)*(float)cell,z0=(gz0+iz)*(float)cell,x1=x0+cell,z1=z0+cell;
   if(x0>=pad.x-field_port_half(&game)&&x1<=pad.x+field_port_half(&game)&&z0>=pad.z-field_port_half(&game)&&z1<=pad.z+field_port_half(&game))continue;
   float cx=x0+cell*.5f,cz=z0+cell*.5f;
-  float gy=terrain_height(&game,cx,cz);
+  float gy=terrain_mesh_height(&game,cx,cz);
   Vec3 mid=camera(&game,(Vec3){cx,gy,cz});if(mid.z< -60||mid.z>620)continue;
-  int water=terrain_is_water(&game,cx,cz);
+
   int checker=((gx0+ix)+(gz0+iz))&1;
   unsigned patch_hash=planet_hash(b->seed^(unsigned)(gx0+ix)*73856093u^(unsigned)(gz0+iz)*19349663u);
-  unsigned col=water?waterc:planet_lave_i()?mix_rgb(grass,RGB(66,132,54),.035f+(patch_hash&15)*.008f):checker?grass:mix_rgb(grass,b->accent,.28f);
-  planet_quad((Vec3){x0,terrain_height(&game,x0,z0),z0},(Vec3){x1,terrain_height(&game,x1,z0),z0},
-              (Vec3){x1,terrain_height(&game,x1,z1),z1},(Vec3){x0,terrain_height(&game,x0,z1),z1},col);
+  unsigned col=planet_lave_i()?mix_rgb(grass,RGB(66,132,54),.035f+(patch_hash&15)*.008f):checker?grass:mix_rgb(grass,b->accent,.28f);
+  surface_material=surface_water_region(x0,z0,x1,z1)?18:0;
+  planet_quad((Vec3){x0,terrain_mesh_height(&game,x0,z0),z0},(Vec3){x1,terrain_mesh_height(&game,x1,z0),z0},
+              (Vec3){x1,terrain_mesh_height(&game,x1,z1),z1},(Vec3){x0,terrain_mesh_height(&game,x0,z1),z1},col);
  }
  }
+ surface_material=0;
  surface_bridges();
  sceRtcGetCurrentTick(&lave_render_marks[2]);
  /* Stable, biome-authored ground cover. Density is bounded by the ambience
   * profile and every tuft stays tied to its world cell while the player moves. */
- if(ambience.ground_density>0&&game.system!=7&&!(planet_scene_camera==1&&game.pos.y-terrain_height(&game,game.pos.x,game.pos.z)>100)){
+ if(ambience.ground_density>0&&(game.system!=7||planet_lave_i())&&!(planet_scene_camera==1&&game.pos.y-terrain_height(&game,game.pos.x,game.pos.z)>100)){
   unsigned grass_ink=biome==BIOME_DESERT?mix_rgb(grass,RGB(157,119,55),.55f):biome==BIOME_ICE?mix_rgb(grass,RGB(132,184,201),.48f):biome==BIOME_OCEAN?mix_rgb(grass,RGB(43,123,91),.52f):mix_rgb(grass,RGB(46,112,48),.48f);
-  int grass_cell=planet_lave_i()?56:80,gcx=(int)floorf(game.pos.x/grass_cell),gcz=(int)floorf(game.pos.z/grass_cell);
-  for(int gz=-4;gz<=4;gz++)for(int gx=-4;gx<=4;gx++){
+  int grass_cell=planet_lave_i()?70:80,gcx=(int)floorf(game.pos.x/grass_cell),gcz=(int)floorf(game.pos.z/grass_cell),range=planet_lave_i()?2:4;
+  for(int gz=-range;gz<=range;gz++)for(int gx=-range;gx<=range;gx++){
    int cx=gcx+gx,cz=gcz+gz;unsigned h=planet_hash(b->seed^(unsigned)cx*73856093u^(unsigned)cz*19349663u);
    if((int)(h&3)>=ambience.ground_density)continue;
-   float x=cx*grass_cell+12+(h%54),z=cz*grass_cell+12+((h>>8)%54);if(terrain_is_water(&game,x,z))continue;
-   float y=terrain_height(&game,x,z),height=planet_lave_i()?10.f+(h&7):(biome==BIOME_OCEAN?9.f:biome==BIOME_DESERT?3.f:4.f)+(h&7);Vec3 mid=camera(&game,(Vec3){x,y+height*.5f,z});if(mid.z<14||mid.z>580)continue;
+   if(!planet_earth_i()){WorldRegion r=world_sample(world,cx*grass_cell-pad.x,cz*grass_cell-pad.z);if(!world_types[world->type].trees||((h>>16)%100)>r.density)continue;}
+   float x=cx*(float)grass_cell+12+(h%54),z=cz*(float)grass_cell+12+((h>>8)%54);if(terrain_water_tile(&game,x,z))continue;
+   if(planet_lave_i()&&!planet_earth_i()){
+    if(fabsf(x-pad.x)<field_port_clear(&game)&&fabsf(z-pad.z)<field_port_clear(&game))continue;
+    float t=(z-pad.z)/FIELD_OBSERVATORY_DISTANCE;
+    if(t>0&&t<1&&fabsf(x-(pad.x-surface_path_side*420*t*(1-t)))<16)continue;
+   }
+   float y=terrain_height(&game,x,z),height=planet_lave_i()?2.f+(h&3):(biome==BIOME_OCEAN?9.f:biome==BIOME_DESERT?3.f:4.f)+(h&7);Vec3 mid=camera(&game,(Vec3){x,y+height*.5f,z});if(mid.z<14||mid.z>(planet_lave_i()?220:580))continue;
    float sway=sinf(game.time*1.6f+(h&255))*.9f,width=1.5f+(h>>5&1);
    planet_quad((Vec3){x-width,y,z},(Vec3){x+width,y,z},(Vec3){x+sway+width*.35f,y+height,z},(Vec3){x+sway-width*.35f,y+height,z},grass_ink);
    planet_quad((Vec3){x,y,z-width},(Vec3){x,y,z+width},(Vec3){x+sway*.6f,y+height,z+width*.35f},(Vec3){x+sway*.6f,y+height,z-width*.35f},mix_rgb(grass_ink,b->accent,.2f));
@@ -617,26 +772,26 @@ static void planet_view(void){
    else if(biome==BIOME_ICE&&(h&15)==2)surface_ambient_mark((Vec3){x,y+height+2,z},2,3,RGB(187,225,239));
   }
  }
- {
+ if(!planet_earth_i()){
   float y=terrain_height(&game,pad.x,pad.z)+.35f;
   planet_quad((Vec3){pad.x-field_port_half(&game),y,pad.z-field_port_half(&game)},(Vec3){pad.x+field_port_half(&game),y,pad.z-field_port_half(&game)},(Vec3){pad.x+field_port_half(&game),y,pad.z+field_port_half(&game)},(Vec3){pad.x-field_port_half(&game),y,pad.z+field_port_half(&game)},RGB(62,80,89));
   /* Wide clear circulation lanes, not additional collision obstacles. */
   for(int side=-1;side<=1;side+=2){
    float x=pad.x+side*185;
-   planet_quad((Vec3){x-1,y+.08f,pad.z-700},(Vec3){x+1,y+.08f,pad.z-700},(Vec3){x+1,y+.08f,pad.z+700},(Vec3){x-1,y+.08f,pad.z+700},RGB(211,169,86));
+   planet_quad((Vec3){x-1,y+.08f,pad.z-field_port_half(&game)+20},(Vec3){x+1,y+.08f,pad.z-field_port_half(&game)+20},(Vec3){x+1,y+.08f,pad.z+field_port_half(&game)-20},(Vec3){x-1,y+.08f,pad.z+field_port_half(&game)-20},RGB(211,169,86));
   }
-  for(int i=-17;i<=17;i++){
+  for(int i=-(int)(field_port_half(&game)/40)+1;i<(int)(field_port_half(&game)/40);i++){
    float z=pad.z+i*40;planet_quad((Vec3){pad.x-2,y+.1f,z},(Vec3){pad.x+2,y+.1f,z},(Vec3){pad.x+2,y+.1f,z+16},(Vec3){pad.x-2,y+.1f,z+16},RGB(158,191,194));
   }
-  for(int i=0;i<20;i++)for(int side=-1;side<=1;side+=2){Vec3 p={pad.x+side*198,y,pad.z-700+i*72};surface_box(p,2,2,2,RGB(61,196,211));}
+  for(int i=0;i<12;i++)for(int side=-1;side<=1;side+=2){Vec3 p={pad.x+side*198,y,pad.z-field_port_half(&game)+20+i*(field_port_half(&game)-20)*2/11.f};surface_box(p,2,2,2,RGB(61,196,211));}
  }
  {
-  float px=pad.x,pz=pad.z,h=terrain_height(&game,px,pz)+.6f,s=FIELD_PLAYER_PAD;
+  float px=pad.x,pz=pad.z,h=terrain_height(&game,px,pz)+.6f,s=planet_earth_i()?65.f:FIELD_PLAYER_PAD,sd=planet_earth_i()?65.f:FIELD_PLAYER_PAD_DEPTH;
   unsigned slab=RGB(55,72,85),edge=RGB(96,150,163),mark=RGB(248,252,236);
   /* Warm ochre apron so the pad reads as maintained hardware, not a UI glyph. */
-  planet_quad((Vec3){px-s-8,h-.1f,pz-s-8},(Vec3){px+s+8,h-.1f,pz-s-8},(Vec3){px+s+8,h-.1f,pz+s+8},(Vec3){px-s-8,h-.1f,pz+s+8},RGB(139,75,55));
-  planet_quad((Vec3){px-s-5,h,pz-s-5},(Vec3){px+s+5,h,pz-s-5},(Vec3){px+s+5,h,pz+s+5},(Vec3){px-s-5,h,pz+s+5},edge);
-  planet_quad((Vec3){px-s,h+.2f,pz-s},(Vec3){px+s,h+.2f,pz-s},(Vec3){px+s,h+.2f,pz+s},(Vec3){px-s,h+.2f,pz+s},slab);
+  planet_quad((Vec3){px-s-8,h-.1f,pz-sd-8},(Vec3){px+s+8,h-.1f,pz-sd-8},(Vec3){px+s+8,h-.1f,pz+sd+8},(Vec3){px-s-8,h-.1f,pz+sd+8},RGB(139,75,55));
+  planet_quad((Vec3){px-s-5,h,pz-sd-5},(Vec3){px+s+5,h,pz-sd-5},(Vec3){px+s+5,h,pz+sd+5},(Vec3){px-s-5,h,pz+sd+5},edge);
+  planet_quad((Vec3){px-s,h+.2f,pz-sd},(Vec3){px+s,h+.2f,pz-sd},(Vec3){px+s,h+.2f,pz+sd},(Vec3){px-s,h+.2f,pz+sd},slab);
   planet_quad((Vec3){px-3,h+.4f,pz-24},(Vec3){px+3,h+.4f,pz-24},(Vec3){px+3,h+.4f,pz+24},(Vec3){px-3,h+.4f,pz+24},mark);
   planet_quad((Vec3){px-24,h+.4f,pz-3},(Vec3){px+24,h+.4f,pz-3},(Vec3){px+24,h+.4f,pz+3},(Vec3){px-24,h+.4f,pz+3},mark);
   if(game.surface==0){
@@ -646,7 +801,7 @@ static void planet_view(void){
   /* Pad corner beacons — presentation pulse. */
   if(!high_contrast&&game.surface!=2){
    for(int c=0;c<4;c++){
-    float ox=(c&1)?s:-s,oz=(c&2)?s:-s;
+    float ox=(c&1)?s:-s,oz=(c&2)?sd:-sd;
     Vec3 cv=camera(&game,(Vec3){px+ox,h+1.f,pz+oz});if(cv.z<12||cv.z>520)continue;
     Point cp=project(cv);if(cp.y<top||cp.y>bottom)continue;
     unsigned lamp=((int)(game.time*3)+c)&2?RGB(255,183,76):RGB(211,145,65);
@@ -654,70 +809,35 @@ static void planet_view(void){
    }
   }
  }
- for(int poi=1;poi<10;poi++){if(poi==6)continue;
-  Vec3 p=site_positions[poi];p.y=terrain_height(&game,p.x,p.z);FieldBuilding bounds=site_shapes[poi];Vec3 v=camera(&game,add(p,(Vec3){0,bounds.height*.5f,0}));float radius=sqrtf(bounds.w*bounds.w+bounds.d*bounds.d+bounds.height*bounds.height*.25f)+6;if(v.z+radius<4||v.z-radius>2250||fabsf(v.x)>v.z+radius*1.5f||fabsf(v.y)>.65f*v.z+radius*1.5f)continue;
+ flush_meshes();
+ if(!planet_earth_i())for(int poi=1;poi<10;poi++){if(poi==6)continue;
+  Vec3 p=site_positions[poi];p.y=terrain_height(&game,p.x,p.z);FieldBuilding bounds=site_shapes[poi];
+  int ground_kind=field_site_kind(&game,game.system,game.planet,poi);if(poi==1){static const int kinds[]={FIELD_WEATHER,FIELD_GARDEN,FIELD_ARCHIVE};ground_kind=kinds[field_profile(&game,game.system,game.planet).job];}
+  float origin=(ground_kind==FIELD_CRYSTAL&&b->type!=GAS)?p.y:lm_footing_grade(p,bounds.w,bounds.d,ground_kind)+(lm_natural_site(ground_kind)?.15f:1.2f)+(ground_kind==FIELD_DISH&&planet_lave_i()?8.f:0);
+  Vec3 v=camera(&game,(Vec3){p.x,origin+bounds.height*.5f,p.z});float radius=sqrtf(bounds.w*bounds.w+bounds.d*bounds.d+bounds.height*bounds.height*.25f)+6;if(v.z+radius<4||v.z-radius>(poi==2&&planet_lave_i()?6500:2250)||fabsf(v.x)>v.z+radius*1.5f||fabsf(v.y)>.65f*v.z+radius*1.5f)continue;
   unsigned ink=game.surface_progress[game.system][game.planet]&field_site_bit(poi)?RGB(75,105,95):RGB(190,158,87);
   FieldBuilding shape=site_shapes[poi];
   int site_kind=field_site_kind(&game,game.system,game.planet,poi);
   if(poi==1){static const int contract_shape[]={FIELD_WEATHER,FIELD_GARDEN,FIELD_ARCHIVE};site_kind=contract_shape[field_profile(&game,game.system,game.planet).job];}
   surface_field_structure(p,shape,site_kind,ink,field_hash(field_seed(game.system,game.planet)+poi*7159u));
  }
- for(int i=0;i<3;i++){const FieldBuilding *s=&field_garage_walls[i];Vec3 p={pad.x+s->x,terrain_height(&game,pad.x,pad.z),pad.z+s->z};surface_box(p,s->w,s->d,s->height,RGB(105,133,148));}
- {Vec3 roof={pad.x+FIELD_GARAGE_X,terrain_height(&game,pad.x,pad.z)+48,pad.z-20};surface_box(roof,46,48,4,RGB(49,93,111));}
- if(!game.rover_driving&&!(planet_scene_camera==2&&length(sub(game.pos,game.rover_pos))<70)){Vec3 rv=game.rover_pos;float base=terrain_height(&game,rv.x,rv.z);for(int wheel=0;wheel<4;wheel++)base=fmaxf(base,terrain_height(&game,rv.x+((wheel&1)?11:-11),rv.z+((wheel&2)?10:-10)));rv.y=base+5;surface_box(rv,10,16,8,RGB(179,126,57));rv.z-=3;rv.y=base+13;surface_box(rv,7,8,10,RGB(56,115,136));for(int wheel=0;wheel<4;wheel++){Vec3 w=game.rover_pos;w.x+=(wheel&1)?11:-11;w.z+=(wheel&2)?10:-10;w.y=base+.7f;surface_box(w,3,4,9,RGB(28,33,37));}}
+ /* Keep landmark coplanar details in their own sort batch. Airport/rover box
+  * rejection must not change equal-depth ownership inside the POI kit. */
  flush_meshes();
- surface_ambient_particles(b,ambience,ambience_field);
- surface_ambient_birds(b,ambience,daylight);
- surface_poi_ambient_fx(site_positions,site_shapes,b);
+ if(!planet_earth_i())for(int i=0;i<3;i++){const FieldBuilding *s=&field_garage_walls[i];Vec3 p={pad.x+s->x,terrain_height(&game,pad.x,pad.z),pad.z+s->z};surface_box(p,s->w,s->d,s->height,RGB(105,133,148));}
+ if(!planet_earth_i()){Vec3 roof={pad.x+FIELD_GARAGE_X,terrain_height(&game,pad.x,pad.z)+48,pad.z-20};surface_box(roof,46,48,4,RGB(49,93,111));}
+ if(!planet_earth_i()&&!game.rover_driving&&!(planet_scene_camera==2&&length(sub(game.pos,game.rover_pos))<70)){Vec3 rv=game.rover_pos;float base=terrain_height(&game,rv.x,rv.z);for(int wheel=0;wheel<4;wheel++)base=fmaxf(base,terrain_height(&game,rv.x+((wheel&1)?11:-11),rv.z+((wheel&2)?10:-10)));rv.y=base+5;surface_box(rv,10,16,8,RGB(179,126,57));rv.z-=3;rv.y=base+13;surface_box(rv,7,8,10,RGB(56,115,136));for(int wheel=0;wheel<4;wheel++){Vec3 w=game.rover_pos;w.x+=(wheel&1)?11:-11;w.z+=(wheel&2)?10:-10;w.y=base+.7f;surface_box(w,3,4,9,RGB(28,33,37));}}
+ flush_meshes();
+ if(!planet_earth_i()){surface_ambient_particles(b,ambience,ambience_field);surface_ambient_birds(b,ambience,daylight);}
+ if(!planet_earth_i())surface_poi_ambient_fx(site_positions,site_shapes,b);
  sceRtcGetCurrentTick(&lave_render_marks[3]);
- static PlanetProp prop[1024];int nprop=0;
- unsigned seed=b->seed;
- float px=pad.x,pz=pad.z;
- if(game.system==7&&game.planet>1)for(int fog=0;fog<4;fog++)for(int i=0;i<128;i++)biome_prop_inks[fog][i]=surface_shade(mix_rgb(biome_prop_palette[i],sky_lo,fog*.16f));
- if(planet_lave_i()){
-  lave_prepare_props(pad,site_positions,site_shapes,seed);
-  for(int fog=0;fog<4;fog++)for(int i=0;i<32;i++)lave_tree_inks[fog][i]=surface_shade(mix_rgb(lave_vegetation_palette[i],RGB(117,166,139),fog*.15f));
-  for(int i=0;i<lave_prop_count&&nprop<1024;i++){
-   PlanetProp p=lave_prop_cache[i];float dx=p.x-game.pos.x,dz=p.w-game.pos.z;
-   float depth=dx*surface_sy+dz*surface_cy,side=dx*surface_cy-dz*surface_sy;
-   if(depth< -100||depth>1350||fabsf(side)>depth*1.35f+100||(p.kind>=4&&dx*dx+dz*dz>280*280))continue;
-   p.z=depth;prop[nprop++]=p;
-  }
- }else{
- /* Stable cells follow the player, so wilderness does not stop at the pad. */
- int tile=game.system==7?70:90,cx0=(int)floorf(game.pos.x/tile),cz0=(int)floorf(game.pos.z/tile);
- int range=game.system==7?14:4;
- for(int iz=-range;iz<=range&&nprop<1024;iz++)for(int ix=-range;ix<=range&&nprop<1024;ix++){
-  unsigned h;float x,z;int lave_tree=0;
-  if(planet_lave_i())lave_tree=field_lave_tree_cell(seed,cx0+ix,cz0+iz,&x,&z,&h);
-  else {field_prop_cell(game.system,game.planet,seed,cx0+ix,cz0+iz,&x,&z,&h);if(game.system!=7&&biome!=BIOME_FOREST&&(h&3)==0)continue;}
-  float dx=x-game.pos.x,dz=z-game.pos.z,depth=dx*surface_sy+dz*surface_cy,side=dx*surface_cy-dz*surface_sy;
-  if(planet_lave_i()&&(depth< -100||depth>1350||fabsf(side)>depth*1.5f+150||(!lave_tree&&dx*dx+dz*dz>280*280)))continue;
-  if(terrain_is_water(&game,x,z)||(fabsf(x-px)<field_port_clear(&game)&&fabsf(z-pz)<field_port_clear(&game)))continue;
-  if(planet_lave_i()){float t=(z-pz)/FIELD_OBSERVATORY_DISTANCE;if(t>0&&t<1&&fabsf(x-(px-surface_path_side*420*t*(1-t)))<38)continue;}
-  int reserved=0;for(int i=1;i<10;i++){if(i==6)continue;if(fabsf(x-site_positions[i].x)<site_shapes[i].w+30&&fabsf(z-site_positions[i].z)<site_shapes[i].d+30){reserved=1;break;}}if(reserved)continue;
-  Vec3 v=camera(&game,(Vec3){x,terrain_height(&game,x,z),z});if(!planet_lave_i()&&(v.z<8||v.z>(game.system==7?1280:560)||fabsf(v.x)>v.z*1.4f+100))continue;
-  int kind=(h>>16)%4;
-  if(game.system==7&&game.planet==4&&(kind==1||kind==3)&&(h&1))continue;
-  if(game.system==7&&kind!=0&&dx*dx+dz*dz>320*320)continue;
-  if(game.system==7&&game.planet==3)continue; /* Purpose-placed planters below. */
-  if(planet_lave_i()&&!lave_tree){int detail=(h>>12)&7;kind=detail<2?4:detail<4?5:detail<6?6:7;}
-  else if(biome==BIOME_DESERT||biome==BIOME_VOLCANIC)kind=kind==0?2:kind;
-  prop[nprop++]=(PlanetProp){v.z,x,z,kind,h};
- }
- }
- if(nprop>1)qsort(prop,nprop,sizeof(prop[0]),planet_prop_cmp);
- for(int index=0;index<nprop;index++){int i=game.system==7?nprop-1-index:index;
-  if(planet_lave_i()){draw_lave_vegetation(prop[i].x,prop[i].w,prop[i].h,prop[i].kind);if(prop[i].kind<4)field_tree_leaves(prop[i].x,prop[i].w,prop[i].h,58.f+((prop[i].h>>9)%31));}
-  else {if(game.system==7)draw_lave_vegetation(prop[i].x,prop[i].w,prop[i].h,prop[i].kind);else draw_tree_billboard(prop[i].x,prop[i].w,prop[i].h,prop[i].kind);if(prop[i].kind==0&&(biome==BIOME_FOREST||biome==BIOME_OCEAN))field_tree_leaves(prop[i].x,prop[i].w,prop[i].h,biome==BIOME_FOREST?90.f+(prop[i].h%65):38.f+(prop[i].h%25));}
-  surface_sprite_z=0;
- }
- if(game.system==7&&game.planet==3)for(int i=0;i<12;i++){float x=pad.x-250+(i%6)*95,z=pad.z+(i<6?-235:235);draw_lave_vegetation(x,z,seed+i,i%4);}
+ if(!early_vegetation)planet_vegetation(pad,site_positions,site_shapes,b,biome,sky_lo);
  sceRtcGetCurrentTick(&lave_render_marks[4]);
 /* Large port: shared collision geometry, perpetual staggered traffic. */
  if(game.system!=7)for(int i=0;i<FIELD_PORT_BUILDINGS;i++){FieldBuilding structure=field_port_building(&game,i);const FieldBuilding *s=&structure;Vec3 p={pad.x+s->x,0,pad.z+s->z};p.y=terrain_height(&game,p.x,p.z);surface_starport_building(i,p,*s,b->accent);}
- for(int lane=0;lane<2;lane++){Vec3 p={pad.x+(lane?FIELD_TRAFFIC_X:-FIELD_TRAFFIC_X),0,pad.z+FIELD_TRAFFIC_Z};p.y=terrain_height(&game,p.x,p.z)+.8f;surface_heavy_berth(p,lane);
- float t=fmodf(game.world_clock+lane*63+(b->seed%40),150),lift=t<40?(40-t)*(40-t)*.8f:t<90?0:(t-90)*(t-90)*.8f;
+ if(!planet_earth_i())for(int lane=0;lane<2;lane++){Vec3 p={pad.x+(lane?FIELD_TRAFFIC_X:-FIELD_TRAFFIC_X),0,pad.z+FIELD_TRAFFIC_Z};p.y=terrain_height(&game,p.x,p.z)+.8f;surface_heavy_berth(p,lane);
+ float lift=field_traffic_lift(&game,lane);
+ if(game.local_pilot){surface_building_sign(add(p,(Vec3){0,8,-FIELD_TRAFFIC_PAD}),(Vec3){1,0,0},100,lane?"PILOT 2":"PILOT 1");continue;} /* Player-owned berths. */
  Vec3 traffic=p;traffic.y+=32+lift;traffic.z+=lift*.15f;
  shipmesh_stretched(mesh_id(lane?"ANACONDA":"PYTHON"),traffic,lane?3.14159f:0,0,.6f,1, lane?RGB(225,146,71):RGB(100,185,218),0);
  }flush_meshes();
@@ -730,7 +850,7 @@ static void planet_view(void){
 
 
 
- for(int lane=0;lane<5;lane++){Vec3 p=surface_sky_ship(lane);Vec3 pad0=surface_site(&game,1);float heading=atan2f(p.z-pad0.z,-(p.x-pad0.x));shipmesh_stretched(mesh_id(lane%2?"COBRA MK 3":"ADDER"),p,heading,0,.5f+lane*.12f,1,RGB(157+lane*15,184,213-lane*18),0);}flush_meshes();
+ if(!planet_earth_i())for(int lane=0;lane<5;lane++){Vec3 p=surface_sky_ship(lane);Vec3 pad0=surface_site(&game,1);float heading=atan2f(p.z-pad0.z,-(p.x-pad0.x));shipmesh_stretched(mesh_id(lane%2?"COBRA MK 3":"ADDER"),p,heading,0,.5f+lane*.12f,1,RGB(157+lane*15,184,213-lane*18),0);}flush_meshes();
  /* Keep the parked hull readable as a ship, not a debug-sized wireframe.
   * The close surface camera has very little depth, so use a restrained native
   * scale while retaining the same mesh identity and landing/boarding state. */
@@ -743,16 +863,18 @@ static void planet_view(void){
   float scale=game.surface==1?.66f:.72f,low=0;const Mesh *hull=&meshes[mesh_id(player_ships[game.ship].name)];
   for(int i=0;i<hull->vertices;i++)low=fminf(low,hull->v[i].y*scale);
   ship_pos.y=terrain_height(&game,ship_pos.x,ship_pos.z)+2-low;
-  shipmesh_stretched(mesh_id(player_ships[game.ship].name),ship_pos,game.surface==1?game.yaw:0,0,scale,1.f,ship_paint[game.ship%16],0);flush_meshes();
+  shipmesh_stretched(mesh_id(player_ships[game.ship].name),ship_pos,game.surface==1?game.yaw:0,0,scale,1.f,ship_paint[game.ship],0);flush_meshes();
  }
+ wifi_surface_draw();
  for(int i=0;i<LIFE_COUNT;i++)field_fauna_shadow(&game.life[i]);
- for(int i=0;i<LIFE_COUNT;i++)if(game.life[i].alive){Lifeform *l=&game.life[i];if(game.system==7&&game.planet==3&&l->kind!=LIFE_FAUNA){Vec3 p=l->pos;p.y=terrain_height(&game,p.x,p.z);surface_box(p,9,9,5,RGB(79,108,131));flush_meshes();}draw_life_billboard(l);}
- for(int poi=1;poi<10;poi++){if(poi==6)continue;FieldBuilding shape=site_shapes[poi];Vec3 p=site_positions[poi],across={1,0,0};float width=shape.w*.8f;
- float high=terrain_height(&game,p.x,p.z);for(int i=0;i<4;i++)high=fmaxf(high,terrain_height(&game,p.x+(i&1?shape.w:-shape.w),p.z+(i&2?shape.d:-shape.d)));
+ for(int i=0;i<LIFE_COUNT;i++)if(game.life[i].alive){Lifeform *l=&game.life[i];if(game.bodies[game.planet].type==GAS&&l->kind!=LIFE_FAUNA){Vec3 p=l->pos;p.y=terrain_height(&game,p.x,p.z);surface_box(p,9,9,5,RGB(79,108,131));flush_meshes();}draw_life_billboard(l);}
+ for(int poi=1;poi<10;poi++){if(poi==6||planet_earth_i())continue;FieldBuilding shape=site_shapes[poi];Vec3 p=site_positions[poi],across={1,0,0};float width=shape.w*.8f;
+ int kind=field_site_kind(&game,game.system,game.planet,poi);if(poi==1){static const int kinds[]={FIELD_WEATHER,FIELD_GARDEN,FIELD_ARCHIVE};kind=kinds[field_profile(&game,game.system,game.planet).job];}
+ float high=(kind==FIELD_CRYSTAL&&b->type!=GAS)?terrain_height(&game,p.x,p.z):lm_footing_grade(p,shape.w,shape.d,kind)+(lm_natural_site(kind)?.15f:1.2f)+(kind==FIELD_DISH&&planet_lave_i()?8.f:0);
  p.y=high+17;p.z-=shape.d*.95f+.65f;
  Vec3 sign_view=camera(&game,p);if(sign_view.z<4||sign_view.z>900||fabsf(sign_view.x)>sign_view.z+width||fabsf(sign_view.y)>.65f*sign_view.z+width)continue;
  char sign[32];snprintf(sign,sizeof(sign),"%d %s",field_nav_number(poi),field_site_sign(&game,poi));surface_building_sign(p,across,width,sign);}
- {float y=terrain_height(&game,pad.x,pad.z)+27;
+ if(!planet_earth_i()){float y=terrain_height(&game,pad.x,pad.z)+27;
  if(game.pos.x<pad.x+FIELD_GARAGE_X-46)surface_building_sign((Vec3){pad.x+FIELD_GARAGE_X-46.6f,y,pad.z-20},(Vec3){0,0,-1},48,"GARAGE");
  if(game.pos.x>pad.x+FIELD_GARAGE_X+46)surface_building_sign((Vec3){pad.x+FIELD_GARAGE_X+46.6f,y,pad.z-20},(Vec3){0,0,1},48,"GARAGE");
  if(game.pos.z<pad.z-64)surface_building_sign((Vec3){pad.x+FIELD_GARAGE_X,y,pad.z-64.6f},(Vec3){1,0,0},45,"GARAGE");
@@ -783,10 +905,18 @@ static void surface_r_hint(int x,int y){
  rect(x,y,14,9,UI_RAISED);rect(x,y,14,1,high_contrast?WHITE:UI_MUTED);rect(x,y,1,9,high_contrast?WHITE:UI_MUTED);text_px(x+3,y+1,WHITE,"R");
 }
 static void planet_eva_hud(void){
+ if(planet_earth_i()){
+  /* Own every pixel outside the 28..239 world viewport on BOTH buffers.
+   * The former 24px header and 14px footer left strips of old portraits. */
+  rect(0,0,W,28,RGB(21,28,39));text_px(12,8,UI_GOLD,"EARTH / ALPINE MEADOW");
+  rect(0,240,W,32,RGB(21,28,39));text_px(12,262,UI_MUTED,"D-PAD WALK   NUB LOOK");
+  if(eva_can_board(&game)&&game.opening.stage==OP_RETURN){button_icon(334,260,'T',UI_CYAN);text_px(352,262,WHITE,"BOARD SHIP");}return;
+ }
  Body *b=&game.bodies[game.planet];
  static const char *biome_name[]={"OCEAN ISLAND","ARID FLATS","ICE FIELD","VOLCANIC SCRUB","FOREST RISE","CLOUD PLATFORM"};
  int biome=planet_biome(b);
  rect(0,0,W,28,RGB(21,28,39));rect(0,26,W,2,RGB(193,139,77));
+ Vec3 origin=surface_site(&game,1);const WorldProfile *w=world_profile(b->seed,b->type);WorldRegion region=world_sample(w,game.pos.x-origin.x,game.pos.z-origin.z);text_px(8,3,UI_GOLD,"%.28s",world_biomes[region.a]);
  float hour=field_local_hour(&game,game.system,game.planet);text(50,0,RGB(85,212,212),"%02d:%02d",(int)hour,(int)(hour*60)%60);(void)biome_name;(void)biome;
  for(int i=0;i<4;i++){float a=i*1.5707963f-game.yaw;a=atan2f(sinf(a),cosf(a));if(fabsf(a)<1.5f)text((int)(30+a*18),1,UI_MUTED,"%c","NESW"[i]);}
  int occupied[20]={0};for(int pass=-1;pass<11;pass++){int i=pass<0?surface_nav_poi:pass-1;if(pass>=0&&i==surface_nav_poi)continue;if(i< -1||i>9)continue;Vec3 p=i<0?game.ship_pos:surface_poi(&game,i);float a=atan2f(p.x-game.pos.x,p.z-game.pos.z)-game.yaw;a=atan2f(sinf(a),cosf(a));if(fabsf(a)>1.5f)continue;int x=(int)(240+a*144),bucket=x/24;if(bucket<0||bucket>=20||occupied[bucket])continue;occupied[bucket]=1;unsigned ink=i==surface_nav_poi?UI_GOLD:UI_CYAN;if(i<0||i==6)surface_compass_icon(x,i==6,ink);else text((x-4)/8,2,ink,"%d",field_nav_number(i));}
@@ -799,7 +929,7 @@ static void planet_eva_hud(void){
   return;
  }
  button_icon(8,246,'X',UI_CYAN);text(3,31,UI_MUTED,"USE");
- button_icon(88,246,'O',UI_CYAN);text(13,31,UI_MUTED,"SCAN");
+ button_icon(88,246,'O',UI_CYAN);text(13,31,UI_MUTED,"%s",hand_label());
  text(21,31,UI_MUTED,"START MAP");
  surface_condition_meter(300,244,100-(int)game.hazard,1);
  surface_condition_meter(405,244,(int)game.energy,0);

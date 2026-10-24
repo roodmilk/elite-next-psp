@@ -1,0 +1,560 @@
+ELITE: NEXT — IMMERSIVE SPACE EXPANSION
+Consolidated design and implementation handoff — 7 October 2026
+
+STATUS AND INTENT
+This document records the user's requested direction. It is a proposed feature
+specification, not evidence that these features are already implemented.
+Main development assistant: inspect the current code first, preserve existing
+work, and integrate these features with current controls, missions and saves.
+Do not replace working systems unnecessarily or claim completion from prose.
+
+The goal is expansive, beautiful, inhabited space on PSP. Most new discoveries
+are visually interesting objects with a name, a short contact response and a
+small animation. They do NOT each need a new gameplay loop, interior or mission.
+The user specifically prefers seeing, discovering, briefly interacting and
+moving on over making every location deep or complicated.
+
+1. PLATFORM AND VISUAL DIRECTION
+
+Design for native PSP 480x272. Use readable silhouettes, strong compositions,
+restrained neon, warm windows, dark space and the established retro pixel-art
+direction. Signs, icons and portraits must be drawn for their displayed size.
+Do not create detailed large artwork and shrink it until it becomes unreadable.
+Keep central flight views clear; routine information belongs in HUD bands.
+
+Use depth and motion to sell scale: distant stars barely move, nearby particles
+pass the ship, destinations grow gradually and traffic becomes clearer nearby.
+Dust and ice should cluster around appropriate regions, not cover every system.
+Vary lighting near suns, behind planets and inside rings. Restrained glints,
+exhaust glow and lens flare should support visibility rather than obscure it.
+Avoid constant shaking, flashing and excessive bloom.
+
+2. BIGGER, MORE VARIED SOLAR SYSTEMS
+
+Make systems substantially larger. Planets and stations should be much farther
+apart and occupy varied locations, bearings and elevations. Use deterministic
+seeded generation so returning players recognise the same system.
+
+Place stations according to purpose: near planets, resources, shipping routes
+or remote facilities. Do not make every system a similar forward-facing skyline.
+Create clusters of activity separated by quiet expanses. Scatter discoveries
+along and away from travel routes; avoid evenly spaced attractions everywhere.
+
+Wealth, population, danger and purpose are separate influences. A small rich
+station may be busy and polished; a huge poor station may have closed berths.
+Poor systems can be colourful, welcoming and cared for. Not all are ruins.
+
+Scale distance against actual travel time. Sustained boost must make journeys
+practical. Keep steering, speed readouts, braking and approach warnings reliable.
+Maps, targeting, mission destinations and arrival distances must agree.
+
+3. LIGHTWEIGHT DISCOVERY INTERACTIONS
+
+Every contactable discovery should have a distinctive name, visual identity,
+short response and appropriate speaker. Use current targeting/contact controls.
+Use X to confirm/advance where appropriate, without conflicting with firing.
+Do not invent a second inconsistent control scheme.
+
+Staffed object: short greeting. Automated object: recorded message/status.
+Abandoned object: ship-computer observation. Animal: scan observation, no speech.
+Optional tiny response: lamp blink, advertisement change, dish turn or signal.
+Usually one or two sentences, then close and continue flying.
+Optional Codex recording should be unobtrusive. Do not turn every visit into
+a reward popup or automatically create a mission.
+
+4. POOR-SYSTEM DISCOVERY CATALOGUE
+
+Each entry: appearance/activity — contact response or small interaction.
+
+01 Patchwork Fuel Stop
+Mismatched tanks, old cabin, one flickering sign.
+"Pump two works. Pump one is decorative now." Service lamp blinks.
+
+02 Salvage Village
+Retired hulls connected by enclosed corridors and warm windows.
+"Mind the approach lights. We fitted those ourselves."
+
+03 Mobile Mechanic
+Repair barge, spare engines, tools and a parked shuttle.
+"If it rattles, we can probably fix it. If it sings, ask next door."
+
+04 Community Greenhouse
+Glass habitat with repaired panes and visible greenery.
+"First harvest this month. We're rather proud of it." Grow lights brighten.
+
+05 Old Passenger Ferry
+Weathered boxy transport with a cheerful painted stripe.
+"Next stop: the inner settlements. Please keep the loading ramp clear."
+
+06 Scrap Sculpture
+An enormous bird or flower assembled from old hull plates.
+Computer: "A local monument constructed from retired spacecraft."
+
+07 Miners' Tea Barge
+Tiny canteen beside a mining camp, with brief venting clouds.
+"Kitchen's open. Don't ask what happened to the last kettle."
+
+08 Retired Patrol Ship
+Old police hull converted to a workshop, markings partly painted over.
+"She's had three careers. This one's the quietest."
+
+09 Cooperative Ore Depot
+Practical bins, cranes, hand-painted numbers and slow cargo movements.
+"Independent crews, shared equipment. It works better than you'd think."
+
+10 Parts Exchange
+Salvaged components displayed around a little pressurised cabin.
+"Looking is free. Please stop scanning the proprietor."
+
+11 Beacon Repair Crew
+Service tug beside an opened buoy, with occasional welding flashes.
+"We'll have the light back shortly. Follow the working ones."
+
+12 Freighter Housing Block
+Stationary freighter with added windows, antennae and enclosed extensions.
+"Residential berth. Deliveries use the other end."
+
+13 Closed Resort
+Faded holiday sign, dark observation dome and empty shuttle pad.
+Recording: "Your perfect getaway awaits." Computer notes the recording's age.
+
+14 Emergency Water Tanks
+Insulated cylinders with mismatched replacement panels.
+"Reserve levels stable. Thank you for checking."
+
+15 Local Radio Shack
+Small cabin surrounded by antennae and a blinking ON AIR sign.
+"You're passing through the loudest room in the system."
+
+16 Shipbreaker's Yard
+Half-dismantled hull in a frame; tugs move loose sections.
+"Stay beyond the yellow markers. Things come loose."
+
+17 Memorial Lanterns
+Quiet illuminated markers beside an old transport route.
+Computer: "A memorial to crews lost on this route."
+
+18 Neighbourhood Cinema
+Converted cargo module with an oversized film poster.
+"Tonight's feature has sound again. Mostly." Poster changes on contact.
+
+19 Trading Family's Barge
+Old merchant ship with colourful markings and little cargo pods.
+"Third generation aboard. Same engine, apparently."
+
+20 Makeshift Sports Ground
+Enclosed recreation structure with moving practice drones.
+"Practice session. Please don't fly through the goal."
+
+5. RICH-SYSTEM DISCOVERY CATALOGUE
+
+21 Private Yacht Marina
+Elegant curved berths, sleek ships and discreet blue lights.
+"Visitor berth enquiries are handled by reception."
+
+22 Orbital Hotel
+Illuminated guest decks and a broad panoramic lounge.
+"Welcome to the view. Accommodation enquiries are available at reception."
+
+23 Casino Station
+Station-shaped rotating wheel with card/dice motifs and restrained neon.
+"Fortune favours the visitor. Terms and conditions also apply."
+
+24 Botanical Habitat
+Glass petals enclosing gardens; a maintenance shuttle circles slowly.
+"The gardens are enjoying an artificial spring."
+
+25 Art Gallery
+Minimal station surrounded by slowly rotating sculptures.
+"The large blue object is an exhibit. Please stop requesting docking clearance from it."
+
+26 Showroom Shipyard
+New hulls displayed on clean illuminated cradles.
+"Today's display: tomorrow's regrettable financial decision."
+
+27 Research Campus
+Laboratory modules around a telescope.
+"Routine observations in progress. Your exhaust is unexpectedly interesting."
+
+28 Luxury Cruise Liner
+Huge warm-windowed decks, advertisements and bright engine cores.
+"You're alongside the Velvet Horizon. Enjoy the view and keep clear of our shuttles."
+
+29 Solar-Sailing Club
+Reflective recreational craft near a small club habitat.
+"Leisure flight in progress. Kindly reduce your wake."
+
+30 Private Observatory
+Polished dome with a massive instrument pointing into deep space.
+"We're watching something very distant. You're currently in the foreground."
+
+31 Perfume Advertisement
+Sculptural bottle and luminous vapour display inside an enclosure.
+"NEBULA. Leave an impression across several docking bays."
+
+32 Fine-Dining Satellite
+Restaurant module with panoramic windows and a rotating sign.
+"A table with a planetary view? Naturally."
+
+33 Medical Retreat
+White-and-teal habitat, quiet gardens and ambulance berth.
+"Recovery facilities operating normally. Please respect the quiet zone."
+
+34 Precision Factory
+Clean modules and enclosed robotic handling arms.
+"Production cycle nominal. Public tours remain entirely virtual."
+
+35 Executive Shuttle Lounge
+Compact terminal receiving expensive shuttles individually.
+"Your pilot has been notified. If you are the pilot, please disregard."
+
+36 Collector's Dock
+Unusual older ships carefully displayed at a private station.
+"None are for sale. Yes, that includes the broken one."
+
+37 Orbital Spa
+Rounded habitat, soft lights and a water-themed display.
+"Relax. Your ship can remain anxious outside."
+
+38 Designer Freight Terminal
+Efficient loading arms, clean markings and colour-coded berths.
+"Freight movement active. Please follow the illuminated lanes."
+
+39 Pleasure-Garden Ferry
+Glass-roofed passenger craft following a scenic route.
+"On your left: the planet. On your right: also the planet."
+
+40 Charity Habitat
+Welcoming mural, well-maintained facilities and busy supply dock.
+"Food, shelter and onward passage. Everyone deserves a safe arrival."
+
+6. MEGA-CAPITAL DISCOVERY CATALOGUE
+
+Capital systems retain normal stations as well as extraordinary attractions.
+
+41 Grand Passenger Interchange
+Huge branching terminal with multiple shuttle ports.
+"Connecting services depart throughout the cycle. Please check your destination."
+
+42 Capital Ship Construction Dock
+Enormous framework, unfinished vessel and occasional welding flashes.
+"Construction perimeter. The unfinished end is not a docking entrance."
+
+43 Asteroid Theme Park
+Tracks around a hollow asteroid, enclosed coaster cars and coloured tunnels.
+"Welcome to Orbital Screams. All screaming remains inside the vehicle."
+
+44 Grand Casino Complex
+Connected gaming wheels, hotel towers and yacht berths.
+"A whole world of entertainment. Conveniently detached from an actual world."
+
+45 Diplomatic Station
+Formal structures, emblems and guarded arrival pads.
+"Diplomatic arrivals only. General enquiries use the public channel."
+
+46 Fleet Anchorage
+Capital vessels beside supply tenders and service frames.
+"Anchorage control. Maintain your current clearance distance."
+
+47 Broadcasting Centre
+Antenna arrays, news screens and occasional media shuttles.
+"You are listening to the system's most confidently informed broadcaster."
+
+48 Orbital Stadium
+Enclosed arena, animated perimeter lights and arriving spectator craft.
+"Tonight's final is sold out. The commentary is considerably less exclusive."
+
+49 University Habitat
+Lecture domes, laboratories and student transport berths.
+"Admissions are open. Parking remains a matter of academic debate."
+
+50 Historic First Station
+Preserved old hub surrounded by newer construction.
+Guide recording: "From these modest berths, the city above the world began."
+
+51 Monument to Navigation
+Vast illuminated sculpture visible from far away.
+Computer identifies a monument to the earliest interstellar crews.
+
+52 Grand Hotel Spire
+Stacked viewing decks and slowly moving exterior lifts.
+"Reception is delighted to acknowledge your presence."
+
+53 Orbital Exhibition Hall
+Segmented structure with changing exterior exhibition banners.
+"Current exhibition: Engines That Changed Our Lives—and Several Insurance Policies."
+
+54 Freight Megaport
+Multiple external pads, cranes and slowly manoeuvring freighters.
+"Cargo operations active. Your designated approach remains clear."
+
+55 Cruise Assembly Point
+Named liners waiting at widely separated departure positions.
+"The grand tour departs shortly. Please wave responsibly."
+
+56 Public Garden Ring
+Broad habitat ring with green sections and warm windows.
+"Public gardens open throughout the cycle. No purchase required."
+
+57 Entertainment Billboard Cluster
+Large fictional advertisements beside a busy route.
+Contact changes one panel to another graphic.
+
+58 Orbital Aquarium
+Blue-lit habitat with enclosed tanks and observation windows.
+"Please do not tap the exterior. We can hear it."
+
+59 Civil Transport Depot
+Ferries, service vessels and spare passenger modules.
+"Public transport keeps this system moving. Usually in the intended direction."
+
+60 Festival Platform
+Seasonal structures, colourful lights and visitor shuttles.
+"Festival week is underway. Local time has become a suggestion."
+
+7. DISCOVERIES SUITABLE FOR MULTIPLE SYSTEM TYPES
+
+61 Listening Post — lonely cabin and tracking dish.
+"We listen so you don't have to. Nothing urgent today."
+
+62 Abandoned Giant Freighter — broken hull, exposed ribs, dark bays, sparse sparks.
+Computer: "No active crew signal. The hull shows extensive damage."
+
+63 Animal Transport Cage — visible animal inside a clearly enclosed containment structure.
+"Licensed wildlife transport. Keep your engines clear of the enclosure."
+
+64 Wildlife Sanctuary Buoy — gentle boundary lights near an observation area.
+"Observe from a distance. Feeding the wildlife is strongly discouraged."
+
+65 Space-Fauna Group — slow graceful silhouettes on a broad route.
+Computer: "Several life signs. Their movement appears coordinated."
+
+66 Comet Fragment — irregular ice, faint trail and surface glints.
+Computer: "Volatile ice. Keep your distance from the active vents."
+
+67 Old Navigation Buoy — weathered marker with an uneven flash pattern.
+An outdated formal recording identifies the route.
+
+68 Survey Drone — tiny vessel, rotating sensors and identification lamp.
+"Survey in progress. You have been classified as temporary scenery."
+
+69 Cargo Container Chain — linked containers behind a slow tug.
+"Oversized load. We turn slowly and apologise in advance."
+
+70 Empty Fuel Tanker — huge cylinders on a minimal engine frame.
+"Empty return leg. Nothing to buy, plenty to admire."
+
+71 Remote Weather Monitor — sensor platform facing a planet.
+"Surface forecast: unpleasant. Orbital forecast: unchanged."
+
+72 Private Memorial Ship — preserved little hull, plaque and warm light.
+A short dedication names its former captain.
+
+73 Travelling Advertisement Ship — small craft with oversized billboard panels.
+"Your business could be annoying pilots right here."
+
+74 Maintenance Drone Group — a few small drones working around damaged equipment.
+"Automated repair zone. Please avoid becoming additional work."
+
+75 Unidentified Wreck Fragment — unfamiliar silhouette, surface pattern, no lights.
+Computer: "Identification inconclusive. Recording sensor data."
+Genuine Thargoid/alien links must remain exceptionally rare and lore-consistent.
+
+8. STATIONS THAT FEEL ALIVE
+
+Traffic depends on wealth, function and activity, not only station size.
+Rich normal-sized stations should have this too, not just mega-capital hubs.
+
+Shuttle ports: small craft approach on varied curved routes, slow down, form
+short irregular queues, align with the port, enter and disappear inside.
+After varied service intervals, ships emerge, clear the hull and accelerate away.
+Ports operate independently, never in obvious synchronised loops.
+
+Service berths: parked ships and occasional maintenance craft.
+Freight pads: enormous freighters land externally and stay for meaningful periods.
+Luxury berths: yachts and executive shuttles; industrial berths: haulers and tugs.
+Some ports remain empty; some closed. Busy need not mean constant chaos.
+
+Routes follow station rotation and avoid the structure, neighbouring ports and
+other traffic. Preserve the player's docking entrance AND full approach/exit
+corridor. Decorative ships must never block or damage the player unexpectedly.
+
+Sell distance with silhouettes and navigation lights. Add hull detail nearby.
+Use bounded traffic pools rather than treating every decorative ship as a full
+combat NPC. They may initially remain non-targetable scenery; do not imply
+combat functionality they do not possess.
+
+Where practical, preserve continuity through windows: a ship seen landing
+outside remains on its pad when viewed from the bar. Keep traffic transforms
+and timestamps consistent between exterior and interior views.
+
+9. EXTERNAL FREIGHTER LANDING SPECTACLE
+
+Large stations, including wealthy non-capital stations, can have external pads.
+
+Cycle: wide slow approach -> match pad motion -> manoeuvring thruster pulses ->
+settle onto landing gear/clamps -> brief vent clouds -> unloading activity ->
+release clamps -> lift clear -> accelerate away.
+
+Venting in vacuum should expand and fade, not rise like atmospheric smoke.
+Thruster exhaust briefly lights the pad. Cargo lamps and small service vehicles
+provide restrained activity while the freighter is parked.
+From far away emphasise scale, pad markings, silhouette and engine flashes.
+Nearby reveal clamps and cargo. Giant arrivals should be occasional events.
+
+10. MOVING LUXURY CRUISE FREIGHTERS
+
+These travel throughout the galaxy; they are not exclusive to capital systems.
+Rich systems get more; remote systems may occasionally receive older liners.
+
+Give each a name, operator, distinct hull, warm passenger windows, observation
+domes and fictional billboard panels. Advertisements are large simple pixel-art
+graphics with very short readable copy, not tiny paragraphs.
+Bright engine cores and tasteful fiery-looking exhaust trails sell their motion.
+
+Within a system, follow scenic circuits visiting several planets. Use smooth
+arcs: travel to a world -> broad scenic pass outside atmosphere/rings -> slow
+near an attraction -> continue to the next stop -> eventually depart the system.
+Do not use sharp waypoint turns or blindly cross planetary bodies.
+Routes may be an inner-world express, grand planetary tour or outer-ring cruise.
+
+Players can fly alongside and contact the liner for a greeting and next stop.
+Shuttles may operate from dedicated ports. Boarding is a separate optional
+future feature; do not block exterior implementation on new interiors.
+If boarding is implemented, moving docking paths and window views must remain
+consistent with the ship's actual motion.
+
+10A. SHARED LARGE-SHIP TECHNOLOGY AND PERFORMANCE
+
+Freighters and cruise liners should share the same large-vessel foundation:
+route following, smooth turning, distance-based detail, lighting, engine effects,
+traffic ports and any implemented docking/berthing behaviour. Give them separate
+visual profiles and appropriate movement tuning rather than duplicate engines.
+
+Big freighters must be substantially larger and more detailed than their current
+presentation. Flying alongside should reveal their enormous length and bulk.
+Use cargo spines, container banks, structural ribs, engine clusters, recessed
+bays, navigation lights and clearly scaled windows/service craft to sell size.
+Cruise liners use passenger decks, panoramic windows, observation structures,
+advertisement panels and leisure-oriented silhouettes on the shared foundation.
+Do not simply recolour one identical hull for both roles.
+
+FPS IS PARAMOUNT. More size and visual detail must not cause stutter or unstable
+frame times. Measure against the existing physical-PSP frame budget and baseline.
+Keep geometry and effects bounded; cull off-screen detail and use distance-based
+levels of detail. Distant hulls need silhouettes and a few lights. Reveal selected
+geometry, surface panels and restrained exhaust detail nearby. Prefer reusable
+surface detail over modelling every small feature. Limit active huge ships and
+nearby shuttle effects; stagger expensive updates. Avoid per-frame allocation.
+
+Use visual hull dimensions consistently for collision, targeting, docking and
+routes. Expanding a freighter must not leave old small collision bounds, obscure
+player ports or create unsafe planetary passes. Detail transitions should avoid
+obvious popping. Test close flybys, multiple visible capital hulls, busy stations
+and effects-heavy travel on physical PSP; PPSSPP alone cannot certify FPS.
+If a visual improvement exceeds the budget, reduce its cost before shipping.
+11. HUGE FLY-THROUGH PLANETARY RINGS
+
+Rings extend far beyond planets and are navigable in normal spaceflight.
+Flying into rings MUST NOT automatically trigger EVA or planetary landing.
+Only the existing appropriate planetary approach region may offer landing.
+
+Far away: broad luminous bands, gaps and a strong planetary silhouette.
+Approaching: separate lanes, dark gaps, dust and ice.
+Inside: small particles, larger rocks, open channels and occasional huge chunks.
+Vary ring tilt, width, density, palette and composition per planet.
+
+Larger asteroids are actual shootable mineable objects using existing damage,
+ore and collection systems. Decorative grains are not all collision objects.
+Rendering, mineable placement and collision share the same world-space ring
+geometry. Do not render a camera-facing painted ellipse that disagrees with
+where the player can fly and find rocks.
+Do not repopulate destroyed rocks immediately just because the player turns
+away. Use bounded local detail without obvious popping or endless reward exploits.
+
+12. HYPERSPACE CHARGE AND CONTINUOUS FIRST-PERSON EFFECT
+
+Retain selecting a destination system and boosting toward its departure heading.
+Improve the existing blue hyperdrive charge meter and bottom charging text.
+
+0-50%: normal view, steadily building engine sound and subtle edge shimmer.
+50-85%: charge noticeably faster; mega warp streaks lengthen and intensify.
+The actual departure scene stretches outward around a central vanishing point.
+Add gentle distortion ripples and restrained edge colour separation.
+85-100%: rapid final charge, peak streaks and restrained space-view vibration.
+Keep meter and essential HUD stable, readable and undistorted.
+
+Initial tuning proposal: approximately five seconds total, with three seconds
+for the first half and two for the accelerating second half. This is a starting
+point for testing, not a user-mandated exact duration.
+
+At entry: stretch/dissolve the real departure view into luminous trails.
+Conceal the scene transition at peak distortion; avoid obvious hard cuts.
+At arrival: show the actual destination scene already visible but distorted.
+Unwind distortion so its planets, stars and stations resolve smoothly into place.
+Shorten trails, remove colour separation and settle vibration to a stable view.
+Finish with a concise arrival notification.
+
+The first-person space view remains the visual foundation throughout. Do not
+replace it with a disconnected generic warp tunnel or black loading screen.
+
+Potential PSP technique: low-resolution flight-view captures drawn through a
+coarse textured mesh; blend departure/destination during maximum distortion;
+return seamlessly to live rendering. Inspect existing renderer before choosing
+the implementation. Bound memory and verify real-hardware performance.
+
+Visual distortion must never alter world coordinates, steering or collision.
+Exaggerate speed visually without causing uncontrolled physical acceleration
+near objects. Charge remains monotonic while eligible. Validate fuel and route
+before the jump; execute travel once. Existing cancellation rules fade effects
+out smoothly. Keep ordinary boost visually distinct from hyperspace.
+
+13. OUTER-SYSTEM ARRIVAL AND FUEL
+
+Arrive far from stations so the player journeys into the system. Choose a safe
+outer region based on incoming route, with modest variation between visits.
+Avoid planets, rings, station hulls, freight routes and hazardous structures.
+
+As distortion clears, reveal distant destinations and signals. Keep the tracked
+destination available and make distance/navigation clear. Nearby discoveries
+may invite a detour, but do not spawn the same welcome cluster every time.
+
+Fuel policy to integrate deliberately with current code:
+- Ordinary flight should not strand the ship by consuming jump fuel.
+- Boost uses heat rather than unexpectedly draining escape fuel.
+- Hyperspace consumes the amount shown before committing.
+- Ice-rich asteroid fuel recovery is a NEW feature if not already implemented:
+  clearly marked ice resources plus a fuel-processing capability.
+- Include a dependable emergency recovery such as a callable fuel tender.
+  Do not make recovery depend on owning equipment the stranded player lacks.
+
+Do not silently change fuel rules without updating UI, tests and documentation.
+Space should feel vast without creating unwinnable saves or excessive waiting.
+
+14. IMPLEMENTATION ORDER AND CHECKS
+
+Suggested order, adaptable to the existing code:
+1 Audit distances, ring geometry, flight/boost, world seeds and existing POIs.
+2 Shared world-space rings and shootable asteroids with safe approach boundaries.
+3 A few discovery prototypes: listening post, wreck, animal cage, billboard.
+4 A reusable named discovery/contact renderer and bounded placement system.
+5 Independent station traffic ports and external freight pads.
+6 Moving cruise liner circuits with varied advertisements.
+7 Expanded distance tuning, safe outer arrivals and hyperspace transitions.
+8 Broaden the scenery catalogue after the initial locations pass testing.
+
+Avoid expanding every system with untested changes at once. Certify a Lave
+slice and representative poor/rich/capital systems, then apply seeded variety.
+
+Checks must cover stable placement, valid targeting/contact, no UI clipping,
+ring visual/physical agreement, shootable rocks and actual ore collection,
+no ring-triggered landing, traffic clear of player docking, moving-port safety,
+no collisions with hidden decorative objects, safe warp arrivals, fuel recovery,
+jump cancellation, no duplicate jumps, restored effects after travel, save/load,
+and performance/memory on physical PSP. Preserve current story/tutorial routes.
+
+Final aim: large journeys, memorable sights, brief personality-filled contacts,
+working-looking stations and beautiful continuous travel, without turning every
+piece of scenery into a complicated new subsystem.
+
+

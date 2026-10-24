@@ -10,7 +10,7 @@
 #include <ctype.h>
 #include "radio-voice.h"
 
-#define RADIO_STATION_COUNT 8
+#define RADIO_STATION_COUNT 9
 
 typedef struct {
  uint32_t phase,phase_b,increment;
@@ -30,12 +30,12 @@ typedef struct {
 
 static inline const char *radio_station_name(int index){
  static const char *const names[RADIO_STATION_COUNT]={
-  "Deep Field","Neon Transit","Pixel Comet","Velvet Orbit","Far Horizons","SPACE TALK","VOID TALES","Elite Exploration"};
+  "Deep Field","Neon Transit","Pixel Comet","Velvet Orbit","Far Horizons","SPACE TALK","VOID TALES","Elite Exploration","ROCK FM"};
   return names[index>=0&&index<RADIO_STATION_COUNT?index:0];
 }
 static inline const char *radio_station_genre(int index){
  static const char *const genres[RADIO_STATION_COUNT]={
-  "Ambient","Synthwave","Chiptune","Lounge","Orchestral","TALK RADIO","ALIEN STORY","EXPLORATION"};
+  "Ambient","Synthwave","Chiptune","Lounge","Orchestral","TALK RADIO","ALIEN STORY","EXPLORATION","ROCK"};
  return genres[index>=0&&index<RADIO_STATION_COUNT?index:0];
 }
 static inline uint32_t radio_note_increment(int note){
@@ -60,6 +60,22 @@ static inline void radio_note(RadioVoice *v,int note,int level,int gate){
  /* Continuous phase and smoothed amplitude suppress key-on clicks. */
 }
 static inline void radio_sequence_step(RadioSynth *s){
+ if(s->station==8){
+  /* Original eight-bar power-chord riff. Integer distorted guitar voices,
+   * picked bass, backbeat and a short answer melody fit the PSP synth budget. */
+  static const unsigned char rock_roots[]={40,40,43,45,40,47,45,43};
+  static const signed char riff[]={0,0,-1,7,0,-1,3,0,0,7,-1,10,7,-1,3,0};
+  static const signed char solo[]={12,-1,15,-1,19,17,-1,15,12,-1,19,22,19,-1,17,-1};
+  int bar=s->step>>4,beat=s->step&15,root=rock_roots[bar&7],duration=s->step_samples;
+  s->remaining=duration;
+  if(riff[beat]>=0){int note=root+riff[beat];radio_note(&s->voice[0],note,600,duration*3/4);radio_note(&s->voice[1],note+7,470,duration*3/4);radio_note(&s->voice[3],note-12,690,duration*3/4);}
+  if(bar>=8&&solo[beat]>=0)radio_note(&s->voice[4],root+solo[beat]+12,420,duration*3/4);
+  if(beat==0||beat==8||beat==10){s->kick=1100*256;s->kick_increment=radio_note_increment(42);}
+  if(beat==4||beat==12)s->snare=360*256;
+  if(!(beat&1))s->hat=75*256;
+  if((bar&7)==7&&(beat==14||beat==15))s->snare=260*256;
+  s->step=(s->step+1)&255;return;
+ }
  static const unsigned char roots[5][8]={
   {45,41,48,43,45,41,38,43},
   {45,41,48,43,45,41,38,40},
@@ -140,7 +156,7 @@ static inline void radio_sequence_step(RadioSynth *s){
  s->step=(s->step+1)&255;
 }
 static inline void radio_synth_reset(RadioSynth *s,int station){
- static const int tempo[RADIO_STATION_COUNT]={66,112,128,88,92,176,72,78};
+ static const int tempo[RADIO_STATION_COUNT]={66,112,128,88,92,176,72,78,124};
  if(!s)return;
  memset(s,0,sizeof(*s));
  s->station=station>=0&&station<RADIO_STATION_COUNT?station:0;
@@ -238,7 +254,7 @@ static inline void radio_synth_sample(RadioSynth *s,int *left,int *right){
   difference=v->target-v->envelope;
   /* Shift with explicit sign keeps release symmetric and avoids relying
    * on implementation-defined negative right shifts. Snap the last unit. */
-  int slew=(i<3||i>=5)?2048:256;
+  int slew=s->station==8?96:(i<3||i>=5)?2048:256;
   if(difference>0)v->envelope+=(difference+slew-1)/slew;
   else if(difference<0)v->envelope-=((-difference)+slew-1)/slew;
   v->phase+=v->increment;
@@ -255,6 +271,7 @@ static inline void radio_synth_sample(RadioSynth *s,int *left,int *right){
   }else if((s->station==1&&i<3)||(s->station==4&&i==4)){
    wave=(wave*3+radio_triangle(v->phase*2u))/4;
   }
+  if(s->station==8&&(i==0||i==1||i==4)){wave*=3;if(wave>210)wave=210;if(wave< -210)wave=-210;}
   value=wave*(v->envelope>>8)/256;
   if(i==0){l+=value;r+=value/2;}
   else if(i==2){l+=value/2;r+=value;}

@@ -15,6 +15,11 @@
  rect(0,0,W,H,BG);space();tools_panel();dump_native_bmp("traffic-tools.bmp");input(0,0,.016f,0,0);
  change_page(DETAILS);system_route_view=0;input(PSP_CTRL_SQUARE,PSP_CTRL_SQUARE,.016f,0,0);
  INPUT_CHECK(page==DETAILS&&!system_route_view,"system almanac: Square does not replace the illustrated overview with a route screen");
- rect(0,0,W,H,BG);system_details();dump_native_bmp("system-almanac.png");
+ /* Lave III's selected label crosses the bright primary. The dark glass
+  * plate must preserve some map colour while guaranteeing text contrast. */
+ rect(0,0,1,1,WHITE);almanac_label_glass(0,0,1,1);{unsigned sample=fb[0];
+  INPUT_CHECK((sample&255)==73&&((sample>>8)&255)==82&&((sample>>16)&255)==91,"system almanac: selected name plate blends dark glass at 70 percent opacity");}
+ game.system=7;system_bodies(&game);row=4;preview_time=0;
+ rect(0,0,W,H,BG);system_details();dump_native_bmp("system-almanac-lave-iii-284.bmp");
  fb=traffic_saved_fb;free(traffic_pixels);TEST_INIT();fflush(f);
 }

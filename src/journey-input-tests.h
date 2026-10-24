@@ -80,10 +80,10 @@
  TEST_INIT();launch(&game);game.pos=(Vec3){0,0,2700};dock(&game);page=FLIGHT;
  input(PSP_CTRL_CIRCLE,PSP_CTRL_CIRCLE,.016f,0,0);
  INPUT_CHECK(!game.dock_stage&&!game.docked&&!game.dead&&game.speed==0,"journey: Circle safely cancels exterior docking guidance");
- TEST_INIT();change_page(HOME);row=13;input(PSP_CTRL_CROSS,0,.016f,0,0);row=1;input(PSP_CTRL_CROSS,0,.016f,0,0);input(PSP_CTRL_SELECT,0,.016f,0,0);
+ TEST_INIT();change_page(HOME);row=13;input(PSP_CTRL_CROSS,0,.016f,0,0);row=1;input(PSP_CTRL_CROSS,0,.016f,0,0);input(PSP_CTRL_SQUARE,0,.016f,0,0);
  INPUT_CHECK(page==CAMPAIGN&&tracked_mission==1,"guild: Mission Log tracks the Guild assignment and opens its next step");
  TEST_INIT();accept_mission(&game,0);int dest=game.jobs[0].dest,hops=0;int next=route_next_hop(&game,dest,&hops);page=MISSIONLOG;row=2;
- input(PSP_CTRL_CROSS,PSP_CTRL_CROSS,.016f,0,0);input(PSP_CTRL_SELECT,0,.016f,0,0);input(PSP_CTRL_CROSS,0,.016f,0,0);
+ input(PSP_CTRL_CROSS,PSP_CTRL_CROSS,.016f,0,0);input(PSP_CTRL_SQUARE,0,.016f,0,0);input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(page==CHART&&game.destination==next&&game.jobs[0].dest==dest,"journey: tracked contract next step charts a fuel-safe hop without changing the objective");
  TEST_INIT();launch(&game);page=COMMS;game.pos=(Vec3){0,0,-20000};game.credits=0;
  input(PSP_CTRL_TRIANGLE,0,.016f,0,0);
@@ -106,7 +106,7 @@
   int start=game.credits;row=offer;input(PSP_CTRL_CROSS,0,0,0,0);
   INPUT_CHECK(game.job_n==1&&game.jobs[0].type==MISSION_RESCUE&&game.credits==start-100&&game.jobs[0].time==300,"rescue: board acceptance preserves deposit and compatible save field");
   int dest=game.jobs[0].dest,reward=game.jobs[0].reward,hops=0,next=route_next_hop(&game,dest,&hops);
-  change_page(MISSIONLOG);row=2;input(PSP_CTRL_CROSS,0,0,0,0);input(PSP_CTRL_SELECT,0,0,0,0);input(PSP_CTRL_CROSS,0,0,0,0);
+  change_page(MISSIONLOG);row=2;input(PSP_CTRL_CROSS,0,0,0,0);input(PSP_CTRL_SQUARE,0,0,0,0);input(PSP_CTRL_CROSS,0,0,0,0);
   INPUT_CHECK(tracked_mission==2&&page==CHART&&next>=0&&game.destination==next&&game.jobs[0].dest==dest,"rescue: track and navigate retain job and plot a fuel-safe hop");
   /* Arrive at the real contract destination, then isolate input from traffic. */
   launch(&game);game.system=dest;game_spawn(&game);page=FLIGHT;

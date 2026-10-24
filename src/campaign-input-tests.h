@@ -23,9 +23,9 @@
  change_page(CAMPAIGN);float flight=game.campaign_distance;
  input(0,0,.05f,0,0);
  INPUT_CHECK(game.campaign_distance==flight,"campaign UI: reading does not advance flight distance");
- game.dead=1;change_page(FLIGHT);int cash=game.credits;
- input(PSP_CTRL_START,0,.016f,0,0);
- INPUT_CHECK(page==CAMPAIGN&&!game.dead&&game.docked&&game.credits==cash,"campaign UI: Start recovers training instead of deleting commander");
+ game.dead=1;game.explosion=3;change_page(FLIGHT);int cash=game.credits;death_choice=0;
+ input(PSP_CTRL_CROSS,0,.016f,0,0);
+ INPUT_CHECK(page==CAMPAIGN&&!game.dead&&game.docked&&game.credits==cash,"campaign UI: Load Commander recovers training instead of deleting commander");
  TEST_INIT();change_page(CAMPAIGN);input(PSP_CTRL_TRIANGLE,0,.016f,0,0);
  INPUT_CHECK(!game.campaign_stage&&page==CAMPAIGN,"story: unadvertised Triangle does not accept a mission");
  input(PSP_CTRL_CROSS,0,.016f,0,0);
@@ -96,6 +96,9 @@
  }
  INPUT_CHECK(consistent&&variants==255,"planet sprites: all world seeds match chart identity and cover eight art families");
  INPUT_CHECK(sun_fams==255,"sun sprites: every system sun family appears across the galaxy");
+ {uint32_t sig[64]={0};int unique=0;
+  for(int i=0;i<64;i++){unsigned seed=body_art_seed(i,i%BODY_COUNT),h=2166136261u;int type=i%3==0?OCEAN:i%3==1?ROCKY:GAS;for(int y=8;y<56;y+=6)for(int x=8;x<56;x+=6){h^=planet_proc_pixel(seed,type,x,y);h*=16777619u;}sig[i]=h;int fresh=1;for(int k=0;k<i;k++)if(sig[k]==h)fresh=0;unique+=fresh;}
+  INPUT_CHECK(unique>=62,"procedural planets: sampled worlds retain effectively unique polished surface identities");}
  /* Kei's response follows the selected question without a commander echo. */
  TEST_INIT();change_page(CAMPAIGN);
  INPUT_CHECK(strstr(prologue_brief_reply(0),"first flight")!=0,"chat flow: first reply asks Kei to explain the flight");
@@ -144,7 +147,7 @@
    input(PSP_CTRL_CROSS,0,.016f,0,0);
    INPUT_CHECK(saga_brief_beat==beat+1&&!game.saga_step&&page==CAMPAIGN,"all chapters: one reply press advances to NPC, without accepting early");
    campaign_screen();
-   INPUT_CHECK(!strcmp(dialogue_source,saga_brief_line(&saga_beats[chapter],beat+1)),"all chapters: upper speech contains the NPC answer, not selected player text");
+   INPUT_CHECK(!strcmp(dialogue.body,saga_brief_line(&saga_beats[chapter],beat+1)),"all chapters: upper speech contains the NPC answer, not selected player text");
   }
  }
  TEST_INIT();

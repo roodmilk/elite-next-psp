@@ -9,7 +9,7 @@
  INPUT_CHECK(tools_open&&game.missiles==4,"weapon computer: only holding opens the selector without firing");
  float yaw=game.yaw,pitch=game.pitch;
  input(PSP_CTRL_UP,PSP_CTRL_CIRCLE|PSP_CTRL_UP,.016f,1,1);
- INPUT_CHECK(tools_selected==0&&!tools_open&&game.missiles==4&&game.yaw==yaw&&game.pitch==pitch,"weapon computer: direction equips and closes, without firing or steering");
+ INPUT_CHECK(tools_selected==0&&!tools_open&&tools_confirm_action==0&&tools_confirm_time>0&&game.missiles==4&&game.yaw==yaw&&game.pitch==pitch,"weapon computer: direction equips, closes and starts visual confirmation without firing or steering");
  for(int i=0;i<20;i++)input(PSP_CTRL_UP,PSP_CTRL_CIRCLE|PSP_CTRL_UP,.016f,1,1);
  input(0,0,.016f,0,0);
  INPUT_CHECK(!tools_open&&game.missiles==4,"weapon computer: held repeat and selection release never fire");
@@ -23,12 +23,12 @@
  }
  game.ship=6;fit_clear_all(&game);game.fit[0]=1;game.fit[6]=2;game.fit[12]=25;fit_rebuild(&game);game.active_weapon=0;tools_selected=2;
  input(PSP_CTRL_CIRCLE,PSP_CTRL_CIRCLE,.016f,0,0);input(PSP_CTRL_RIGHT,PSP_CTRL_CIRCLE|PSP_CTRL_RIGHT,.016f,0,0);input(0,0,.016f,0,0);
- INPUT_CHECK(game.active_weapon==6&&fit_weapon_item(&game)==2&&tools_selected==2&&!tools_open,"weapon computer: Circle+Right arms the next fitted WPN without changing the selected tool");
+ INPUT_CHECK(game.active_weapon==6&&fit_weapon_item(&game)==2&&tools_selected==2&&!tools_open&&tools_weapon_result>0&&tools_confirm_time>0&&!strcmp(tools_weapon_old,"PULSE")&&!strcmp(tools_weapon_new,"BEAM"),"weapon computer: Circle+Right animates old WPN out and new WPN in without changing the selected tool");
  input(PSP_CTRL_CIRCLE,PSP_CTRL_CIRCLE,.016f,0,0);input(PSP_CTRL_RIGHT,PSP_CTRL_CIRCLE|PSP_CTRL_RIGHT,.016f,0,0);input(0,0,.016f,0,0);
  INPUT_CHECK(game.active_weapon==12&&fit_weapon_item(&game)==25,"weapon computer: repeated Circle+Right skips empty banks and continues cycling");
  game.fit[6]=game.fit[12]=FIT_EMPTY;game.active_weapon=0;fit_rebuild(&game);
  input(PSP_CTRL_CIRCLE,PSP_CTRL_CIRCLE,.016f,0,0);input(PSP_CTRL_RIGHT,PSP_CTRL_CIRCLE|PSP_CTRL_RIGHT,.016f,0,0);input(0,0,.016f,0,0);
- INPUT_CHECK(game.active_weapon==0&&strstr(game.message,"Only one WPN"),"weapon computer: one fitted weapon stays active with clear feedback");
+ INPUT_CHECK(game.active_weapon==0&&tools_confirm_action==3&&tools_weapon_result<0&&tools_confirm_time>0,"weapon computer: one fitted weapon stays active with red visual feedback");
  input(PSP_CTRL_CIRCLE,PSP_CTRL_CIRCLE,.016f,0,0);input(PSP_CTRL_TRIANGLE,PSP_CTRL_CIRCLE|PSP_CTRL_TRIANGLE,.016f,0,0);input(0,0,.016f,0,0);
  INPUT_CHECK(tools_selected==3&&!tools_open,"weapon computer: Circle+Triangle preserves the heat-sink shortcut");
  game.upgrades|=2048;game.heat=90;game.heat_sink_cd=0;
@@ -53,7 +53,7 @@
   back_safe&=page==FLIGHT&&!tools_open&&game.missiles==count;
  }
  INPUT_CHECK(back_safe,"weapon computer: Controls, Comms, Radio and GalacticNet Back do not leak Circle into flight");
- int visible[6],has_exit=0;deck_fill(0,visible);INPUT_CHECK(!deck_service_visible(20),"Fly: Disembark is hidden away from stations");
+ int visible[9],has_exit=0;deck_fill(0,visible);INPUT_CHECK(!deck_service_visible(20),"Fly: Disembark is hidden away from stations");
  game.docked=1;has_exit=deck_service_visible(20);INPUT_CHECK(has_exit,"Fly: Disembark is available when docked");
  TEST_INIT();launch(&game);page=FLIGHT;game.pos=(Vec3){0,0,2700};game.speed=0;speech_ok();selected_target=0;night_wait=480;
  input(PSP_CTRL_CIRCLE,PSP_CTRL_CIRCLE,.016f,0,0);input(0,0,.016f,0,0);
@@ -82,8 +82,9 @@
  INPUT_CHECK(game.yaw>0&&game.yaw<.04f&&d->alive,"tractor: initial turn is smooth, not an instant snap");
  int before=game.cargo[0];for(int i=0;i<200;i++)input(0,0,.016f,0,0);
  INPUT_CHECK(!d->alive&&game.cargo[0]==before+1&&tools_tractor<0,"tractor: alignment completes then animation recovers exactly one item");
- d->alive=1;d->life=100;d->pos=add(game.pos,(Vec3){600,0,0});tools_activate(2);
- INPUT_CHECK(tools_tractor<0&&game.tractor_time<=0,"tractor: cannot collect distant cargo");
+ d->alive=1;d->life=100;d->pos=add(game.pos,(Vec3){600,0,0});game.time=0;tools_activate(2);char no_cargo_first[128];snprintf(no_cargo_first,sizeof(no_cargo_first),"%s",game.message);int mentions_range=strstr(game.message,"500 m")!=0;
+ for(int attempt=1;attempt<8;attempt++){game.time=(float)attempt;tools_activate(2);mentions_range|=strstr(game.message,"500 m")!=0;}
+ INPUT_CHECK(tools_tractor<0&&game.tractor_time<=0&&strcmp(no_cargo_first,game.message)&&mentions_range,"tractor: distant cargo gives varied natural feedback including the 500 m limit");
  d->pos=add(game.pos,(Vec3){200,0,0});d->rock=1;tools_activate(2);
  INPUT_CHECK(tools_tractor<0,"tractor: intact asteroids are not salvage");
  d->rock=0;game.yaw=0;tools_activate(2);input(0,0,.016f,.7f,0);

@@ -10,7 +10,7 @@ static void field_tree_leaves(float x,float z,unsigned seed,float height){
   Vec3 p={x+cosf(a)*r+sinf(phase*6.2831853f+(h&7))*7,ground+2+height*.85f*(1-phase),z+sinf(a)*r+phase*9};
   Vec3 v=camera(&game,p);if(v.z<4)continue;Point q=project(v);int sx=(int)q.x,sy=(int)q.y;
   if(sx<1||sx>=W-2||sy<surface_y_min||sy>=surface_y_max-2)continue;
-  unsigned ink=surface_shade((h&3)?RGB(149,163,69):RGB(197,155,75)),depth=surface_encode_depth(1/v.z);
+  unsigned ink=surface_shade((h&3)?RGB(149,163,69):RGB(232,184,86)),depth=surface_encode_depth(1/v.z);
   int sway=((int)(game.time*4+i)&1)?1:-1;
   surface_depth_pixel(sx,sy,depth,ink);surface_depth_pixel(sx+sway,sy+1,depth,ink);
   if(v.z<90)surface_depth_pixel(sx,sy+1,depth,ink);

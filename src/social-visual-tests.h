@@ -42,5 +42,9 @@
  char formatted[25];social_name(formatted,sizeof(formatted),"BEN SMITH");
  INPUT_CHECK(!strcmp(formatted,"Ben Smith"),"social: multiword names are title-cased without changing saves");
  INPUT_CHECK(!strcmp(game.commander_name,"BEN"),"social: name formatting never changes the profile");
+ TEST_INIT();change_page(GALNET);galnet_tab=4;row=0;rect(0,0,W,H,BG);galnet_screen();dump_native_bmp("spacebook-inbox-local.bmp");
+ input(PSP_CTRL_TRIANGLE,0,.016f,0,0);INPUT_CHECK(page==GALNET&&galnet_tab==3,"spacebook inbox: Triangle returns to the NPC feed");
+ TEST_INIT();game.opening.stage=OP_DAD_INBOX;game.opening.flags|=OF_DIALOG_DONE;change_page(GALNET);galnet_tab=4;row=0;rect(0,0,W,H,BG);galnet_screen();dump_native_bmp("spacebook-inbox-homeward.bmp");
+ opening_net_input(PSP_CTRL_CROSS);INPUT_CHECK(game.opening.flags&(1<<16),"spacebook inbox: cached Dad thread preserves its undelivered reply action");
  TEST_INIT();page=HOME;
 }

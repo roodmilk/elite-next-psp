@@ -883,7 +883,9 @@ static int saga_advance(Game *g){
  }
  /* Prior trust softens later payouts into tangible coalition support. */
  int reward=1800+g->saga_chapter*120+saga_trust_total(g)*80;
- if(g->credits<=100000000-reward)g->credits+=reward;
+ int paid=g->credits<=100000000-reward?reward:0;
+ if(paid)g->credits+=paid;
+ mission_receipt_record(g,RECEIPT_SAGA,finished,paid,g->system,b->title,b->speaker);
  g->saga_chapter++;g->saga_step=0;g->saga_choice=0;g->cue=SFX_SELECT;
  if(g->saga_chapter>=SAGA_COUNT){
   message(g,"The Open Channel is complete. Free flight continues with the berth still warm.");

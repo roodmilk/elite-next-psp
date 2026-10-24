@@ -1,18 +1,75 @@
 #ifndef RIFT_CATALOG_H
 #define RIFT_CATALOG_H
-/* Stable system/slot taxonomy, shared by the field, scan report and archive. */
-static inline int rift_type(int system,int slot){return (slot&1)?3:(system*17+slot*7)%3;}
-static const char *rift_names[]={"AURORA VEIL","GRAVITY LACE","EMBER NURSERY","MERIDIAN ECHO"};
+/* Legacy slots keep their identities. New taxonomy is immutable per system/slot. */
+#include "natural-anomaly-data.h"
+static inline int rift_type(int system,int slot){if(system<0||system>255||slot<0||slot>3)return 0;if(slot<2)return (slot&1)?3:(system*17+slot*7)%3;int t=natural_anomaly_sites[system][slot-2];return t?t:0;}
+static const char *rift_names[]={"AURORA VEIL","GRAVITY LACE","EMBER NURSERY","MERIDIAN ECHO","GLASS REEF","SHATTERED MOONLET","COMET GARDEN","DIAMOND RAIN","MAGNETIC JELLYFISH","PLASMA RIVER","LIGHTNING TREE","FROZEN SUPERNOVA","PEARL SWARM","SOLAR LOTUS","DUST WATERFALL","OBSIDIAN CROWN","TWIN VORTEX","SINGING NEEDLES","EMBER GEYSERS","AURORA SAIL","GRAVITATIONAL PEARL","PRISM ARCH","DARK NEBULA LUNG","STELLAR CHRYSALIS","SPIRAL FOSSIL","ION THUNDERHEAD","TIDAL RIBBONS","WANDERING GLACIER","VOID EYE","FRACTAL BLOOM","MIRROR SHOAL","PHASE CATHEDRAL"};
 static const char *rift_reports[]={
  "Aurora Veil identified. Charged dust follows braided magnetic filaments, producing curtains of cyan and violet light. The bright knots drift through the veil without closing its hollow centre.",
  "Gravity Lace identified. Gold and turquoise filaments trace a folded-looking lattice around a dark centre. The pattern resembles a lens repeatedly trying to focus the same distant star.",
  "Ember Nursery identified. Rose-coloured clouds surround slow amber sparks. Each spark brightens and fades while the outer threads curl inward, like ash rising through a fire in reverse.",
- "Meridian Echo identified. Pale blue arcs overlap around a pearl-white core. Their uneven pulses resemble a signal arriving along several paths at once; no identifiable sender appears in the scan."
+ "Meridian Echo identified. Pale blue arcs overlap around a pearl-white core. Their uneven pulses resemble a signal arriving along several paths at once; no identifiable sender appears in the scan.",
+ "Blue mineral blades grow in a crooked reef, with light travelling through their fractured tips.",
+ "A broken rocky heart hangs among separated slabs and slowly orbiting fragments.",
+ "Several ice nuclei trail crossing blue-green vapour tails through the same region.",
+ "A tilted stream of bright crystals passes through a thin violet dust sheet.",
+ "A luminous bell trails long curling magnetic tendrils and drifting charged knots.",
+ "A broad serpentine stream carries luminous ripples between warmer glowing banks.",
+ "Forked electrical branches grow from a compact storm knot, brightening in travelling pulses.",
+ "Broken expanding-looking shells surround a small ember, like a blast suspended in glass.",
+ "An asymmetric cloud of pearl-like condensations moves in gently intersecting streams.",
+ "Folded golden plasma petals open around a small white centre, then slowly close again.",
+ "A wide curtain of pale dust bends downward through several luminous shelves.",
+ "Dark volcanic-looking shards surround an open centre, their rims lit in copper and violet.",
+ "Two inclined spirals pass around one another without sharing a single centre.",
+ "Long pale mineral spires float in a staggered fan, with light pulsing along their lengths.",
+ "Several deep red knots launch curling streams of amber sparks into a dispersed canopy.",
+ "A vast pleated sheet of coloured light folds through space with a ragged luminous hem.",
+ "A dark compact pearl sits inside two delicate inclined streams of bright orbiting dust.",
+ "A broken arch of unequal crystalline teeth catches cyan, peach and white highlights.",
+ "Two charcoal dust lobes slowly swell around a narrow violet seam.",
+ "An elongated lattice wraps a warm core while fine threads peel from its ends.",
+ "A huge broken mineral coil casts dark stepped shadows between pale ridges.",
+ "Stacked blue storm lobes flicker internally while short branching arcs travel along their underside.",
+ "Three broad ribbons twist past one another in a long, uneven braid.",
+ "An angular ice mass trails a veil of fine frost and detached blue splinters.",
+ "A dark central hollow is surrounded by an irregular bright iris and a long split dust tail.",
+ "Repeated branching fans spread in three dimensions, ending in tiny rose and teal lights.",
+ "Thin metallic mineral plates turn slowly in a loose shoal, flashing along their edges.",
+ "Tall natural light columns bend around a hollow nave, crossed by travelling pale arches."
  };
 static const char *rift_lore[]={
  "Old survey crews called these fields the curtains between nights. Their light looks solid until a ship crosses it. This scan is observational: the veil is not a gate, and no destination has been detected. Your flight controls remain unaffected.",
  "The Guild's nickname is a sailor's knot: a shape that looks impossible until viewed from another bearing. Pilots tell stories of lost minutes inside the lace, but this instrument pass confirms no clock shift. It does not transport or pull your ship.",
  "The name comes from the nursery-lamp glow, not a confirmed newborn star. Prospectors once followed its sparks hoping for precious ore; the light offered nothing they could scoop. This is a research discovery, not a mine or a fuel source.",
- "Relay folklore calls it a message that forgot where it was going. Researchers catalogue each echo separately to compare its structure. The repeating light is not a distress call or a conversation, and the field does not provide a jump route."
+ "Relay folklore calls it a message that forgot where it was going. Researchers catalogue each echo separately to compare its structure. The repeating light is not a distress call or a conversation, and the field does not provide a jump route.",
+ "Each blade has a cold shaded back and a bright sunward facet. Surveyors compare its growth to frost on a window.",
+ "The gaps expose glowing mineral seams. This compact rubble remnant has no landing surface.",
+ "Their tails point along a shared stellar wind while their nuclei occupy different depths.",
+ "Facets brighten at different bearings. The stream is a survey phenomenon; its crystals cannot be scooped.",
+ "Its swimming rhythm resembles an animal, but this scan detects an ion cloud rather than confirmed life.",
+ "Pilots can pass through its open folds. The current is visible light and does not accelerate the ship.",
+ "The branching structure remains coherent while individual arcs swell and fade. Instruments record no artificial transmitter.",
+ "The name describes the shape, not a currently exploding star. Its luminous shells breathe without changing their survey position.",
+ "Each condensation has a bright limb and soft trailing light. Their shared motion distinguishes the swarm from distant stars.",
+ "The bloom is magnetic weather. Its petals overlap at different depths and are transparent between their bright edges.",
+ "The apparent fall is a local particle flow. Sparse bright grains reveal its depth as the ship changes bearing.",
+ "The crown is jagged and incomplete. Sunlit faces, cold backs and ember seams remain visible from different approaches.",
+ "Their opposing colours make the intertwined paths readable. The visual rotation does not pull or transport the ship.",
+ "Survey crews named them for their regular instrument oscillations. No new audible signal is generated by this field.",
+ "The particles brighten near each knot and cool as they spread, making each plume readable from behind.",
+ "The natural sail has no supporting frame. Its moving pleats reveal a wide sheet rather than a flat glowing disc.",
+ "The pearl is an observational designation. Local navigation confirms normal ship control and no jump connection.",
+ "The teeth are natural faceted growths. Gaps remain open between them, exposing the starfield through the arch.",
+ "Background stars dim behind the dense lobes. The breathing appearance is shifting illumination, not confirmed biology.",
+ "Its transparent shell has uneven ribs and nested strands. Surveyors use the enclosed core to compare observations from different bearings.",
+ "Its shell-like spiral is a geological resemblance. Small detached chips drift around the oldest outer turn.",
+ "The flashes build and fade rather than replacing the whole sky. The field has no hostile weapon source.",
+ "Their bright hems and sparse interior dust reveal folds during a fly-through. The strands maintain separate trajectories.",
+ "Large planes catch sunlight while deep cracks remain cold blue. Its name refers to the drifting frost, not a moving survey waypoint.",
+ "Stars are obscured by compact dust at its centre. This is an eye-shaped natural field, not a working wormhole or black-hole simulation.",
+ "The branches grow smaller at each fork, with clear black gaps preserving the structure at a distance.",
+ "Individual plates reflect sunlight only at favourable bearings. Their separate cold faces remain visible between the glints.",
+ "The architectural name is poetic. There are no constructed walls or inhabitants; each arch is a coherent plasma filament."
  };
 #endif

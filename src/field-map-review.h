@@ -28,7 +28,7 @@ static int field_map_review(void){
   MCHECK(game.pos.x+eva_map_pan_x<=pad.x+EVA_FIELD_RADIUS+.01f&&game.pos.z+eva_map_pan_z<=pad.z+EVA_FIELD_RADIUS+.01f,"panning clamps at survey bounds");
   space();snprintf(file,sizeof(file),"map-%d-panned.bmp",body);dump_native_bmp(file);
   FieldBuilding bay=field_port_building(&game,2),tower=field_port_building(&game,1);
-  MCHECK(bay.height==6&&tower.height<300,"open low landing platforms replace massive hangars");
+  MCHECK(bay.height<=.6f&&!field_port_solid(2)&&tower.height<300,"open traversable landing terraces replace massive hangars");
   if(body==1){Vec3 obs=surface_poi(&game,2);
    MCHECK(fabsf(obs.z-pad.z-FIELD_OBSERVATORY_DISTANCE)<.1f,"Lave observatory sits on the distant 4200 metre ridge");
    MCHECK(terrain_height(&game,obs.x,obs.z)>terrain_height(&game,pad.x,pad.z)+100,"observatory stands on a higher ridge");

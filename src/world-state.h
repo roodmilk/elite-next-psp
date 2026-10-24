@@ -18,9 +18,9 @@ static inline int world_reputation(const Game *g,int role){
 }
 static inline void world_state_build(const Game *g,int system,WorldState *w){
  if(!w)return;memset(w,0,sizeof(*w));if(!g)return;
- if(system<0||system>255)system=g->system;w->system=system;w->economy=g->systems[system].economy;w->government=g->systems[system].government;w->tech=g->systems[system].tech;w->danger=danger_rating(g,system);w->station_count=HUB_COUNT;w->planet_count=BODY_COUNT-1;
+ if(system<0||system>255)system=g->system;w->system=system;w->economy=g->systems[system].economy;w->government=g->systems[system].government;w->tech=g->systems[system].tech;w->danger=danger_rating(g,system);w->station_count=HUB_COUNT;for(int b=0;b<system_body_slots(system);b++)if(system_body_type_slot(system,b)!=SUN)w->planet_count++;
  if(system==g->system){for(int i=0;i<NPC_COUNT;i++)if(g->npc[i].alive){w->npc_count++;if(g->npc[i].role>=0&&g->npc[i].role<FACTION_COUNT)w->faction[g->npc[i].role]++;}w->active_events=(g->attacked>0?1u:0u)|(g->police_stop?2u:0u)|(g->freight_gap<=0?4u:0u);}
 }
-static inline int world_station_available(const Game *g,int system,int hub){WorldState w;world_state_build(g,system,&w);return hub>=0&&hub<w.station_count;}
-static inline int world_planet_available(const Game *g,int system,int body){return g&&system>=0&&system<256&&body>=1&&body<BODY_COUNT;}
+static inline int world_station_available(const Game *g,int system,int hub){return g&&system>=0&&system<256&&hub>=0&&hub<HUB_COUNT;}
+static inline int world_planet_available(const Game *g,int system,int body){return g&&system>=0&&system<256&&body>=0&&body<BODY_COUNT&&system_body_active_slot(system,body)&&system_body_type_slot(system,body)!=SUN;}
 #endif

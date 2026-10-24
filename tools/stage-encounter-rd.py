@@ -1,0 +1,2 @@
+from pathlib import Path
+p=Path('src/encounter-upgrade-review.h');s=p.read_text().replace(':5200;',':3400;');s=s.replace('float a=orient+.30f+sinf(frame*.1f)*.12f;','float a=-orient+.35f+sinf(frame*.1f)*.08f;float distance=frame>=12?range*2.8f:range;encounter_sprite_enabled=(frame%8)>=4;');s=s.replace('sinf(a)*range,range*.15f,-cosf(a)*range','sinf(a)*distance,distance*.15f,-cosf(a)*distance');s=s.replace('if(frame==4||frame==12)','if(frame==3||frame==7||frame==12||frame==16)');p.write_text(s)

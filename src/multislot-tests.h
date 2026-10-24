@@ -16,14 +16,21 @@
  /* V23 fixtures retain the old primary bank and omit the appended V24 bytes. */
  game_init(&g);g.fit[0]=2;g.fit[3]=11;fit_rebuild(&g);
  CHECK(save_game(&g,"test-banks-old.sav"),"banks: migration source saved");
- unsigned char bytes[131072];FILE *source=fopen("test-banks-old.sav","rb");size_t size=0;
+ static unsigned char bytes[262144];FILE *source=fopen("test-banks-old.sav","rb");size_t size=0;
  if(source){size=fread(bytes,1,sizeof(bytes),source);fclose(source);}
- int migrated=0;if(size>FIT_SAVE_BYTES+4&&size<sizeof(bytes)){
+ int migrated=0;if(size>FIT_SAVE_BYTES+OPENING_SAVE_BYTES+(FIT_V29_BYTES+MODULE_STORE_BYTES+RUMOUR_SAVE_BYTES+NEWSPAPER_REWARD_SAVE_BYTES+EXPEDITION_SAVE_BYTES+(ERL_SAVE_BYTES+DB_SAVE_BYTES))+4&&size<sizeof(bytes)){
   bytes[4]=23;FILE *old=fopen("test-banks-v23.sav","wb");
-  if(old){size_t payload=size-FIT_SAVE_BYTES-4;migrated=fwrite(bytes,1,payload,old)==payload;fclose(old);migrated=migrated&&save_seal("test-banks-v23.sav");}
+  if(old){size_t payload=size-SAVE_V28_EXPANSION_BYTES-FIT_SAVE_BYTES-OPENING_SAVE_BYTES-(FIT_V29_BYTES+MODULE_STORE_BYTES+RUMOUR_SAVE_BYTES+NEWSPAPER_REWARD_SAVE_BYTES+EXPEDITION_SAVE_BYTES+(ERL_SAVE_BYTES+DB_SAVE_BYTES))-4;migrated=fwrite(bytes,1,payload,old)==payload;fclose(old);migrated=migrated&&save_seal("test-banks-v23.sav");}
  }
  CHECK(migrated&&load_game_file(&loaded,"test-banks-v23.sav")&&loaded.fit[0]==2&&loaded.fit[3]==11&&loaded.fit[6]==FIT_EMPTY,"banks: V23 existing modules migrate into first slots without loss");
+ /* V28 already has the first four banks. Removing only the V29 tail must
+  * preserve all 24 paid modules and initialise banks five-eight empty. */
+ int migrated28=0;if(size>(FIT_V29_BYTES+MODULE_STORE_BYTES+RUMOUR_SAVE_BYTES+NEWSPAPER_REWARD_SAVE_BYTES+EXPEDITION_SAVE_BYTES+(ERL_SAVE_BYTES+DB_SAVE_BYTES))+4&&size<sizeof(bytes)){
+  bytes[4]=28;FILE *old28=fopen("test-banks-v28.sav","wb");
+  if(old28){size_t payload=size-(FIT_V29_BYTES+MODULE_STORE_BYTES+RUMOUR_SAVE_BYTES+NEWSPAPER_REWARD_SAVE_BYTES+EXPEDITION_SAVE_BYTES+(ERL_SAVE_BYTES+DB_SAVE_BYTES))-4;migrated28=fwrite(bytes,1,payload,old28)==payload;fclose(old28);migrated28=migrated28&&save_seal("test-banks-v28.sav");}
+ }
+ CHECK(migrated28&&load_game_file(&loaded,"test-banks-v28.sav")&&loaded.fit[0]==2&&loaded.fit[3]==11&&loaded.fit[24]==FIT_EMPTY&&loaded.fit[47]==FIT_EMPTY,"banks: V28 migrates losslessly and clears the four new banks");
  g.ship=0;g.fit[6]=25;
  CHECK(!save_game(&g,"test-banks-old.sav"),"banks: invalid locked slot cannot overwrite a valid save");
- remove("test-banks.sav");remove("test-banks.sav.bak");remove("test-banks-old.sav");remove("test-banks-old.sav.bak");remove("test-banks-v23.sav");
+ remove("test-banks.sav");remove("test-banks.sav.bak");remove("test-banks-old.sav");remove("test-banks-old.sav.bak");remove("test-banks-v23.sav");remove("test-banks-v28.sav");
 }

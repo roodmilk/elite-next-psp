@@ -1,21 +1,9 @@
 """Palette-bake generated alpha props to embedded PSP cells."""
 from pathlib import Path
 from PIL import Image
+from biome_prop_frames import load_props
 root = Path(__file__).resolve().parents[1]
-src = Image.open(root / 'assets/source/biome-props/kit-alpha.png').convert('RGBA')
-cells = []
-for row in range(6):
-    for col in range(4):
-        cell = src.crop((col*src.width//4,row*src.height//6,(col+1)*src.width//4,(row+1)*src.height//6))
-        mask = cell.getchannel('A').point(lambda a: 255 if a > 160 else 0)
-        bounds = mask.getbbox()
-        if not bounds:
-            raise ValueError('Empty prop')
-        prop = cell.crop(bounds)
-        prop.thumbnail((46,62),Image.Resampling.NEAREST)
-        out = Image.new('RGBA',(48,64))
-        out.paste(prop,((48-prop.width)//2,64-prop.height))
-        cells.append(out)
+cells = load_props(root)
 sheet = Image.new('RGBA',(192,384))
 for i,cell in enumerate(cells):
     sheet.paste(cell,(i%4*48,i//4*64))
@@ -35,5 +23,7 @@ lines.append('};')
 (root/'src/generated/biome-props-pixels.h').write_text('\n'.join(lines)+'\n')
 dest=root/'assets/generated/biome-props'
 dest.mkdir(parents=True,exist_ok=True)
-sheet.save(dest/'kit.png')
+preview = indexed.convert('RGBA')
+preview.putalpha(sheet.getchannel('A'))
+preview.save(dest/'kit.png')
 print('24 transparent cells; 73728 indexed bytes')

@@ -50,7 +50,7 @@ static int freight_route(Game *g,NPC *n,int slot){
   int safe=length(sub(gate,g->pos))>2500;
   float angle=station_angle(g);
   if(station_architecture_hit(g,station_arch_rotate(sub(berth,(Vec3){0,0,STATION_Z}),-angle),station_arch_rotate(sub(gate,(Vec3){0,0,STATION_Z}),-angle),750,0))safe=0;
-  for(int b=0;b<BODY_COUNT;b++)if(route_clearance(berth,gate,g->bodies[b].pos)<g->bodies[b].radius+n->radius+500)safe=0;
+  for(int b=0;b<BODY_COUNT;b++)if(body_active(&g->bodies[b])&&route_clearance(berth,gate,g->bodies[b].pos)<g->bodies[b].radius+n->radius+500)safe=0;
   for(int h=0;h<HUB_COUNT;h++)if(route_clearance(berth,gate,hub_position(g,h))<n->radius+600)safe=0;
   for(int j=8;j<36;j+=12)if(&g->npc[j]!=n&&g->npc[j].alive&&route_clearance(berth,gate,g->npc[j].pos)<n->radius+g->npc[j].radius+500)safe=0;
   if(safe){n->freight_berth=berth;n->freight_gate=gate;n->dir=mul(out,-1);return 1;}

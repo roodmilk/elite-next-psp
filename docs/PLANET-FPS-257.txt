@@ -1,0 +1,66 @@
+2.5.257 — Planetary software-renderer and compiler optimization
+1 October 2026
+
+Preserves cumulative256. No starport shrinking, scenery density reduction,
+draw-distance reduction, control changes, save schema changes or music changes.
+
+IMPLEMENTED
+- Finite-coordinate raster min/max/floor/ceil helpers replace repeated libm
+  calls per triangle row. Negative coordinates receive exact floor correction.
+- Textured 2x2 samples compute visible depth ownership once and reuse that mask
+  for writes, rather than testing all four depths twice.
+- Whole-screen-plane triangle rejection occurs AFTER sorting with a2px guard.
+  Keeping the original queue is important for coplanar equal-depth ownership.
+- Cloud-sprite source colour/alpha products are computed once per sprite in
+  bounded2KiB stack tables instead of multiplied for every covered pixel.
+- Both build scripts use O3, link-time optimization and fno-math-errno. Source
+  does not depend on math errno. No fast-math or unsafe reassociation enabled.
+  Windows GCC15.2 build tested; Linux recipe mirrored, not executed.
+
+MEASURED: same emulator, exact256 baseline rerun and exact final257 EBOOT.
+Draw time only; NOT full gameplay FPS or physical PSP measurements.
+World       approach256->257     touchdown256->257    wilderness256->257
+Lave I      50.769->42.800ms     31.073->27.992ms      54.912->47.011ms
+Lave II     43.447->34.949ms     34.019->28.022ms      35.873->31.517ms
+Lave III    53.505->39.399ms     26.004->19.418ms       9.257->7.567ms
+Lave IV     45.831->36.878ms     32.001->27.008ms      45.199->38.245ms
+Approach cost16–26% lower; wilderness12–18% lower; touchdown10–25% lower.
+Broader16 arrival/ascent samples39.872->33.117ms average, worst167.462->126.507.
+Seven Lave walking views47.278->41.092ms average, worst64.026->55.762.
+Lave aggregate36 scenes37.043->31.372ms average.
+These gains vary by view. Heavy walking/landing remains beyond33.3ms, so this
+is NOT a locked30FPS claim. Cloud-platform cold setup still spikes115.621ms
+in focused approach sample. Starport/sky and textured-ground cost remain.
+
+VERIFICATION / REJECTED EXPERIMENT
+Isolated candidate current task/planet-fps-257; frozen baseline/src and
+canonical-before-257 recovery. First raster-only trial improved landing~11%.
+An early pre-sort triangle cull caused11/144 strict image comparisons to fail:
+96–248 small coplanar pixels in affected views. Rejected it; moved the cull
+after sorting. Final all144 fast/reference views have identical pixels.
+All12 final landing/wilderness BMPs byte-identical to256 screenshots; no
+details, textures, camera positions or ranges dropped.
+Final final-speed/perf and release-cloud/entry/tools/walk/map/rover/world/art
+reports RESULT0. Scenery32704 miss/hit identities and12 bridge-angle views
+pass; all1024 world foundations, fauna/flora/POIs, scans/Codex/save, collision,
+framebuffer guards and input transitions checked by their focused suites.
+release-core game594/radio54/steering18 RESULT0. Core runner stops on game
+report, not full inherited input/outfitting certification. Those inherited
+failures are not repaired or claimed green.
+
+DELIVERY
+Current task/ELITE-NEXT-2.5.257/EBOOT.PBP,8558103 bytes.
+SHA256 BF0DBE40F37824B31179A8D2C341D76C3783DD45B5917B2A211D969AE8909A66.
+ELF text7407632/data14116/BSS2403256 =9825004 bytes static footprint.
+Code increases~1MiB versus256; BSS effectively unchanged. MEMSIZE0 remains.
+No per-frame heap allocation added. Physical32MiB PSP/audio stability still
+requires testing. Root/dist/source synchronized only after concurrency checks.
+No Git pull/autostash/commit/push/tag/public release; shared dirty work, saves,
+player music and prior binaries preserved.
+
+NEXT
+Profile starport pass separately from sky; current first marker combines both.
+Reduce textured-ground raster work and cold cloud-deck construction further.
+Investigate measured GPU/VFPU rendering paths only with depth/sprite parity
+tests; not implemented here. Validate physical PSP frame pacing, audio,
+buttons, long sessions and32MiB memory before claiming hardware performance.

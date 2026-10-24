@@ -2,7 +2,7 @@
 {
  int smoke_before=smoke;smoke=1;
  tutorial_start();
- int vis[6],only_fly=deck_fill(0,vis)==1&&vis[0]==0;
+ int vis[9],only_fly=deck_fill(0,vis)==1&&vis[0]==0;
  for(int g=1;g<DECK_GROUPS;g++)only_fly&=deck_fill(g,vis)==0;
  INPUT_CHECK(only_fly,"tutorial: only FLY is visible at the start");
  int introduced=0;for(int i=0;i<TUTORIAL_COUNT;i++)if(tutorial_beats[i].unlock>=0)introduced|=1<<tutorial_beats[i].unlock;
@@ -92,10 +92,10 @@
  INPUT_CHECK(tutorial_service(&game,24)&&tutorial_service(&game,9),"tutorial: completion unlocks all services");
  game.tutorial_step=15;game.tutorial_seen=15;game.credits=3210;
  INPUT_CHECK(save_game(&game,"tutorial.sav"),"tutorial: continuation fixture saved");
- game.credits=9;page=INTRO;intro_choice=3;input(PSP_CTRL_CROSS,0,.016f,0,0);
+ game.credits=9;page=INTRO;intro_menu_age=1;intro_wait_release=0;intro_choice=3;input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(page==HOME&&game.tutorial_step==15&&game.tutorial_seen==0&&game.credits==3210,"tutorial: Continue restores checkpoint and repeats its briefing");
  INPUT_CHECK(!strcmp(commander_save_path(&game),"tutorial.sav"),"tutorial: tutorial saves cannot target regular commander");
- game.dead=1;page=FLIGHT;input(PSP_CTRL_START,0,.016f,0,0);
+ game.dead=1;game.explosion=3;death_choice=0;page=FLIGHT;input(PSP_CTRL_CROSS,0,.016f,0,0);
  INPUT_CHECK(!game.dead&&game.docked&&game.tutorial_step==15,"tutorial: death recovery returns to the saved lesson");
  tutorial_start();input(PSP_CTRL_TRIANGLE,0,.016f,0,0);input(PSP_CTRL_CIRCLE,0,.016f,0,0);
  INPUT_CHECK(tutorial_active(&game),"tutorial: cancelling exit keeps training active");

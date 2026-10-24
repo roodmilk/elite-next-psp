@@ -51,6 +51,6 @@ static void rover_step(Game *g,float dt,float steer,float look,int throttle){
  }
  g->pos.y=terrain_height(g,g->pos.x,g->pos.z)+22;g->rover_pos=g->pos;
  g->jetpack=g->boost=0;g->eva_running=g->eva_run_arm=g->eva_jump_held=0;
- g->hazard=fmaxf(0,g->hazard-dt*22);fauna_tick(g,dt);
+ g->hazard=fmaxf(0,g->hazard-dt*22);if(!g->surface_replica)fauna_tick(g,dt);
  g->speed=sqrtf((g->pos.x-before.x)*(g->pos.x-before.x)+(g->pos.z-before.z)*(g->pos.z-before.z))/dt;
 }

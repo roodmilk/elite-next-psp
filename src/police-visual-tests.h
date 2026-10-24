@@ -2,8 +2,8 @@
  TEST_INIT();launch(&game);page=FLIGHT;police_begin(&game,0);row=17;
  for(int choice=0;choice<4;choice++){
   game.cargo[6]=2;police_choice=choice;rect(0,0,W,H,BG);police_dialog();
-  int py=182+(choice%3)*24;
-  INPUT_CHECK(pixels[py*STRIDE+16]==RGB(245,157,62)&&row==17,"police: actual choice owns yellow highlight and does not overwrite menu focus");
+  int py=146+(choice/2)*52,px=12+(choice%2)*232;
+  INPUT_CHECK(pixels[(py+5)*STRIDE+px+4]==RGB(255,194,70)&&row==17,"police: actual choice owns yellow highlight and does not overwrite menu focus");
   char file[48];snprintf(file,sizeof(file),"police-reply-%d.bmp",choice);dump_native_bmp(file);
  }
  for(int phase=2;phase<=8;phase++){

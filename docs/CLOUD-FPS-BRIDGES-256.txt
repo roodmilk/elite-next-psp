@@ -1,0 +1,78 @@
+ELITE: NEXT 2.5.256 / CLOUD CORRIDOR, FPS WORK, BRIDGE VISIBILITY
+1 October 2026
+
+Implemented
+Post-handoff approach clouds enlarge and move outward around a widening
+clear centre corridor. The ship appears to pass between cloud banks.
+Full coverage remains strictly opaque; zero coverage leaves the scene alone.
+No landing/launch timing, controls or saved data changed.
+
+Planet performance:
+-28KiB tagged32x32 biome-scenery cell cache. Reuses actual properties and
+ ground heights across frames/camera movement; only new cells regenerate.
+-Removed the wasted generic vegetation sweep on Lave III cloud platforms.
+ Authored planters and all normal scenery remain.
+-Draw nearby terrain first so distant fragments can fail depth tests early.
+-Dry meadow quads retain exact texture/noise but skip redundant water checks.
+ Shore rejection is conservative; exact40m river/ocean ownership is unchanged.
+-Exact flat-port24m early return, cached river rotation and equivalent
+ truncation-plus-negative-correction terrain cell floors.
+No reductions in landscape density, mesh detail, visible cell range,
+draw distance, colour palettes, animation or authored species identities.
+
+Bridge fix:
+The former centroid z<-80 cull hid long bridges whose centre was behind
+the camera while the nearest end remained in view. Full-span conservative
+bounds now retain visible sections. Deck and bank ramps have5m thickness,
+undersides and edge faces, rather than infinitely thin sheets.
+Existing walk/rover height and crossing footprint stay unchanged.
+
+Verification (final cloud-tunnel-256 binary)
+ship-speed:32704 cached-prop miss/hit identities agree with uncached generation
+across the galaxy;12 bridge views pass, including below deck and centre-behind.
+Twelve native before/after approach/touchdown/wilderness BMPs are pixel-identical.
+ship-cloud: centre corridor visible with side banks retained; full loading
+handoff hidden; zero-cover and framebuffer guards pass.
+ship-hand-water: scanner/modal/reward/Codex gestures, bridge floor alignment,
+river masks and animation pass.
+ship-art:1024 worlds/8192 species identities, twelve POI families, discovery
+save/load, leaves/occlusion guards pass.
+ship-world,ship-walk,ship-map,ship-rover,ship-entry: RESULT0.
+ship-perf:144 reference/fast frames identical and guarded.
+ship-core:594 game/54 radio/18 steering checks complete RESULT0. The runner
+stops after game-check completion; it does not certify the inherited complete
+input/outfitting suite. One early diagnostic launch had no report; stopped
+only the owned emulator and fresh flagged retry passed. All final runs completed.
+
+Measured emulator DRAW time, not physical-PSP FPS
+Overall sampled arrival/ascent48.978->39.872ms average (~19% less).
+Worst176.033->167.462ms, so cold heavy scenes still hitch.
+
+Profile before -> final, milliseconds (cold frame included):
+Lave I approach51.478->50.769; touchdown31.315->31.073;
+ wilderness73.765->54.912.
+Lave II approach57.435->43.447; touchdown46.180->34.019;
+ wilderness50.564->35.873.
+Lave III approach62.326->53.505; touchdown33.958->26.004;
+ wilderness17.759->9.257.
+Lave IV approach60.180->45.831; touchdown47.286->32.001;
+ wilderness64.302->45.199.
+The four wilderness views use26–48% less render time.
+Broader Lave walking47.278ms avg/64.026worst vs25556.534/89.806.
+Aggregate Lave37.043ms vs25546.963.
+River view52.217ms avg/52.914worst vs25550.137/50.968; solid bridge faces
+add a small cost. No universal speedup or locked30 claim.
+Simulation, audio and real frame pacing are not included.
+
+Recovery/delivery
+Canonical source and root/dist EBOOT verified against the final candidate.
+All modified pre256 files are in canonical-before-256. No unrelated files,
+user music or commander saves changed. No Git mutation/public release.
+EBOOT7379751 bytes SHA256:
+2D10EA5885704E8D2F12DFC3534D64167A51A8B78D4B2D00BB4F57C010B00D29.
+
+Next
+Profile the Lave I landing starport/sky pass, cold cloud-platform mesh setup,
+and remaining software textured-ground overdraw. Test real PSP bridges from
+below/banks, scanner controls, landing FPS and audio. Further optimization
+must retain scenery identity/occlusion and the opaque loading handoff.

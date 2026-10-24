@@ -11,7 +11,7 @@
  game_init(&g);launch(&g);g.story_flags|=STORY_EV_LANDING_TECH;g.approach=1;enter_planet(&g);Vec3 pad=surface_site(&g,1);
  int exits=1;for(int ship=0;ship<player_ship_count;ship++){g.ship=ship;g.pos=pad;g.pos.y=42;g.surface=1;exits&=eva_toggle(&g)&&eva_position_allowed(&g,g.pos.x,g.pos.z)&&eva_can_board(&g);g.surface=1;}
  CHECK(exits,"all player hulls permit a collision-free exit and immediate boarding");
- const FieldBuilding *terminal=&field_port_buildings[0];
+ FieldBuilding actual_terminal=field_port_building(&g,0);const FieldBuilding *terminal=&actual_terminal;
  g.surface=2;g.ship_pos=pad;g.rover_pos=add(pad,(Vec3){FIELD_GARAGE_X,0,-20});g.pos=(Vec3){pad.x+terminal->x,46,pad.z+terminal->z+terminal->d+40};g.yaw=3.14159265f;
  for(int i=0;i<80;i++)game_eva_tick(&g,.1f,0,0,1,0,0);
  CHECK(g.pos.z>=pad.z+terminal->z+terminal->d,"walking cannot penetrate the port terminal");

@@ -1,0 +1,79 @@
+/* Legacy layout-4 Apex acceptance using actual native tick/save/render.
+ * Current layout-5 selection and gameplay have separate neon fixtures. */
+static int erl_apex_review(void){
+ FILE *flag=fopen("erl-apex-review.flag","r");if(!flag)return 0;fclose(flag);FILE *out=fopen("erl-apex-review.txt","w");if(!out)return 1;int failures=0,checks=0;
+ #define APCHK(c,s) do{int ok=!!(c);checks++;failures+=!ok;fprintf(out,"%s %s\n",ok?"PASS":"FAIL",s);fflush(out);}while(0)
+ unsigned *old=fb,*memory=calloc(STRIDE*H+32,sizeof(unsigned));Game *copy=malloc(sizeof(Game));if(!memory||!copy){free(memory);free(copy);fclose(out);return 1;}fb=memory+16;for(int i=0;i<16;i++)memory[i]=memory[16+STRIDE*H+i]=0x1234abcd;
+ erl_review_fixture(1);game.erl.referral=game.erl.licence=1;game.erl_local.selection=1;APCHK(erl_begin(&game,ERL_TRIAL,0,ERL_CIRCUIT,0),"actual Apex event prepares using current ERL rules");
+ /* Career event_layout is round slot 0; race.layout is geometry ID 4.
+  * Ask the existing builder for legacy geometry, then restore the valid
+  * career slot immediately, before assertions, checkpoints or saves. */
+ game.erl.event_layout=4;game.race.phase=RACE_NONE;game.docked=0;race_restart(&game);game.erl.event_layout=0;game.race.phase=RACE_RUNNING;game.race.countdown=0;game.race.elapsed=30;page=FLIGHT;game.race.gate=2;
+ SpaceRace *r=&game.race;RaceTrackFrame f=race_track_frame(r,2,.47f);float support=race_floor_support(&game,0,f);Vec3 centre=add(race_pad_point(r,2,.47f,0),mul(f.up,support+35)),a=sub(centre,mul(f.ahead,1800)),b=add(centre,mul(f.ahead,1800));
+ APCHK(race_pad_crossing(r,2,a,b,support),"fast forward low skim crosses curved Ion Cyan footprint");APCHK(!race_pad_crossing(r,2,add(a,mul(f.up,3000)),add(b,mul(f.up,3000)),support),"high flight cannot trigger a floor pad");APCHK(!race_pad_crossing(r,2,b,a,support),"backwards crossing cannot farm a floor pad");APCHK(!race_pad_crossing(r,2,a,a,support),"stationary contact cannot farm a pad");APCHK(!race_pad_crossing(r,2,add(a,mul(f.right,4000)),add(b,mul(f.right,4000)),support),"side passage cannot activate a pad");
+ game.pos=b;game.yaw=atan2f(f.ahead.x,f.ahead.z);game.pitch=asinf(f.ahead.y);r->reserve=20;r->arcade.actor[0].protection=3;race_tick(&game,a,.016f);
+ APCHK(r->reserve==20&&r->boost_time>0&&(r->arcade.branch_boost[0]&(1u<<2)),"live pad awards speed kick with no reserve and records its consumed passage");
+ float kick=r->boost_time;race_tick(&game,a,.016f);APCHK(r->boost_time<kick&&r->reserve==20,"same pad cannot refresh its kick by jittering or lingering");
+ APCHK(save_game(&game,"apex-pad.sav")&&load_game(copy,"apex-pad.sav")&&copy->race.arcade.branch_boost[0]==r->arcade.branch_boost[0]&&copy->race.reserve==20,"V37 save preserves pad consumption and reserve without a format change");
+ r->boost_time=0;r->reserve=0;r->boost_delay=.55f;r->boost_lock=1;game.boost=0;float dt=.1f,t=0,p=0;int throttle=1;for(int i=0;i<106;i++){dt=.1f;race_flight_control(&game,&dt,&t,&p,&throttle);}APCHK(r->reserve>39&&r->reserve<41&&!game.boost,"slow automatic refill is time based and cannot automatically restart exhausted held boost");
+ r->reserve=60;r->boost_lock=0;game.boost=1;dt=.1f;race_flight_control(&game,&dt,&t,&p,&throttle);APCHK(fabsf(r->reserve-57.5f)<.01f,"manual boost drains normally without simultaneous automatic recharge");
+ *copy=game;r->drift_input=1;game_tick(&game,.016f,1,0,1,0);float drifting=r->reserve;APCHK(game.boost&&game.roll<0&&drifting<57.5f,"Square drift banks and keeps manual boost active");r->drift_input=0;game_tick(&game,.016f,1,0,1,0);APCHK(game.boost&&fabsf(r->reserve-(drifting-.4f))<.02f,"releasing drift preserves boost without an extra reserve penalty");
+ erl_input(PSP_CTRL_CIRCLE,0,.016f,0,0);APCHK(page==FLIGHT&&!game.erl.paused,"Circle leaves the unobstructed race view running");int camera=third_person;erl_input(PSP_CTRL_TRIANGLE,0,.016f,0,0);APCHK(third_person!=camera,"Triangle toggles race camera");erl_input(PSP_CTRL_SQUARE,PSP_CTRL_RIGHT,.016f,1,0);APCHK(r->drift_input,"Square tap reaches actual race drift handling");erl_input(0,0,.016f,0,0);APCHK(r->drift_input,"tap drift continues smoothly after Square is released");
+ r->arcade.actor[0].item=RA_BOOST;r->arcade.actor[0].require_release=0;r->arcade.actor[0].previous_x=0;r->arcade.actor[0].rocket=0;r->arcade.actor[0].protection=r->arcade.actor[0].shuffle=r->arcade.actor[0].spin=0;r->repair=r->handover=r->crash_time=0;erl_input(PSP_CTRL_CIRCLE,PSP_CTRL_CIRCLE,.016f,0,0);APCHK(r->arcade.actor[0].rocket>.5f&&r->arcade.actor[0].rocket<=.65f,"Circle activates the real equipped item");
+ r->arcade.actor[0].rocket=0;r->rivals=6;game.speed=5600;r->gate=2;f=race_track_frame(r,2,.4f);game.pos=add(f.centre,mul(f.up,RACE_TRACK_FLOOR+160));game.yaw=atan2f(f.ahead.x,f.ahead.z);game.pitch=asinf(f.ahead.y);game.roll=0;r->arcade.actor[0].item=RA_BOOST;game.boost=0;
+ for(int i=0;i<6;i++){r->pilot[i].gate=2;r->pilot[i].pos=add(game.pos,add(mul(f.ahead,(i-2)*700),mul(f.right,(i%3-1)*450)));r->pilot[i].dir=f.ahead;}
+ *copy=game;third_person=1;apex_fx.valid=0;
+ for(int frame=0;frame<24;frame++){r->elapsed+=.033334f;game.time+=.033334f;f=race_track_frame(r,2,.10f+frame*.004f);game.pos=add(f.centre,mul(f.up,RACE_TRACK_FLOOR+race_floor_support(&game,0,f)+35));game.yaw=atan2f(f.ahead.x,f.ahead.z);game.pitch=asinf(f.ahead.y);race_apex_tick();}
+ erl_review_capture("apex-third-normal.bmp");APCHK(apex_fx.count>=20,"trails store real time-based travelled pose history");
+ r->boost_time=.8f;game.boost=1;game.speed=r->top_speed*1.4f;for(int frame=0;frame<15;frame++){r->elapsed+=.033334f;game.time+=.033334f;f=race_track_frame(r,2,.20f+frame*.0056f);game.pos=add(f.centre,mul(f.up,RACE_TRACK_FLOOR+race_floor_support(&game,0,f)+20));game.yaw=atan2f(f.ahead.x,f.ahead.z);game.pitch=asinf(f.ahead.y);race_apex_tick();}erl_review_capture("apex-third-boost.bmp");fprintf(out,"INFO grid %d samples %d cells %d writes %d/%d\n",race_floor_grid_count,race_floor_samples,race_floor_cells,race_grid_writes,race_grid_attempts);fprintf(out,"INFO GE vertices %d overflow %d ready %d\n",race_ge_vertices,race_ge_overflow,race_ge_ready);third_person=0;erl_review_capture("apex-first-boost.bmp");erl_review_capture("apex-first-clear-view.bmp");
+ int capture_ship=game.ship;
+ for(int hull=0;hull<2;hull++){const char *wanted=hull?"NEEDLEFISH":"COBRA MK 3";int ship=-1;for(int n=0;n<player_ship_count;n++)if(!strcmp(player_ships[n].name,wanted))ship=n;if(ship<0)continue;game.ship=ship;r->arcade.branch_boost[0]&=~(1u<<2);r->arcade.branch_repair[0]&=~(1u<<2);unsigned paint=ship_paint[ship];ship_paint[ship]=hull?RGB(209,91,182):RGB(116,206,218);third_person=1;apex_fx.valid=0;
+  for(int frame=0;frame<24;frame++){r->elapsed+=.033334f;game.time+=.033334f;f=race_track_frame(r,2,.20f+frame*.003f);game.pos=add(add(f.centre,mul(f.right,2500)),mul(f.up,RACE_TRACK_FLOOR+race_floor_support(&game,0,f)+20));game.yaw=atan2f(f.ahead.x,f.ahead.z);game.pitch=asinf(f.ahead.y);race_apex_tick();}
+  erl_review_capture(hull?"apex-needlefish-painted.bmp":"apex-cobra-painted.bmp");ship_paint[ship]=paint;
+ }game.ship=capture_ship;third_person=0;
+ int occlusion_min=surface_y_min,occlusion_max=surface_y_max,occlusion_encoding=mega_depth_encoding,occlusion_depth=surface_depth_on;
+ surface_y_min=0;surface_y_max=H-1;mega_depth_encoding=surface_depth_on=1;third_person=1;flight_camera_prepare();rect(0,0,W,H,RGB(6,14,22));memset(surface_depth,255,sizeof(surface_depth));fb[210*STRIDE+240]=RGB(12,250,55);surface_depth[210*W+240]=0;race_holo_track_draw();
+ fprintf(out,"INFO occlusion colour %08x neighbour %08x depth %u/%u\n",fb[210*STRIDE+240],fb[210*STRIDE+242],surface_depth[210*W+240],surface_depth[210*W+242]);
+ APCHK((fb[210*STRIDE+240]&0xffffff)==(RGB(12,250,55)&0xffffff),"accelerated deck preserves a nearer opaque foreground pixel");APCHK((fb[210*STRIDE+242]&0xffffff)!=(RGB(6,14,22)&0xffffff),"accelerated deck visibly shades an uncovered neighbouring road pixel");APCHK(!race_ge_overflow,"accelerated native deck fits the bounded vertex arena");
+ surface_y_min=occlusion_min;surface_y_max=occlusion_max;mega_depth_encoding=occlusion_encoding;surface_depth_on=occlusion_depth;camera_override_clear();third_person=0;
+ r->arcade.warning=0;r->arcade.warning_side=-1;erl_review_capture("apex-incoming-rear.bmp");APCHK(r->arcade.warning==0&&r->arcade.warning_side==-1,"minimal rear-fire alert follows authoritative missile state");r->arcade.warning=-1;
+ const int ranks[]={1,2,9,10,11};for(int i=0;i<5;i++){r->place=ranks[i];r->rivals=10;r->elapsed+=.1f;char name[40];snprintf(name,sizeof(name),"apex-position-%d.bmp",ranks[i]);erl_review_capture(name);}
+ for(int reserve=0;reserve<=100;reserve+=25){r->reserve=reserve;char name[40];snprintf(name,sizeof(name),"apex-reserve-%d.bmp",reserve);erl_review_capture(name);}
+ /* The current instrument clears its own dark background even when empty;
+  * require that blank colour, rather than the surrounding panel's old ink. */
+ rect(342,225,131,40,RGB(24,16,43));race_reserve_fire(0);int empty=1;for(int y=225;y<237;y++)for(int x=399;x<465;x++)empty&=fb[y*STRIDE+x]==RGB(24,16,43);APCHK(empty,"zero reserve draws no miniature flames above the empty meter");
+ ApexEngines roots=race_apex_engines(mesh_id("COBRA MK 3"));APCHK(roots.count==2&&roots.root[0].z==-40.6f&&roots.root[1].z==-40.6f&&roots.root[0].x==-22&&roots.root[1].x==22,"Cobra effects use its two authored actual engine outlets");roots=race_apex_engines(mesh_id("NEEDLEFISH"));APCHK(roots.count==1&&roots.root[0].x==40.5f,"asymmetric Needlefish retains its real single engine");
+ int supported=1,oldship=game.ship;for(int ship=0;ship<player_ship_count;ship++)for(int bank=-1;bank<=1;bank++){game.ship=ship;game.roll=bank*.42f;float clearance=race_floor_support(&game,0,f);const Mesh *m=&meshes[mesh_id(player_ships[ship].name)];int mega=mega_hull_art_id(m->name),count=mega>=0?mega_hull_art[mega].parts*8:m->vertices;ApexPose pose=race_apex_pose(0);for(int v=0;v<count;v++){Vec3 p=mega>=0?mega_hull_vertex(&mega_hull_art[mega],v):m->v[v];Vec3 point=sub(race_apex_local(pose,p,1.2f),pose.pos);supported&=clearance+dot(point,f.up)>=7.9f;}}
+ APCHK(supported,"all player hulls and banked wings use actual authored floor support");game.ship=oldship;
+ game=*copy;r=&game.race;game.erl.paused=0;third_person=1;for(int k=0;k<4;k++){r->gate=k*4+2;f=race_track_frame(r,r->gate,.45f);game.pos=add(f.centre,mul(f.up,RACE_TRACK_FLOOR+160));game.yaw=atan2f(f.ahead.x,f.ahead.z);game.pitch=asinf(f.ahead.y);game.roll=k==2?.3f:0;apex_fx.valid=0;char name[40];snprintf(name,sizeof(name),"apex-course-%d.bmp",k);erl_review_capture(name);}
+ game.pos=add(game.pos,mul(f.up,3000));erl_review_capture("apex-high-flight.bmp");
+ /* Repeat the legacy build while retaining serializable career round 0;
+  * the generated race geometry stays layout 4 after restoring the slot. */
+ erl_review_fixture(1);game.erl.referral=game.erl.licence=1;game.erl_local.selection=1;erl_begin(&game,ERL_TRIAL,0,ERL_CIRCUIT,0);game.erl.event_layout=4;game.race.phase=RACE_NONE;game.docked=0;race_restart(&game);game.erl.event_layout=0;r=&game.race;r->phase=RACE_RUNNING;r->countdown=0;r->protection=5;page=FLIGHT;
+ APCHK(r->layout==4&&length(sub(r->gates[31].pos,r->start))<.01f,"new first course is a closed round track with a distinct saved layout");
+ int magnetic=0,gaps=0;for(int i=0;i<1024;i++){int kind=race_track_surface(r,i*(RACE_GATES/r->laps)/1024,(i*(RACE_GATES/r->laps)%1024)/1024.f);magnetic+=kind!=0;gaps+=kind==2;}
+ APCHK(magnetic==256&&gaps==32,"exactly one quarter of each lap is magnetic including its explicit jump gap");
+ f=race_track_frame(r,4,.35f);r->gate=4;game.pos=add(f.centre,mul(f.up,RACE_TRACK_FLOOR+race_floor_support(&game,0,f)+35));game.yaw=atan2f(f.ahead.x,f.ahead.z);game.pitch=asinf(f.ahead.y);game.speed=r->top_speed*.7f;third_person=1;erl_review_capture("round-magnetic-road.bmp");third_person=0;erl_review_capture("round-magnetic-first.bmp");third_person=1;
+ int per=RACE_GATES/r->laps,launch=(int)(per*.421875f);float lt=per*.421875f-launch;f=race_track_frame(r,launch,lt);r->gate=launch;r->reserve=37;game.pos=add(f.centre,mul(f.up,RACE_TRACK_FLOOR+race_floor_support(&game,0,f)+35));a=sub(game.pos,mul(f.ahead,40));game.pos=add(game.pos,mul(f.ahead,40));game.yaw=atan2f(f.ahead.x,f.ahead.z);game.pitch=asinf(f.ahead.y);game.speed=r->top_speed*.7f;
+ /* Establish the authored ramp before crossing it.  Reset the close chase
+  * history after this deliberate test teleport so the capture represents a
+  * settled gameplay camera rather than a synthetic cross-screen trail. */
+ {float u=.407f,q=u*per;int k=(int)q;RaceTrackFrame approach=race_track_frame(r,k,q-k);r->gate=k;game.pos=add(approach.centre,mul(approach.up,RACE_TRACK_FLOOR+race_floor_support(&game,0,approach)+35));game.yaw=atan2f(approach.ahead.x,approach.ahead.z);game.pitch=asinf(approach.ahead.y);game.speed=r->top_speed*.9f;r->elapsed=4;apex_fx.valid=0;erl_review_capture("round-launch-approach.bmp");}
+ f=race_track_frame(r,launch,lt);r->gate=launch;game.pos=add(f.centre,mul(f.up,RACE_TRACK_FLOOR+race_floor_support(&game,0,f)+35));a=sub(game.pos,mul(f.ahead,40));game.pos=add(game.pos,mul(f.ahead,40));game.yaw=atan2f(f.ahead.x,f.ahead.z);game.pitch=asinf(f.ahead.y);game.speed=r->top_speed*.7f;
+ race_tick(&game,a,.016f);APCHK((r->arcade.branch_boost[0]&(1u<<launch))&&r->boost_time>0&&game.pitch>.1f&&r->reserve==37,"marked magnetic ramp launches actual ship upwards without refilling reserve");
+ APCHK(save_game(&game,"round-jump.sav")&&load_game(copy,"round-jump.sav")&&copy->race.layout==4&&copy->race.arcade.branch_boost[0]==r->arcade.branch_boost[0]&&fabsf(copy->pitch-game.pitch)<.001f,"V37 reload preserves round course, airborne heading and consumed launch");
+ third_person=1;erl_review_capture("round-launch-third.bmp");third_person=0;erl_review_capture("round-launch-first.bmp");third_person=1;
+ float maxheight=0;int landed=0;for(int step=0;step<360&&r->phase==RACE_RUNNING;step++){
+  RaceTrackFrame aim=race_track_frame(r,r->gate,.95f);Vec3 target=sub(aim.centre,game.pos);float desired=atan2f(target.x,target.z),delta=desired-game.yaw;while(delta>3.14159265f)delta-=6.283185307f;while(delta< -3.14159265f)delta+=6.283185307f;
+  game_tick(&game,1/60.f,fmaxf(-1,fminf(1,delta*3)),0,1,0);RaceTrackFrame road=race_track_nearest(r,r->gate,game.pos);float height=dot(sub(game.pos,road.centre),road.up)-(RACE_TRACK_FLOOR+race_floor_support(&game,0,road)+35);maxheight=fmaxf(maxheight,height);
+  if(step==50)erl_review_capture("round-jump-airborne.bmp");if(r->gate>launch&&race_track_surface(r,road.section,road.t)!=2&&height<95){landed=1;break;}
+ }
+ APCHK(maxheight>700&&landed&&game.speed>r->top_speed*.65f,"live flight crosses the gap and lands without an arbitrary speed penalty");fprintf(out,"INFO ROUND jump height %.2f landing %d gate %d speed %.2f\n",maxheight,landed,r->gate,game.speed);for(int settle=0;settle<45;settle++)game_tick(&game,1/60.f,0,0,1,0);erl_review_capture("round-landing.bmp");
+ int finished=0;for(int step=0;step<10800&&r->phase==RACE_RUNNING;step++){
+  RaceTrackFrame aim=race_track_frame(r,r->gate,.95f);Vec3 target=sub(aim.centre,game.pos);float delta=atan2f(target.x,target.z)-game.yaw;while(delta>3.14159265f)delta-=6.283185307f;while(delta< -3.14159265f)delta+=6.283185307f;
+  game_tick(&game,1/30.f,fmaxf(-1,fminf(1,delta*3)),0,1,0);
+ }finished=r->gate==RACE_GATES;APCHK(finished,"live round course reaches its ordered finish after the jump checkpoint");fprintf(out,"INFO ROUND finish gate %d phase %d time %.2f rivals %d %d %d\n",r->gate,r->phase,r->elapsed,r->pilot[0].gate,r->pilot[1].gate,r->pilot[2].gate);
+ int guards=1;for(int i=0;i<16;i++)guards&=memory[i]==0x1234abcd&&memory[16+STRIDE*H+i]==0x1234abcd;APCHK(guards,"all Apex native frames preserve framebuffer guard words");
+ fprintf(out,"CHECKS %d\nRESULT %d failures\n",checks,failures);fclose(out);fb=old;free(copy);free(memory);return 1;
+ #undef APCHK
+}

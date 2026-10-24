@@ -12,7 +12,7 @@ static void guild_dialogue(void){
   b="Approach the hub and press Triangle within 2,500 metres, then choose REQUEST AUTO-DOCK. Come back to this mission after the arrival sequence finishes.";
  }else if((game.guild_chapter==1||game.guild_chapter==3)&&assignment_job()>=0){
   a="You have already accepted the contract we need. Follow its objective rather than taking a second job.";
-  b="Choose Track your active contract below to highlight it in Mission Log. Press Select there for that contract's next-step details.";
+  b="Choose Track your active contract below to highlight it in Mission Log. Press Square there for that contract's next-step details.";
  }
  dialogue_named(speaker,EXPLORERS,a,b);
  dialogue_context("CURRENT OBJECTIVE",guild_objective(&game));

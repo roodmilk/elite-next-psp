@@ -1,0 +1,21 @@
+ELITE NEXT 2.5.263: PRIVATE PC DEVELOPMENT SERVER
+
+See server/README.txt for startup and PSP configuration. PC address at setup:
+192.168.1.105, UDP25926. Two pilots maximum; eight client slots reserved for later.
+No public server, port forwarding or automatic Windows firewall changes.
+
+Title Square: online options. Triangle: enable/disable. Load/start commander:
+auto-connect while enabled. FLY / NEARBY PLAYERS: U/D select, X track, Circle back.
+Directory lists all connected pilots and sorts your own system first.
+Space ships only in same system; planet avatars/Roamers only on same planet.
+Docked pilots target the station; planet-bound pilots target their planet.
+Different systems use ordinary route/fuel/range rules, not free teleportation.
+Saves and purchases remain personal; docked manual saving remains available.
+
+This presence prototype does not synchronize NPC combat, trades, bounty claims,
+missions or an MMO economy. Private development protocol is not encrypted or
+authenticated for public Internet use. NAT/firewall traversal, larger populations
+and physical PSP Wi-Fi/FPS remain unverified. Direct ad-hoc Host/Join retained.
+
+Source: online-presence.h/UI/review, main.c, deck navigation/UI, title/tutorial
+integration, Inet/Apctl build libraries; Node server and start/stop/test scripts.

@@ -33,7 +33,7 @@ static void lave_action(int room){
  int stage=sc_lave_stage();game.cue=SFX_SELECT;
  if(room==SC_R_CARGO){
   if(stage==0){sc_lave_set(1);tracked_mission=TRACK_LAVE;}
-  else if(stage==6){sc_lave_set(7);sc_manifest_set(2);game.credits+=600;message(&game,"Berth Six cleared. Mara pays 60 U. Iona at the Guild has a follow-up.");return;}
+  else if(stage==6){sc_lave_set(7);sc_manifest_set(2);game.credits+=600;mission_receipt_record(&game,RECEIPT_STATION,TRADERS,600,7,"BERTH SIX / CLEARANCE","MARA");message(&game,"Berth Six cleared. Mara pays 60 U. Iona at the Guild has a follow-up.");return;}
   else if(stage>=7){message(&game,"Mara: the medicine shipment is moving. Thank you. Guild has the next lead.");return;}
  }else if(room==SC_R_CANTEEN&&stage==2)sc_lave_set(3);
  else if(room==SC_R_SHOP&&stage==3)sc_lave_set(4);
@@ -42,7 +42,7 @@ static void lave_action(int room){
  else if(room==SC_R_GUILD){
   if(stage==7){sc_lave_set(8);tracked_mission=TRACK_LAVE;message(&game,"Survey Lave I. Scan one lifeform or mineral, then bring Iona your record.");return;}
   if(stage==8){
-   if(game.surface_progress[7][1]&0x0fff00u){sc_lave_set(9);game.credits+=900;message(&game,"Survey uploaded. 90 U paid. Berth Six and the Lave field report are complete.");return;}
+   if(game.surface_progress[7][1]&0x0fff00u){sc_lave_set(9);game.credits+=900;mission_receipt_record(&game,RECEIPT_STATION,EXPLORERS,900,7,"LAVE I / FIELD REPORT","IONA");message(&game,"Survey uploaded. 90 U paid. Berth Six and the Lave field report are complete.");return;}
    message(&game,"Iona needs a scan from Lave I. Archived scans count; visit the surface Codex.");return;
   }
  }

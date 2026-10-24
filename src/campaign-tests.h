@@ -121,7 +121,7 @@ static void campaign_tests(FILE *f,int *failures){
   remove("test-v10-route.sav");remove("test-v10-route.sav.bak");
  }
  /* Mutations that V7 structural validation could miss must fail CRC checks. */
- FILE *src=fopen("test-campaign.sav","rb");unsigned char bytes[131072];size_t n=0;
+ FILE *src=fopen("test-campaign.sav","rb");static unsigned char bytes[262144];size_t n=0;
  if(src){n=fread(bytes,1,sizeof(bytes),src);fclose(src);}
  int mutations_ok=n>32;
  const int offsets[]={0,4,16,300};
@@ -134,7 +134,7 @@ static void campaign_tests(FILE *f,int *failures){
  CHECK(mutations_ok,"save V8: header, valid-range payload and campaign bit flips rejected");
  /* Strip V8+ extension/checksum to produce a real legacy V7 fixture.
   * After V7: campaign(20)+saga(40)+route(4)+pax(16)+travellers(48)+fit(8)+landings(256)+tutorial(8)+CRC(4)=404. */
- if(n>5813+(256*HUB_COUNT*4+1280+(SOCIAL_SAVE_BYTES+FIT_SAVE_BYTES))){bytes[4]=7;FILE *v7=fopen("test-cp-v7.sav","wb");if(v7){fwrite(bytes,1,n-5813-(256*HUB_COUNT*4+1280+(SOCIAL_SAVE_BYTES+FIT_SAVE_BYTES)),v7);fclose(v7);}}
+ if(n>5813+SAVE_V28_EXPANSION_BYTES+(256*HUB_COUNT*4+1280+(SOCIAL_SAVE_BYTES+FIT_SAVE_BYTES+OPENING_SAVE_BYTES+(FIT_V29_BYTES+MODULE_STORE_BYTES+RUMOUR_SAVE_BYTES+NEWSPAPER_REWARD_SAVE_BYTES+EXPEDITION_SAVE_BYTES+(ERL_SAVE_BYTES+DB_SAVE_BYTES))))){bytes[4]=7;FILE *v7=fopen("test-cp-v7.sav","wb");if(v7){fwrite(bytes,1,n-5813-SAVE_V28_EXPANSION_BYTES-(256*HUB_COUNT*4+1280+(SOCIAL_SAVE_BYTES+FIT_SAVE_BYTES+OPENING_SAVE_BYTES+(FIT_V29_BYTES+MODULE_STORE_BYTES+RUMOUR_SAVE_BYTES+NEWSPAPER_REWARD_SAVE_BYTES+EXPEDITION_SAVE_BYTES+(ERL_SAVE_BYTES+DB_SAVE_BYTES)))),v7);fclose(v7);}}
  CHECK(load_game_file(&loaded,"test-cp-v7.sav")&&loaded.guild_chapter==2&&loaded.campaign_stage==0,"save migration: V7 commander retains old rewards and starts authored campaign fresh");
  src=fopen("test-campaign.sav","ab");if(src){fputc(0,src);fclose(src);}
  CHECK(!load_game_file(NULL,"test-campaign.sav"),"save V8: trailing data rejected");

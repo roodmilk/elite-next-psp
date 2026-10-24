@@ -1,3 +1,223 @@
+## Staged contracts — 2.5.388
+
+Forty additional contracts with 155 real objective stages, branching decisions,
+animated paused contact updates and reviewable contact records. Existing
+contract families and winding arcade races remain. Tasks use actual combat,
+escort ships, marked salvage, extraction/refining, cargo purchases, observation,
+surface sites and scans, discoveries, anomalies and championship races.
+Progress, required cargo, choices and ship health persist in V33 saves;
+V1-V32 imports remain supported. New saves need this version or newer.
+
+Title music uses Elite Exploration independently of saved radio preferences,
+skips exactly 23 seconds (2.5.384 timing), then fades in over one second.
+Rock FM and races use music/Sol Rock beside EBOOT.PBP. Actual Secret Agent
+Rock.mp3 (48 kHz, large embedded artwork) now decodes in emulator testing.
+Metadata skipping and modern PSP MP3 decoder support fix that file's failure.
+No MP3s, saves or private settings are included.
+
+See STAGED-CONTRACTS-388.md and MISSION-STAGES-388.md.
+
+## Winding arcade races — 2.5.387
+
+32 ordered physical gates replace the almost straight twelve-gate sprint.
+Seeded courses cover roughly 900 km with repeated S bends, climbing turns
+and descending chicanes. A starter Adder finishes in about two minutes using
+normal steering, throttle and double-tap-R boost. Bring your own ship: its
+actual speed, handling, acceleration, installed modules and fuel still apply.
+Gold boost/cooling rings on every leg support sustained arcade racing.
+Four scenery sections: asteroid slalom, split freighter wrecks, floodlit
+port grandstands/pylons and ice fields, with open racing lanes and trail lamps.
+5-10 physical rivals include clean racers and opportunistic shoulder-checkers.
+Swept relative-motion collisions catch high-speed rams between frames.
+Gentle contact separates the ships and costs speed; hard/boosted impacts
+break the rival's actual hull mesh into spinning debris, sparks and a shockwave.
+Destroyed racers leave the leaderboard and cannot finish or take the prize.
+A bounded 1.2-second slow-motion orbit frames the takedown, then a 0.6-second
+swing returns to the actual first/chase/cinematic camera. Safe autopilot runs
+through the shot and for one further second afterward, using real gates.
+Every racer shares the slow simulation; menus pause the camera and actors.
+Held boost resumes on return if still held; there is a cooldown between shots.
+Targeting browser, quick-target and target-lock combos are disabled while
+racing, including the menu route. Square never steals R throttle during races.
+Race HUD shows section, next gate distance, place, time and takedowns.
+First place alone earns the existing actual mission prize once. Free retries
+reset every rival, effect, gate and camera. Five-minute safety timeout.
+Race music uses the MP3 library in music/Sol Rock beside EBOOT.PBP (Rock FM).
+Playback works even when ordinary radio music is off, respects Quiet Mode,
+does not apply the intro-song skip and restores previous radio preferences.
+No MP3s, saves or private settings are included in this package.
+Existing V32 save compatibility, mission roster and law enforcement remain.
+The 21-second intro music start/fade and SDK display-startup repair remain.
+
+Exact release validation:
+INFO production flight: phase 5 gate 32 place 1 time 119.85 heat 0.0 fuel 47.1 hull 100.0
+INFO dense race draw: 730 max submitted triangles, 55.89 emulator render FPS (no hardware guarantee)
+
+## Intro music timing — 2.5.386
+
+Elite Exploration starts at 21 seconds with its existing one-second fade.
+Restores only the latest two-second cut; earlier timing edits and cinematic
+are unchanged. Exact decoder samples and normal boot pass emulator checks.
+
+## Space racing — 2.5.385
+
+The mission board preserves its five contracts and adds a sixth local Space Race.
+Accept, launch, then navigate from Tracked Mission, or select RACE START GRID
+in the targeting computer's OTHER category. The published waypoint remains
+available beyond sensor range. Enter within 450 m to line up automatically.
+Checkered physical starting gantry, 5-10 varied solid rival hulls, four-second
+READY / 3 / 2 / 1 / GO countdown with audio cues and 12 ordered 3D checkpoints.
+Use normal steering, R throttle, L brake and double-tap R then hold for boost.
+Gold rings inject speed without reducing higher velocity, cool the engine
+and provide two seconds of free powered coasting. HUD shows place, elapsed
+time, checkpoint count and direction arrows, including targets behind you.
+First place earns the actual advertised prize once, through Race Control's
+mission-completion transmission. Losing/three-minute timeout offers free
+RETRY / LEAVE. Retry resets every checkpoint, boost gate, clock and rival.
+Lasers and missiles are locked; existing police/warrant enforcement remains.
+Menus pause the simulation. Rock FM temporarily overrides music using the
+existing music/Sol Rock folder or generated rock fallback. Original tuning
+and power settings are never overwritten; Quiet Mode continues to apply.
+Finish, abort or loading restores the original station/settings automatically.
+Existing V32 saves retain accepted entries and their originating hub. Loading
+rebuilds the original grid and resets attempts; ordinary saves stay dock-only.
+All 768 seeded system/hub courses validate clearance from canonical planets,
+rings and stations. Rendering is bounded to three upcoming checkpoints,
+two boost rings and ten nearby solid hulls. No extra framebuffer is allocated.
+
+Checkpoint completion uses swept directional plane crossings and an aperture
+intersection test, preventing tunnelling, reverse crossings and skipped gates.
+Rivals physically steer/accelerate toward apertures; rank compares real route
+progress and interpolated finish times. Race attempts are transient; V32 Job
+type and item retain mission identity and station. No save-format migration.
+Existing missions, station services, law and shared-world identities remain.
+Emulator integration, real MP3 switching, native screenshots and all 768
+clearances are verified; physical PSP testing remains required.
+
+## Mission completion and PSP startup — 2.5.384
+
+Every committed contract/assignment payout records one session-only receipt: canonical title, contact, issuer and actual amount paid. The fullscreen received-transmission card freezes gameplay, uses the existing contact portrait identity, wraps native 8×8 text into reserved regions, and shows actual credited units. Warp/slide, signal and fireworks animations cannot cover the message. X acknowledges one card after entrance and release; no input leaks into firing or menus. Simultaneous dock payouts queue separately. Abandon/failure and ordinary initialization do not celebrate; loading preserves paid progress without reissuing cards. Police, docking and hyperspace cinematics take precedence. No save-format change or additional framebuffer.
+
+Cold boot uses full PSP SDK display setup and an initial NEXTFRAME latch, both planes precleared black, with first movie preparation offscreen. This restores omitted setup after the physical PSP black-screen report; actual hardware confirmation remains an explicit release gate. Keep the existing 23-second audio skip, one-second fades, CuLa tiles and cinematic asset.
+
+## Intro startup presentation — 2.5.383
+
+Cold boot publishes black only after both full framebuffers are initialized; first cinematic decoding occurs offscreen. No hidden setup communication sound. CuLa Games presents... and its red/blue letter tiles fade in over one second. Elite Exploration startup skips 23 seconds using actual decoded source samples and keeps its one-second audio fade. Select replay retains these rules and existing radio preferences. No new framebuffer or save format.
+
+## Station departure and shared autopilot presentation (2.5.382)
+
+Keep the existing five-second first-person launch, actual system sky/sun, protected departure axis, control lock and fresh-input handoff. Rich hubs add solid port structures, illuminated gantries and readable neon adverts. Mega capitals use a deeper layered district with taller structures, suspended transit bridges, window banks, maintenance ribs and several passing solid ship meshes. Station seed/trim provides a local identity; poor and relay berths retain their simpler industrial styling. Outbound adverts face the pilot at readable heights rather than disappearing above the canopy.
+
+Departure craft and port detail are presentation-only, with no simulation NPC spawning, collision/reward/RNG changes or new textures/framebuffers/runtime allocations. Cull scenery and celestial pixels against the actual visible aperture before the opaque tunnel masks. Outer districts must clear the camera before manual handoff; check every station profile so decorative structures cannot pop out on the final frame. Keep triangle submissions bounded and review the sequence at native 480×272, including the near-plane crossing and return to manual flight. Emulator timings do not certify physical PSP FPS.
+
+Station departures and docking share a slowly pulsing green AUTOPILOT ENGAGED indicator at the top; planetary transfers use the same indicator in the canopy footer. Remove the redundant departure footer, docking-guidance wording, planetary cloud/approach-stage captions and FLIGHT CONTROL canopy label. Preserve the docking-complete welcome and genuine landing choices. PSP sleep recovery restores display/audio/controls silently, without a computer status message.
+
+## Loading a commander: station arrival and dashboard startup
+
+A successful Continue or Load Commander action from the main menu introduces a saved orbital-station checkpoint with a 6.65-second presentation. Fade into the actual saved station architecture, orbit for 3.8 seconds, accelerate towards it, fade through black, then illuminate the command deck in staggered banks. The title names the saved station. The approach continues zooming throughout the fade: once physical camera travel reaches a safe distance, a lens push continues the motion without crossing the station mesh. Navigation categories flicker independently in a shuffled order, then settle fully on. The background art powers up as a thin horizontal CRT beam that expands into the actual sun/station image. Three quiet, synthesized power sweeps accompany the dashboard. This sequence allocates no additional framebuffer, uses only a 540-byte column scratch buffer for the monitor effect, and never advances simulation or writes a save. Controls return after startup and after any held buttons are released. Ordinary menu visits and loads outside the main menu do not replay it; nonstation opening checkpoints retain their saved location.
+
+Select on the main menu restarts the intro presentation and current music stream, preserving commander checkpoints and audio preferences. Circle on the New Commander landing screen returns to the main menu; Circle within name or portrait editing first exits that editor.
+
+## Commander customization production standard
+
+Every category uses deliberately authored pixel-art parts or genuine material palettes: species/gender rigs, head shapes, skin/shell, hair/crests, hair colours, eyes, mouths, ears/sensors, markings and outfits. Each option needs a defined rig/socket, silhouette, occlusion mask, material ownership and palette. Do not substitute rectangular overlays, brightness guesses, stretched features or whole-face swaps for the named change. Unsupported anatomy stays hidden. Other selections and saved DNA must survive edits and loading.
+
+Review each part at 96px editor and 20/32px dialogue sizes, in both head shapes and mixed palette/feature contexts. Test independent source landmarks and foreground changes; a background-only change or agreement between two calls to the same faulty renderer cannot certify an asset. Distinguish pixel/mask tests from human visual approval. This standard applies to **all categories**, including future additions; existing transformed options still require conversion and visual review before the complete character maker can be called professionally finished.
+
+## Implemented portrait repair (2.5.379)
+
+Legacy whole-face portraits are extracted using reviewed nonuniform source-sheet row boundaries, preventing previous-row shoulder strips at the crown. Their authored colours replace broad legacy hair/outfit recolouring that tinted necks. Face index and save DNA are retained. Lossless row-span storage and twelve original modular rig tiles save 243,024 bytes against the original atlas, including the decode cache. Existing modular rig pixels and alignment are unchanged. Female Human/Android Cropped hair, Smirk and extended/pointed ears now use separate native authored parts instead of geometric resampling. Physical PSP review and conversion of remaining transformed options remain open.
+
+## Implemented Commander portraits (2.5.376)
+
+Human and Android commanders support Male/Female rigs, four hairstyle choices and twelve traced hair palettes with stronger shading for new styles. Rigs with eyes have five eye styles. Keep unsupported anatomy hidden, other selected features independent, and saved appearance intact. The expanded appearance fits the existing four-byte field without changing the V32 save struct. Every control must remain readable on one native 480×272 editor screen and at 20/32px dialogue size. Details and verification limits: COMMANDER-CREATION-376.md.
+
+## Implemented shipyard presentation (2.5.375)
+
+A shipyard's layout belongs to the dealer, independent of the browsed or owned hull. Dealers offering Mega stock use the premium Crown Grand presentation for their entire catalogue, including regular ships; Lave's full development showroom follows this rule. Standard dealers retain Orbit Motors presentation and regular-only stock. Preserve each Mega dealer's deterministic name, showroom artwork and local stock collection while switching hulls or reading modes.
+
+## Implemented conversation ownership (2.5.374)
+
+Contact-only discoveries, stations and ordinary pilot hails retain their own speaker and speech and only offer closing the channel. Actionable incoming calls explicitly own their encounter kind, caller and system. The paused conversation snapshots its transmission and checks ownership before every response; changed, expired or destroyed callers cannot apply consequences through an old channel. Quiet Watch also verifies its current speech source. Promising ambient convoy assistance acknowledges the promise, without claiming a successful rescue or paying the former unconditional 350 units. A new ambient convoy completion/reward loop is not implemented by this fix. Mission-board escort rewards are unchanged. Ownership is transient and does not change the commander save format.
+
+<!-- portrait-audit-365 -->
+Commander portraits require authored per-pixel material regions, neck/collar separation, aligned anatomy, useful foreground changes at 20/32/96px, real save/input checks and exhaustive combination rendering. Distinguish automated coverage from manual visual review. See COMMANDER-CREATION-365.md.
+
+<!-- 2.5.365 -->
+Implemented native 480×272 title cinematic; continuous cloud flight, sunlit station reveal, apex effects, separate crisp UI and X menu fade/release guard. Embedded 30fps film, bounded frame memory. Details: CINEMATIC-INTRO-365.md. Existing music/settings retained; physical PSP and whole-game certification remain open.
+
+<!-- 2.5.363 -->
+Hair palette corrections must follow reviewed pixel anatomy, not just self-consistent mask bounds. Human/Android scalp contours and independent landmarks replace the rejected 2.5.362 polygon. Details: PORTRAIT-HAIR-MASKS-363.md.
+
+<!-- 2.5.362 -->
+Commander Creation: aligned authored feature parts, explicit palette masks, supported controls only; unchanged saved legacy appearances, v2 new looks in the V32 field. Verification and native comparisons: COMMANDER-CREATION-362.md.
+
+<!-- 2.5.361 -->
+Implemented checkpoint: paint-themed 270 ms pulse/grow Command Deck openings, interruptible input, and corrected negative-coordinate planetary prop placement. V32/generation v1 retained. Details and remaining regional art/performance gaps: PLANET-REGIONS-V1.md and MENU-TRANSITIONS-361.md.
+
+## 2.5.358 — Observation Lounge Command Deck
+
+Built on local 2.5.357, preserving its Multiplayer console and prior native UI updates. Implements approved 480x272 6D layout: original logo, green docking status with animated ship icon, glass service buttons, distinct teal category focus and amber service focus, native readable paintbrush/spanner icons, bounded description card and fixed footer funds. Left/Right and L/R shoulders slide between remembered categories; service openings flash briefly, slide and reveal the destination within 340ms. A new input interrupts cosmetic transitions without delaying Back. Station art stays still with twinkling port lights; star glints, nebula glow and restrained native sun shimmer animate. Opening highlights now follow the actual new row geometry. Real availability, actions, networking and V32 saves remain authoritative.
+
+Implementation/coordinates: docs/COMMAND-DECK-358.md. Final validation, captures and EBOOT hash: BUILD-2.5.358.txt. Highest-priority remaining work: inherited broad failures and physical PSP input, sleep and two-device tests. This update is not whole-game certification. GitHub DNS is unavailable; preserve the mixed shared checkout and do not publish unrelated work wholesale.
+
+## 2.5.357 — Multiplayer Retro Terminal
+
+Implements the approved native 480×272 Multiplayer console on local 2.5.356. One Fly entry and title Square open online connection and local Host/Join together. CONNECTED keeps a plain red disconnect X; real PSP action icons stay in the footer. Server connection stages are truthful, peer names and locations are bounded, and local flight codes come from real advertisements. Predictable four-region D-pad navigation, explicit cancellation, No-default transport/end confirmations and caller-specific returns are implemented. Online/local exclusivity, settings retry and sleep cleanup use the existing transports; protocol and two-pilot server capacity remain unchanged.
+
+See docs/MULTIPLAYER-357.md and BUILD-2.5.357.txt for final verification, native captures, artifact hash and limitations. Preserve unrelated shared work and player music. Existing broader game and planetary Wi-Fi failures remain baseline issues; physical PSP/two-device testing is pending. Local build only; no GitHub publication.
+
+Verified local EBOOT: `68ED085740E86B135A29E8D25833AB6EC73B8BD0EC9B8831C95BAA065A7C5564`. Final Multiplayer console (58), online fixtures (12), real server connection (7) and unchanged server (13) checks pass. All 30 native states inspected; 93 recent UI checks pass and 120 prior captures remain byte-identical. Core retains the same 15 failures; local planetary Wi-Fi retains the same three. Highest-priority remaining work: those inherited failures and physical PSP/two-device/sleep testing. Local release only; GitHub is not updated. Full evidence: BUILD-2.5.357.txt.
+
+
+## 2.5.356 — Implemented native shipyard direction
+
+Regular yards use the approved Orbit Motors workshop; Mega yards use the approved Crown Grand panoramic premium showroom. Each capital dealer has an individual name, a stable native site picture and distinct real four-hull stock. Lave's test catalogue stays complete. Stats and descriptions share one Square-toggled reading panel; comparison arrows use authoritative bare-hull data. The compact cost box is labelled EXCHANGE YOUR SHIP with COSTS: or YOU RECEIVE:, and money has a fixed bottom-right slot. Real hulls rotate inside fitted apertures with tilted showroom lighting and fine seams. Existing exchange constraints and congratulations cards remain. Exact layout, source ownership and test scope: docs/SHIPYARDS-356.md. This is implemented UI, not full-game certification; V32 saves are unchanged.
+
+## 2.5.345 - A personal shipyard congratulations card
+
+Successful shipyard purchases now open a warm delivery card bearing the new hull name, native-size animated handwriting, restrained pixel fireworks and a shipyard seal. Six messages vary without immediate repeats, including "Enjoy your new ride!". X finishes the handwriting, then continues; Circle closes the card. Purchase input is guarded and the card blocks underlying shipyard actions, so it cannot buy twice. Failed or already-owned exchanges show no celebration. Credits, cargo, fitted modules and Item Storage retain the existing exchange rules; no save change.
+
+## 2.5.344 implementation - Guild contract availability
+
+The Guild food-delivery and rescue onboarding steps reserve a real required family on each five-card board when normal seeded offers omit it. The final card alone is replaced, without duplicate families. Board generation and Guild lookup share mission_type_at(system, hub, offer). Docked local guidance opens and highlights that offer; local-flight guidance selects the primary hub for docking, and accepted work opens its existing log entry. Save schema is unchanged.
+
+## 2.5.341 - Compact planetary spaceports and EVA rendering
+
+Planetary spaceports now use an 840m-wide apron instead of roughly 1.4km. Services, low terraces, the terminal and rover garage are grouped closer together, with fewer apron lamps and shorter roads. The shared geometry drives rendering, collision, landing reservations and the local map. The player pad retains clearance for the widest and longest hulls; two staggered traffic berths remain.
+
+EVA retains the exact existing terrain mesh and 2x2 depth raster. Ground grain beyond 24m shares shading on a 4x4 screen grid; nearby props, signs, portraits and HUD retain their native detail. Distant dry ground avoids unnecessary texture reconstruction. Lave vegetation reuses tagged cells when moving between overlapping windows rather than regenerating the entire region. Quad submission transforms four vertices rather than six.
+
+Verification and timing evidence are recorded in docs/EVA-PERFORMANCE-341.md. Physical PSP frame rate remains to be measured. This is a local private candidate; it is not a GitHub release. Existing broader regression failures remain open.
+
+## 2.5.285 - Fitted-ship interface identity
+
+Galaxy.Maps and the physical Comms Panel inherit the active PIMP-MY-SHIP.NET finish. Dark panels, raised controls, edge metal, active selections, signals and readable copy come from the shared seven-role ship palette. Danger, unavailable-state warnings and platform button identity retain stable semantic colours.
+
+## 2.5.284 - System Almanac label contrast
+
+The selected map object's name uses dark translucent glass at roughly 70% opacity. The underlying system illustration remains perceptible, while the name, selection brackets, connector and cyan frame remain readable against every stellar-body colour.
+
+## 2.5.283 - Complete tree sprites and Far Horizons
+
+Fixed vegetation extraction: the source trees overlap the atlas's nominal equal-width columns. Individual authored source rectangles now preserve complete canopies and exclude fragments of adjacent trees/ferns. The same corrected 48x64 sprites serve tutorial Earth, Lave I and the meadow's distant groves. Wind remains enabled. Renderer sampling rejects invalid cells and out-of-bounds coordinates before integer conversion, with samples aligned to the terrain's 2x2 pixel grid.
+
+The second planetary atlas is corrected too: individually bounded silhouettes replace uniform 4x6 cuts, restoring the forest canopy and removing adjacent shrub/rock fragments. All 24 biome props now have distinct pixel ownership; their native preview matches the compiled PSP palette and alpha. Both atlases retain transparent gutters. Source PNGs remain unchanged.
+
+Far Horizons remains the startup default and is now the tutorial radio choice and the station acquired on arrival at Lave. The radio lesson accepts other manually chosen stations too. Existing saved preferences remain respected. The dream's temporary Sol Rock battle score is unchanged. User MP3s stay in music/Far Horizons; no music or save files are replaced.
+
+Private local build. See BUILD-2.5.283.txt for exact-EBOOT checks and remaining hardware limits.
+
+## 2.5.282 - Meadow edges and distant countryside
+
+The tutorial meadow repaints its complete header and footer every frame. The old gaps above and below the 3D viewport could retain parts of Dad's portrait after dialogue closed. Regression coverage now renders over previous dialogue without the screenshot helper's full-screen clear, including all HUD modes and both live VRAM buffers.
+
+Removed cockpit bloom from the meadow: its in-place brightening turned the pale horizon into a speckled white strip and cropped edge shading at cockpit height. Sun and stone retain their local effects. Terrain rejects fully offscreen tiles above and below the view before rasterization.
+
+One connected ground mesh now reaches sixty kilometres, with additional field detail outside the playable clearing and a pitch-correct land-haze horizon. Distant pastures and 96 trees in irregular groves include twelve taller landmarks. Far trees use the displayed mesh height so they stay planted on the slopes. Near walking terrain, collision, flower trail, optional conversations and orb choices remain compatible with existing checkpoints.
+
+Private local build. Verification results and physical-PSP limits are recorded in BUILD-2.5.282.txt. This meadow update does not yet restore the standard cockpit HUD in the dream; that requested consistency correction remains next.
+
 # ELITE: NEXT
 
 > **Current authority:** [DESIGN-BIBLE-2.0.md](DESIGN-BIBLE-2.0.md). This historical 1.x bible remains as the detailed audit and shipped-behaviour reference; new implementation and prioritisation follow the 2.0 document.
@@ -1431,3 +1651,61 @@ Paste the following prompt alongside this entire document and the current projec
 **Design decisions still requiring playtest evidence:** travel time and boost consumption; comfortable manual docking clearance; encounter density; reward pacing; surface-region size; sprite animation readability; renderer choice; physical PSP frame pacing. Resolve these with the smallest relevant playable test. The creative direction is established; these are measured tuning questions, not reasons to stop building.
 
 **Completion standard for the eventual game:** a new player understands their first flight, has several worthwhile activities without grinding, meets memorable people, finishes a satisfying story, can keep exploring afterwards, and can trust the game with their progress.
+
+### Portrait variety (2.5.277)
+Ten portrait races use 96 authored pulp bases with eight eye, mouth and ear/sensor choices per race. Creator previews include the native small portrait size. Contact identity seeds remain stable and independent of occupation; old portrait save values remain accepted. Verify new features at 22-32 pixels and the creator at 480x272. Physical PSP readability still requires player testing.
+
+
+### Homeward: Alpine meadow (2.5.278)
+The first landing is a small authored place rather than an unrestricted procedural world. Keep the ship and orb path open. An irregular wooded bank encloses the clearing, with scattered collidable outcrops and a curved north-facing cliff overlooking a valley. The lake and stream are flat water surfaces over a solid basin; walking rejects water and solid rocks/trunks. Native tree/flower assets, actual distant mountain geometry, birds and butterflies provide detail without increasing simulation scope. The clearing is offline and bounded.
+
+Dad finishes his personal conversation by inviting exploration. Two optional Triangle inspections, on the lakeside bank and at the overlook, add gentle family dialogue and are remembered in opening flags. After 18 seconds of exploration and 55m of walking, the orb becomes noticeable. No countdown is displayed and exploration has no time limit. Inspecting the orb offers two observation approaches before the existing consequential show/hide decision. Do not give the orb's origin away. Keep instructions out of the upper-left scene; show a compact nearby interaction prompt only. Preserve checkpoint stage IDs and existing family/object choices.
+
+Rendering budget: cache fixed ground vertices, reuse native vegetation atlases and the shared depth buffer, cull before drawing, avoid per-pixel terrain texturing in this slice and bound scenery counts. Compare measured scene render time at multiple bearings; emulator timing does not certify physical PSP FPS, audio, memory or sleep/resume.
+
+### Meadow rendering correctness (2.5.279)
+The 2.5.278 visual check missed holes because its 440m-wide near mesh did not cover the walkable clearing and did not connect to its distant tiles. Never certify terrain from centre-of-clearing screenshots alone. Use one connected lattice with shared edges, 40m spacing throughout the playable region and increasing spacing outside it. Both triangle halves must match collision heights. Do not reject tiles just because their centre is behind the camera. The sky is a continuous world-elevation gradient with projected clouds, not a cropped ground illustration pasted over another sky.
+
+Acceptance includes native pond-bank, north-overlook, wooded-boundary, straight-up/down and returning-to-ship views; depth-buffer coverage checks from ten positions, eight bearings and four pitches; full pitch-range sky continuity; the existing opening walkthroughs and save/checkpoint checks. Preserve Dad's optional inspections and the orb route. No new explanatory HUD text is needed.
+
+### Follow the strange flowers (2.5.280)
+Use the scenery to invite curiosity: a winding trail of pale violet and mint blossoms runs beside the landing apron towards the stone. The flowers lean towards the stone and glow softly. A nearby Triangle inspection gives a short, one-time observation from Dad and awakens the brighter stone early. This is optional; the existing walking/time reveal still works. The player follows the trail, discovers the stone, and makes the established show/hide choice. Record the flower discovery in the opening checkpoint; no new inventory item, mandatory collection task or permanent HUD instructions are needed.
+
+Keep the distant stone readable with a small bright core, a gently pulsing halo and a few motes. Glow must obey terrain/foliage occlusion and disappear after collection. Bound its pixel radius and particle count for PSP. Verify the complete route with actual walking input, the skipped-clue fallback and save/reload, then inspect near/far captures at 480x272.
+## 2.5.339 - Bounded flight rendering and mission-board queries
+
+Mission boards build one immutable query scope per drawing pass, ending before player input. Mission availability must remain identical to unbatched canonical validation. Planet art is cached by immutable seed/type in ten 64x64 sheets; rotation and menu use must not regenerate it every frame or change its pixels. Visibility rejection is conservative at screen edges and the near plane. Distant tiny objects retain identifiable silhouettes or contact points, while decorative flames scale with projected size and have a bounded close-up budget. Simulation, collision, sensors, targeting and mission availability are never culled with graphics.
+
+The nominal flight CPU target is 33.42 ms for rendering plus simulation. `tools/review-performance.ps1` measures six deterministic workloads without vblank, compares reference drawing paths, checks mission equivalence and saves native 480x272 screenshots. This is an emulator regression gate, not physical PSP FPS certification; audio contention, cold-cache entry, frame pacing and long sessions still require handheld testing.
+
+
+
+## 2.5.340 - Rear chase camera and aligned exterior effects
+
+- Third-person view is centered behind and above the current hull, with distance scaled to its actual geometry.
+- Chase camera, player hull, exhaust and weapon anchors share the same pitch/yaw/roll basis. Full rolls no longer move the camera sideways or reverse its bank at the angle wrap.
+- Engine and gun mounts intersect actual hull faces; exhaust leaves the stern and weapons leave the forward surface.
+- Exterior flame and gunfire use perspective-correct depth tests against the hull and depth-rendered world geometry. Exterior weapons never fall back to cockpit effects when offscreen.
+- Native exterior review covers every hull across full rolls at three pitches, surface anchor availability, foreground occlusion and native captures.
+
+Verification: PSP build succeeds. Final exterior review reports RESULT 0 failures across 8,514 hull/pitch/roll combinations, both engine/weapon anchors and foreground depth rejection. Native 480x272 level, quarter-roll, half-roll, full-roll and capital-hull captures inspected. The performance review reports RESULT 0 failures; crowded third-person render plus simulation averages 32.850 ms on the emulator. Real PSP performance and subjective handling remain to be tested. Existing broader regression failures remain recorded in the 2.5.339 handoff; complete game certification remains open. Preserve shared uncommitted changes; this local build is not a GitHub release.
+
+Evidence: outputs/exterior-final-20261009-174150/exterior-review.txt and outputs/performance-review-20261009-174152-575/performance-review.txt. Run tools/review-exterior.ps1 for repeatable focused checks. The chase view uses the player's complete orientation without Euler-angle smoothing; cinematic continues to ease between its own shots. Capital-hull parts reuse the menu geometry, transformed into world space; ordinary hulls use their mesh faces. Exterior shots are depth-tested world-space beams/packets, while first-person weapon effects remain unchanged.
+
+
+
+## RUMOURS / Space Secrets implementation — 2.5.351
+
+GalacticNet RUMOURS replaces its redundant JOBS feed with a native 480x272 purple scrolling website. Fixed branding/tabs/URL/footer frame varied illustrated classifieds, local experiences, signal diaries and small adverts. Fictional SpacePay uses explicit units confirmation and one short transaction animation; no payment is real and no input can charge twice. This is implemented local exploration guidance, independent of mission generation and the Mission Log.
+
+Every offer must refer to a genuine available discovery in the current canonical system. Quiet systems can have no offers; Earth has none. No fake leads, free introductory offers or cross-system archive. Prices vary, ownership is shared by repeated ads and is stored in the normal commander save. Buying never auto-tracks. The receipt offers TRACK SEARCH AREA or KEEP BROWSING. One optional area marker remains independent of mission/contact tracking. Square stops it; system travel clears it while retaining ownership for return visits.
+
+Paid directions reveal an offset, safe search region, never the object's precise target or identity. Normal sensor range and close Triangle inspection remain necessary. Whale experiences use the real pod, whose compact persistent movement stays within the advertised area. Naturally identified discoveries offer free directions. Permanently unavailable paid targets refund once. V31 saves protect all rumour state with the commander checksum and migrate V30 without invented purchases. See docs/RUMOURS-351.md for exact layout, controls, implementation map and remaining verification limits. Do not treat this as complete-game certification or completion of the newspaper editorial handoff.
+
+## Newspaper puzzle completion (2.5.352)
+X must open the printed puzzle through the real game input route. A solved puzzle shows a native animated congratulations card and awards 1,000 units once per system/puzzle kind. Claims and credits save together; repeat solving cannot repeat payment. See PUZZLE-REWARDS-352.md and BUILD-2.5.352.txt for implementation and verification.
+
+
+## Cargo / exchange reference implementation (2.5.353)
+Use the approved native 480x272 layouts for cargo inspection and station exchange. Preserve the selected item's full description and native icon; display capacity and credits in stable bottom regions. Show carried unsupported commodities as NOT TRADED and block transactions. Hold shares and mission reservations must use live game state. Details and exact coordinates: CARGO-CONSOLE-353.md.
+

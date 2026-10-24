@@ -1,19 +1,21 @@
 #ifndef ARCELITE_PLANET_PROFILE_H
 #define ARCELITE_PLANET_PROFILE_H
 #include <stdio.h>
+#include <math.h>
 /* Stable identity shared by the renderer, interactions and discovery archive. */
 static inline unsigned field_hash(unsigned x){x^=x>>16;x*=0x7feb352du;x^=x>>15;x*=0x846ca68bu;return x^(x>>16);}
 static inline unsigned field_seed(int sys,int body){return field_hash((sys+1)*911u+body*65537u);}
 static inline int field_type(int sys,int body){
- static const int perm[6][4]={{OCEAN,ROCKY,GAS,ROCKY},{ROCKY,GAS,OCEAN,ROCKY},{GAS,OCEAN,ROCKY,ROCKY},{ROCKY,OCEAN,ROCKY,GAS},{OCEAN,GAS,ROCKY,ROCKY},{ROCKY,ROCKY,OCEAN,GAS}};
- if(body<=0||body>=BODY_COUNT)return SUN;
- if(sys==7){static const int lave[]={SUN,OCEAN,ROCKY,GAS,ROCKY};return lave[body];}
- return perm[(field_hash((sys+1)*0x9e3779b9u)>>6)%6][body-1];
+ if(body<0||body>=BODY_COUNT||!system_body_active_slot(sys,body))return SUN;
+ return system_body_type_slot(sys,body);
 }
+#include "planet-regions.h"
 typedef struct {unsigned seed;int biome,culture,weather,geology,job;} FieldProfile;
 static inline FieldProfile field_profile(const Game *g,int sys,int body){
  unsigned h=field_seed(sys,body);int type=field_type(sys,body);const System *s=&g->systems[sys];
  FieldProfile p={h,type==GAS?5:type==OCEAN?0:1+(int)(h%4),s->government<2?3:s->tech>=10?2:s->economy>=4?1:0,(int)((h>>12)%4),(int)((h>>20)%4),(int)((h+s->economy+s->government)%3)};
+ if(opening_sol(g)&&sys==7&&body==1){p.seed=g->bodies[1].seed;p.biome=4;p.culture=1;p.weather=0;p.geology=0;p.job=0;return p;}
+ p.biome=world_legacy_biome(field_world(g,sys,body)->type);
  if(sys==7&&body==1){p.job=0;p.biome=4;}
  if(sys==7&&body==2)p.weather=2;
  if(sys==7&&body==3)p.weather=1;
@@ -50,51 +52,71 @@ static inline int field_site_kind(const Game *g,int sys,int body,int id){
  * these exact cells, so Lave's large trees cannot be walked through. */
 static inline int field_prop_cell(int sys,int body,unsigned seed,int cx,int cz,float *x,float *z,unsigned *hash){
  unsigned h=field_hash(seed^(unsigned)cx*73856093u^(unsigned)cz*19349663u);int lush=sys==7&&(body==2||body==4);
- int tile=lush?70:90,spread=lush?42:60;*x=cx*tile+15+(h%spread);*z=cz*tile+15+((h>>8)%spread);*hash=h;
- return (h>>16)%4;
+ /* Convert before adding unsigned hash jitter: negative lattice cells must
+  * not wrap to 4 billion metres. Drawing and collision share these positions. */
+ int tile=lush?70:90,spread=lush?42:60;*x=cx*(float)tile+15+(h%spread);*z=cz*(float)tile+15+((h>>8)%spread);*hash=h;
+ float px,pz;world_pad(seed,&px,&pz);const WorldProfile *w=world_profile(seed,field_type(sys,body));return world_prop_kind(w,world_sample(w,*x-px,*z-pz),h);
 }
 static inline int field_lave_tree_cell(unsigned seed,int cx,int cz,float *x,float *z,unsigned *hash){
  unsigned h=field_hash(seed^(unsigned)cx*73856093u^(unsigned)cz*19349663u);
  if(hash)*hash=h;
  if(x)*x=cx*70.f+8.f+(h%54);
  if(z)*z=cz*70.f+8.f+((h>>8)%54);
- return (h&15)<4;
+ if(seed==field_hash(2050u+65537u))return (h&15)<4;
+ float px,pz;world_pad(seed,&px,&pz);float tx=cx*70.f+8.f+(h%54),tz=cz*70.f+8.f+((h>>8)%54);const WorldProfile *w=world_profile(seed,OCEAN);WorldRegion r=world_sample(w,tx-px,tz-pz);
+ int chance=r.a%6==1?55:r.a%6==5?22:r.a%6==4?9:5;return (h&255)<chance*256/100;
+}
+static inline float field_lave_tree_height(unsigned h){return 52.f+((h>>9)%85);}
+static inline float field_tree_trunk_radius(unsigned h,int rover){return 5.f+(h%4)+(rover?14.f:5.f);}
+/* Low open terraces are traversable floor, not invisible full-box walls. */
+static inline int field_port_solid(int id){return id<2||id>4;}
+static inline float field_traffic_lift(const Game *g,int lane){
+ float t=fmodf(g->world_clock+lane*63+(g->bodies[g->planet].seed%40),150);
+ return t<40?(40-t)*(40-t)*.8f:t<90?0:(t-90)*(t-90)*.8f;
 }
 static inline unsigned field_site_bit(int id){return id>=1&&id<=5?1u<<id:id>=7&&id<=9?1u<<(id+9):0;}
 static inline int field_job_reward(const Game *g,int sys,int body){return sys==7&&body==1?900:600+(field_profile(g,sys,body).seed%9)*100;}
 static inline int field_species_logged(const Game *g,int sys,int body,int slot){return (g->surface_progress[sys][body]>>(8+slot))&1;}
-static inline float field_local_hour(const Game *g,int sys,int body){unsigned h=field_seed(sys,body);static const int days[]={600,900,1200,1800};float hour=g->world_clock*24.f/days[(h>>24)&3]+(sys==7&&body==1?10.f:(h%2400)*.01f);while(hour>=24)hour-=24;return hour;}
+static inline float field_local_hour(const Game *g,int sys,int body){if(opening_sol(g)&&sys==7&&body==1)return 10.f+fmodf(g->world_clock,1200.f)*.002f;unsigned h=field_seed(sys,body);static const int days[]={600,900,1200,1800};float hour=g->world_clock*24.f/days[(h>>24)&3]+(sys==7&&body==1?10.f:(h%2400)*.01f);while(hour>=24)hour-=24;return hour;}
 /* One geometry source for visible port structures and their collision boxes. */
 typedef struct {float x,z,w,d,height;} FieldBuilding;
 /* Shared airport dimensions: renderer, collision, foliage, cloud decks and maps. */
 #define FIELD_OBSERVATORY_DISTANCE 4200.f
-#define FIELD_PORT_HALF 720.f
-#define FIELD_PORT_CLEAR 760.f
-#define FIELD_PORT_FLAT 900.f
-#define FIELD_PLAYER_PAD 220.f
-#define FIELD_TRAFFIC_X 520.f
-#define FIELD_TRAFFIC_Z 80.f
-#define FIELD_TRAFFIC_PAD 160.f
-#define FIELD_GARAGE_X (-280.f)
+#define FIELD_PORT_HALF 420.f
+#define FIELD_PORT_CLEAR 460.f
+#define FIELD_PORT_FLAT 600.f
+#define FIELD_PLAYER_PAD 125.f
+#define FIELD_PLAYER_PAD_DEPTH 220.f
+#define FIELD_TRAFFIC_X 335.f
+#define FIELD_TRAFFIC_Z 30.f
+#define FIELD_TRAFFIC_PAD 85.f
+#define FIELD_GARAGE_X (-192.f)
 static const FieldBuilding field_port_buildings[]={
  {420,-500,210,110,100},{630,-200,60,65,300},{-460,-500,230,150,175},
  {460,500,230,150,195},{-460,500,230,150,195},
  {-630,-250,55,70,85},{70,670,95,35,90}
 };
 enum { FIELD_PORT_BUILDINGS=7 };
-static inline float field_port_half(const Game *g){return g->system==7&&g->planet==1?690.f:FIELD_PORT_HALF;}
+static inline float field_port_half(const Game *g){return FIELD_PORT_HALF;}
 static inline float field_port_clear(const Game *g){return field_port_half(g)+40;}
-static inline float field_port_flat(const Game *g){return g->system==7&&g->planet==1?800.f:FIELD_PORT_FLAT;}
+/* The apron must include the neighbouring 160m interpolation vertices. */
+static inline float field_port_flat(const Game *g){return FIELD_PORT_FLAT;}
 static inline FieldBuilding field_port_building(const Game *g,int id){
  FieldBuilding b=field_port_buildings[id];
- float scale=g->system==7&&g->planet==1?.80f:.90f+(field_seed(g->system,g->planet)%4)*.05f;
+ float scale=g->system==7&&g->planet==1?.50f:.48f+(field_seed(g->system,g->planet)%4)*.015f;
  b.x*=scale;b.z*=scale;b.w*=scale;b.d*=scale;
+ if(id==0)b.x+=36.f;
  /* Keep cargo handling beside the terraces, never across the ridge trail. */
  if(id==6)b.x=-360.f*scale;
- if(id>=2&&id<=4){b.height=6;b.w*=.80f;b.d*=.76f;}
+ if(id>=2&&id<=4){b.x=(b.x<0?-500.f:500.f)*scale;b.height=.6f;b.w*=.80f;b.d*=.76f;}
+ else if(id==0)b.height=122.f+(field_seed(g->system,g->planet)%4)*12.f;
  else if(id==1){b.w*=.75f;b.d*=.75f;b.height*=.72f*scale;}
  else if(id!=0)b.height*=.68f*scale;
  return b;
+}
+static inline int field_cave_wall(float dx,float dz,FieldBuilding b,float margin){
+ return (fabsf(dx)>b.w*.70f-margin&&fabsf(dx)<b.w+margin&&fabsf(dz)<b.d+margin)||
+        (fabsf(dx)<b.w+margin&&dz>b.d*.70f-margin&&dz<b.d+margin);
 }
 static inline int field_nav_number(int id){return id==6?0:id<6?id+1:id;}
 /* Open-front rover garage: walls and roof share these exact bounds. */

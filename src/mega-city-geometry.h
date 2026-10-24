@@ -33,6 +33,13 @@ static inline void mc_cap(MegaGeometry *m,int ring,float y){
 static inline const MegaGeometry *mega_geometry_for(int shape){
  if(!mc_geometry_ready){
   mc_geometry_ready=1;
+  /* Box solids use a specialised flight/collision path, but menu and Continue
+   * cameras consume this shared geometry table. They must not be empty. */
+  MegaGeometry *box=&mc_geometry[MC_BOX];
+  for(int i=0;i<8;i++)mc_vertex(box,(Vec3){i&1?1.f:-1.f,i&2?1.f:-1.f,i&4?1.f:-1.f});
+  static const unsigned char sides[6][4]={{0,1,3,2},{4,6,7,5},{0,4,5,1},{2,3,7,6},{0,2,6,4},{1,5,7,3}};
+  for(int i=0;i<6;i++)mc_face(box,sides[i][0],sides[i][1],sides[i][2],sides[i][3]);
+
   for(int kind=MC_DOME;kind<MC_SHAPES;kind++){
    MegaGeometry *m=&mc_geometry[kind];
    if(kind>=MC_RING0){

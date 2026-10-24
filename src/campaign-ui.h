@@ -1,5 +1,17 @@
+static void mission_agent_brief(char *out,int cap,const Job *j){
+ const ExpeditionDef *xp=expedition_def(j->type);if(xp){int slot=(int)(j-game.jobs);const ExpeditionStage *s=expedition_stage(&game,slot);snprintf(out,cap,"%s",s?s->speech:"Your report is ready.");return;}
+ const char *dest=game.systems[j->dest].name;float pay=j->reward*.1f;int base=mission_base_type(j->type);
+ if(base==MISSION_RACE)snprintf(out,cap,"Race Control has your entry! Launch and follow the start waypoint. Fly within 450 metres of the grid to line up. Pass every checkpoint in order. %s. One attempt; the agreed reward is %.0f units.",race_contract_goal(j),pay);
+ else if(j->type==MISSION_MEMORIAL)snprintf(out,cap,"I need you to carry a memorial consignment to %s Hub. Please handle it with care; the family has put %.1f units aside for you when it arrives.",dest,pay);
+ else if(base==MISSION_BOUNTY)snprintf(out,cap,"Your target was last reported in %s. Identify the right ship and stop it; the confirmed bounty is %.1f units.",dest,pay);
+ else if(base==MISSION_EXPLORATION)snprintf(out,cap,"Head to %s and survey the marked world for us. Bring back a clean scan and the desk will release %.1f units.",dest,pay);
+ else if(base==MISSION_RESCUE)snprintf(out,cap,"Someone is waiting for help in %s. Find the marked contact, bring them safely to the hub and we'll pay you %.1f units.",dest,pay);
+ else if(base==MISSION_SMUGGLING)snprintf(out,cap,"Take the sealed consignment to %s Hub and keep it away from Law scans. Quiet delivery pays %.1f units.",dest,pay);
+ else snprintf(out,cap,"Take the reserved cargo to %s Hub and make sure it arrives intact. The job pays %.1f units on delivery.",dest,pay);
+}
 static void campaign_screen(void){
  char title[96],detail[256];
+ if(tracked_mission==TRACK_ERL){dialogue_begin("INTRODUCTION TO THE ERL");erl_objective(&game,detail,sizeof(detail));dialogue_speech(game.erl.referral?erl_organiser(&game,erl_destination()):"TORR BELL",TRADERS,(int)(game.erl.referral?portrait_seeded(erl_destination()*173u+61u,TRADERS,0):erl_portrait(0)),game.erl.referral?"Your place on the grid is waiting. Come and see me at the Capitol; we will get you ready for your next race.":"I have been fixing racing ships for years. Fancy showing me what you can do? Meet me at Lave Hub for a test flight.",0);dialogue_objective(detail);dialogue_reply(0,"Navigate to racing objective");dialogue_reply(1,"Go to mission log");narrative_footer();return;}
  if(tracked_mission==TRACK_LAVE){dialogue_begin("LAVE / BERTH SIX");dialogue_named("MARA",TRADERS,"A missing manifest links the canteen shift, Chandlery, Clinic and Customs. Help the crew get their medicine shipment moving.",0);dialogue_context("CURRENT OBJECTIVE",sc_lave_objective());dialogue_reply(0,"Return to station / navigate");narrative_footer();return;}
  if(tracked_mission==TRACK_STATION_TOUR&&station_tour_active()){
   dialogue_begin(station_tour_title());
@@ -14,10 +26,10 @@ static void campaign_screen(void){
  if(tracked_mission>=2){
   int ji=tracked_mission-2;if(ji<0||ji>=game.job_n){tracked_mission=0;campaign_screen();return;}
   Job *j=&game.jobs[ji];snprintf(title,sizeof(title),"CONTRACT / %s",mission_name(j->type));dialogue_begin(title);
-  snprintf(detail,sizeof(detail),"Destination: %s. Reward: %.1f U. Your next step is below.",game.systems[j->dest].name,j->reward*.1f);
-  dialogue_named("MISSION DESK",TRADERS,detail,0);
-  dialogue_context("CURRENT OBJECTIVE",mission_objective_at(&game,ji));
-  dialogue_reply(0,"Navigate to objective");dialogue_reply(1,"Return to mission log");narrative_footer();return;
+  mission_agent_brief(detail,sizeof(detail),j);
+  dialogue_named(expedition_sender(j->type),expedition_def(j->type)?expedition_def(j->type)->role:TRADERS,detail,0);
+  dialogue_objective(mission_objective_at(&game,ji));
+  dialogue_reply(0,"Navigate to objective");dialogue_reply(1,"Go to mission log");narrative_footer();return;
  }
  if(game.campaign_stage>=6){
   if(game.saga_chapter>=SAGA_COUNT){
@@ -43,7 +55,7 @@ static void campaign_screen(void){
   }
   const char *next=b->objective;
   if(saga_ready(&game))next="The objective is complete. Choose Complete chapter below to report your result.";
-  else if(game.system!=game.saga_dest)next="Choose Set course below. Follow the highlighted jumps on the Galaxy Map to the destination shown here.";
+  else if(game.system!=game.saga_dest)next="Choose Set course below. Follow the highlighted jumps on Galaxy.Maps to the destination shown here.";
   else if(game.saga_chapter==1&&(game.saga_flags&SAGA_OBSERVATION_RESET))next="The observation was interrupted. Let the ship cool, jump out and return to this system before scanning the signal again.";
   else if(b->kind==SAGA_SCAN)next=game.saga_chapter==1?"Select the first anomaly in the target list, approach it and press Triangle to scan. Keep the engines cool and do not fire.":"Select an unscanned anomaly in the target list, approach it and press Triangle to scan. Return here once the discovery is recorded.";
   else if(b->kind==SAGA_HUNT)next="Launch if you are docked. Find a hostile ship in this system and defeat it, then return here to report.";
@@ -73,7 +85,7 @@ static void campaign_screen(void){
  const char *a,*b;
  if(game.system!=7){
   a="I am waiting at Lave Hub. Your first flight starts and ends here, so come back to Lave before continuing.";
-  b="Choose the route option below to open the Galaxy Map. Follow the selected jumps, then approach Lave Hub and press Triangle, then choose REQUEST AUTO-DOCK.";
+  b="Choose the route option below to open Galaxy.Maps. Follow the selected jumps, then approach Lave Hub and press Triangle, then choose REQUEST AUTO-DOCK.";
  }else if(game.campaign_stage==0){
   a="We should discuss the flight while you are safely docked. Approach Lave Hub and press Triangle when you are within 2,500 metres.";
   b="The station will bring you to a berth. Open Tracked Mission again once you are inside, and I will explain the assignment.";
@@ -82,7 +94,7 @@ static void campaign_screen(void){
   b="There is no deadline. Press Select whenever you want to pause and read your next step here.";
  }else if(game.campaign_stage==2&&!(game.campaign_flags&CP_LOCKED)){
   a="You are clear of the berth. Keep Lave Hub on your scanner so you can find your way back.";
-  b="Hold Square to open the target list. Use Left or Right to find Stations, Up or Down to select the hub, and R to lock it. Release Square to fly.";
+  b="Tap Square for the target computer. Left/Right finds Stations, Up/Down highlights the hub. Hold R and press X to confirm and align. Square closes; flight continues.";
  }else if(!(game.campaign_flags&CP_FLEW)&&game.campaign_stage<5){
   a="Keep practising your turns and speed until the flight recorder shows 600 metres travelled. You can check your progress here.";
   b="Hold R to accelerate and L to slow down. There is no need to boost or leave the Lave system.";

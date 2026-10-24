@@ -25,9 +25,9 @@
   int kinds=0;for(int k=0;k<7;k++)kinds+=shop_kinds[k];
   INPUT_CHECK(stock_ok&&kinds>=4&&shop_names>=10,"outfitting: deterministic station shop signs vary by stocked specialty");
  }
- int coverage=1;for(int i=1;i<EQUIP_COUNT;i++)if(i!=23&&!offered[i])coverage=0;
+ int coverage=1;for(int i=1;i<TECH_ERL_VECTOR_GOVERNOR;i++)if(i!=23&&!offered[i])coverage=0;
  INPUT_CHECK(coverage,"outfitting: every public item is obtainable somewhere, including Heat Buffer");
- for(int item=1;item<EQUIP_COUNT;item++)if(item!=3){
+ for(int item=1;item<TECH_ERL_VECTOR_GOVERNOR;item++)if(item!=3){
   TEST_INIT();fit_clear_all(&game);fit_rebuild(&game);game.credits=100000;game.systems[game.system].tech=15;
   for(int e=0;e<8;e++){game.systems[game.system].economy=e;if(equipment_in_stock(item)||item==23)break;}
   int slot=equip_slot_for(item),cash=game.credits;
